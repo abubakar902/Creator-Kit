@@ -4,235 +4,418 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CreatorKit AI - Free Creator Tools</title>
+<meta name="theme-color" content="#0b0718">
+<title>CreatorKit AI — Creator Tools</title>
+
 <style>
-*{box-sizing:border-box}
-body{margin:0;font-family:Arial,sans-serif;background:#0b1020;color:#f4f6ff}
-header{text-align:center;padding:35px 15px;background:linear-gradient(135deg,#171d3b,#33205a)}
-header h1{margin:0;font-size:34px;color:#a99bff}
-header p{color:#d1d5e8}
-main{max-width:850px;margin:25px auto;padding:15px}
-.card{background:#151c30;border:1px solid #303957;border-radius:14px;padding:20px;margin-bottom:18px}
-h2{margin-top:0;color:#b9aaff;font-size:21px}
-label{display:block;margin:14px 0 7px}
-input,textarea,select{width:100%;padding:12px;border-radius:8px;border:1px solid #46506f;background:#0b1020;color:white;font-size:16px}
-textarea{min-height:90px;resize:vertical}
-button{border:0;border-radius:8px;background:#8065f5;color:white;padding:12px 16px;font-size:15px;font-weight:bold;cursor:pointer;margin-top:12px}
-button:hover{background:#9a85ff}
-.output{white-space:pre-wrap;overflow-wrap:anywhere;background:#0b1020;border:1px solid #394362;padding:13px;border-radius:8px;min-height:45px;margin-top:12px}
-.copy{background:#28334d}
-footer{text-align:center;padding:25px;color:#aeb6d0}
-.small{font-size:13px;color:#aeb6d0}
+:root {
+  --bg:#0b0718;
+  --card:#17112b;
+  --border:#352751;
+  --text:#f7f3ff;
+  --muted:#b6accf;
+  --purple:#a78bfa;
+}
+* { box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body {
+  margin:0;
+  font-family:Arial,Helvetica,sans-serif;
+  background:radial-gradient(ellipse at top,#30205b 0%,transparent 45%),var(--bg);
+  color:var(--text);
+  line-height:1.6;
+}
+a { color:inherit;text-decoration:none; }
+button,input,select { font:inherit; }
+.nav {
+  position:sticky;top:0;z-index:10;
+  background:rgba(11,7,24,.92);
+  border-bottom:1px solid #352751;
+}
+.nav-inner {
+  max-width:1120px;margin:auto;padding:14px 20px;
+  display:flex;justify-content:space-between;align-items:center;gap:15px;
+}
+.brand { display:flex;align-items:center;gap:10px;font-size:18px;font-weight:800; }
+.logo {
+  width:36px;height:36px;display:grid;place-items:center;
+  border-radius:12px;background:linear-gradient(135deg,#a78bfa,#d946ef);
+  font-size:21px;
+}
+.nav-links { display:flex;gap:20px;color:var(--muted);font-size:14px; }
+.nav-links a:hover { color:white; }
+.gradient {
+  background:linear-gradient(100deg,#c4b5fd,#e879f9,#a5b4fc);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.hero {
+  max-width:950px;margin:auto;padding:70px 20px 48px;text-align:center;
+}
+.eyebrow {
+  display:inline-block;padding:6px 13px;border:1px solid #4b3474;
+  border-radius:30px;background:#1a1231;color:#d8caff;
+  font-size:12px;font-weight:bold;letter-spacing:1px;
+}
+h1 { font-size:clamp(38px,7vw,64px);line-height:1.1;letter-spacing:-2px;margin:22px 0; }
+.hero p { max-width:650px;margin:auto;color:var(--muted);font-size:17px; }
+.actions { display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:27px; }
+.btn {
+  display:inline-flex;justify-content:center;align-items:center;
+  border:0;border-radius:11px;padding:12px 17px;
+  font-weight:bold;cursor:pointer;transition:.2s;
+}
+.btn:hover { transform:translateY(-2px);filter:brightness(1.1); }
+.primary { background:linear-gradient(135deg,#a78bfa,#7c3aed);color:white; }
+.secondary { background:#211735;border:1px solid #493464;color:white; }
+.features { display:flex;justify-content:center;gap:20px;flex-wrap:wrap;margin-top:25px;color:#b6accf;font-size:12px; }
+.features span:before { content:"✓ ";color:#c4b5fd; }
+.section { max-width:1120px;margin:auto;padding:20px 20px 60px; }
+.heading { display:flex;justify-content:space-between;align-items:end;gap:15px;margin-bottom:22px; }
+.heading h2 { margin:0;font-size:28px;letter-spacing:-.5px; }
+.heading p { margin:4px 0 0;color:var(--muted);font-size:14px; }
+.count { color:#d5c6ff;background:#20173b;border:1px solid #3b2c5d;border-radius:30px;padding:6px 11px;font-size:12px;white-space:nowrap; }
+.grid { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px; }
+.tool-card {
+  min-width:0;padding:20px;border:1px solid var(--border);border-radius:18px;
+  background:linear-gradient(155deg,#1d1536,#110c21);
+  box-shadow:0 12px 35px #0002;transition:border-color .2s,transform .2s;
+}
+.tool-card:hover { border-color:#8b5cf6;transform:translateY(-3px); }
+.card-head { display:flex;align-items:center;gap:12px;margin-bottom:14px; }
+.tool-icon {
+  width:44px;height:44px;flex-shrink:0;display:grid;place-items:center;
+  border-radius:13px;background:linear-gradient(145deg,#392363,#24153e);
+  border:1px solid #4a3471;font-size:21px;
+}
+.tool-card h3 { font-size:17px;margin:0; }
+.sub { color:#a99cbe;font-size:12px;margin-top:2px; }
+label { display:block;font-size:13px;font-weight:bold;color:#ddd3f2;margin:14px 0 7px; }
+input,select {
+  width:100%;min-width:0;padding:12px;border-radius:10px;
+  border:1px solid #392d56;background:#0d091b;color:white;outline:none;
+}
+input::placeholder { color:#786b94; }
+input:focus,select:focus { border-color:#a78bfa;box-shadow:0 0 0 3px #a78bfa22; }
+select option { background:#15102a; }
+.generate { width:100%;margin-top:14px; }
+.output-wrap { margin-top:15px; }
+.output-label { color:#c9b9e9;font-size:11px;font-weight:bold;letter-spacing:.7px; }
+.output {
+  margin-top:7px;min-height:72px;max-height:320px;overflow:auto;
+  white-space:pre-wrap;overflow-wrap:anywhere;padding:12px;
+  background:#0d091b;border:1px solid #2e2348;border-radius:10px;
+  color:#e7def7;font-size:13px;
+}
+.copy-row { display:flex;justify-content:flex-end;margin-top:8px; }
+.copy-btn { padding:8px 12px;background:#241a3e;border:1px solid #453263;color:#eee7ff;font-size:12px; }
+.about { max-width:1120px;margin:0 auto 50px;padding:0 20px; }
+.about-box { display:flex;gap:18px;padding:25px;border:1px solid var(--border);border-radius:18px;background:#17102b; }
+.about-box h2 { margin:0 0 8px;font-size:22px; }
+.about-box p { margin:0;color:var(--muted);font-size:14px; }
+.about-icon { font-size:27px; }
+footer { border-top:1px solid #251b3d;padding:24px 15px;text-align:center;color:#9386ac;font-size:12px; }
+footer a { color:#c4b5fd;margin:0 8px; }
+.toast {
+  display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+  padding:11px 16px;background:#e9ddff;color:#261441;border-radius:10px;
+  font-weight:bold;font-size:13px;z-index:20;max-width:90%;
+}
+@media(max-width:900px) {
+  .grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+@media(max-width:600px) {
+  .nav-inner { padding:12px 14px; }
+  .brand { font-size:15px; }
+  .logo { width:32px;height:32px; }
+  .nav-links { gap:12px;font-size:12px; }
+  .hero { padding:48px 16px 35px; }
+  h1 { letter-spacing:-1px; }
+  .hero p { font-size:15px; }
+  .section { padding:18px 14px 45px; }
+  .grid { grid-template-columns:1fr;gap:13px; }
+  .heading { align-items:flex-start;flex-direction:column; }
+  .tool-card { padding:17px; }
+  .about { padding:0 14px; }
+  .about-box { padding:19px; }
+}
 </style>
 </head>
+
 <body>
-<header>
-<h1>CreatorKit AI</h1>
-<p>Free tools for YouTubers and content creators</p>
+<nav class="nav">
+  <div class="nav-inner">
+    <a class="brand" href="#home">
+      <span class="logo">✦</span>
+      <span>CreatorKit <span class="gradient">AI</span></span>
+    </a>
+    <div class="nav-links">
+      <a href="#home">Home</a>
+      <a href="#tools">Tools</a>
+      <a href="#about">About</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero" id="home">
+  <div class="eyebrow">✦ FREE TOOLS FOR CREATORS</div>
+  <h1>Create better content.<br><span class="gradient">Grow your audience.</span></h1>
+  <p>Your simple creator workspace for YouTube titles, captions, hashtags, descriptions, hooks, and Shorts scripts — all in one place.</p>
+  <div class="actions">
+    <a class="btn primary" href="#tools">Explore Free Tools ↓</a>
+    <a class="btn secondary" href="#about">Discover CreatorKit</a>
+  </div>
+  <div class="features">
+    <span>Free to use</span><span>Quick results</span><span>Made for creators</span>
+  </div>
 </header>
 
-<main>
-<section class="card">
-<h2>1. YouTube Title Generator</h2>
-<label for="titleTopic">Video topic</label>
-<input id="titleTopic" placeholder="e.g. Best AI tools for students">
-<button onclick="generateTitles()">Generate Titles</button>
-<div id="titleOutput" class="output">Your titles will appear here.</div>
-<button class="copy" onclick="copyResult('titleOutput')">Copy Results</button>
-</section>
+<main class="section" id="tools">
+  <div class="heading">
+    <div>
+      <h2>Your Creator Toolkit</h2>
+      <p>Choose a tool and start creating in seconds.</p>
+    </div>
+    <span class="count">✦ 6 FREE TOOLS</span>
+  </div>
 
-<section class="card">
-<h2>2. Social Media Caption Generator</h2>
-<label for="captionTopic">What is your post about?</label>
-<input id="captionTopic" placeholder="e.g. My new gaming setup">
-<label for="captionPlatform">Platform</label>
-<select id="captionPlatform">
-<option>Instagram</option><option>Facebook</option><option>TikTok</option><option>YouTube</option>
-</select>
-<button onclick="generateCaption()">Generate Captions</button>
-<div id="captionOutput" class="output">Your captions will appear here.</div>
-<button class="copy" onclick="copyResult('captionOutput')">Copy Results</button>
-</section>
+  <div class="grid">
 
-<section class="card">
-<h2>3. Hashtag Generator</h2>
-<label for="hashtagTopic">Topic or keywords</label>
-<input id="hashtagTopic" placeholder="e.g. cricket, gaming, technology">
-<button onclick="generateHashtags()">Generate Hashtags</button>
-<div id="hashtagOutput" class="output">Your hashtags will appear here.</div>
-<button class="copy" onclick="copyResult('hashtagOutput')">Copy Results</button>
-</section>
+    <section class="tool-card">
+      <div class="card-head">
+        <div class="tool-icon">▶</div>
+        <div><h3>YouTube Title Generator</h3><div class="sub">Create clickable video titles</div></div>
+      </div>
+      <label for="titleTopic">Video topic</label>
+      <input id="titleTopic" placeholder="e.g. Best AI tools for students">
+      <button class="btn primary generate" onclick="generateTitles()">Generate Titles ↗</button>
+      <div class="output-wrap"><div class="output-label">YOUR RESULTS</div><div id="titleOutput" class="output" aria-live="polite">Your title ideas will appear here.</div><div class="copy-row"><button class="btn copy-btn" onclick="copyResult('titleOutput')">Copy Results</button></div></div>
+    </section>
 
-<section class="card">
-<h2>4. YouTube Description Generator</h2>
-<label for="descTopic">Video topic</label>
-<input id="descTopic" placeholder="e.g. 5 free AI tools">
-<label for="descKeywords">Keywords (optional)</label>
-<input id="descKeywords" placeholder="e.g. AI tools, free tools, tutorial">
-<button onclick="generateDescription()">Generate Description</button>
-<div id="descOutput" class="output">Your description will appear here.</div>
-<button class="copy" onclick="copyResult('descOutput')">Copy Description</button>
-</section>
+    <section class="tool-card">
+      <div class="card-head">
+        <div class="tool-icon">✍️</div>
+        <div><h3>Caption Generator</h3><div class="sub">Captions for social posts</div></div>
+      </div>
+      <label for="captionTopic">What is your post about?</label>
+      <input id="captionTopic" placeholder="e.g. My new gaming setup">
+      <label for="captionPlatform">Platform</label>
+      <select id="captionPlatform"><option>Instagram</option><option>Facebook</option><option>TikTok</option><option>YouTube</option></select>
+      <button class="btn primary generate" onclick="generateCaption()">Generate Captions ↗</button>
+      <div class="output-wrap"><div class="output-label">YOUR RESULTS</div><div id="captionOutput" class="output" aria-live="polite">Your captions will appear here.</div><div class="copy-row"><button class="btn copy-btn" onclick="copyResult('captionOutput')">Copy Results</button></div></div>
+    </section>
 
-<section class="card">
-<h2>5. Viral Hook Generator</h2>
-<label for="hookTopic">Video topic</label>
-<input id="hookTopic" placeholder="e.g. Online earning for beginners">
-<button onclick="generateHooks()">Generate Hooks</button>
-<div id="hookOutput" class="output">Your hooks will appear here.</div>
-<button class="copy" onclick="copyResult('hookOutput')">Copy Results</button>
-</section>
+    <section class="tool-card">
+      <div class="card-head">
+        <div class="tool-icon">#️⃣</div>
+        <div><h3>Hashtag Generator</h3><div class="sub">Find relevant hashtag ideas</div></div>
+      </div>
+      <label for="hashtagTopic">Topic or keywords</label>
+      <input id="hashtagTopic" placeholder="e.g. cricket, gaming, technology">
+      <button class="btn primary generate" onclick="generateHashtags()">Generate Hashtags ↗</button>
+      <div class="output-wrap"><div class="output-label">YOUR RESULTS</div><div id="hashtagOutput" class="output" aria-live="polite">Your hashtags will appear here.</div><div class="copy-row"><button class="btn copy-btn" onclick="copyResult('hashtagOutput')">Copy Results</button></div></div>
+    </section>
 
-<section class="card">
-<h2>6. YouTube Shorts Script Generator</h2>
-<label for="scriptTopic">Shorts topic</label>
-<input id="scriptTopic" placeholder="e.g. 3 useful websites">
-<label for="scriptDuration">Video length</label>
-<select id="scriptDuration">
-<option value="15">15 seconds</option>
-<option value="30" selected>30 seconds</option>
-<option value="60">60 seconds</option>
-</select>
-<button onclick="generateScript()">Generate Script</button>
-<div id="scriptOutput" class="output">Your script will appear here.</div>
-<button class="copy" onclick="copyResult('scriptOutput')">Copy Script</button>
-</section>
+    <section class="tool-card">
+      <div class="card-head">
+        <div class="tool-icon">📝</div>
+        <div><h3>YouTube Description</h3><div class="sub">Draft a video description</div></div>
+      </div>
+      <label for="descTopic">Video topic</label>
+      <input id="descTopic" placeholder="e.g. 5 free AI tools">
+      <label for="descKeywords">Keywords (optional)</label>
+      <input id="descKeywords" placeholder="e.g. AI tools, free tools">
+      <button class="btn primary generate" onclick="generateDescription()">Generate Description ↗</button>
+      <div class="output-wrap"><div class="output-label">YOUR RESULTS</div><div id="descOutput" class="output" aria-live="polite">Your description will appear here.</div><div class="copy-row"><button class="btn copy-btn" onclick="copyResult('descOutput')">Copy Description</button></div></div>
+    </section>
 
-<section class="card">
-<h2>About CreatorKit</h2>
-<p>CreatorKit provides simple content-writing tools for creators, YouTubers and social media users.</p>
-<p class="small">These free tools generate text using built-in templates. They do not currently connect to a live AI service.</p>
-</section>
+    <section class="tool-card">
+      <div class="card-head">
+        <div class="tool-icon">⚡</div>
+        <div><h3>Viral Hook Generator</h3><div class="sub">Opening lines to grab attention</div></div>
+      </div>
+      <label for="hookTopic">Video topic</label>
+      <input id="hookTopic" placeholder="e.g. Online earning for beginners">
+      <button class="btn primary generate" onclick="generateHooks()">Generate Hooks ↗</button>
+      <div class="output-wrap"><div class="output-label">YOUR RESULTS</div><div id="hookOutput" class="output" aria-live="polite">Your hooks will appear here.</div><div class="copy-row"><button class="btn copy-btn" onclick="copyResult('hookOutput')">Copy Results</button></div></div>
+    </section>
+
+    <section class="tool-card">
+      <div class="card-head">
+        <div class="tool-icon">🎬</div>
+        <div><h3>Shorts Script Generator</h3><div class="sub">Plan your next short video</div></div>
+      </div>
+      <label for="scriptTopic">Shorts topic</label>
+      <input id="scriptTopic" placeholder="e.g. 3 useful websites">
+      <label for="scriptDuration">Video length</label>
+      <select id="scriptDuration"><option value="15">15 seconds</option><option value="30" selected>30 seconds</option><option value="60">60 seconds</option></select>
+      <button class="btn primary generate" onclick="generateScript()">Generate Script ↗</button>
+      <div class="output-wrap"><div class="output-label">YOUR RESULTS</div><div id="scriptOutput" class="output" aria-live="polite">Your script will appear here.</div><div class="copy-row"><button class="btn copy-btn" onclick="copyResult('scriptOutput')">Copy Script</button></div></div>
+    </section>
+
+  </div>
 </main>
 
-<footer>CreatorKit © 2026 · Free Creator Tools</footer>
+<section class="about" id="about">
+  <div class="about-box">
+    <div class="about-icon">✦</div>
+    <div>
+      <h2>Made for Your Next Big Idea</h2>
+      <p>CreatorKit brings everyday content tools together in one simple workspace. Use the results as a starting point, then add your own voice and creativity. These tools currently use built-in templates and do not connect to a live AI service.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  © 2026 CreatorKit AI · Built for Creators
+  <br><div style="margin-top:9px"><a href="#home">Home</a><a href="#tools">Tools</a><a href="#about">About</a></div>
+</footer>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
-function getValue(id){
+function getValue(id) {
   return document.getElementById(id).value.trim();
 }
-function showResult(id,text){
-  document.getElementById(id).textContent=text;
+function showResult(id, text) {
+  document.getElementById(id).textContent = text;
 }
-function requireTopic(id,outputId){
-  const topic=getValue(id);
-  if(!topic){
-    showResult(outputId,"Please enter a topic first.");
+function requireTopic(id, outputId) {
+  const topic = getValue(id);
+  if (!topic) {
+    showResult(outputId, "Please enter a topic first.");
     document.getElementById(id).focus();
     return "";
   }
   return topic;
 }
-function generateTitles(){
-  const t=requireTopic("titleTopic","titleOutput");
-  if(!t)return;
-  showResult("titleOutput",[
-    "1. "+t+": Everything You Need to Know",
-    "2. I Tried "+t+" — Here's What Happened",
-    "3. "+t+" for Beginners (Easy Guide)",
-    "4. 5 Things You Should Know About "+t,
-    "5. The Truth About "+t,
-    "6. Don't Make These "+t+" Mistakes",
-    "7. How to Get Started With "+t,
-    "8. "+t+": Tips You Shouldn't Miss",
-    "9. Is "+t+" Worth It? Here's My Take",
-    "10. The Simple Guide to "+t
+
+function generateTitles() {
+  const t = requireTopic("titleTopic", "titleOutput");
+  if (!t) return;
+  showResult("titleOutput", [
+    "1. " + t + ": Everything You Need to Know",
+    "2. I Tried " + t + " — Here's What Happened",
+    "3. " + t + " for Beginners (Easy Guide)",
+    "4. 5 Things You Should Know About " + t,
+    "5. The Truth About " + t,
+    "6. Don't Make These " + t + " Mistakes",
+    "7. How to Get Started With " + t,
+    "8. " + t + ": Tips You Shouldn't Miss",
+    "9. Is " + t + " Worth It? Here's My Take",
+    "10. The Simple Guide to " + t
   ].join("\n\n"));
 }
-function generateCaption(){
-  const t=requireTopic("captionTopic","captionOutput");
-  if(!t)return;
-  const p=getValue("captionPlatform");
+
+function generateCaption() {
+  const t = requireTopic("captionTopic", "captionOutput");
+  if (!t) return;
   showResult("captionOutput",
-    "1. ✨ "+t+" — something worth sharing!\n\n"+
-    "2. A little update about "+t+" 💫 What do you think?\n\n"+
-    "3. Here’s your reminder to keep going! 🚀 "+t+"\n\n"+
-    "4. New post, new vibes! 🔥 "+t+"\n\n"+
-    "5. If you love "+t+", this one's for you! ❤️\n\n"+
-    "Platform: "+p+"\n\n#ContentCreator #NewPost #Explore"
+    "1. ✨ " + t + " — something worth sharing!\n\n" +
+    "2. A little update about " + t + " 💫 What do you think?\n\n" +
+    "3. Here’s your reminder to keep going! 🚀 " + t + "\n\n" +
+    "4. New post, new vibes! 🔥 " + t + "\n\n" +
+    "5. If you love " + t + ", this one's for you! ❤️\n\n" +
+    "Platform: " + getValue("captionPlatform") + "\n\n" +
+    "#ContentCreator #NewPost #Explore"
   );
 }
-function generateHashtags(){
-  const t=requireTopic("hashtagTopic","hashtagOutput");
-  if(!t)return;
-  const words=t.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
-  const tags=words.map(w=>"#"+w);
-  const general=["#ContentCreator","#Trending","#ExplorePage","#NewPost","#TipsAndTricks","#DigitalContent","#LearnSomethingNew","#CreatorCommunity"];
-  showResult("hashtagOutput",[...new Set([...tags,...general])].join(" "));
+
+function generateHashtags() {
+  const t = requireTopic("hashtagTopic", "hashtagOutput");
+  if (!t) return;
+  const tags = t.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean).map(w => "#" + w);
+  const general = ["#ContentCreator","#Trending","#ExplorePage","#NewPost","#TipsAndTricks","#DigitalContent","#LearnSomethingNew","#CreatorCommunity"];
+  showResult("hashtagOutput", [...new Set([...tags, ...general])].join(" "));
 }
-function generateDescription(){
-  const t=requireTopic("descTopic","descOutput");
-  if(!t)return;
-  const k=getValue("descKeywords");
+
+function generateDescription() {
+  const t = requireTopic("descTopic", "descOutput");
+  if (!t) return;
+  const k = getValue("descKeywords");
   showResult("descOutput",
-    "Welcome back to the channel! 🎉\n\n"+
-    "In this video, we explore "+t+". Watch until the end to learn more and discover useful ideas you can try yourself.\n\n"+
-    "👇 IN THIS VIDEO\n"+
-    "• An introduction to "+t+"\n"+
-    "• Useful tips and ideas\n"+
-    "• How to get started\n\n"+
-    (k?"🔎 KEYWORDS\n"+k+"\n\n":"")+
-    "If you enjoyed this video, please LIKE, COMMENT, and SUBSCRIBE for more content!\n\n"+
-    "📌 Subscribe for more videos and tutorials.\n\n"+
-    "#YouTube #Tutorial #Tips"
+    "Welcome back to the channel! 🎉\n\n" +
+    "In this video, we explore " + t + ". Watch until the end to learn more and discover useful ideas you can try yourself.\n\n" +
+    "👇 IN THIS VIDEO\n" +
+    "• An introduction to " + t + "\n" +
+    "• Useful tips and ideas\n" +
+    "• How to get started\n\n" +
+    (k ? "🔎 KEYWORDS\n" + k + "\n\n" : "") +
+    "If you enjoyed this video, please LIKE, COMMENT, and SUBSCRIBE for more content!\n\n" +
+    "📌 Subscribe for more videos and tutorials.\n\n#YouTube #Tutorial #Tips"
   );
 }
-function generateHooks(){
-  const t=requireTopic("hookTopic","hookOutput");
-  if(!t)return;
-  showResult("hookOutput",[
-    "1. Stop scrolling! Here's something you should know about "+t+".",
-    "2. Most beginners make this mistake with "+t+".",
-    "3. What if I told you that "+t+" could be easier than you think?",
-    "4. Before you try "+t+", watch this.",
-    "5. Here are three things I wish I knew about "+t+".",
-    "6. Nobody explained "+t+" to me like this.",
-    "7. If you're interested in "+t+", this video is for you.",
-    "8. Here's a simple way to understand "+t+".",
-    "9. Don't miss these useful tips about "+t+".",
-    "10. Let's break down "+t+" in seconds."
+
+function generateHooks() {
+  const t = requireTopic("hookTopic", "hookOutput");
+  if (!t) return;
+  showResult("hookOutput", [
+    "1. Stop scrolling! Here's something you should know about " + t + ".",
+    "2. Most beginners make this mistake with " + t + ".",
+    "3. What if I told you that " + t + " could be easier than you think?",
+    "4. Before you try " + t + ", watch this.",
+    "5. Here are three things I wish I knew about " + t + ".",
+    "6. Nobody explained " + t + " to me like this.",
+    "7. If you're interested in " + t + ", this video is for you.",
+    "8. Here's a simple way to understand " + t + ".",
+    "9. Don't miss these useful tips about " + t + ".",
+    "10. Let's break down " + t + " in seconds."
   ].join("\n\n"));
 }
-function generateScript(){
-  const t=requireTopic("scriptTopic","scriptOutput");
-  if(!t)return;
-  const duration=Number(getValue("scriptDuration"));
-  let script;
-  if(duration===15){
-    script="HOOK (0–3 sec): Stop scrolling! Here's something about "+t+".\n\n"+
-    "MAIN (3–11 sec): First, understand the basics. Then try one simple step and see what works best for you.\n\n"+
+
+function generateScript() {
+  const t = requireTopic("scriptTopic", "scriptOutput");
+  if (!t) return;
+  const d = Number(getValue("scriptDuration"));
+  let s;
+
+  if (d === 15) {
+    s = "HOOK (0–3 sec): Stop scrolling! Here's something about " + t + ".\n\n" +
+    "MAIN (3–11 sec): First, understand the basics. Then try one simple step and see what works best for you.\n\n" +
     "ENDING (11–15 sec): Follow for more useful tips!";
-  }else if(duration===60){
-    script="HOOK (0–5 sec): Want to learn about "+t+"? Watch this!\n\n"+
-    "INTRO (5–12 sec): Let's make this simple and easy to understand.\n\n"+
-    "POINT 1 (12–25 sec): Start with the basics. Learn what it is and why it matters.\n\n"+
-    "POINT 2 (25–38 sec): Try one practical example related to "+t+". Take your time and practise.\n\n"+
-    "POINT 3 (38–50 sec): Avoid rushing. Keep learning and focus on what works for you.\n\n"+
+  } else if (d === 60) {
+    s = "HOOK (0–5 sec): Want to learn about " + t + "? Watch this!\n\n" +
+    "INTRO (5–12 sec): Let's make this simple and easy to understand.\n\n" +
+    "POINT 1 (12–25 sec): Start with the basics. Learn what it is and why it matters.\n\n" +
+    "POINT 2 (25–38 sec): Try one practical example related to " + t + ". Take your time and practise.\n\n" +
+    "POINT 3 (38–50 sec): Avoid rushing. Keep learning and focus on what works for you.\n\n" +
     "ENDING (50–60 sec): Which tip did you find most useful? Comment below and follow for more!";
-  }else{
-    script="HOOK (0–4 sec): Here's something useful about "+t+".\n\n"+
-    "INTRO (4–8 sec): Let's get straight to the point.\n\n"+
-    "MAIN (8–23 sec): Start with the basics, try one practical example, and practise consistently. Keep it simple and focus on learning one step at a time.\n\n"+
+  } else {
+    s = "HOOK (0–4 sec): Here's something useful about " + t + ".\n\n" +
+    "INTRO (4–8 sec): Let's get straight to the point.\n\n" +
+    "MAIN (8–23 sec): Start with the basics, try one practical example, and practise consistently. Keep it simple and focus on learning one step at a time.\n\n" +
     "ENDING (23–30 sec): Save this video and follow for more useful tips!";
   }
-  showResult("scriptOutput",script);
+  showResult("scriptOutput", s);
 }
-async function copyResult(id){
-  const text=document.getElementById(id).textContent;
-  try{
-    await navigator.clipboard.writeText(text);
-    alert("Copied successfully!");
-  }catch(e){
-    const area=document.createElement("textarea");
-    area.value=text;
+
+function showToast(message) {
+  const el = document.getElementById("toast");
+  el.textContent = message;
+  el.style.display = "block";
+  clearTimeout(window.creatorToastTimer);
+  window.creatorToastTimer = setTimeout(function() {
+    el.style.display = "none";
+  }, 2200);
+}
+
+async function copyResult(id) {
+  const txt = document.getElementById(id).textContent;
+  try {
+    await navigator.clipboard.writeText(txt);
+    showToast("Copied to clipboard!");
+  } catch (e) {
+    const area = document.createElement("textarea");
+    area.value = txt;
+    area.style.position = "fixed";
+    area.style.opacity = "0";
     document.body.appendChild(area);
     area.select();
-    const copied=document.execCommand("copy");
+    let ok = false;
+    try { ok = document.execCommand("copy"); } catch (err) {}
     area.remove();
-    alert(copied?"Copied successfully!":"Please select and copy the text manually.");
+    showToast(ok ? "Copied to clipboard!" : "Copy not available — select the result text and copy it.");
   }
 }
 </script>
 </body>
   </html>
-
+          
