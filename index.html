@@ -415,6 +415,26 @@ async function copyResult(id) {
     showToast(ok ? "Copied to clipboard!" : "Copy not available — select the result text and copy it.");
   }
 }
+async function askGemini(prompt) {
+  const response = await fetch(
+    "https://kit-ai.abubakar647648.workers.dev",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ prompt })
+    }
+  );
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.details || data.error || "AI request failed");
+  }
+
+  return data.text;
+  }
 </script>
 </body>
   </html>
