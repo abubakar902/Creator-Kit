@@ -2,440 +2,543 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#0b0718">
-<title>CreatorKit AI — Creator Tools</title>
-
-<style>
-:root {
-  --bg:#0b0718;
-  --card:#17112b;
-  --border:#352751;
-  --text:#f7f3ff;
-  --muted:#b6accf;
-  --purple:#a78bfa;
-}
-* { box-sizing:border-box; }
-html { scroll-behavior:smooth; }
-body {
-  margin:0;
-  font-family:Arial,Helvetica,sans-serif;
-  background:radial-gradient(ellipse at top,#30205b 0%,transparent 45%),var(--bg);
-  color:var(--text);
-  line-height:1.6;
-}
-a { color:inherit;text-decoration:none; }
-button,input,select { font:inherit; }
-.nav {
-  position:sticky;top:0;z-index:10;
-  background:rgba(11,7,24,.92);
-  border-bottom:1px solid #352751;
-}
-.nav-inner {
-  max-width:1120px;margin:auto;padding:14px 20px;
-  display:flex;justify-content:space-between;align-items:center;gap:15px;
-}
-.brand { display:flex;align-items:center;gap:10px;font-size:18px;font-weight:800; }
-.logo {
-  width:36px;height:36px;display:grid;place-items:center;
-  border-radius:12px;background:linear-gradient(135deg,#a78bfa,#d946ef);
-  font-size:21px;
-}
-.nav-links { display:flex;gap:20px;color:var(--muted);font-size:14px; }
-.nav-links a:hover { color:white; }
-.gradient {
-  background:linear-gradient(100deg,#c4b5fd,#e879f9,#a5b4fc);
-  -webkit-background-clip:text;background-clip:text;color:transparent;
-}
-.hero {
-  max-width:950px;margin:auto;padding:70px 20px 48px;text-align:center;
-}
-.eyebrow {
-  display:inline-block;padding:6px 13px;border:1px solid #4b3474;
-  border-radius:30px;background:#1a1231;color:#d8caff;
-  font-size:12px;font-weight:bold;letter-spacing:1px;
-}
-h1 { font-size:clamp(38px,7vw,64px);line-height:1.1;letter-spacing:-2px;margin:22px 0; }
-.hero p { max-width:650px;margin:auto;color:var(--muted);font-size:17px; }
-.actions { display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:27px; }
-.btn {
-  display:inline-flex;justify-content:center;align-items:center;
-  border:0;border-radius:11px;padding:12px 17px;
-  font-weight:bold;cursor:pointer;transition:.2s;
-}
-.btn:hover { transform:translateY(-2px);filter:brightness(1.1); }
-.primary { background:linear-gradient(135deg,#a78bfa,#7c3aed);color:white; }
-.secondary { background:#211735;border:1px solid #493464;color:white; }
-.features { display:flex;justify-content:center;gap:20px;flex-wrap:wrap;margin-top:25px;color:#b6accf;font-size:12px; }
-.features span:before { content:"✓ ";color:#c4b5fd; }
-.section { max-width:1120px;margin:auto;padding:20px 20px 60px; }
-.heading { display:flex;justify-content:space-between;align-items:end;gap:15px;margin-bottom:22px; }
-.heading h2 { margin:0;font-size:28px;letter-spacing:-.5px; }
-.heading p { margin:4px 0 0;color:var(--muted);font-size:14px; }
-.count { color:#d5c6ff;background:#20173b;border:1px solid #3b2c5d;border-radius:30px;padding:6px 11px;font-size:12px;white-space:nowrap; }
-.grid { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px; }
-.tool-card {
-  min-width:0;padding:20px;border:1px solid var(--border);border-radius:18px;
-  background:linear-gradient(155deg,#1d1536,#110c21);
-  box-shadow:0 12px 35px #0002;transition:border-color .2s,transform .2s;
-}
-.tool-card:hover { border-color:#8b5cf6;transform:translateY(-3px); }
-.card-head { display:flex;align-items:center;gap:12px;margin-bottom:14px; }
-.tool-icon {
-  width:44px;height:44px;flex-shrink:0;display:grid;place-items:center;
-  border-radius:13px;background:linear-gradient(145deg,#392363,#24153e);
-  border:1px solid #4a3471;font-size:21px;
-}
-.tool-card h3 { font-size:17px;margin:0; }
-.sub { color:#a99cbe;font-size:12px;margin-top:2px; }
-label { display:block;font-size:13px;font-weight:bold;color:#ddd3f2;margin:14px 0 7px; }
-input,select {
-  width:100%;min-width:0;padding:12px;border-radius:10px;
-  border:1px solid #392d56;background:#0d091b;color:white;outline:none;
-}
-input::placeholder { color:#786b94; }
-input:focus,select:focus { border-color:#a78bfa;box-shadow:0 0 0 3px #a78bfa22; }
-select option { background:#15102a; }
-.generate { width:100%;margin-top:14px; }
-.output-wrap { margin-top:15px; }
-.output-label { color:#c9b9e9;font-size:11px;font-weight:bold;letter-spacing:.7px; }
-.output {
-  margin-top:7px;min-height:72px;max-height:320px;overflow:auto;
-  white-space:pre-wrap;overflow-wrap:anywhere;padding:12px;
-  background:#0d091b;border:1px solid #2e2348;border-radius:10px;
-  color:#e7def7;font-size:13px;
-}
-.copy-row { display:flex;justify-content:flex-end;margin-top:8px; }
-.copy-btn { padding:8px 12px;background:#241a3e;border:1px solid #453263;color:#eee7ff;font-size:12px; }
-.about { max-width:1120px;margin:0 auto 50px;padding:0 20px; }
-.about-box { display:flex;gap:18px;padding:25px;border:1px solid var(--border);border-radius:18px;background:#17102b; }
-.about-box h2 { margin:0 0 8px;font-size:22px; }
-.about-box p { margin:0;color:var(--muted);font-size:14px; }
-.about-icon { font-size:27px; }
-footer { border-top:1px solid #251b3d;padding:24px 15px;text-align:center;color:#9386ac;font-size:12px; }
-footer a { color:#c4b5fd;margin:0 8px; }
-.toast {
-  display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
-  padding:11px 16px;background:#e9ddff;color:#261441;border-radius:10px;
-  font-weight:bold;font-size:13px;z-index:20;max-width:90%;
-}
-@media(max-width:900px) {
-  .grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
-}
-@media(max-width:600px) {
-  .nav-inner { padding:12px 14px; }
-  .brand { font-size:15px; }
-  .logo { width:32px;height:32px; }
-  .nav-links { gap:12px;font-size:12px; }
-  .hero { padding:48px 16px 35px; }
-  h1 { letter-spacing:-1px; }
-  .hero p { font-size:15px; }
-  .section { padding:18px 14px 45px; }
-  .grid { grid-template-columns:1fr;gap:13px; }
-  .heading { align-items:flex-start;flex-direction:column; }
-  .tool-card { padding:17px; }
-  .about { padding:0 14px; }
-  .about-box { padding:19px; }
-}
-</style>
-</head>
-
-<body>
-<nav class="nav">
-  <div class="nav-inner">
-    <a class="brand" href="#home">
-      <span class="logo">✦</span>
-      <span>CreatorKit <span class="gradient">AI</span></span>
-    </a>
-    <div class="nav-links">
-      <a href="#home">Home</a>
-      <a href="#tools">Tools</a>
-      <a href="#about">About</a>
-    </div>
-  </div>
-</nav>
-
-<header class="hero" id="home">
-  <div class="eyebrow">✦ FREE TOOLS FOR CREATORS</div>
-  <h1>Create better content.<br><span class="gradient">Grow your audience.</span></h1>
-  <p>Your simple creator workspace for YouTube titles, captions, hashtags, descriptions, hooks, and Shorts scripts — all in one place.</p>
-  <div class="actions">
-    <a class="btn primary" href="#tools">Explore Free Tools ↓</a>
-    <a class="btn secondary" href="#about">Discover CreatorKit</a>
-  </div>
-  <div class="features">
-    <span>Free to use</span><span>Quick results</span><span>Made for creators</span>
-  </div>
-</header>
-
-<main class="section" id="tools">
-  <div class="heading">
-    <div>
-      <h2>Your Creator Toolkit</h2>
-      <p>Choose a tool and start creating in seconds.</p>
-    </div>
-    <span class="count">✦ 6 FREE TOOLS</span>
-  </div>
-
-  <div class="grid">
-
-    <section class="tool-card">
-      <div class="card-head">
-        <div class="tool-icon">▶</div>
-        <div><h3>YouTube Title Generator</h3><div class="sub">Create clickable video titles</div></div>
-      </div>
-      <label for="titleTopic">Video topic</label>
-      <input id="titleTopic" placeholder="e.g. Best AI tools for students">
-      <button class="btn primary generate" onclick="generateTitles()">Generate Titles ↗</button>
-      <div class="output-wrap"><div class="output-label">YOUR RESULTS</div><div id="titleOutput" class="output" aria-live="polite">Your title ideas will appear here.</div><div class="copy-row"><button class="btn copy-btn" onclick="copyResult('titleOutput')">Copy Results</button></div></div>
-    </section>
-
-    <section class="tool-card">
-      <div class="card-head">
-        <div class="tool-icon">✍️</div>
-        <div><h3>Caption Generator</h3><div class="sub">Captions for social posts</div></div>
-      </div>
-      <label for="captionTopic">What is your post about?</label>
-      <input id="captionTopic" placeholder="e.g. My new gaming setup">
-      <label for="captionPlatform">Platform</label>
-      <select id="captionPlatform"><option>Instagram</option><option>Facebook</option><option>TikTok</option><option>YouTube</option></select>
-      <button class="btn primary generate" onclick="generateCaption()">Generate Captions ↗</button>
-      <div class="output-wrap"><div class="output-label">YOUR RESULTS</div><div id="captionOutput" class="output" aria-live="polite">Your captions will appear here.</div><div class="copy-row"><button class="btn copy-btn" onclick="copyResult('captionOutput')">Copy Results</button></div></div>
-    </section>
-
-    <section class="tool-card">
-      <div class="card-head">
-        <div class="tool-icon">#️⃣</div>
-        <div><h3>Hashtag Generator</h3><div class="sub">Find relevant hashtag ideas</div></div>
-      </div>
-      <label for="hashtagTopic">Topic or keywords</label>
-      <input id="hashtagTopic" placeholder="e.g. cricket, gaming, technology">
-      <button class="btn primary generate" onclick="generateHashtags()">Generate Hashtags ↗</button>
-      <div class="output-wrap"><div class="output-label">YOUR RESULTS</div><div id="hashtagOutput" class="output" aria-live="polite">Your hashtags will appear here.</div><div class="copy-row"><button class="btn copy-btn" onclick="copyResult('hashtagOutput')">Copy Results</button></div></div>
-    </section>
-
-    <section class="tool-card">
-      <div class="card-head">
-        <div class="tool-icon">📝</div>
-        <div><h3>YouTube Description</h3><div class="sub">Draft a video description</div></div>
-      </div>
-      <label for="descTopic">Video topic</label>
-      <input id="descTopic" placeholder="e.g. 5 free AI tools">
-      <label for="descKeywords">Keywords (optional)</label>
-      <input id="descKeywords" placeholder="e.g. AI tools, free tools">
-      <button class="btn primary generate" onclick="generateDescription()">Generate Description ↗</button>
-      <div class="output-wrap"><div class="output-label">YOUR RESULTS</div><div id="descOutput" class="output" aria-live="polite">Your description will appear here.</div><div class="copy-row"><button class="btn copy-btn" onclick="copyResult('descOutput')">Copy Description</button></div></div>
-    </section>
-
-    <section class="tool-card">
-      <div class="card-head">
-        <div class="tool-icon">⚡</div>
-        <div><h3>Viral Hook Generator</h3><div class="sub">Opening lines to grab attention</div></div>
-      </div>
-      <label for="hookTopic">Video topic</label>
-      <input id="hookTopic" placeholder="e.g. Online earning for beginners">
-      <button class="btn primary generate" onclick="generateHooks()">Generate Hooks ↗</button>
-      <div class="output-wrap"><div class="output-label">YOUR RESULTS</div><div id="hookOutput" class="output" aria-live="polite">Your hooks will appear here.</div><div class="copy-row"><button class="btn copy-btn" onclick="copyResult('hookOutput')">Copy Results</button></div></div>
-    </section>
-
-    <section class="tool-card">
-      <div class="card-head">
-        <div class="tool-icon">🎬</div>
-        <div><h3>Shorts Script Generator</h3><div class="sub">Plan your next short video</div></div>
-      </div>
-      <label for="scriptTopic">Shorts topic</label>
-      <input id="scriptTopic" placeholder="e.g. 3 useful websites">
-      <label for="scriptDuration">Video length</label>
-      <select id="scriptDuration"><option value="15">15 seconds</option><option value="30" selected>30 seconds</option><option value="60">60 seconds</option></select>
-      <button class="btn primary generate" onclick="generateScript()">Generate Script ↗</button>
-      <div class="output-wrap"><div class="output-label">YOUR RESULTS</div><div id="scriptOutput" class="output" aria-live="polite">Your script will appear here.</div><div class="copy-row"><button class="btn copy-btn" onclick="copyResult('scriptOutput')">Copy Script</button></div></div>
-    </section>
-
-  </div>
-</main>
-
-<section class="about" id="about">
-  <div class="about-box">
-    <div class="about-icon">✦</div>
-    <div>
-      <h2>Made for Your Next Big Idea</h2>
-      <p>CreatorKit brings everyday content tools together in one simple workspace. Use the results as a starting point, then add your own voice and creativity. These tools currently use built-in templates and do not connect to a live AI service.</p>
-    </div>
-  </div>
-</section>
-
-<footer>
-  © 2026 CreatorKit AI · Built for Creators
-  <br><div style="margin-top:9px"><a href="#home">Home</a><a href="#tools">Tools</a><a href="#about">About</a></div>
-</footer>
-<div class="toast" id="toast" role="status" aria-live="polite"></div>
-
-<script>
-function getValue(id) {
-  return document.getElementById(id).value.trim();
-}
-function showResult(id, text) {
-  document.getElementById(id).textContent = text;
-}
-function requireTopic(id, outputId) {
-  const topic = getValue(id);
-  if (!topic) {
-    showResult(outputId, "Please enter a topic first.");
-    document.getElementById(id).focus();
-    return "";
-  }
-  return topic;
-}
-
-function generateTitles() {
-  const t = requireTopic("titleTopic", "titleOutput");
-  if (!t) return;
-  showResult("titleOutput", [
-    "1. " + t + ": Everything You Need to Know",
-    "2. I Tried " + t + " — Here's What Happened",
-    "3. " + t + " for Beginners (Easy Guide)",
-    "4. 5 Things You Should Know About " + t,
-    "5. The Truth About " + t,
-    "6. Don't Make These " + t + " Mistakes",
-    "7. How to Get Started With " + t,
-    "8. " + t + ": Tips You Shouldn't Miss",
-    "9. Is " + t + " Worth It? Here's My Take",
-    "10. The Simple Guide to " + t
-  ].join("\n\n"));
-}
-
-function generateCaption() {
-  const t = requireTopic("captionTopic", "captionOutput");
-  if (!t) return;
-  showResult("captionOutput",
-    "1. ✨ " + t + " — something worth sharing!\n\n" +
-    "2. A little update about " + t + " 💫 What do you think?\n\n" +
-    "3. Here’s your reminder to keep going! 🚀 " + t + "\n\n" +
-    "4. New post, new vibes! 🔥 " + t + "\n\n" +
-    "5. If you love " + t + ", this one's for you! ❤️\n\n" +
-    "Platform: " + getValue("captionPlatform") + "\n\n" +
-    "#ContentCreator #NewPost #Explore"
-  );
-}
-
-function generateHashtags() {
-  const t = requireTopic("hashtagTopic", "hashtagOutput");
-  if (!t) return;
-  const tags = t.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean).map(w => "#" + w);
-  const general = ["#ContentCreator","#Trending","#ExplorePage","#NewPost","#TipsAndTricks","#DigitalContent","#LearnSomethingNew","#CreatorCommunity"];
-  showResult("hashtagOutput", [...new Set([...tags, ...general])].join(" "));
-}
-
-function generateDescription() {
-  const t = requireTopic("descTopic", "descOutput");
-  if (!t) return;
-  const k = getValue("descKeywords");
-  showResult("descOutput",
-    "Welcome back to the channel! 🎉\n\n" +
-    "In this video, we explore " + t + ". Watch until the end to learn more and discover useful ideas you can try yourself.\n\n" +
-    "👇 IN THIS VIDEO\n" +
-    "• An introduction to " + t + "\n" +
-    "• Useful tips and ideas\n" +
-    "• How to get started\n\n" +
-    (k ? "🔎 KEYWORDS\n" + k + "\n\n" : "") +
-    "If you enjoyed this video, please LIKE, COMMENT, and SUBSCRIBE for more content!\n\n" +
-    "📌 Subscribe for more videos and tutorials.\n\n#YouTube #Tutorial #Tips"
-  );
-}
-
-function generateHooks() {
-  const t = requireTopic("hookTopic", "hookOutput");
-  if (!t) return;
-  showResult("hookOutput", [
-    "1. Stop scrolling! Here's something you should know about " + t + ".",
-    "2. Most beginners make this mistake with " + t + ".",
-    "3. What if I told you that " + t + " could be easier than you think?",
-    "4. Before you try " + t + ", watch this.",
-    "5. Here are three things I wish I knew about " + t + ".",
-    "6. Nobody explained " + t + " to me like this.",
-    "7. If you're interested in " + t + ", this video is for you.",
-    "8. Here's a simple way to understand " + t + ".",
-    "9. Don't miss these useful tips about " + t + ".",
-    "10. Let's break down " + t + " in seconds."
-  ].join("\n\n"));
-}
-
-function generateScript() {
-  const t = requireTopic("scriptTopic", "scriptOutput");
-  if (!t) return;
-  const d = Number(getValue("scriptDuration"));
-  let s;
-
-  if (d === 15) {
-    s = "HOOK (0–3 sec): Stop scrolling! Here's something about " + t + ".\n\n" +
-    "MAIN (3–11 sec): First, understand the basics. Then try one simple step and see what works best for you.\n\n" +
-    "ENDING (11–15 sec): Follow for more useful tips!";
-  } else if (d === 60) {
-    s = "HOOK (0–5 sec): Want to learn about " + t + "? Watch this!\n\n" +
-    "INTRO (5–12 sec): Let's make this simple and easy to understand.\n\n" +
-    "POINT 1 (12–25 sec): Start with the basics. Learn what it is and why it matters.\n\n" +
-    "POINT 2 (25–38 sec): Try one practical example related to " + t + ". Take your time and practise.\n\n" +
-    "POINT 3 (38–50 sec): Avoid rushing. Keep learning and focus on what works for you.\n\n" +
-    "ENDING (50–60 sec): Which tip did you find most useful? Comment below and follow for more!";
-  } else {
-    s = "HOOK (0–4 sec): Here's something useful about " + t + ".\n\n" +
-    "INTRO (4–8 sec): Let's get straight to the point.\n\n" +
-    "MAIN (8–23 sec): Start with the basics, try one practical example, and practise consistently. Keep it simple and focus on learning one step at a time.\n\n" +
-    "ENDING (23–30 sec): Save this video and follow for more useful tips!";
-  }
-  showResult("scriptOutput", s);
-}
-
-function showToast(message) {
-  const el = document.getElementById("toast");
-  el.textContent = message;
-  el.style.display = "block";
-  clearTimeout(window.creatorToastTimer);
-  window.creatorToastTimer = setTimeout(function() {
-    el.style.display = "none";
-  }, 2200);
-}
-
-async function copyResult(id) {
-  const txt = document.getElementById(id).textContent;
-  try {
-    await navigator.clipboard.writeText(txt);
-    showToast("Copied to clipboard!");
-  } catch (e) {
-    const area = document.createElement("textarea");
-    area.value = txt;
-    area.style.position = "fixed";
-    area.style.opacity = "0";
-    document.body.appendChild(area);
-    area.select();
-    let ok = false;
-    try { ok = document.execCommand("copy"); } catch (err) {}
-    area.remove();
-    showToast(ok ? "Copied to clipboard!" : "Copy not available — select the result text and copy it.");
-  }
-}
-async function askGemini(prompt) {
-  const response = await fetch(
-    "https://kit-ai.abubakar647648.workers.dev",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ prompt })
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#100b20">
+  <title>CreatorKit AI — Creator Tools</title>
+  <meta name="description" content="AI-powered tools for YouTube creators and social media content.">
+  <style>
+    :root {
+      --bg: #100b20;
+      --panel: #1a1230;
+      --panel2: #21183a;
+      --purple: #9b6cff;
+      --pink: #e879f9;
+      --text: #f7f2ff;
+      --muted: #b8accd;
+      --border: #392951;
+      --green: #8cf0bd;
     }
-  );
 
-  const data = await response.json();
+    * { box-sizing: border-box; }
 
-  if (!response.ok) {
-    throw new Error(data.details || data.error || "AI request failed");
-  }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, sans-serif;
+      color: var(--text);
+      background-color: var(--bg);
+      background-image:
+        linear-gradient(#ffffff08 1px, transparent 1px),
+        linear-gradient(90deg, #ffffff08 1px, transparent 1px),
+        radial-gradient(ellipse at top, #48246b55, transparent 65%);
+      background-size: 28px 28px, 28px 28px, auto;
+      min-height: 100vh;
+    }
 
-  return data.text;
-  }
-</script>
+    header {
+      padding: 22px 6%;
+      border-bottom: 1px solid var(--border);
+      background: #100b20dd;
+    }
+
+    .nav {
+      max-width: 1100px;
+      margin: auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .logo {
+      font-size: 22px;
+      font-weight: 850;
+      letter-spacing: -0.7px;
+    }
+
+    .logo span {
+      color: var(--pink);
+    }
+
+    .status {
+      font-size: 12px;
+      border: 1px solid #5a4278;
+      border-radius: 30px;
+      padding: 8px 12px;
+      color: #dfd0ff;
+    }
+
+    main {
+      width: min(1100px, 92%);
+      margin: auto;
+    }
+
+    .hero {
+      text-align: center;
+      padding: 65px 10px 40px;
+    }
+
+    .eyebrow {
+      color: var(--pink);
+      font-size: 12px;
+      letter-spacing: 2px;
+      font-weight: 800;
+    }
+
+    h1 {
+      font-size: clamp(34px, 7vw, 60px);
+      line-height: 1.08;
+      letter-spacing: -2px;
+      margin: 16px 0;
+    }
+
+    h1 span {
+      background: linear-gradient(90deg, #b99aff, #f0a0f7);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .hero p {
+      color: var(--muted);
+      max-width: 600px;
+      margin: auto;
+      line-height: 1.7;
+    }
+
+    .section-title {
+      margin: 25px 0 18px;
+      font-size: 22px;
+    }
+
+    .tools {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+      margin-bottom: 30px;
+    }
+
+    .tool {
+      background: linear-gradient(145deg, #211735, #171027);
+      border: 1px solid var(--border);
+      padding: 22px;
+      border-radius: 18px;
+      text-align: left;
+      color: var(--text);
+      cursor: pointer;
+      transition: .18s;
+      min-height: 155px;
+    }
+
+    .tool:hover, .tool.active {
+      border-color: var(--purple);
+      transform: translateY(-2px);
+      background: #281a43;
+    }
+
+    .tool.active {
+      box-shadow: 0 0 0 1px #9b6cff33;
+    }
+
+    .tool .emoji {
+      font-size: 27px;
+      display: block;
+      margin-bottom: 15px;
+    }
+
+    .tool strong {
+      display: block;
+      font-size: 16px;
+      margin-bottom: 7px;
+    }
+
+    .tool small {
+      color: var(--muted);
+      line-height: 1.5;
+      font-size: 12px;
+    }
+
+    .workspace {
+      background: #191129ee;
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: clamp(18px, 4vw, 32px);
+      margin-bottom: 60px;
+    }
+
+    .workspace h2 {
+      margin-top: 0;
+      font-size: 24px;
+    }
+
+    label {
+      display: block;
+      margin: 20px 0 8px;
+      font-weight: 650;
+      font-size: 14px;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      color: var(--text);
+      background: #100b20;
+      border: 1px solid #443158;
+      border-radius: 12px;
+      padding: 14px;
+      font: inherit;
+      outline: none;
+    }
+
+    input:focus, textarea:focus, select:focus {
+      border-color: var(--purple);
+    }
+
+    textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    button.primary, button.secondary {
+      font: inherit;
+      font-weight: 750;
+      border-radius: 12px;
+      padding: 13px 18px;
+      cursor: pointer;
+    }
+
+    button.primary {
+      margin-top: 20px;
+      width: 100%;
+      border: 0;
+      color: #160b27;
+      background: linear-gradient(90deg, #b59aff, #e99af4);
+    }
+
+    button.primary:disabled {
+      opacity: .6;
+      cursor: wait;
+    }
+
+    button.secondary {
+      color: var(--text);
+      background: #302044;
+      border: 1px solid #59406d;
+    }
+
+    .result-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 28px;
+      margin-bottom: 10px;
+    }
+
+    .result-head h3 {
+      margin: 0;
+    }
+
+    #result {
+      min-height: 110px;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      line-height: 1.75;
+      color: #eee5ff;
+      background: #100b20;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 17px;
+    }
+
+    #message {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 12px;
+    }
+
+    footer {
+      border-top: 1px solid var(--border);
+      text-align: center;
+      padding: 28px 12px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    @media (max-width: 720px) {
+      .tools { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .tool { padding: 16px; }
+      .row { grid-template-columns: 1fr; gap: 0; }
+      .hero { padding-top: 45px; }
+    }
+
+    @media (max-width: 390px) {
+      .tools { grid-template-columns: 1fr; }
+      .status { font-size: 10px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="nav">
+      <div class="logo">CreatorKit <span>AI</span></div>
+      <div class="status">✦ AI Creator Studio</div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="eyebrow">YOUR CREATIVE ASSISTANT</div>
+      <h1>Create better content<br><span>with AI.</span></h1>
+      <p>Generate catchy titles, engaging captions, hashtags, descriptions, viral hooks and YouTube Shorts scripts in one place.</p>
+    </section>
+
+    <h2 class="section-title">Choose your tool</h2>
+
+    <section class="tools" id="tools">
+      <button class="tool active" data-tool="titles">
+        <span class="emoji">🎬</span>
+        <strong>YouTube Title Generator</strong>
+        <small>Create catchy titles that make people curious.</small>
+      </button>
+
+      <button class="tool" data-tool="caption">
+        <span class="emoji">✍️</span>
+        <strong>Social Media Captions</strong>
+        <small>Write engaging captions for your posts.</small>
+      </button>
+
+      <button class="tool" data-tool="hashtags">
+        <span class="emoji">#️⃣</span>
+        <strong>Hashtag Generator</strong>
+        <small>Get relevant hashtags for your content.</small>
+      </button>
+
+      <button class="tool" data-tool="description">
+        <span class="emoji">📝</span>
+        <strong>YouTube Description</strong>
+        <small>Build clear descriptions for your videos.</small>
+      </button>
+
+      <button class="tool" data-tool="hooks">
+        <span class="emoji">⚡</span>
+        <strong>Viral Hook Generator</strong>
+        <small>Start your video with an attention-grabbing hook.</small>
+      </button>
+
+      <button class="tool" data-tool="script">
+        <span class="emoji">📱</span>
+        <strong>Shorts Script Generator</strong>
+        <small>Create short-form video scripts with a strong opening.</small>
+      </button>
+    </section>
+
+    <section class="workspace">
+      <h2 id="toolTitle">🎬 YouTube Title Generator</h2>
+      <p id="toolDescription" style="color:var(--muted)">Enter your video topic and generate title ideas.</p>
+
+      <form id="generatorForm">
+        <label for="topic">Your topic</label>
+        <input id="topic" maxlength="500" required
+          placeholder="e.g. Best AI tools for students">
+
+        <div class="row">
+          <div>
+            <label for="platform">Platform</label>
+            <select id="platform">
+              <option>YouTube</option>
+              <option>YouTube Shorts</option>
+              <option>Instagram</option>
+              <option>TikTok</option>
+              <option>Facebook</option>
+            </select>
+          </div>
+          <div>
+            <label for="tone">Style</label>
+            <select id="tone">
+              <option>Engaging</option>
+              <option>Funny</option>
+              <option>Professional</option>
+              <option>Informative</option>
+              <option>Curiosity-driven</option>
+            </select>
+          </div>
+        </div>
+
+        <label for="details">Extra details (optional)</label>
+        <textarea id="details" maxlength="1000"
+          placeholder="Audience, video length, language or any special instructions..."></textarea>
+
+        <button class="primary" id="generateButton" type="submit">
+          ✨ Generate with Gemini AI
+        </button>
+      </form>
+
+      <div class="result-head">
+        <h3>Your result</h3>
+        <button class="secondary" id="copyButton" type="button">Copy result</button>
+      </div>
+
+      <div id="result" aria-live="polite">Your AI-generated result will appear here.</div>
+      <div id="message">Powered by your Cloudflare Worker connection.</div>
+    </section>
+  </main>
+
+  <footer>CreatorKit AI · Made for creators</footer>
+
+  <script>
+    const WORKER_URL =
+      "https://kit-ai.abubakar647648.workers.dev";
+
+    const toolInfo = {
+      titles: {
+        title: "🎬 YouTube Title Generator",
+        description: "Generate 10 catchy titles for your video.",
+        prompt: "Create 10 distinct, catchy YouTube video titles. Make them clear, natural, and relevant. Avoid fake claims and misleading clickbait."
+      },
+      caption: {
+        title: "✍️ Social Media Caption Generator",
+        description: "Create captions that fit your post and audience.",
+        prompt: "Write 5 different social media captions. Include a mix of engaging, natural styles and a suitable call to action. Avoid repetitive wording."
+      },
+      hashtags: {
+        title: "#️⃣ Hashtag Generator",
+        description: "Get relevant hashtags for your content.",
+        prompt: "Generate 15 relevant hashtags. Group them into broad, niche, and specific hashtags. Do not claim they are guaranteed to go viral."
+      },
+      description: {
+        title: "📝 YouTube Description Generator",
+        description: "Create a useful, well-structured video description.",
+        prompt: "Write a YouTube video description with an engaging opening, a concise summary, useful viewer prompts, and relevant hashtags. Do not invent links or factual claims."
+      },
+      hooks: {
+        title: "⚡ Viral Hook Generator",
+        description: "Create strong opening lines to grab attention.",
+        prompt: "Write 10 compelling opening hooks for this content. Use varied styles such as curiosity, a surprising fact if supported, a question, and a relatable problem. Do not make unsupported claims."
+      },
+      script: {
+        title: "📱 YouTube Shorts Script Generator",
+        description: "Create a short script with a hook and clear ending.",
+        prompt: "Write a 30- to 45-second YouTube Shorts script. Include a strong opening hook, concise spoken lines, suggested visual actions, and a clear ending or call to action. Keep it easy to record."
+      }
+    };
+
+    let selectedTool = "titles";
+
+    const form = document.getElementById("generatorForm");
+    const result = document.getElementById("result");
+    const message = document.getElementById("message");
+    const generateButton = document.getElementById("generateButton");
+
+    document.querySelectorAll(".tool").forEach(button => {
+      button.addEventListener("click", () => {
+        selectedTool = button.dataset.tool;
+
+        document.querySelectorAll(".tool").forEach(item => {
+          item.classList.toggle("active", item === button);
+        });
+
+        document.getElementById("toolTitle").textContent =
+          toolInfo[selectedTool].title;
+
+        document.getElementById("toolDescription").textContent =
+          toolInfo[selectedTool].description;
+
+        result.textContent = "Enter your topic and generate a new result.";
+        message.textContent = "Ready to generate.";
+      });
+    });
+
+    async function askGemini(prompt) {
+      const response = await fetch(WORKER_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ prompt })
+      });
+
+      let data;
+
+      try {
+        data = await response.json();
+      } catch {
+        throw new Error("The server returned an unreadable response.");
+      }
+
+      if (!response.ok) {
+        throw new Error(
+          data.details || data.error || "AI request failed."
+        );
+      }
+
+      if (!data.text) {
+        throw new Error("The AI returned an empty response. Please retry.");
+      }
+
+      return data.text;
+    }
+
+    form.addEventListener("submit", async event => {
+      event.preventDefault();
+
+      const topic = document.getElementById("topic").value.trim();
+      const platform = document.getElementById("platform").value;
+      const tone = document.getElementById("tone").value;
+      const details = document.getElementById("details").value.trim();
+
+      if (!topic) {
+        message.textContent = "Please enter a topic first.";
+        return;
+      }
+
+      const prompt = [
+        toolInfo[selectedTool].prompt,
+        "",
+        "Topic: " + topic,
+        "Platform: " + platform,
+        "Style: " + tone,
+        details ? "Extra details: " + details : "",
+        "",
+        "Use the requested format. Write in clear, useful language. Do not claim that any result is guaranteed to go viral."
+      ].filter(Boolean).join("\n");
+
+      generateButton.disabled = true;
+      generateButton.textContent = "⏳ Generating...";
+      result.textContent = "Gemini AI is creating your result...";
+      message.textContent = "Please wait a moment.";
+
+      try {
+        const answer = await askGemini(prompt);
+        result.textContent = answer;
+        message.textContent = "✓ Result generated successfully.";
+      } catch (error) {
+        result.textContent = "We couldn't generate a result this time.";
+        message.textContent =
+          error.message + " Please wait and try again.";
+      } finally {
+        generateButton.disabled = false;
+        generateButton.textContent = "✨ Generate with Gemini AI";
+      }
+    });
+
+    document.getElementById("copyButton").addEventListener("click", async () => {
+      const text = result.textContent;
+
+      try {
+        await navigator.clipboard.writeText(text);
+        message.textContent = "✓ Result copied.";
+      } catch {
+        message.textContent =
+          "Copy isn't available here. Press and hold the result text to copy it.";
+      }
+    });
+  </script>
 </body>
   </html>
-          
+        
