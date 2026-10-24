@@ -298,6 +298,12 @@
       <p>Generate catchy titles, engaging captions, hashtags, descriptions, viral hooks and YouTube Shorts scripts in one place.</p>
     </section>
 
+<button class="tool" data-tool="downloader" id="downloaderTool">
+  <span class="emoji">⬇️</span>
+  <strong>Video Downloader</strong>
+  <small>Download supported videos from YouTube, TikTok and Instagram.</small>
+</button>
+
     <h2 class="section-title">Choose your tool</h2>
 
     <section class="tools" id="tools">
@@ -337,6 +343,26 @@
         <small>Create short-form video scripts with a strong opening.</small>
       </button>
     </section>
+
+<section class="workspace" id="downloaderWorkspace" style="display:none">
+  <h2>⬇️ Video Downloader</h2>
+  <p style="color:var(--muted)">
+    Paste a public YouTube, TikTok or Instagram video link.
+  </p>
+
+  <form id="downloaderForm">
+    <label for="videoUrl">Video link</label>
+    <input id="videoUrl" type="url" required
+      placeholder="https://www.youtube.com/...">
+
+    <button class="primary" id="getFormatsButton" type="submit">
+      Get Download Options
+    </button>
+  </form>
+
+  <div id="downloadOptions" style="margin-top:20px"></div>
+  <div id="downloadMessage" style="color:var(--muted);margin-top:12px"></div>
+</section>
 
     <section class="workspace">
       <h2 id="toolTitle">🎬 YouTube Title Generator</h2>
@@ -539,6 +565,143 @@
           "Copy isn't available here. Press and hold the result text to copy it.";
       }
     });
+ 
+    // Video Downloader
+    const downloaderTool = document.getElementById("downloaderTool");
+    const downloaderWorkspace = document.getElementById("downloaderWorkspace");
+    const generatorWorkspace = document.querySelector("main > .workspace");
+    const downloaderForm = document.getElementById("downloaderForm");
+    const downloadOptions = document.getElementById("downloadOptions");
+    const downloadMessage = document.getElementById("downloadMessage");
+
+    downloaderTool.addEventListener("click", () => {
+      document.querySelectorAll(".tool").forEach(item => {
+        item.classList.toggle("active", item === downloaderTool);
+      });
+      generatorWorkspace.style.display = "none";
+      downloaderWorkspace.style.display = "block";
+      document.getElementById("toolTitle").textContent = "⬇️ Video Downloader";
+      document.getElementById("toolDescription").textContent =
+        "Paste a public video link to see download options.";
+      downloaderWorkspace.scrollIntoView({ behavior: "smooth" });
+    });
+
+    document.querySelectorAll(".tool:not(#downloaderTool)").forEach(button => {
+      button.addEventListener("click", () => {
+        downloaderWorkspace.style.display = "none";
+        generatorWorkspace.style.display = "block";
+      });
+    });
+
+    downloaderForm.addEventListener("submit", async event => {
+      event.preventDefault();
+
+      const url = document.getElementById("videoUrl").value.trim();
+      const button = document.getElementById("getFormatsButton");
+
+      button.disabled = true;
+      button.textContent = "⏳ Checking...";
+      downloadOptions.replaceChildren();
+      downloadMessage.textContent = "Getting available formats...";
+
+      try {
+        const response = await fetch(WORKER_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "download_info", url })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || "Could not get video formats.");
+        }
+
+        const formats = data.formats || data.data?.formats || [];
+
+        if (!formats.length) {
+          throw new Error("No formats were returned for this video.");
+        }
+
+        const label = document.createElement("label");
+        label.textContent = "Choose format";
+        downloadOptions.appendChild(label);
+
+        const select = document.createElement("select");
+        select.id = "videoFormat";
+
+        formats.forEach(format => {
+          const option = document.createElement("option");
+          option.value = format.id;
+          option.textContent =
+            format.quality || format.container || format.id;
+          select.appendChild(option);
+        });
+
+        downloadOptions.appendChild(select);
+
+        const downloadButton = document.createElement("button");
+        downloadButton.type = "button";
+        downloadButton.className = "primary";
+        downloadButton.textContent = "Get Download Link";
+        downloadOptions.appendChild(downloadButton);
+
+        downloadButton.addEventListener("click", async () => {
+          downloadButton.disabled = true;
+          downloadButton.textContent = "⏳ Preparing link...";
+          downloadMessage.textContent = "Please wait...";
+
+          try {
+            const downloadResponse = await fetch(WORKER_URL, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                action: "download_video",
+                url,
+                format: select.value
+              })
+            });
+
+            const downloadData = await downloadResponse.json();
+
+            if (!downloadResponse.ok) {
+              throw new Error(downloadData.error || "Download link failed.");
+            }
+
+            if (!downloadData.url) {
+              throw new Error("The API did not return a download URL.");
+            }
+
+            const link = document.createElement("a");
+            link.href = downloadData.url;
+            link.target = "_blank";
+            link.rel = "noopener noreferrer";
+            link.textContent = "⬇️ Download Video";
+            link.style.display = "inline-block";
+            link.style.marginTop = "16px";
+            link.style.color = "#e99af4";
+            link.style.fontWeight = "bold";
+
+            downloadOptions.appendChild(link);
+            downloadMessage.textContent =
+              "Link ready. It may expire after about one hour.";
+          } catch (error) {
+            downloadMessage.textContent = error.message;
+          } finally {
+            downloadButton.disabled = false;
+            downloadButton.textContent = "Get Download Link";
+          }
+        });
+
+        downloadMessage.textContent = "Choose a format, then get your link.";
+      } catch (error) {
+        downloadMessage.textContent = error.message;
+      } finally {
+        button.disabled = false;
+        button.textContent = "Get Download Options";
+      }
+    });
+
   </script>
 </body>
   </html>
