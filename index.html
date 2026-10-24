@@ -662,7 +662,26 @@ const generatorWorkspace = document.getElementById("generatorForm").closest(".wo
               })
             });
 
-            const downloadData = await downloadResponse.json();
+            const contentType = downloadResponse.headers.get("content-type") || "";
+
+if (contentType.includes("video/")) {
+  if (!downloadResponse.ok) {
+    throw new Error("Video download failed.");
+  }
+
+  const videoBlob = await downloadResponse.blob();
+  const videoLink = document.createElement("a");
+  videoLink.href = URL.createObjectURL(videoBlob);
+  videoLink.download = "CreatorKit-TikTok.mp4";
+  document.body.appendChild(videoLink);
+  videoLink.click();
+  videoLink.remove();
+  URL.revokeObjectURL(videoLink.href);
+  downloadMessage.textContent = "Video download started!";
+  return;
+}
+
+const downloadData = await downloadResponse.json();
 
             if (!downloadResponse.ok) {
               throw new Error(downloadData.error || "Download link failed.");
