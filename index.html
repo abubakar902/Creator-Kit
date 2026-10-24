@@ -668,25 +668,25 @@ const generatorWorkspace = document.getElementById("generatorForm").closest(".wo
               throw new Error(downloadData.error || "Download link failed.");
             }
 
-            if (!downloadData.url) {
-              throw new Error("The API did not return a download URL.");
-            }
+          if (!downloadData.url) {
+  throw new Error("The API did not return a download URL.");
+}
 
-            const link = document.createElement("a");
-            link.href = downloadData.url;
-            link.target = "_blank";
-            link.rel = "noopener noreferrer";
-            link.textContent = "⬇️ Download Video";
-            link.style.display = "inline-block";
-            link.style.marginTop = "16px";
-            link.style.color = "#e99af4";
-            link.style.fontWeight = "bold";
+const link = document.createElement("a");
+link.href = downloadData.url;
+link.download = "CreatorKit-Video.mp4";
+link.target = "_blank";
+link.rel = "noopener noreferrer";
+link.textContent = "⬇️ Download Video";
+link.style.display = "inline-block";
+link.style.marginTop = "16px";
+link.style.color = "#e99af4";
+link.style.fontWeight = "bold";
 
-            downloadOptions.appendChild(link);
-            downloadMessage.textContent =
-              "Link ready. It may expire after about one hour.";
-          } catch (error) {
-            downloadMessage.textContent = error.message;
+downloadOptions.replaceChildren(link);
+
+downloadMessage.textContent =
+  "Click Download Video to save your file.";
           } finally {
             downloadButton.disabled = false;
             downloadButton.textContent = "Get Download Link";
