@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -19,9 +18,7 @@
       --border: #392951;
       --green: #8cf0bd;
     }
-
     * { box-sizing: border-box; }
-
     body {
       margin: 0;
       font-family: system-ui, -apple-system, sans-serif;
@@ -34,13 +31,11 @@
       background-size: 28px 28px, 28px 28px, auto;
       min-height: 100vh;
     }
-
     header {
       padding: 22px 6%;
       border-bottom: 1px solid var(--border);
       background: #100b20dd;
     }
-
     .nav {
       max-width: 1100px;
       margin: auto;
@@ -49,17 +44,12 @@
       justify-content: space-between;
       gap: 12px;
     }
-
     .logo {
       font-size: 22px;
       font-weight: 850;
-      letter-spacing: -0.7px;
+      letter-spacing: -.7px;
     }
-
-    .logo span {
-      color: var(--pink);
-    }
-
+    .logo span { color: var(--pink); }
     .status {
       font-size: 12px;
       border: 1px solid #5a4278;
@@ -67,57 +57,48 @@
       padding: 8px 12px;
       color: #dfd0ff;
     }
-
     main {
       width: min(1100px, 92%);
       margin: auto;
     }
-
     .hero {
       text-align: center;
       padding: 65px 10px 40px;
     }
-
     .eyebrow {
       color: var(--pink);
       font-size: 12px;
       letter-spacing: 2px;
       font-weight: 800;
     }
-
     h1 {
       font-size: clamp(34px, 7vw, 60px);
       line-height: 1.08;
       letter-spacing: -2px;
       margin: 16px 0;
     }
-
     h1 span {
       background: linear-gradient(90deg, #b99aff, #f0a0f7);
       -webkit-background-clip: text;
       background-clip: text;
       color: transparent;
     }
-
     .hero p {
       color: var(--muted);
       max-width: 600px;
       margin: auto;
       line-height: 1.7;
     }
-
     .section-title {
       margin: 25px 0 18px;
       font-size: 22px;
     }
-
     .tools {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 16px;
       margin-bottom: 30px;
     }
-
     .tool {
       background: linear-gradient(145deg, #211735, #171027);
       border: 1px solid var(--border);
@@ -129,35 +110,27 @@
       transition: .18s;
       min-height: 155px;
     }
-
     .tool:hover, .tool.active {
       border-color: var(--purple);
       transform: translateY(-2px);
       background: #281a43;
     }
-
-    .tool.active {
-      box-shadow: 0 0 0 1px #9b6cff33;
-    }
-
+    .tool.active { box-shadow: 0 0 0 1px #9b6cff33; }
     .tool .emoji {
       font-size: 27px;
       display: block;
       margin-bottom: 15px;
     }
-
     .tool strong {
       display: block;
       font-size: 16px;
       margin-bottom: 7px;
     }
-
     .tool small {
       color: var(--muted);
       line-height: 1.5;
       font-size: 12px;
     }
-
     .workspace {
       background: #191129ee;
       border: 1px solid var(--border);
@@ -165,19 +138,16 @@
       padding: clamp(18px, 4vw, 32px);
       margin-bottom: 60px;
     }
-
     .workspace h2 {
       margin-top: 0;
       font-size: 24px;
     }
-
     label {
       display: block;
       margin: 20px 0 8px;
       font-weight: 650;
       font-size: 14px;
     }
-
     input, textarea, select {
       width: 100%;
       color: var(--text);
@@ -188,22 +158,18 @@
       font: inherit;
       outline: none;
     }
-
     input:focus, textarea:focus, select:focus {
       border-color: var(--purple);
     }
-
     textarea {
       min-height: 100px;
       resize: vertical;
     }
-
     .row {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 14px;
     }
-
     button.primary, button.secondary {
       font: inherit;
       font-weight: 750;
@@ -211,7 +177,6 @@
       padding: 13px 18px;
       cursor: pointer;
     }
-
     button.primary {
       margin-top: 20px;
       width: 100%;
@@ -219,18 +184,15 @@
       color: #160b27;
       background: linear-gradient(90deg, #b59aff, #e99af4);
     }
-
     button.primary:disabled {
       opacity: .6;
       cursor: wait;
     }
-
     button.secondary {
       color: var(--text);
       background: #302044;
       border: 1px solid #59406d;
     }
-
     .result-head {
       display: flex;
       align-items: center;
@@ -239,11 +201,7 @@
       margin-top: 28px;
       margin-bottom: 10px;
     }
-
-    .result-head h3 {
-      margin: 0;
-    }
-
+    .result-head h3 { margin: 0; }
     #result {
       min-height: 110px;
       white-space: pre-wrap;
@@ -255,13 +213,11 @@
       border-radius: 14px;
       padding: 17px;
     }
-
     #message {
       color: var(--muted);
       font-size: 13px;
       margin-top: 12px;
     }
-
     footer {
       border-top: 1px solid var(--border);
       text-align: center;
@@ -269,14 +225,12 @@
       color: var(--muted);
       font-size: 13px;
     }
-
     @media (max-width: 720px) {
       .tools { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .tool { padding: 16px; }
       .row { grid-template-columns: 1fr; gap: 0; }
       .hero { padding-top: 45px; }
     }
-
     @media (max-width: 390px) {
       .tools { grid-template-columns: 1fr; }
       .status { font-size: 10px; }
@@ -298,11 +252,11 @@
       <p>Generate catchy titles, engaging captions, hashtags, descriptions, viral hooks and YouTube Shorts scripts in one place.</p>
     </section>
 
-<button class="tool" data-tool="downloader" id="downloaderTool">
-  <span class="emoji">⬇️</span>
-  <strong>Video Downloader</strong>
-  <small>Download supported videos from YouTube, TikTok and Instagram.</small>
-</button>
+    <button class="tool" data-tool="downloader" id="downloaderTool">
+      <span class="emoji">⬇️</span>
+      <strong>Video Downloader</strong>
+      <small>Download supported videos from YouTube, TikTok and Instagram.</small>
+    </button>
 
     <h2 class="section-title">Choose your tool</h2>
 
@@ -312,31 +266,26 @@
         <strong>YouTube Title Generator</strong>
         <small>Create catchy titles that make people curious.</small>
       </button>
-
       <button class="tool" data-tool="caption">
         <span class="emoji">✍️</span>
         <strong>Social Media Captions</strong>
         <small>Write engaging captions for your posts.</small>
       </button>
-
       <button class="tool" data-tool="hashtags">
         <span class="emoji">#️⃣</span>
         <strong>Hashtag Generator</strong>
         <small>Get relevant hashtags for your content.</small>
       </button>
-
       <button class="tool" data-tool="description">
         <span class="emoji">📝</span>
         <strong>YouTube Description</strong>
         <small>Build clear descriptions for your videos.</small>
       </button>
-
       <button class="tool" data-tool="hooks">
         <span class="emoji">⚡</span>
         <strong>Viral Hook Generator</strong>
         <small>Start your video with an attention-grabbing hook.</small>
       </button>
-
       <button class="tool" data-tool="script">
         <span class="emoji">📱</span>
         <strong>Shorts Script Generator</strong>
@@ -344,34 +293,25 @@
       </button>
     </section>
 
-<section class="workspace" id="downloaderWorkspace" style="display:none">
-  <h2>⬇️ Video Downloader</h2>
-  <p style="color:var(--muted)">
-    Paste a public YouTube, TikTok or Instagram video link.
-  </p>
+    <section class="workspace" id="downloaderWorkspace" style="display:none">
+      <h2>⬇️ Video Downloader</h2>
+      <p style="color:var(--muted)">Paste a public YouTube, TikTok or Instagram video link.</p>
+      <form id="downloaderForm">
+        <label for="videoUrl">Video link</label>
+        <input id="videoUrl" type="url" required placeholder="https://www.youtube.com/...">
+        <button class="primary" id="getFormatsButton" type="submit">Get Download Options</button>
+      </form>
+      <div id="downloadOptions" style="margin-top:20px"></div>
+      <div id="downloadMessage" style="color:var(--muted);margin-top:12px"></div>
+    </section>
 
-  <form id="downloaderForm">
-    <label for="videoUrl">Video link</label>
-    <input id="videoUrl" type="url" required
-      placeholder="https://www.youtube.com/...">
-
-    <button class="primary" id="getFormatsButton" type="submit">
-      Get Download Options
-    </button>
-  </form>
-
-  <div id="downloadOptions" style="margin-top:20px"></div>
-  <div id="downloadMessage" style="color:var(--muted);margin-top:12px"></div>
-</section>
-
-    <section class="workspace">
+    <section class="workspace" id="generatorWorkspace">
       <h2 id="toolTitle">🎬 YouTube Title Generator</h2>
       <p id="toolDescription" style="color:var(--muted)">Enter your video topic and generate title ideas.</p>
 
       <form id="generatorForm">
         <label for="topic">Your topic</label>
-        <input id="topic" maxlength="500" required
-          placeholder="e.g. Best AI tools for students">
+        <input id="topic" maxlength="500" required placeholder="e.g. Best AI tools for students">
 
         <div class="row">
           <div>
@@ -397,19 +337,14 @@
         </div>
 
         <label for="details">Extra details (optional)</label>
-        <textarea id="details" maxlength="1000"
-          placeholder="Audience, video length, language or any special instructions..."></textarea>
-
-        <button class="primary" id="generateButton" type="submit">
-          ✨ Generate with Gemini AI
-        </button>
+        <textarea id="details" maxlength="1000" placeholder="Audience, video length, language or any special instructions..."></textarea>
+        <button class="primary" id="generateButton" type="submit">✨ Generate with Gemini AI</button>
       </form>
 
       <div class="result-head">
         <h3>Your result</h3>
         <button class="secondary" id="copyButton" type="button">Copy result</button>
       </div>
-
       <div id="result" aria-live="polite">Your AI-generated result will appear here.</div>
       <div id="message">Powered by your Cloudflare Worker connection.</div>
     </section>
@@ -418,9 +353,7 @@
   <footer>CreatorKit AI · Made for creators</footer>
 
   <script>
-    const WORKER_URL =
-      "https://creatorkit-ai.abubakar647648.workers.dev";
-      
+    const WORKER_URL = "https://creatorkit-ai.abubakar647648.workers.dev";
 
     const toolInfo = {
       titles: {
@@ -461,21 +394,26 @@
     const result = document.getElementById("result");
     const message = document.getElementById("message");
     const generateButton = document.getElementById("generateButton");
+    const downloaderTool = document.getElementById("downloaderTool");
+    const downloaderWorkspace = document.getElementById("downloaderWorkspace");
+    const generatorWorkspace = document.getElementById("generatorWorkspace");
+    const downloaderForm = document.getElementById("downloaderForm");
+    const downloadOptions = document.getElementById("downloadOptions");
+    const downloadMessage = document.getElementById("downloadMessage");
 
     document.querySelectorAll(".tool").forEach(button => {
       button.addEventListener("click", () => {
-        selectedTool = button.dataset.tool;
+        if (button.id === "downloaderTool") return;
 
+        selectedTool = button.dataset.tool;
         document.querySelectorAll(".tool").forEach(item => {
           item.classList.toggle("active", item === button);
         });
 
-        document.getElementById("toolTitle").textContent =
-          toolInfo[selectedTool].title;
-
-        document.getElementById("toolDescription").textContent =
-          toolInfo[selectedTool].description;
-
+        downloaderWorkspace.style.display = "none";
+        generatorWorkspace.style.display = "block";
+        document.getElementById("toolTitle").textContent = toolInfo[selectedTool].title;
+        document.getElementById("toolDescription").textContent = toolInfo[selectedTool].description;
         result.textContent = "Enter your topic and generate a new result.";
         message.textContent = "Ready to generate.";
       });
@@ -484,14 +422,11 @@
     async function askGemini(prompt) {
       const response = await fetch(WORKER_URL, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ prompt })
       });
 
       let data;
-
       try {
         data = await response.json();
       } catch {
@@ -499,15 +434,11 @@
       }
 
       if (!response.ok) {
-        throw new Error(
-          data.details || data.error || "AI request failed."
-        );
+        throw new Error(data.details || data.error || "AI request failed.");
       }
-
       if (!data.text) {
         throw new Error("The AI returned an empty response. Please retry.");
       }
-
       return data.text;
     }
 
@@ -546,8 +477,7 @@
         message.textContent = "✓ Result generated successfully.";
       } catch (error) {
         result.textContent = "We couldn't generate a result this time.";
-        message.textContent =
-          error.message + " Please wait and try again.";
+        message.textContent = error.message + " Please wait and try again.";
       } finally {
         generateButton.disabled = false;
         generateButton.textContent = "✨ Generate with Gemini AI";
@@ -555,24 +485,13 @@
     });
 
     document.getElementById("copyButton").addEventListener("click", async () => {
-      const text = result.textContent;
-
       try {
-        await navigator.clipboard.writeText(text);
+        await navigator.clipboard.writeText(result.textContent);
         message.textContent = "✓ Result copied.";
       } catch {
-        message.textContent =
-          "Copy isn't available here. Press and hold the result text to copy it.";
+        message.textContent = "Copy isn't available here. Select the result text and copy it.";
       }
     });
- 
-    // Video Downloader
-    const downloaderTool = document.getElementById("downloaderTool");
-    const downloaderWorkspace = document.getElementById("downloaderWorkspace");
-const generatorWorkspace = document.getElementById("generatorForm").closest(".workspace");
-    const downloaderForm = document.getElementById("downloaderForm");
-    const downloadOptions = document.getElementById("downloadOptions");
-    const downloadMessage = document.getElementById("downloadMessage");
 
     downloaderTool.addEventListener("click", () => {
       document.querySelectorAll(".tool").forEach(item => {
@@ -580,17 +499,7 @@ const generatorWorkspace = document.getElementById("generatorForm").closest(".wo
       });
       generatorWorkspace.style.display = "none";
       downloaderWorkspace.style.display = "block";
-      document.getElementById("toolTitle").textContent = "⬇️ Video Downloader";
-      document.getElementById("toolDescription").textContent =
-        "Paste a public video link to see download options.";
       downloaderWorkspace.scrollIntoView({ behavior: "smooth" });
-    });
-
-    document.querySelectorAll(".tool:not(#downloaderTool)").forEach(button => {
-      button.addEventListener("click", () => {
-        downloaderWorkspace.style.display = "none";
-        generatorWorkspace.style.display = "block";
-      });
     });
 
     downloaderForm.addEventListener("submit", async event => {
@@ -612,16 +521,10 @@ const generatorWorkspace = document.getElementById("generatorForm").closest(".wo
         });
 
         const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.error || "Could not get video formats.");
-        }
+        if (!response.ok) throw new Error(data.error || "Could not get video formats.");
 
         const formats = data.formats || data.data?.formats || [];
-
-        if (!formats.length) {
-          throw new Error("No formats were returned for this video.");
-        }
+        if (!formats.length) throw new Error("No formats were returned for this video.");
 
         const label = document.createElement("label");
         label.textContent = "Choose format";
@@ -632,9 +535,8 @@ const generatorWorkspace = document.getElementById("generatorForm").closest(".wo
 
         formats.forEach(format => {
           const option = document.createElement("option");
-          option.value = format.id;
-          option.textContent =
-            format.quality || format.container || format.id;
+          option.value = format.id || format.format;
+          option.textContent = format.quality || format.label || format.container || format.id || format.format;
           select.appendChild(option);
         });
 
@@ -647,9 +549,14 @@ const generatorWorkspace = document.getElementById("generatorForm").closest(".wo
         downloadOptions.appendChild(downloadButton);
 
         downloadButton.addEventListener("click", async () => {
+          if (downloadButton.dataset.readyUrl) {
+            window.location.href = downloadButton.dataset.readyUrl;
+            return;
+          }
+
           downloadButton.disabled = true;
-          downloadButton.textContent = "⏳ Preparing link...";
-          downloadMessage.textContent = "Please wait...";
+          downloadButton.textContent = "⏳ Preparing Link...";
+          downloadMessage.textContent = "Please wait while we prepare your download link...";
 
           try {
             const downloadResponse = await fetch(WORKER_URL, {
@@ -664,51 +571,67 @@ const generatorWorkspace = document.getElementById("generatorForm").closest(".wo
 
             const contentType = downloadResponse.headers.get("content-type") || "";
 
-if (contentType.includes("video/")) {
-  if (!downloadResponse.ok) {
-    throw new Error("Video download failed.");
-  }
+            if (contentType.includes("video/")) {
+              if (!downloadResponse.ok) throw new Error("Video download failed. Please try again.");
 
-  const videoBlob = await downloadResponse.blob();
-  const videoLink = document.createElement("a");
-  videoLink.href = URL.createObjectURL(videoBlob);
-  videoLink.download = "CreatorKit-TikTok.mp4";
-  document.body.appendChild(videoLink);
-  videoLink.click();
-  videoLink.remove();
-  URL.revokeObjectURL(videoLink.href);
-  downloadMessage.textContent = "Video download started!";
-  return;
-}
+              const videoBlob = await downloadResponse.blob();
+              const objectUrl = URL.createObjectURL(videoBlob);
+              const videoLink = document.createElement("a");
+              videoLink.href = objectUrl;
+              videoLink.download = "CreatorKit-Video.mp4";
+              document.body.appendChild(videoLink);
+              videoLink.click();
+              videoLink.remove();
+              window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60000);
 
-const downloadData = await downloadResponse.json();
-
-            if (!downloadResponse.ok) {
-              throw new Error(downloadData.error || "Download link failed.");
+              downloadMessage.textContent = "Your download has started.";
+              downloadButton.textContent = "Download Started";
+              return;
             }
 
-          if (!downloadData.url) {
-  throw new Error("The API did not return a download URL.");
-}
+            let downloadData;
+            try {
+              downloadData = await downloadResponse.json();
+            } catch {
+              throw new Error("The server returned an unreadable response. Please try again.");
+            }
 
-const link = document.createElement("a");
-link.href = downloadData.url;
-link.download = "CreatorKit-Video.mp4";
-link.target = "_blank";
-link.rel = "noopener noreferrer";
-link.textContent = "⬇️ Download Video";
-link.style.display = "inline-block";
-link.style.marginTop = "16px";
-link.style.color = "#e99af4";
-link.style.fontWeight = "bold";
+            if (!downloadResponse.ok) {
+              throw new Error(downloadData.error || downloadData.message || "Could not prepare the download link.");
+            }
 
-downloadOptions.replaceChildren(link);
+            const readyUrl =
+              downloadData.url ||
+              downloadData.download_url ||
+              downloadData.data?.url ||
+              downloadData.data?.download_url ||
+              downloadData.result?.url ||
+              downloadData.result?.download_url;
 
-downloadMessage.textContent =
-  "Click Download Video to save your file.";
-          } finally {
+            if (!readyUrl || typeof readyUrl !== "string") {
+              throw new Error(downloadData.error || downloadData.message || "The API did not return a download URL. Please try again.");
+            }
+
+            let parsedReadyUrl;
+            try {
+              parsedReadyUrl = new URL(readyUrl);
+            } catch {
+              throw new Error("The API returned an invalid download URL. Please try again.");
+            }
+
+            if (parsedReadyUrl.protocol !== "https:") {
+              throw new Error("The API returned an unsafe download URL.");
+            }
+
+            downloadButton.dataset.readyUrl = parsedReadyUrl.href;
             downloadButton.disabled = false;
-            downloadButton.textContent = "Get Download Link";
+            downloadButton.textContent = "⬇️ Download Now";
+            downloadMessage.textContent = "Your link is ready. Click Download Now to continue.";
+          } catch (error) {
+            console.error("Video download error:", error);
+            downloadButton.disabled = false;
+            downloadButton.textContent = "Try Again";
+            downloadMessage.textContent = error.message || "Could not prepare the download link. Please try again.";
           }
         });
 
@@ -720,8 +643,6 @@ downloadMessage.textContent =
         button.textContent = "Get Download Options";
       }
     });
-
   </script>
 </body>
-  </html>
-        
+</html>
