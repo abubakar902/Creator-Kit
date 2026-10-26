@@ -756,10 +756,54 @@
           throw new Error(data.error || "Could not start dubbing.");
         }
 
-        dubMessage.textContent =
-          "Project created. Project ID: " + data.project_id +
-          ". Status: " + data.status +
-          ". Save this ID for checking progress.";
+        
+dubMessage.innerHTML = "";
+
+const projectId = data.project_id;
+const languageId = data.language_ids?.[0]?.language_id || data.language_ids?.[0];
+
+const projectInfo = document.createElement("p");
+projectInfo.textContent =
+  "Project created. ID: " + projectId + " | Status: " + data.status;
+dubMessage.appendChild(projectInfo);
+
+const statusButton = document.createElement("button");
+statusButton.type = "button";
+statusButton.className = "primary";
+statusButton.textContent = "🔄 Check Dubbing Status";
+dubMessage.appendChild(statusButton);
+
+const statusText = document.createElement("p");
+dubMessage.appendChild(statusText);
+
+statusButton.addEventListener("click", async () => {
+  statusButton.disabled = true;
+  statusText.textContent = "Checking status...";
+
+  try {
+    const statusResponse = await fetch(WORKER_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "dub_status",
+        project_id: projectId
+      })
+    });
+
+    const statusData = await statusResponse.json();
+
+    if (!statusResponse.ok) {
+      throw new Error(statusData.error || "Status check failed.");
+    }
+
+    statusText.textContent = "Current status: " + statusData.status;
+  } catch (error) {
+    statusText.textContent = error.message || "Could not check status.";
+  } finally {
+    statusButton.disabled = false;
+  }
+});
+
       } catch (error) {
         dubMessage.textContent = error.message ||
           "Something went wrong. Please try again.";
