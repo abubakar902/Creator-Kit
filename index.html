@@ -787,6 +787,7 @@
         dubMessage.appendChild(statusText);
 
         
+
 statusButton.addEventListener("click", async () => {
   statusButton.disabled = true;
   statusText.textContent = "Checking dubbing status...";
@@ -804,21 +805,45 @@ statusButton.addEventListener("click", async () => {
     const statusData = await statusResponse.json();
 
     if (!statusResponse.ok) {
-      throw new Error(statusData.error || "Status check failed.");
-    }
-
-    const projectStatus = String(statusData.status || "unknown").toLowerCase();
-
-    statusText.textContent = "Project status: " + projectStatus;
-
-    if (projectStatus !== "ready" &&
-        projectStatus !== "dubbed" &&
-        projectStatus !== "completed") {
-      statusText.textContent += " — Please check again later.";
+      statusText.textContent =
+        "Error: " + (statusData.error || "Status check failed.") +
+        (statusData.details
+          ? "\nDetails: " + JSON.stringify(statusData.details)
+          : "");
       return;
     }
 
-    // Find the target language ID returned when the project was created.
+    const projectStatus = String(
+      statusData.status || "unknown"
+    ).toLowerCase();
+
+    statusText.textContent =
+      "Project status: " + projectStatus;
+
+    if (projectStatus === "failed") {
+      statusText.textContent +=
+        "\nError details: " +
+        JSON.stringify({
+          error: statusData.error,
+          target_languages: statusData.target_languages,
+          details: statusData.details
+        }, null, 2);
+      return;
+    }
+
+    if (
+      projectStatus !== "ready" &&
+      projectStatus !== "dubbed" &&
+      projectStatus !== "completed"
+    ) {
+      statusText.textContent +=
+        " — Please check again later.";
+      return;
+    }
+
+    statusText.textContent +=
+      "\nProject ready. Checking target language and output details...";
+
     const languageIds = data.language_ids;
     let languageId = null;
 
@@ -832,19 +857,23 @@ statusButton.addEventListener("click", async () => {
       languageId = typeof match === "string"
         ? match
         : match?.language_id || match?.id || null;
-    } else if (languageIds && typeof languageIds === "object") {
-      languageId = languageIds[dubLanguage.value] ||
-        languageIds[dubLanguage.value === "ur" ? "Urdu" : "Hindi"] ||
+    } else if (
+      languageIds &&
+      typeof languageIds === "object"
+    ) {
+      languageId =
+        languageIds[dubLanguage.value] ||
+        languageIds[
+          dubLanguage.value === "ur" ? "Urdu" : "Hindi"
+        ] ||
         null;
     }
 
     if (!languageId) {
       statusText.textContent +=
-        " — Project is ready, but its target language ID was not found. Check the project response.";
+        "\nTarget language ID nahi mila. Project creation response check karna hoga.";
       return;
     }
-
-    statusText.textContent += " — Retrieving dubbed audio...";
 
     const resultResponse = await fetch(WORKER_URL, {
       method: "POST",
@@ -859,12 +888,18 @@ statusButton.addEventListener("click", async () => {
     const resultData = await resultResponse.json();
 
     if (!resultResponse.ok) {
-      throw new Error(resultData.error || "Could not retrieve the dubbed result.");
+      statusText.textContent =
+        "Output error: " +
+        (resultData.error || "Could not retrieve output.") +
+        (resultData.details
+          ? "\nDetails: " + JSON.stringify(resultData.details)
+          : "");
+      return;
     }
 
-    const result = resultData.result || {};
-    const outputs = result.outputs || {};
-    const downloadUrl = outputs.lossless_audio ||
+    const outputs = resultData.result?.outputs || {};
+    const downloadUrl =
+      outputs.lossless_audio ||
       outputs.audio ||
       outputs.lossless_video ||
       outputs.video ||
@@ -872,7 +907,8 @@ statusButton.addEventListener("click", async () => {
 
     if (!downloadUrl || typeof downloadUrl !== "string") {
       statusText.textContent =
-        "Dubbing project is ready, but no downloadable output URL was returned. Check the result response.";
+        "Output URL nahi mila. Result response:\n" +
+        JSON.stringify(resultData, null, 2);
       return;
     }
 
@@ -889,13 +925,15 @@ statusButton.addEventListener("click", async () => {
     dubMessage.appendChild(downloadLink);
 
     statusText.textContent =
-      "Dubbed output is ready. Download the available audio output below.";
+      "Dubbed output ready. The download link is below.";
   } catch (error) {
-    statusText.textContent = error.message || "Something went wrong.";
+    statusText.textContent =
+      "Error: " + (error.message || "Something went wrong.");
   } finally {
     statusButton.disabled = false;
   }
 });
+
 
       } catch (error) {
         dubMessage.textContent = error.message || "Something went wrong. Please try again.";
