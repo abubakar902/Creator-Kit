@@ -291,6 +291,11 @@
         <span class="emoji">📱</span>
         <strong>Shorts Script Generator</strong>
         <small>Create short-form video scripts with a strong opening.</small>
+      </button> 
+      <button class="tool" data-tool="dubber">
+        <span class="emoji">🎙️</span>
+        <strong>AI Video Dubber</strong>
+        <small>Dub videos into Urdu or Hindi using a video link or uploaded file.</small>
       </button>
     </section>
 
@@ -304,6 +309,47 @@
       </form>
       <div id="downloadOptions" style="margin-top:20px"></div>
       <div id="downloadMessage" style="color:var(--muted);margin-top:12px"></div>
+    </section>
+
+    <section class="workspace" id="dubberWorkspace" style="display:none">
+      <h2>🎙️ AI Video Dubber</h2>
+      <p style="color:var(--muted)">
+        Upload a video file or paste a public video link to dub your video into Urdu or Hindi.
+      </p>
+
+      <form id="dubberForm">
+        <label for="dubUrl">Video Link</label>
+        <input
+          id="dubUrl"
+          type="url"
+          placeholder="https://example.com/video.mp4"
+        >
+
+        <p style="text-align:center;color:var(--muted)">— OR —</p>
+
+        <label for="dubFile">Upload Video</label>
+        <input
+          id="dubFile"
+          type="file"
+          accept="video/*"
+        >
+
+        <label for="dubLanguage">Choose Dubbing Language</label>
+        <select id="dubLanguage" required>
+          <option value="ur">Urdu</option>
+          <option value="hi">Hindi</option>
+        </select>
+
+        <button class="primary" id="dubButton" type="submit">
+          🎙️ Start Dubbing
+        </button>
+      </form>
+
+      <div
+        id="dubMessage"
+        role="status"
+        style="color:var(--muted);margin-top:14px"
+      ></div>
     </section>
 
     <section class="workspace" id="generatorWorkspace">
@@ -396,6 +442,8 @@
     const message = document.getElementById("message");
     const generateButton = document.getElementById("generateButton");
     const downloaderTool = document.getElementById("downloaderTool");
+    const dubberWorkspace = document.getElementById("dubberWorkspace");
+    const dubberForm = document.getElementById("dubberForm");
     const downloaderWorkspace = document.getElementById("downloaderWorkspace");
     const generatorWorkspace = document.getElementById("generatorWorkspace");
     const downloaderForm = document.getElementById("downloaderForm");
@@ -403,6 +451,17 @@
     const downloadMessage = document.getElementById("downloadMessage");
 
     document.querySelectorAll(".tool").forEach(button => {
+        if (button.dataset.tool === "dubber") {
+          document.querySelectorAll(".tool").forEach(item => {
+            item.classList.toggle("active", item === button);
+          });
+
+          downloaderWorkspace.style.display = "none";
+          generatorWorkspace.style.display = "none";
+          dubberWorkspace.style.display = "block";
+          dubberWorkspace.scrollIntoView({ behavior: "smooth" });
+          return;
+        }
       button.addEventListener("click", () => {
         if (button.id === "downloaderTool") return;
 
@@ -644,6 +703,72 @@
         button.textContent = "Get Download Options";
       }
     });
+    
+    dubberForm.addEventListener("submit", async event => {
+      event.preventDefault();
+
+      const url = document.getElementById("dubUrl").value.trim();
+      const file = document.getElementById("dubFile").files[0];
+      const language = document.getElementById("dubLanguage").value;
+      const dubMessage = document.getElementById("dubMessage");
+      const dubButton = document.getElementById("dubButton");
+
+      if (file) {
+        dubMessage.textContent =
+          "File upload is not connected yet. Please use a public video URL.";
+        return;
+      }
+
+      if (!url) {
+        dubMessage.textContent = "Please enter a video URL.";
+        return;
+      }
+
+      try {
+        const parsedUrl = new URL(url);
+
+        if (parsedUrl.protocol !== "https:") {
+          throw new Error("Please use a secure HTTPS video URL.");
+        }
+      } catch {
+        dubMessage.textContent = "Please enter a valid HTTPS video URL.";
+        return;
+      }
+
+      dubButton.disabled = true;
+      dubButton.textContent = "⏳ Starting...";
+      dubMessage.textContent = "Creating your dubbing project...";
+
+      try {
+        const response = await fetch(WORKER_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "dub_create",
+            url,
+            target_language: language
+          })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || "Could not start dubbing.");
+        }
+
+        dubMessage.textContent =
+          "Project created. Project ID: " + data.project_id +
+          ". Status: " + data.status +
+          ". Save this ID for checking progress.";
+      } catch (error) {
+        dubMessage.textContent = error.message ||
+          "Something went wrong. Please try again.";
+      } finally {
+        dubButton.disabled = false;
+        dubButton.textContent = "🎙️ Start Dubbing";
+      }
+    });
+
   </script>
 </body>
 </html>
