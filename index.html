@@ -311,44 +311,33 @@
     </section>
 
     <section class="workspace" id="dubberWorkspace" style="display:none">
-      <h2>🎙️ AI Video Dubber</h2>
-      <p style="color:var(--muted)">
-        Upload a video file or paste a public video link to dub your video into Urdu or Hindi.
-      </p>
+      <h2>🎙️ AI Dubber</h2>
+      <p style="color:var(--muted)">Choose whether you want a dubbed audio file or a dubbed video. Select Urdu or Hindi, then upload a file or use a public HTTPS link.</p>
 
       <form id="dubberForm">
-        <label for="dubUrl">Video Link</label>
-        <input
-          id="dubUrl"
-          type="url"
-          placeholder="https://example.com/video.mp4"
-        >
+        <label for="dubMode">What do you want to dub?</label>
+        <select id="dubMode" required>
+          <option value="audio">Audio Dubbing — output MP3 (download step still being connected)</option>
+          <option value="video">Video Dubbing — output MP4 (video export step still being connected)</option>
+        </select>
 
-        <p style="text-align:center;color:var(--muted)">— OR —</p>
+        <label for="dubFile">Upload audio or video file</label>
+        <input id="dubFile" type="file" accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.mp4,.mov,.webm,.mkv">
+        <p style="color:var(--muted);font-size:13px">Or enter a public HTTPS media URL below. Choose either a file or a URL, not both.</p>
 
-        <label for="dubFile">Upload Video</label>
-        <input
-          id="dubFile"
-          type="file"
-          accept="video/*"
-        >
+        <label for="dubUrl">Public media URL (optional)</label>
+        <input id="dubUrl" type="url" placeholder="https://example.com/media.mp4">
 
-        <label for="dubLanguage">Choose Dubbing Language</label>
+        <label for="dubLanguage">Dubbing language</label>
         <select id="dubLanguage" required>
           <option value="ur">Urdu</option>
           <option value="hi">Hindi</option>
         </select>
 
-        <button class="primary" id="dubButton" type="submit">
-          🎙️ Start Dubbing
-        </button>
+        <button class="primary" id="dubButton" type="submit">🎙️ Start Dubbing</button>
       </form>
 
-      <div
-        id="dubMessage"
-        role="status"
-        style="color:var(--muted);margin-top:14px"
-      ></div>
+      <div id="dubMessage" role="status" aria-live="polite" style="color:var(--muted);margin-top:14px"></div>
     </section>
 
     <section class="workspace" id="generatorWorkspace">
@@ -697,35 +686,59 @@
       }
     });
     
+    const dubMode = document.getElementById("dubMode");
+    const dubFileInput = document.getElementById("dubFile");
+    const dubUrlInput = document.getElementById("dubUrl");
+
+    function updateDubFileAccept() {
+      dubFileInput.accept = dubMode.value === "audio"
+        ? "audio/*,.mp3,.wav,.m4a,.aac,.ogg"
+        : "video/mp4,video/quicktime,video/webm,.mp4,.mov,.webm,.mkv";
+      dubFileInput.value = "";
+    }
+    dubMode.addEventListener("change", updateDubFileAccept);
+    updateDubFileAccept();
+
     dubberForm.addEventListener("submit", async event => {
       event.preventDefault();
 
-      const url = document.getElementById("dubUrl").value.trim();
-      const file = document.getElementById("dubFile").files[0];
+      const url = dubUrlInput.value.trim();
+      const file = dubFileInput.files[0];
       const language = document.getElementById("dubLanguage").value;
+      const mode = dubMode.value;
       const dubMessage = document.getElementById("dubMessage");
       const dubButton = document.getElementById("dubButton");
 
+      if ((!file && !url) || (file && url)) {
+        dubMessage.textContent = "Please choose one: upload a file OR enter a public HTTPS URL.";
+        return;
+      }
+
       if (file) {
-        dubMessage.textContent =
-          "File upload is not connected yet. Please use a public video URL.";
-        return;
-      }
-
-      if (!url) {
-        dubMessage.textContent = "Please enter a video URL.";
-        return;
-      }
-
-      try {
-        const parsedUrl = new URL(url);
-
-        if (parsedUrl.protocol !== "https:") {
-          throw new Error("Please use a secure HTTPS video URL.");
+        const allowedAudio = /\.(mp3|wav|m4a|aac|ogg)$/i.test(file.name);
+        const allowedVideo = /\.(mp4|mov|webm|mkv)$/i.test(file.name);
+        if (mode === "audio" && !allowedAudio) {
+          dubMessage.textContent = "For Audio Dubbing, upload an MP3, WAV, M4A, AAC or OGG file.";
+          return;
         }
-      } catch {
-        dubMessage.textContent = "Please enter a valid HTTPS video URL.";
-        return;
+        if (mode === "video" && !allowedVideo) {
+          dubMessage.textContent = "For Video Dubbing, upload an MP4, MOV, WEBM or MKV file.";
+          return;
+        }
+        if (file.size > 100 * 1024 * 1024) {
+          dubMessage.textContent = "For now, the maximum upload size is 100 MB.";
+          return;
+        }
+      }
+
+      if (url) {
+        try {
+          const parsedUrl = new URL(url);
+          if (parsedUrl.protocol !== "https:") throw new Error();
+        } catch {
+          dubMessage.textContent = "Please enter a valid public HTTPS URL.";
+          return;
+        }
       }
 
       dubButton.disabled = true;
@@ -733,73 +746,69 @@
       dubMessage.textContent = "Creating your dubbing project...";
 
       try {
-        const response = await fetch(WORKER_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
+        let requestBody;
+        const headers = {};
+        if (file) {
+          requestBody = new FormData();
+          requestBody.append("action", "dub_create");
+          requestBody.append("target_language", language);
+          requestBody.append("mode", mode);
+          requestBody.append("file", file, file.name);
+        } else {
+          headers["Content-Type"] = "application/json";
+          requestBody = JSON.stringify({
             action: "dub_create",
             url,
+            mode,
             target_language: language
-          })
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.error || "Could not start dubbing.");
+          });
         }
 
-        
-dubMessage.innerHTML = "";
+        const response = await fetch(WORKER_URL, {
+          method: "POST",
+          headers,
+          body: requestBody
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Could not start dubbing.");
+        if (!data.project_id) throw new Error("The API did not return a dubbing project ID.");
 
-const projectId = data.project_id;
-const languageId = data.language_ids?.[0]?.language_id || data.language_ids?.[0];
+        dubMessage.replaceChildren();
+        const projectInfo = document.createElement("p");
+        projectInfo.textContent = "Project created. ID: " + data.project_id + " | Status: " + (data.status || "created");
+        dubMessage.appendChild(projectInfo);
 
-const projectInfo = document.createElement("p");
-projectInfo.textContent =
-  "Project created. ID: " + projectId + " | Status: " + data.status;
-dubMessage.appendChild(projectInfo);
+        const statusButton = document.createElement("button");
+        statusButton.type = "button";
+        statusButton.className = "primary";
+        statusButton.textContent = "🔄 Check Dubbing Status";
+        dubMessage.appendChild(statusButton);
+        const statusText = document.createElement("p");
+        dubMessage.appendChild(statusText);
 
-const statusButton = document.createElement("button");
-statusButton.type = "button";
-statusButton.className = "primary";
-statusButton.textContent = "🔄 Check Dubbing Status";
-dubMessage.appendChild(statusButton);
-
-const statusText = document.createElement("p");
-dubMessage.appendChild(statusText);
-
-statusButton.addEventListener("click", async () => {
-  statusButton.disabled = true;
-  statusText.textContent = "Checking status...";
-
-  try {
-    const statusResponse = await fetch(WORKER_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        action: "dub_status",
-        project_id: projectId
-      })
-    });
-
-    const statusData = await statusResponse.json();
-
-    if (!statusResponse.ok) {
-      throw new Error(statusData.error || "Status check failed.");
-    }
-
-    statusText.textContent = "Current status: " + statusData.status;
-  } catch (error) {
-    statusText.textContent = error.message || "Could not check status.";
-  } finally {
-    statusButton.disabled = false;
-  }
-});
-
+        statusButton.addEventListener("click", async () => {
+          statusButton.disabled = true;
+          statusText.textContent = "Checking status...";
+          try {
+            const statusResponse = await fetch(WORKER_URL, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ action: "dub_status", project_id: data.project_id })
+            });
+            const statusData = await statusResponse.json();
+            if (!statusResponse.ok) throw new Error(statusData.error || "Status check failed.");
+            statusText.textContent = "Current status: " + (statusData.status || "unknown") + ". " +
+              (statusData.status === "dubbed" || statusData.status === "completed"
+                ? "Dubbing is ready, but the final MP3/MP4 download/export step still needs to be connected."
+                : "Check again later; dubbing may still be processing.");
+          } catch (error) {
+            statusText.textContent = error.message || "Could not check status.";
+          } finally {
+            statusButton.disabled = false;
+          }
+        });
       } catch (error) {
-        dubMessage.textContent = error.message ||
-          "Something went wrong. Please try again.";
+        dubMessage.textContent = error.message || "Something went wrong. Please try again.";
       } finally {
         dubButton.disabled = false;
         dubButton.textContent = "🎙️ Start Dubbing";
