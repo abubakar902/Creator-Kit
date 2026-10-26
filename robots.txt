@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://abubakar902.github.io/Creator-Kit/sitemap.xml
