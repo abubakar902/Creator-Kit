@@ -253,15 +253,14 @@
       <p>Generate catchy titles, engaging captions, hashtags, descriptions, viral hooks and YouTube Shorts scripts in one place.</p>
     </section>
 
-    <button class="tool" data-tool="downloader" id="downloaderTool">
-      <span class="emoji">⬇️</span>
-      <strong>Video Downloader</strong>
-      <small>Download supported videos from YouTube, TikTok and Instagram.</small>
-    </button>
-
     <h2 class="section-title">Choose your tool</h2>
 
     <section class="tools" id="tools">
+      <button class="tool" data-tool="downloader" id="downloaderTool">
+        <span class="emoji">⬇️</span>
+        <strong>Video Downloader</strong>
+        <small>Download supported videos from YouTube, TikTok and Instagram.</small>
+      </button>
       <button class="tool active" data-tool="titles">
         <span class="emoji">🎬</span>
         <strong>YouTube Title Generator</strong>
@@ -451,26 +450,29 @@
     const downloadMessage = document.getElementById("downloadMessage");
 
     document.querySelectorAll(".tool").forEach(button => {
-        if (button.dataset.tool === "dubber") {
-          document.querySelectorAll(".tool").forEach(item => {
-            item.classList.toggle("active", item === button);
-          });
-
-          downloaderWorkspace.style.display = "none";
-          generatorWorkspace.style.display = "none";
-          dubberWorkspace.style.display = "block";
-          dubberWorkspace.scrollIntoView({ behavior: "smooth" });
-          return;
-        }
       button.addEventListener("click", () => {
-        if (button.id === "downloaderTool") return;
-
-        selectedTool = button.dataset.tool;
         document.querySelectorAll(".tool").forEach(item => {
           item.classList.toggle("active", item === button);
         });
 
+        // Hide every workspace first, so only the selected tool stays open.
         downloaderWorkspace.style.display = "none";
+        generatorWorkspace.style.display = "none";
+        dubberWorkspace.style.display = "none";
+
+        if (button.dataset.tool === "downloader") {
+          downloaderWorkspace.style.display = "block";
+          downloaderWorkspace.scrollIntoView({ behavior: "smooth" });
+          return;
+        }
+
+        if (button.dataset.tool === "dubber") {
+          dubberWorkspace.style.display = "block";
+          dubberWorkspace.scrollIntoView({ behavior: "smooth" });
+          return;
+        }
+
+        selectedTool = button.dataset.tool;
         generatorWorkspace.style.display = "block";
         document.getElementById("toolTitle").textContent = toolInfo[selectedTool].title;
         document.getElementById("toolDescription").textContent = toolInfo[selectedTool].description;
@@ -551,15 +553,6 @@
       } catch {
         message.textContent = "Copy isn't available here. Select the result text and copy it.";
       }
-    });
-
-    downloaderTool.addEventListener("click", () => {
-      document.querySelectorAll(".tool").forEach(item => {
-        item.classList.toggle("active", item === downloaderTool);
-      });
-      generatorWorkspace.style.display = "none";
-      downloaderWorkspace.style.display = "block";
-      downloaderWorkspace.scrollIntoView({ behavior: "smooth" });
     });
 
     downloaderForm.addEventListener("submit", async event => {
