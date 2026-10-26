@@ -786,27 +786,117 @@
         const statusText = document.createElement("p");
         dubMessage.appendChild(statusText);
 
-        statusButton.addEventListener("click", async () => {
-          statusButton.disabled = true;
-          statusText.textContent = "Checking status...";
-          try {
-            const statusResponse = await fetch(WORKER_URL, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ action: "dub_status", project_id: data.project_id })
-            });
-            const statusData = await statusResponse.json();
-            if (!statusResponse.ok) throw new Error(statusData.error || "Status check failed.");
-            statusText.textContent = "Current status: " + (statusData.status || "unknown") + ". " +
-              (statusData.status === "dubbed" || statusData.status === "completed"
-                ? "Dubbing is ready, but the final MP3/MP4 download/export step still needs to be connected."
-                : "Check again later; dubbing may still be processing.");
-          } catch (error) {
-            statusText.textContent = error.message || "Could not check status.";
-          } finally {
-            statusButton.disabled = false;
-          }
-        });
+        
+statusButton.addEventListener("click", async () => {
+  statusButton.disabled = true;
+  statusText.textContent = "Checking dubbing status...";
+
+  try {
+    const statusResponse = await fetch(WORKER_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "dub_status",
+        project_id: data.project_id
+      })
+    });
+
+    const statusData = await statusResponse.json();
+
+    if (!statusResponse.ok) {
+      throw new Error(statusData.error || "Status check failed.");
+    }
+
+    const projectStatus = String(statusData.status || "unknown").toLowerCase();
+
+    statusText.textContent = "Project status: " + projectStatus;
+
+    if (projectStatus !== "ready" &&
+        projectStatus !== "dubbed" &&
+        projectStatus !== "completed") {
+      statusText.textContent += " — Please check again later.";
+      return;
+    }
+
+    // Find the target language ID returned when the project was created.
+    const languageIds = data.language_ids;
+    let languageId = null;
+
+    if (Array.isArray(languageIds)) {
+      const match = languageIds.find(item =>
+        typeof item === "string" ||
+        item.language_code === dubLanguage.value ||
+        item.language === dubLanguage.value
+      );
+
+      languageId = typeof match === "string"
+        ? match
+        : match?.language_id || match?.id || null;
+    } else if (languageIds && typeof languageIds === "object") {
+      languageId = languageIds[dubLanguage.value] ||
+        languageIds[dubLanguage.value === "ur" ? "Urdu" : "Hindi"] ||
+        null;
+    }
+
+    if (!languageId) {
+      statusText.textContent +=
+        " — Project is ready, but its target language ID was not found. Check the project response.";
+      return;
+    }
+
+    statusText.textContent += " — Retrieving dubbed audio...";
+
+    const resultResponse = await fetch(WORKER_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "dub_result",
+        project_id: data.project_id,
+        language_id: languageId
+      })
+    });
+
+    const resultData = await resultResponse.json();
+
+    if (!resultResponse.ok) {
+      throw new Error(resultData.error || "Could not retrieve the dubbed result.");
+    }
+
+    const result = resultData.result || {};
+    const outputs = result.outputs || {};
+    const downloadUrl = outputs.lossless_audio ||
+      outputs.audio ||
+      outputs.lossless_video ||
+      outputs.video ||
+      null;
+
+    if (!downloadUrl || typeof downloadUrl !== "string") {
+      statusText.textContent =
+        "Dubbing project is ready, but no downloadable output URL was returned. Check the result response.";
+      return;
+    }
+
+    const downloadLink = document.createElement("a");
+    downloadLink.href = downloadUrl;
+    downloadLink.target = "_self";
+    downloadLink.textContent = "⬇️ Download Dubbed Output";
+    downloadLink.className = "primary";
+    downloadLink.style.display = "inline-block";
+    downloadLink.style.marginTop = "10px";
+    downloadLink.style.padding = "12px 16px";
+    downloadLink.style.borderRadius = "8px";
+
+    dubMessage.appendChild(downloadLink);
+
+    statusText.textContent =
+      "Dubbed output is ready. Download the available audio output below.";
+  } catch (error) {
+    statusText.textContent = error.message || "Something went wrong.";
+  } finally {
+    statusButton.disabled = false;
+  }
+});
+
       } catch (error) {
         dubMessage.textContent = error.message || "Something went wrong. Please try again.";
       } finally {
