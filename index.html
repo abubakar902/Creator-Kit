@@ -119,15 +119,15 @@ button.primary,button.secondary{display:inline-flex;align-items:center;justify-c
 
         <label for="details">Extra details (optional)</label>
         <textarea id="details" maxlength="1000" placeholder="Audience, video length, language or any special instructions..."></textarea>
-        <button class="primary" id="generateButton" type="submit">✨ Generate with Gemini AI</button>
+        <button class="primary" id="generateButton" type="submit">Generate</button>
       </form>
 
       <div class="result-head">
         <h3>Your result</h3>
         <button class="secondary" id="copyButton" type="button">Copy result</button>
       </div>
-      <div id="result" aria-live="polite">Your AI-generated result will appear here.</div>
-      <div id="message">Powered by your Cloudflare Worker connection.</div>
+      <div id="result" aria-live="polite">Your result will appear here.</div>
+      <div id="message">Ready when you are.</div>
     </section>
   </main>
 
@@ -202,7 +202,7 @@ button.primary,button.secondary{display:inline-flex;align-items:center;justify-c
         generatorWorkspace.style.display = "block";
         document.getElementById("toolTitle").textContent = toolInfo[selectedTool].title;
         document.getElementById("toolDescription").textContent = toolInfo[selectedTool].description;
-        result.textContent = "Enter your topic and generate a new result.";
+        result.textContent = "Your result will appear here.";
         message.textContent = "Ready to generate.";
       });
     });
@@ -268,7 +268,7 @@ button.primary,button.secondary{display:inline-flex;align-items:center;justify-c
         message.textContent = error.message + " Please wait and try again.";
       } finally {
         generateButton.disabled = false;
-        generateButton.textContent = "✨ Generate with Gemini AI";
+        generateButton.textContent = "Generate";
       }
     });
 
