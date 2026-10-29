@@ -330,8 +330,24 @@
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || "Could not get video formats.");
 
-        const formats = data.formats || data.data?.formats || [];
+        let formats = data.formats || data.data?.formats || [];
         if (!formats.length) throw new Error("No formats were returned for this video.");
+
+        // For YouTube, show only the three formats confirmed to work.
+        let isYouTube = false;
+        try {
+          const parsedVideoUrl = new URL(url);
+          const host = parsedVideoUrl.hostname.toLowerCase();
+          isYouTube = host === "youtu.be" || host === "youtube.com" || host.endsWith(".youtube.com");
+        } catch {}
+
+        if (isYouTube) {
+          const allowedYouTubeFormats = new Set(["v-1080", "v-720", "v-480"]);
+          formats = formats.filter(format => allowedYouTubeFormats.has(String(format.id || format.format || "").toLowerCase()));
+          if (!formats.length) {
+            throw new Error("1080p, 720p, and 480p formats are not available for this video.");
+          }
+        }
 
         const label = document.createElement("label");
         label.textContent = "Choose format";
