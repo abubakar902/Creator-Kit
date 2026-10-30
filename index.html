@@ -131,6 +131,46 @@
       <div id="downloadOptions" style="margin-top:20px"></div>
       <div id="downloadMessage" style="color:var(--muted);margin-top:12px"></div>
     </section>
+    <section class="category-block">
+  <div class="category-heading">
+    <span class="category-icon">🎨</span>
+    <div>
+      <h3>AI Image Tools</h3>
+      <p>Create and edit images with AI.</p>
+    </div>
+  </div>
+  <section class="tools" aria-label="AI Image tools">
+    <button class="tool" id="imageGeneratorTool" type="button">
+      <span class="emoji">🖼️</span>
+      <strong>AI Image Generator</strong>
+      <small>Create images from text or edit an uploaded photo.</small>
+    </button>
+  </section>
+</section>
+
+<section class="workspace" id="imageWorkspace" style="display:none">
+  <h2>🎨 AI Image Generator</h2>
+  <p class="workspace-intro">Create a new image or edit an existing photo using AI.</p>
+
+  <label for="imageMode">Choose mode</label>
+  <select id="imageMode">
+    <option value="text">Text to Image</option>
+    <option value="edit">Image to Image</option>
+  </select>
+
+  <div id="imageUploadArea" style="display:none">
+    <label for="imageFile">Upload your image</label>
+    <input id="imageFile" type="file" accept="image/png,image/jpeg,image/webp">
+    <p class="workspace-intro">PNG, JPG or WEBP images only.</p>
+  </div>
+
+  <label for="imagePrompt">Describe your image</label>
+  <textarea id="imagePrompt" maxlength="1000" placeholder="Example: A cinematic portrait of a cricketer in a stadium at night..."></textarea>
+
+  <button class="primary" id="imageGenerateButton" type="button">Generate Image</button>
+  <div id="imageMessage" role="status" aria-live="polite"></div>
+  <div id="imageResult" style="margin-top:20px"></div>
+</section>
 <section class="workspace" id="generatorWorkspace">
       <h2 id="toolTitle">🎬 YouTube Title Generator</h2>
       <p id="toolDescription" class="workspace-intro">Generate catchy YouTube titles using your topic or keywords. Create engaging title ideas for your next video.</p>
@@ -489,7 +529,136 @@
         button.textContent = "Get Download Options";
       }
     });
+// AI IMAGE GENERATOR
+const imageTool = document.getElementById("imageGeneratorTool");
+const imageWorkspace = document.getElementById("imageWorkspace");
+const imageMode = document.getElementById("imageMode");
+const imageUploadArea = document.getElementById("imageUploadArea");
+const imageFile = document.getElementById("imageFile");
+const imagePrompt = document.getElementById("imagePrompt");
+const imageButton = document.getElementById("imageGenerateButton");
+const imageMessage = document.getElementById("imageMessage");
+const imageResult = document.getElementById("imageResult");
 
+// Open image generator without triggering the normal tool handler
+imageTool.addEventListener("click", function (event) {
+  event.stopImmediatePropagation();
+
+  document.querySelectorAll(".tool").forEach(item => {
+    item.classList.toggle("active", item === imageTool);
+  });
+
+  document.getElementById("generatorWorkspace").style.display = "none";
+
+  const downloader = document.getElementById("downloaderWorkspace");
+  if (downloader) downloader.style.display = "none";
+
+  imageWorkspace.style.display = "block";
+  imageWorkspace.scrollIntoView({ behavior: "smooth" });
+}, true);
+
+// Show upload option only in Image-to-Image mode
+imageMode.addEventListener("change", function () {
+  imageUploadArea.style.display =
+    imageMode.value === "edit" ? "block" : "none";
+});
+
+// Generate image
+imageButton.addEventListener("click", async function () {
+  const prompt = imagePrompt.value.trim();
+  const mode = imageMode.value;
+  const file = imageFile.files[0];
+
+  if (!prompt) {
+    imageMessage.textContent = "Please describe the image first.";
+    return;
+  }
+
+  if (mode === "edit" && !file) {
+    imageMessage.textContent = "Please upload an image to edit.";
+    return;
+  }
+
+  if (file && file.size > 3 * 1024 * 1024) {
+    imageMessage.textContent = "Please upload an image smaller than 3 MB.";
+    return;
+  }
+
+  imageButton.disabled = true;
+  imageButton.textContent = "Generating...";
+  imageMessage.textContent = "Please wait. Your image is being created...";
+  imageResult.innerHTML = "";
+
+  try {
+    let imageBase64 = "";
+    let mimeType = "";
+
+    if (mode === "edit") {
+      mimeType = file.type;
+
+      imageBase64 = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+
+        reader.onload = () => {
+          const dataUrl = reader.result;
+          resolve(dataUrl.split(",")[1]);
+        };
+
+        reader.onerror = () => reject(new Error("Could not read uploaded image."));
+        reader.readAsDataURL(file);
+      });
+    }
+
+    const response = await fetch(WORKER_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        action: "generate_image",
+        prompt: prompt,
+        imageBase64: imageBase64,
+        mimeType: mimeType
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || data.details || "Image generation failed.");
+    }
+
+    const generatedImage =
+      data.result?.image ||
+      data.result?.images?.[0] ||
+      data.image;
+
+    if (!generatedImage) {
+      throw new Error("No image was returned. Please try again.");
+    }
+
+    imageResult.innerHTML = `
+      <img
+        src="data:image/png;base64,${generatedImage}"
+        alt="AI generated image"
+        style="width:100%;max-width:600px;border-radius:14px;display:block;margin:15px auto;"
+      >
+      <a
+        href="data:image/png;base64,${generatedImage}"
+        download="trivexa-ai-image.png"
+        class="primary"
+        style="display:inline-block;text-decoration:none;margin-top:12px;"
+      >Download Image</a>
+    `;
+
+    imageMessage.textContent = "Your image is ready!";
+  } catch (error) {
+    imageMessage.textContent = error.message || "Something went wrong. Please try again.";
+  } finally {
+    imageButton.disabled = false;
+    imageButton.textContent = "Generate Image";
+  }
+});
 
   </script>
 </body>
