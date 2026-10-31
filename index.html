@@ -27,114 +27,6 @@
     "description": "Creator tools for YouTube titles, social media captions, hashtags, descriptions, video hooks and Shorts scripts."
   }
 
-    // AI IMAGE GENERATOR — uses the existing Cloudflare Worker.
-    const imageMode = document.getElementById("imageMode");
-    const imageUploadArea = document.getElementById("imageUploadArea");
-    const imageFile = document.getElementById("imageFile");
-    const imagePrompt = document.getElementById("imagePrompt");
-    const imageGenerateButton = document.getElementById("imageGenerateButton");
-    const imageMessage = document.getElementById("imageMessage");
-    const imageResult = document.getElementById("imageResult");
-
-    imageMode.addEventListener("change", () => {
-      imageUploadArea.style.display = imageMode.value === "edit" ? "block" : "none";
-      imageMessage.textContent = "";
-      imageResult.innerHTML = "";
-    });
-
-    imageGenerateButton.addEventListener("click", async () => {
-      const prompt = imagePrompt.value.trim();
-      const mode = imageMode.value;
-      const file = imageFile.files && imageFile.files[0];
-
-      if (!prompt) {
-        imageMessage.textContent = "Please describe the image first.";
-        return;
-      }
-      if (mode === "edit" && !file) {
-        imageMessage.textContent = "Please upload an image to edit.";
-        return;
-      }
-      if (file && file.size > 3 * 1024 * 1024) {
-        imageMessage.textContent = "Please upload an image smaller than 3 MB.";
-        return;
-      }
-      if (file && !["image/png", "image/jpeg", "image/webp"].includes(file.type)) {
-        imageMessage.textContent = "Only PNG, JPG or WEBP images are supported.";
-        return;
-      }
-
-      imageGenerateButton.disabled = true;
-      imageGenerateButton.textContent = "Generating...";
-      imageMessage.textContent = "Please wait. Your image is being created...";
-      imageResult.innerHTML = "";
-
-      try {
-        let imageBase64 = "";
-        let mimeType = "";
-
-        if (mode === "edit") {
-          mimeType = file.type;
-          imageBase64 = await new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(String(reader.result).split(",")[1] || "");
-            reader.onerror = () => reject(new Error("Could not read the uploaded image."));
-            reader.readAsDataURL(file);
-          });
-        }
-
-        const response = await fetch(WORKER_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            action: "generate_image",
-            prompt,
-            imageBase64,
-            mimeType
-          })
-        });
-
-        let data;
-        try {
-          data = await response.json();
-        } catch {
-          throw new Error("The server returned an unreadable response. Please try again.");
-        }
-        if (!response.ok) {
-          throw new Error(data.error || data.details || data.message || "Image generation failed.");
-        }
-
-        const generatedImage =
-          data.result?.image ||
-          data.result?.images?.[0] ||
-          data.image;
-
-        if (!generatedImage || typeof generatedImage !== "string") {
-          throw new Error(data.error || "No image was returned. Please try again.");
-        }
-
-        const imageUrl = generatedImage.startsWith("data:")
-          ? generatedImage
-          : `data:image/png;base64,${generatedImage}`;
-
-        const originalUrl = mode === "edit" ? URL.createObjectURL(file) : null;
-        imageResult.innerHTML = `
-          <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start">
-            ${originalUrl ? `<div style="flex:1 1 220px;min-width:0"><p style="text-align:center">Original</p><img src="${originalUrl}" alt="Original uploaded image" style="width:100%;border-radius:12px"></div>` : ""}
-            <div style="flex:1 1 220px;min-width:0"><p style="text-align:center">AI Result</p><img src="${imageUrl}" alt="AI generated image" style="width:100%;border-radius:12px"></div>
-          </div>
-          <a href="${imageUrl}" download="TrivexaAI-${Date.now()}.png" class="primary" style="display:inline-block;text-decoration:none;margin-top:16px">⬇️ Download Image</a>
-        `;
-        imageMessage.textContent = "Your image is ready!";
-      } catch (error) {
-        console.error("Image generation error:", error);
-        imageMessage.textContent = error.message || "Something went wrong. Please try again.";
-      } finally {
-        imageGenerateButton.disabled = false;
-        imageGenerateButton.textContent = "Generate Image";
-      }
-    });
-
   </script>
   <style>
 
@@ -643,6 +535,115 @@
       } finally {
         button.disabled = false;
         button.textContent = "Get Download Options";
+      }
+    });
+
+
+    // AI IMAGE GENERATOR — uses the existing Cloudflare Worker.
+    const imageMode = document.getElementById("imageMode");
+    const imageUploadArea = document.getElementById("imageUploadArea");
+    const imageFile = document.getElementById("imageFile");
+    const imagePrompt = document.getElementById("imagePrompt");
+    const imageGenerateButton = document.getElementById("imageGenerateButton");
+    const imageMessage = document.getElementById("imageMessage");
+    const imageResult = document.getElementById("imageResult");
+
+    imageMode.addEventListener("change", () => {
+      imageUploadArea.style.display = imageMode.value === "edit" ? "block" : "none";
+      imageMessage.textContent = "";
+      imageResult.innerHTML = "";
+    });
+
+    imageGenerateButton.addEventListener("click", async () => {
+      const prompt = imagePrompt.value.trim();
+      const mode = imageMode.value;
+      const file = imageFile.files && imageFile.files[0];
+
+      if (!prompt) {
+        imageMessage.textContent = "Please describe the image first.";
+        return;
+      }
+      if (mode === "edit" && !file) {
+        imageMessage.textContent = "Please upload an image to edit.";
+        return;
+      }
+      if (file && file.size > 3 * 1024 * 1024) {
+        imageMessage.textContent = "Please upload an image smaller than 3 MB.";
+        return;
+      }
+      if (file && !["image/png", "image/jpeg", "image/webp"].includes(file.type)) {
+        imageMessage.textContent = "Only PNG, JPG or WEBP images are supported.";
+        return;
+      }
+
+      imageGenerateButton.disabled = true;
+      imageGenerateButton.textContent = "Generating...";
+      imageMessage.textContent = "Please wait. Your image is being created...";
+      imageResult.innerHTML = "";
+
+      try {
+        let imageBase64 = "";
+        let mimeType = "";
+
+        if (mode === "edit") {
+          mimeType = file.type;
+          imageBase64 = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(String(reader.result).split(",")[1] || "");
+            reader.onerror = () => reject(new Error("Could not read the uploaded image."));
+            reader.readAsDataURL(file);
+          });
+        }
+
+        const response = await fetch(WORKER_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "generate_image",
+            prompt,
+            imageBase64,
+            mimeType
+          })
+        });
+
+        let data;
+        try {
+          data = await response.json();
+        } catch {
+          throw new Error("The server returned an unreadable response. Please try again.");
+        }
+        if (!response.ok) {
+          throw new Error(data.error || data.details || data.message || "Image generation failed.");
+        }
+
+        const generatedImage =
+          data.result?.image ||
+          data.result?.images?.[0] ||
+          data.image;
+
+        if (!generatedImage || typeof generatedImage !== "string") {
+          throw new Error(data.error || "No image was returned. Please try again.");
+        }
+
+        const imageUrl = generatedImage.startsWith("data:")
+          ? generatedImage
+          : `data:image/png;base64,${generatedImage}`;
+
+        const originalUrl = mode === "edit" ? URL.createObjectURL(file) : null;
+        imageResult.innerHTML = `
+          <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start">
+            ${originalUrl ? `<div style="flex:1 1 220px;min-width:0"><p style="text-align:center">Original</p><img src="${originalUrl}" alt="Original uploaded image" style="width:100%;border-radius:12px"></div>` : ""}
+            <div style="flex:1 1 220px;min-width:0"><p style="text-align:center">AI Result</p><img src="${imageUrl}" alt="AI generated image" style="width:100%;border-radius:12px"></div>
+          </div>
+          <a href="${imageUrl}" download="TrivexaAI-${Date.now()}.png" class="primary" style="display:inline-block;text-decoration:none;margin-top:16px">⬇️ Download Image</a>
+        `;
+        imageMessage.textContent = "Your image is ready!";
+      } catch (error) {
+        console.error("Image generation error:", error);
+        imageMessage.textContent = error.message || "Something went wrong. Please try again.";
+      } finally {
+        imageGenerateButton.disabled = false;
+        imageGenerateButton.textContent = "Generate Image";
       }
     });
 
