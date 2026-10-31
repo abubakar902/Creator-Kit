@@ -637,28 +637,32 @@ imageButton.addEventListener("click", async function () {
       throw new Error("No image was returned. Please try again.");
     }
 
-    imageResult.innerHTML = `
-      <img
-        src="data:image/png;base64,${generatedImage}"
-        alt="AI generated image"
-        style="width:100%;max-width:600px;border-radius:14px;display:block;margin:15px auto;"
-      >
-      <a
-        href="data:image/png;base64,${generatedImage}"
-        download="trivexa-ai-image.png"
-        class="primary"
-        style="display:inline-block;text-decoration:none;margin-top:12px;"
-      >Download Image</a>
-    `;
+   const originalPreview =
+  mode === "edit"
+    ? `<div style="flex:1">
+         <p style="text-align:center">Original</p>
+         <img src="${URL.createObjectURL(file)}"
+              style="width:100%;border-radius:12px;">
+       </div>`
+    : "";
 
-    imageMessage.textContent = "Your image is ready!";
-  } catch (error) {
-    imageMessage.textContent = error.message || "Something went wrong. Please try again.";
-  } finally {
-    imageButton.disabled = false;
-    imageButton.textContent = "Generate Image";
-  }
-});
+imageResult.innerHTML = `
+<div style="display:flex;gap:15px;flex-wrap:wrap;">
+  ${originalPreview}
+  <div style="flex:1">
+    <p style="text-align:center">AI Result</p>
+    <img src="data:image/png;base64,${generatedImage}"
+         style="width:100%;border-radius:12px;">
+  </div>
+</div>
+
+<a href="data:image/png;base64,${generatedImage}"
+   download="TrivexaAI-${Date.now()}.png"
+   class="primary"
+   style="display:inline-block;text-decoration:none;margin-top:16px;">
+   ⬇️ Download HD
+</a>
+`;
 
   </script>
 </body>
