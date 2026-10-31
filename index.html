@@ -7,7 +7,7 @@
   <meta name="theme-color" content="#090711">
   <meta name="color-scheme" content="dark">
   <meta name="robots" content="index,follow,max-image-preview:large">
-  <title>TrivexaAI – Free YouTube Tools & Video Downloader</title>
+  <title>TrivexaAI: YouTube Title, Caption & Shorts Tools</title>
   <meta name="description" content="Create YouTube titles, social media captions, hashtags, video descriptions, hooks and Shorts scripts with TrivexaAI creator tools. Explore supported video download options.">
   <link rel="canonical" href="https://abubakar902.github.io/Creator-Kit/">
   <meta property="og:type" content="website">
@@ -26,6 +26,115 @@
     "url": "https://abubakar902.github.io/Creator-Kit/",
     "description": "Creator tools for YouTube titles, social media captions, hashtags, descriptions, video hooks and Shorts scripts."
   }
+
+    // AI IMAGE GENERATOR — uses the existing Cloudflare Worker.
+    const imageMode = document.getElementById("imageMode");
+    const imageUploadArea = document.getElementById("imageUploadArea");
+    const imageFile = document.getElementById("imageFile");
+    const imagePrompt = document.getElementById("imagePrompt");
+    const imageGenerateButton = document.getElementById("imageGenerateButton");
+    const imageMessage = document.getElementById("imageMessage");
+    const imageResult = document.getElementById("imageResult");
+
+    imageMode.addEventListener("change", () => {
+      imageUploadArea.style.display = imageMode.value === "edit" ? "block" : "none";
+      imageMessage.textContent = "";
+      imageResult.innerHTML = "";
+    });
+
+    imageGenerateButton.addEventListener("click", async () => {
+      const prompt = imagePrompt.value.trim();
+      const mode = imageMode.value;
+      const file = imageFile.files && imageFile.files[0];
+
+      if (!prompt) {
+        imageMessage.textContent = "Please describe the image first.";
+        return;
+      }
+      if (mode === "edit" && !file) {
+        imageMessage.textContent = "Please upload an image to edit.";
+        return;
+      }
+      if (file && file.size > 3 * 1024 * 1024) {
+        imageMessage.textContent = "Please upload an image smaller than 3 MB.";
+        return;
+      }
+      if (file && !["image/png", "image/jpeg", "image/webp"].includes(file.type)) {
+        imageMessage.textContent = "Only PNG, JPG or WEBP images are supported.";
+        return;
+      }
+
+      imageGenerateButton.disabled = true;
+      imageGenerateButton.textContent = "Generating...";
+      imageMessage.textContent = "Please wait. Your image is being created...";
+      imageResult.innerHTML = "";
+
+      try {
+        let imageBase64 = "";
+        let mimeType = "";
+
+        if (mode === "edit") {
+          mimeType = file.type;
+          imageBase64 = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(String(reader.result).split(",")[1] || "");
+            reader.onerror = () => reject(new Error("Could not read the uploaded image."));
+            reader.readAsDataURL(file);
+          });
+        }
+
+        const response = await fetch(WORKER_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "generate_image",
+            prompt,
+            imageBase64,
+            mimeType
+          })
+        });
+
+        let data;
+        try {
+          data = await response.json();
+        } catch {
+          throw new Error("The server returned an unreadable response. Please try again.");
+        }
+        if (!response.ok) {
+          throw new Error(data.error || data.details || data.message || "Image generation failed.");
+        }
+
+        const generatedImage =
+          data.result?.image ||
+          data.result?.images?.[0] ||
+          data.image;
+
+        if (!generatedImage || typeof generatedImage !== "string") {
+          throw new Error(data.error || "No image was returned. Please try again.");
+        }
+
+        const imageUrl = generatedImage.startsWith("data:")
+          ? generatedImage
+          : `data:image/png;base64,${generatedImage}`;
+
+        const originalUrl = mode === "edit" ? URL.createObjectURL(file) : null;
+        imageResult.innerHTML = `
+          <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start">
+            ${originalUrl ? `<div style="flex:1 1 220px;min-width:0"><p style="text-align:center">Original</p><img src="${originalUrl}" alt="Original uploaded image" style="width:100%;border-radius:12px"></div>` : ""}
+            <div style="flex:1 1 220px;min-width:0"><p style="text-align:center">AI Result</p><img src="${imageUrl}" alt="AI generated image" style="width:100%;border-radius:12px"></div>
+          </div>
+          <a href="${imageUrl}" download="TrivexaAI-${Date.now()}.png" class="primary" style="display:inline-block;text-decoration:none;margin-top:16px">⬇️ Download Image</a>
+        `;
+        imageMessage.textContent = "Your image is ready!";
+      } catch (error) {
+        console.error("Image generation error:", error);
+        imageMessage.textContent = error.message || "Something went wrong. Please try again.";
+      } finally {
+        imageGenerateButton.disabled = false;
+        imageGenerateButton.textContent = "Generate Image";
+      }
+    });
+
   </script>
   <style>
 
@@ -115,6 +224,17 @@
         <small>Create short-form video scripts with a strong opening.</small>
       </button> 
 </section></section>
+
+    <section class="category-block">
+      <div class="category-heading"><span class="category-icon">🎨</span><div><h3>AI Image Tools</h3><p>Create images and edit your photos with AI.</p></div></div>
+      <section class="tools" aria-label="AI Image tools">
+        <button class="tool" data-tool="image" id="imageGeneratorTool" type="button">
+          <span class="emoji">🖼️</span><strong>AI Image Generator</strong>
+          <small>Create images from text or edit an uploaded photo.</small>
+        </button>
+      </section>
+    </section>
+
     <section class="category-block downloader-category"><div class="category-heading"><span class="category-icon download-category-icon">↓</span><div><h3>Video tools</h3><p>Find download options for supported public links.</p></div></div>
       <section class="tools downloader-grid" aria-label="Video tools">
         <button class="tool" data-tool="downloader" id="downloaderTool"><span class="emoji">⬇️</span><div><strong>Video Downloader</strong><small>Get download options for supported YouTube, TikTok and Instagram links.</small></div><span class="tool-arrow" aria-hidden="true">↗</span></button>
@@ -131,46 +251,27 @@
       <div id="downloadOptions" style="margin-top:20px"></div>
       <div id="downloadMessage" style="color:var(--muted);margin-top:12px"></div>
     </section>
-    <section class="category-block">
-  <div class="category-heading">
-    <span class="category-icon">🎨</span>
-    <div>
-      <h3>AI Image Tools</h3>
-      <p>Create and edit images with AI.</p>
-    </div>
-  </div>
-  <section class="tools" aria-label="AI Image tools">
-    <button class="tool" id="imageGeneratorTool" type="button">
-      <span class="emoji">🖼️</span>
-      <strong>AI Image Generator</strong>
-      <small>Create images from text or edit an uploaded photo.</small>
-    </button>
-  </section>
-</section>
 
-<section class="workspace" id="imageWorkspace" style="display:none">
-  <h2>🎨 AI Image Generator</h2>
-  <p class="workspace-intro">Create a new image or edit an existing photo using AI.</p>
+    <section class="workspace" id="imageWorkspace" style="display:none">
+      <h2>🎨 AI Image Generator</h2>
+      <p class="workspace-intro">Create a new image or edit an existing photo using AI.</p>
+      <label for="imageMode">Choose mode</label>
+      <select id="imageMode">
+        <option value="text">Text to Image</option>
+        <option value="edit">Image to Image</option>
+      </select>
+      <div id="imageUploadArea" style="display:none;margin-top:16px">
+        <label for="imageFile">Upload your image</label>
+        <input id="imageFile" type="file" accept="image/png,image/jpeg,image/webp">
+        <p class="workspace-intro">PNG, JPG or WEBP. Maximum 3 MB.</p>
+      </div>
+      <label for="imagePrompt">Describe your image or edit</label>
+      <textarea id="imagePrompt" maxlength="1000" placeholder="Example: Keep my face the same, change my outfit to a black suit and use a studio background."></textarea>
+      <button class="primary" id="imageGenerateButton" type="button">Generate Image</button>
+      <div id="imageMessage" role="status" aria-live="polite"></div>
+      <div id="imageResult" style="margin-top:20px"></div>
+    </section>
 
-  <label for="imageMode">Choose mode</label>
-  <select id="imageMode">
-    <option value="text">Text to Image</option>
-    <option value="edit">Image to Image</option>
-  </select>
-
-  <div id="imageUploadArea" style="display:none">
-    <label for="imageFile">Upload your image</label>
-    <input id="imageFile" type="file" accept="image/png,image/jpeg,image/webp">
-    <p class="workspace-intro">PNG, JPG or WEBP images only.</p>
-  </div>
-
-  <label for="imagePrompt">Describe your image</label>
-  <textarea id="imagePrompt" maxlength="1000" placeholder="Example: A cinematic portrait of a cricketer in a stadium at night..."></textarea>
-
-  <button class="primary" id="imageGenerateButton" type="button">Generate Image</button>
-  <div id="imageMessage" role="status" aria-live="polite"></div>
-  <div id="imageResult" style="margin-top:20px"></div>
-</section>
 <section class="workspace" id="generatorWorkspace">
       <h2 id="toolTitle">🎬 YouTube Title Generator</h2>
       <p id="toolDescription" class="workspace-intro">Generate catchy YouTube titles using your topic or keywords. Create engaging title ideas for your next video.</p>
@@ -273,30 +374,45 @@
     const downloadOptions = document.getElementById("downloadOptions");
     const downloadMessage = document.getElementById("downloadMessage");
 
-    document.querySelectorAll(".tool").forEach(button => {
+
+    const imageWorkspace = document.getElementById("imageWorkspace");
+
+    document.querySelectorAll(".tool[data-tool]").forEach(button => {
       button.addEventListener("click", () => {
         document.querySelectorAll(".tool").forEach(item => {
           item.classList.toggle("active", item === button);
         });
 
-        // Hide every workspace first, so only the selected tool stays open.
         downloaderWorkspace.style.display = "none";
         generatorWorkspace.style.display = "none";
+        imageWorkspace.style.display = "none";
 
-        if (button.dataset.tool === "downloader") {
+        const toolName = button.dataset.tool;
+
+        if (toolName === "downloader") {
           downloaderWorkspace.style.display = "block";
           downloaderWorkspace.scrollIntoView({ behavior: "smooth" });
           return;
         }
 
-        selectedTool = button.dataset.tool;
+        if (toolName === "image") {
+          imageWorkspace.style.display = "block";
+          imageWorkspace.scrollIntoView({ behavior: "smooth" });
+          return;
+        }
+
+        if (!toolInfo[toolName]) return;
+
+        selectedTool = toolName;
         generatorWorkspace.style.display = "block";
         document.getElementById("toolTitle").textContent = toolInfo[selectedTool].title;
         document.getElementById("toolDescription").textContent = toolInfo[selectedTool].description;
         result.textContent = "Your result will appear here.";
         message.textContent = "";
+        generatorWorkspace.scrollIntoView({ behavior: "smooth" });
       });
     });
+
 
     async function askGemini(prompt) {
       const response = await fetch(WORKER_URL, {
@@ -529,140 +645,7 @@
         button.textContent = "Get Download Options";
       }
     });
-// AI IMAGE GENERATOR
-const imageTool = document.getElementById("imageGeneratorTool");
-const imageWorkspace = document.getElementById("imageWorkspace");
-const imageMode = document.getElementById("imageMode");
-const imageUploadArea = document.getElementById("imageUploadArea");
-const imageFile = document.getElementById("imageFile");
-const imagePrompt = document.getElementById("imagePrompt");
-const imageButton = document.getElementById("imageGenerateButton");
-const imageMessage = document.getElementById("imageMessage");
-const imageResult = document.getElementById("imageResult");
 
-// Open image generator without triggering the normal tool handler
-imageTool.addEventListener("click", function (event) {
-  event.stopImmediatePropagation();
-
-  document.querySelectorAll(".tool").forEach(item => {
-    item.classList.toggle("active", item === imageTool);
-  });
-
-  document.getElementById("generatorWorkspace").style.display = "none";
-
-  const downloader = document.getElementById("downloaderWorkspace");
-  if (downloader) downloader.style.display = "none";
-
-  imageWorkspace.style.display = "block";
-  imageWorkspace.scrollIntoView({ behavior: "smooth" });
-}, true);
-
-// Show upload option only in Image-to-Image mode
-imageMode.addEventListener("change", function () {
-  imageUploadArea.style.display =
-    imageMode.value === "edit" ? "block" : "none";
-});
-
-// Generate image
-imageButton.addEventListener("click", async function () {
-  const prompt = imagePrompt.value.trim();
-  const mode = imageMode.value;
-  const file = imageFile.files[0];
-
-  if (!prompt) {
-    imageMessage.textContent = "Please describe the image first.";
-    return;
-  }
-
-  if (mode === "edit" && !file) {
-    imageMessage.textContent = "Please upload an image to edit.";
-    return;
-  }
-
-  if (file && file.size > 3 * 1024 * 1024) {
-    imageMessage.textContent = "Please upload an image smaller than 3 MB.";
-    return;
-  }
-
-  imageButton.disabled = true;
-  imageButton.textContent = "Generating...";
-  imageMessage.textContent = "Please wait. Your image is being created...";
-  imageResult.innerHTML = "";
-
-  try {
-    let imageBase64 = "";
-    let mimeType = "";
-
-    if (mode === "edit") {
-      mimeType = file.type;
-
-      imageBase64 = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-
-        reader.onload = () => {
-          const dataUrl = reader.result;
-          resolve(dataUrl.split(",")[1]);
-        };
-
-        reader.onerror = () => reject(new Error("Could not read uploaded image."));
-        reader.readAsDataURL(file);
-      });
-    }
-
-    const response = await fetch(WORKER_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        action: "generate_image",
-        prompt: prompt,
-        imageBase64: imageBase64,
-        mimeType: mimeType
-      })
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.error || data.details || "Image generation failed.");
-    }
-
-    const generatedImage =
-      data.result?.image ||
-      data.result?.images?.[0] ||
-      data.image;
-
-    if (!generatedImage) {
-      throw new Error("No image was returned. Please try again.");
-    }
-
-   const originalPreview =
-  mode === "edit"
-    ? `<div style="flex:1">
-         <p style="text-align:center">Original</p>
-         <img src="${URL.createObjectURL(file)}"
-              style="width:100%;border-radius:12px;">
-       </div>`
-    : "";
-
-imageResult.innerHTML = `
-<div style="display:flex;gap:15px;flex-wrap:wrap;">
-  ${originalPreview}
-  <div style="flex:1">
-    <p style="text-align:center">AI Result</p>
-    <img src="data:image/png;base64,${generatedImage}"
-         style="width:100%;border-radius:12px;">
-  </div>
-</div>
-
-<a href="data:image/png;base64,${generatedImage}"
-   download="TrivexaAI-${Date.now()}.png"
-   class="primary"
-   style="display:inline-block;text-decoration:none;margin-top:16px;">
-   ⬇️ Download HD
-</a>
-`;
 
   </script>
 </body>
