@@ -742,13 +742,18 @@
           reader.onerror = () => reject(new Error("Could not read this image."));
           reader.readAsDataURL(upscaleSelectedFile);
         });
+        // Force TensorFlow.js CPU backend to avoid WebGL shader compilation errors
+        // on older/incompatible graphics drivers.
+        const tf = await import("https://esm.sh/@tensorflow/tfjs@4.22.0");
+        await tf.setBackend("cpu");
+        await tf.ready();
         const [{ default: Upscaler }, { default: model }] = await Promise.all([
           import("https://esm.sh/upscaler"),
           import("https://esm.sh/@upscalerjs/esrgan-thick")
         ]);
         const upscaler = new Upscaler({ model });
         upscaleButton.textContent = "AI is enhancing image...";
-        upscaleMessage.textContent = "AI processing is running on your device. This may take a few minutes.";
+        upscaleMessage.textContent = "AI processing is running on your CPU. This may take longer; please keep this tab open.";
         const output = await upscaler.upscale(imageDataUrl);
         const outputUrl = typeof output === "string" ? output : output.src;
         if (!outputUrl) throw new Error("The AI model did not return an image. Please try another photo.");
