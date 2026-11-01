@@ -27,6 +27,114 @@
     "description": "Creator tools for YouTube titles, social media captions, hashtags, descriptions, video hooks and Shorts scripts."
   }
 
+    // AI IMAGE GENERATOR — uses the existing Cloudflare Worker.
+    const imageMode = document.getElementById("imageMode");
+    const imageUploadArea = document.getElementById("imageUploadArea");
+    const imageFile = document.getElementById("imageFile");
+    const imagePrompt = document.getElementById("imagePrompt");
+    const imageGenerateButton = document.getElementById("imageGenerateButton");
+    const imageMessage = document.getElementById("imageMessage");
+    const imageResult = document.getElementById("imageResult");
+
+    imageMode.addEventListener("change", () => {
+      imageUploadArea.style.display = imageMode.value === "edit" ? "block" : "none";
+      imageMessage.textContent = "";
+      imageResult.innerHTML = "";
+    });
+
+    imageGenerateButton.addEventListener("click", async () => {
+      const prompt = imagePrompt.value.trim();
+      const mode = imageMode.value;
+      const file = imageFile.files && imageFile.files[0];
+
+      if (!prompt) {
+        imageMessage.textContent = "Please describe the image first.";
+        return;
+      }
+      if (mode === "edit" && !file) {
+        imageMessage.textContent = "Please upload an image to edit.";
+        return;
+      }
+      if (file && file.size > 3 * 1024 * 1024) {
+        imageMessage.textContent = "Please upload an image smaller than 3 MB.";
+        return;
+      }
+      if (file && !["image/png", "image/jpeg", "image/webp"].includes(file.type)) {
+        imageMessage.textContent = "Only PNG, JPG or WEBP images are supported.";
+        return;
+      }
+
+      imageGenerateButton.disabled = true;
+      imageGenerateButton.textContent = "Generating...";
+      imageMessage.textContent = "Please wait. Your image is being created...";
+      imageResult.innerHTML = "";
+
+      try {
+        let imageBase64 = "";
+        let mimeType = "";
+
+        if (mode === "edit") {
+          mimeType = file.type;
+          imageBase64 = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(String(reader.result).split(",")[1] || "");
+            reader.onerror = () => reject(new Error("Could not read the uploaded image."));
+            reader.readAsDataURL(file);
+          });
+        }
+
+        const response = await fetch(WORKER_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "generate_image",
+            prompt,
+            imageBase64,
+            mimeType
+          })
+        });
+
+        let data;
+        try {
+          data = await response.json();
+        } catch {
+          throw new Error("The server returned an unreadable response. Please try again.");
+        }
+        if (!response.ok) {
+          throw new Error(data.error || data.details || data.message || "Image generation failed.");
+        }
+
+        const generatedImage =
+          data.result?.image ||
+          data.result?.images?.[0] ||
+          data.image;
+
+        if (!generatedImage || typeof generatedImage !== "string") {
+          throw new Error(data.error || "No image was returned. Please try again.");
+        }
+
+        const imageUrl = generatedImage.startsWith("data:")
+          ? generatedImage
+          : `data:image/png;base64,${generatedImage}`;
+
+        const originalUrl = mode === "edit" ? URL.createObjectURL(file) : null;
+        imageResult.innerHTML = `
+          <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start">
+            ${originalUrl ? `<div style="flex:1 1 220px;min-width:0"><p style="text-align:center">Original</p><img src="${originalUrl}" alt="Original uploaded image" style="width:100%;border-radius:12px"></div>` : ""}
+            <div style="flex:1 1 220px;min-width:0"><p style="text-align:center">AI Result</p><img src="${imageUrl}" alt="AI generated image" style="width:100%;border-radius:12px"></div>
+          </div>
+          <a href="${imageUrl}" download="TrivexaAI-${Date.now()}.png" class="primary" style="display:inline-block;text-decoration:none;margin-top:16px">⬇️ Download Image</a>
+        `;
+        imageMessage.textContent = "Your image is ready!";
+      } catch (error) {
+        console.error("Image generation error:", error);
+        imageMessage.textContent = error.message || "Something went wrong. Please try again.";
+      } finally {
+        imageGenerateButton.disabled = false;
+        imageGenerateButton.textContent = "Generate Image";
+      }
+    });
+
   </script>
   <style>
 
@@ -124,6 +232,10 @@
           <span class="emoji">🖼️</span><strong>AI Image Generator</strong>
           <small>Create images from text or edit an uploaded photo.</small>
         </button>
+        <button class="tool" data-tool="background-remover" id="backgroundRemoverTool" type="button">
+          <span class="emoji">✂️</span><strong>AI Background Remover</strong>
+          <small>Remove photo backgrounds and download transparent PNGs for free.</small>
+        </button>
       </section>
     </section>
 
@@ -142,6 +254,19 @@
       </form>
       <div id="downloadOptions" style="margin-top:20px"></div>
       <div id="downloadMessage" style="color:var(--muted);margin-top:12px"></div>
+    </section>
+
+
+    <section class="workspace" id="backgroundRemoverWorkspace" style="display:none">
+      <h2>✂️ AI Background Remover</h2>
+      <p class="workspace-intro">Upload a photo and remove its background. Processing happens in your browser; your image is not uploaded.</p>
+      <label for="bgRemoveFile">Choose an image</label>
+      <input id="bgRemoveFile" type="file" accept="image/png,image/jpeg,image/webp">
+      <p class="workspace-intro">PNG, JPG or WEBP. For best results, use a clear photo with one main subject.</p>
+      <div id="bgRemovePreview" style="margin-top:14px"></div>
+      <button class="primary" id="bgRemoveButton" type="button" disabled>Remove Background — Free</button>
+      <div id="bgRemoveMessage" role="status" aria-live="polite" style="color:var(--muted);margin-top:12px"></div>
+      <div id="bgRemoveResult" style="margin-top:20px"></div>
     </section>
 
     <section class="workspace" id="imageWorkspace" style="display:none">
@@ -268,6 +393,7 @@
 
 
     const imageWorkspace = document.getElementById("imageWorkspace");
+    const backgroundRemoverWorkspace = document.getElementById("backgroundRemoverWorkspace");
 
     document.querySelectorAll(".tool[data-tool]").forEach(button => {
       button.addEventListener("click", () => {
@@ -278,6 +404,7 @@
         downloaderWorkspace.style.display = "none";
         generatorWorkspace.style.display = "none";
         imageWorkspace.style.display = "none";
+        backgroundRemoverWorkspace.style.display = "none";
 
         const toolName = button.dataset.tool;
 
@@ -290,6 +417,12 @@
         if (toolName === "image") {
           imageWorkspace.style.display = "block";
           imageWorkspace.scrollIntoView({ behavior: "smooth" });
+          return;
+        }
+
+        if (toolName === "background-remover") {
+          backgroundRemoverWorkspace.style.display = "block";
+          backgroundRemoverWorkspace.scrollIntoView({ behavior: "smooth" });
           return;
         }
 
@@ -539,114 +672,59 @@
     });
 
 
-    // AI IMAGE GENERATOR — uses the existing Cloudflare Worker.
-    const imageMode = document.getElementById("imageMode");
-    const imageUploadArea = document.getElementById("imageUploadArea");
-    const imageFile = document.getElementById("imageFile");
-    const imagePrompt = document.getElementById("imagePrompt");
-    const imageGenerateButton = document.getElementById("imageGenerateButton");
-    const imageMessage = document.getElementById("imageMessage");
-    const imageResult = document.getElementById("imageResult");
 
-    imageMode.addEventListener("change", () => {
-      imageUploadArea.style.display = imageMode.value === "edit" ? "block" : "none";
-      imageMessage.textContent = "";
-      imageResult.innerHTML = "";
+    // FREE, browser-only AI background remover (no Worker/API calls).
+    const bgRemoveFile = document.getElementById("bgRemoveFile");
+    const bgRemoveButton = document.getElementById("bgRemoveButton");
+    const bgRemovePreview = document.getElementById("bgRemovePreview");
+    const bgRemoveMessage = document.getElementById("bgRemoveMessage");
+    const bgRemoveResult = document.getElementById("bgRemoveResult");
+    let bgRemoveSelectedFile = null;
+    let bgRemoveResultUrl = null;
+
+    bgRemoveFile.addEventListener("change", () => {
+      bgRemoveSelectedFile = bgRemoveFile.files && bgRemoveFile.files[0];
+      bgRemoveButton.disabled = !bgRemoveSelectedFile;
+      bgRemoveMessage.textContent = "";
+      bgRemoveResult.innerHTML = "";
+      if (bgRemoveResultUrl) URL.revokeObjectURL(bgRemoveResultUrl);
+      bgRemoveResultUrl = null;
+      if (!bgRemoveSelectedFile) { bgRemovePreview.innerHTML = ""; return; }
+      if (!bgRemoveSelectedFile.type.startsWith("image/")) {
+        bgRemoveMessage.textContent = "Please choose an image file.";
+        bgRemoveButton.disabled = true; return;
+      }
+      const previewUrl = URL.createObjectURL(bgRemoveSelectedFile);
+      bgRemovePreview.innerHTML = `<img src="${previewUrl}" alt="Selected image" style="max-width:100%;max-height:300px;border-radius:14px;object-fit:contain">`;
     });
 
-    imageGenerateButton.addEventListener("click", async () => {
-      const prompt = imagePrompt.value.trim();
-      const mode = imageMode.value;
-      const file = imageFile.files && imageFile.files[0];
-
-      if (!prompt) {
-        imageMessage.textContent = "Please describe the image first.";
-        return;
-      }
-      if (mode === "edit" && !file) {
-        imageMessage.textContent = "Please upload an image to edit.";
-        return;
-      }
-      if (file && file.size > 3 * 1024 * 1024) {
-        imageMessage.textContent = "Please upload an image smaller than 3 MB.";
-        return;
-      }
-      if (file && !["image/png", "image/jpeg", "image/webp"].includes(file.type)) {
-        imageMessage.textContent = "Only PNG, JPG or WEBP images are supported.";
-        return;
-      }
-
-      imageGenerateButton.disabled = true;
-      imageGenerateButton.textContent = "Generating...";
-      imageMessage.textContent = "Please wait. Your image is being created...";
-      imageResult.innerHTML = "";
-
+    bgRemoveButton.addEventListener("click", async () => {
+      if (!bgRemoveSelectedFile) return;
+      bgRemoveButton.disabled = true;
+      bgRemoveButton.textContent = "Loading AI model...";
+      bgRemoveMessage.textContent = "First use par model download hoga (size aur speed device/internet par depend karti hai). Please wait.";
+      bgRemoveResult.innerHTML = "";
       try {
-        let imageBase64 = "";
-        let mimeType = "";
-
-        if (mode === "edit") {
-          mimeType = file.type;
-          imageBase64 = await new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(String(reader.result).split(",")[1] || "");
-            reader.onerror = () => reject(new Error("Could not read the uploaded image."));
-            reader.readAsDataURL(file);
-          });
-        }
-
-        const response = await fetch(WORKER_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            action: "generate_image",
-            prompt,
-            imageBase64,
-            mimeType
-          })
+        const { removeBackground } = await import("https://esm.sh/@bg0/browser");
+        bgRemoveButton.textContent = "Removing background...";
+        const output = await removeBackground(bgRemoveSelectedFile, {
+          quality: "quality",
+          onProgress: ({ progress, message }) => {
+            if (message) bgRemoveMessage.textContent = message;
+            else if (typeof progress === "number") bgRemoveMessage.textContent = `Processing: ${Math.round(progress * 100)}%`;
+          }
         });
-
-        let data;
-        try {
-          data = await response.json();
-        } catch {
-          throw new Error("The server returned an unreadable response. Please try again.");
-        }
-        if (!response.ok) {
-          throw new Error(data.error || data.details || data.message || "Image generation failed.");
-        }
-
-        const generatedImage =
-          data.result?.image ||
-          data.result?.images?.[0] ||
-          data.image;
-
-        if (!generatedImage || typeof generatedImage !== "string") {
-          throw new Error(data.error || "No image was returned. Please try again.");
-        }
-
-        const imageUrl = generatedImage.startsWith("data:")
-          ? generatedImage
-          : `data:image/png;base64,${generatedImage}`;
-
-        const originalUrl = mode === "edit" ? URL.createObjectURL(file) : null;
-        imageResult.innerHTML = `
-          <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start">
-            ${originalUrl ? `<div style="flex:1 1 220px;min-width:0"><p style="text-align:center">Original</p><img src="${originalUrl}" alt="Original uploaded image" style="width:100%;border-radius:12px"></div>` : ""}
-            <div style="flex:1 1 220px;min-width:0"><p style="text-align:center">AI Result</p><img src="${imageUrl}" alt="AI generated image" style="width:100%;border-radius:12px"></div>
-          </div>
-          <a href="${imageUrl}" download="TrivexaAI-${Date.now()}.png" class="primary" style="display:inline-block;text-decoration:none;margin-top:16px">⬇️ Download Image</a>
-        `;
-        imageMessage.textContent = "Your image is ready!";
+        bgRemoveResultUrl = URL.createObjectURL(output.blob);
+        bgRemoveResult.innerHTML = `<h3>Background removed!</h3><img src="${bgRemoveResultUrl}" alt="Transparent background result" style="max-width:100%;max-height:420px;border-radius:14px;background:repeating-conic-gradient(#ddd 0% 25%,#fff 0% 50%) 50%/20px 20px"><p><a class="primary" href="${bgRemoveResultUrl}" download="TrivexaAI-background-removed.png" style="display:inline-block;text-decoration:none;margin-top:14px">⬇️ Download Transparent PNG</a></p>`;
+        bgRemoveMessage.textContent = "Done! Your image stayed on your device.";
       } catch (error) {
-        console.error("Image generation error:", error);
-        imageMessage.textContent = error.message || "Something went wrong. Please try again.";
+        console.error("Background removal error:", error);
+        bgRemoveMessage.textContent = error.message || "Background removal failed. Try a smaller image or another browser.";
       } finally {
-        imageGenerateButton.disabled = false;
-        imageGenerateButton.textContent = "Generate Image";
+        bgRemoveButton.disabled = !bgRemoveSelectedFile;
+        bgRemoveButton.textContent = "Remove Background — Free";
       }
     });
-
 
   </script>
 </body>
