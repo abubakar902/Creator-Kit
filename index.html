@@ -274,14 +274,15 @@
     </section>
 
     <section class="workspace" id="upscalerWorkspace" style="display:none">
-      <h2>✨ AI Image Upscaler — HD Quality</h2>
+      <h2>✨ Lightweight Image Upscaler — HD Size</h2>
       <p class="workspace-intro">Upload a low-resolution or blurry image. AI will enlarge it and improve visible details. Processing runs in your browser; no paid API is used.</p>
       <label for="upscaleFile">Choose an image</label>
       <input id="upscaleFile" type="file" accept="image/png,image/jpeg,image/webp">
       <label for="upscaleFactor">Upscale size</label>
       <select id="upscaleFactor"><option value="2">2× — Recommended</option><option value="4">4× — Larger output (uses more memory)</option></select>
       <div id="upscalePreview" style="margin-top:14px"></div>
-      <button class="primary" id="upscaleButton" type="button" disabled>✨ Upscale Image — Free</button>
+      <p style="color:var(--muted)">Lightweight browser processing. Enlarges your image smoothly without a heavy AI model. It improves display size, but cannot recreate missing details.</p>
+      <button class="primary" id="upscaleButton" type="button" disabled>✨ Enlarge Image — Free</button>
       <div id="upscaleMessage" role="status" aria-live="polite" style="color:var(--muted);margin-top:12px"></div>
       <div id="upscaleResult" style="margin-top:20px"></div>
     </section>
@@ -699,7 +700,7 @@
 
 
 
-    // FREE browser-based AI image upscaler. No Worker or paid API calls.
+    // Lightweight image upscaler: browser Canvas only (no AI model, no API, no GPU shaders).
     const upscaleFile = document.getElementById("upscaleFile");
     const upscaleFactor = document.getElementById("upscaleFactor");
     const upscaleButton = document.getElementById("upscaleButton");
@@ -722,7 +723,7 @@
         upscaleButton.disabled = true; return;
       }
       if (upscaleSelectedFile.size > 8 * 1024 * 1024) {
-        upscaleMessage.textContent = "Please choose an image smaller than 8 MB for smoother processing.";
+        upscaleMessage.textContent = "Please choose an image smaller than 8 MB.";
         upscaleButton.disabled = true; return;
       }
       const previewUrl = URL.createObjectURL(upscaleSelectedFile);
@@ -732,45 +733,40 @@
     upscaleButton.addEventListener("click", async () => {
       if (!upscaleSelectedFile) return;
       upscaleButton.disabled = true;
-      upscaleButton.textContent = "Loading AI model...";
-      upscaleMessage.textContent = "First use par AI model download hoga. Model ka size bara ho sakta hai; please wait.";
+      upscaleButton.textContent = "Processing...";
+      upscaleMessage.textContent = "Image ko enlarge kiya ja raha hai. Is mein heavy AI model use nahi hota.";
       upscaleResult.innerHTML = "";
       try {
-        const imageDataUrl = await new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(reader.result);
-          reader.onerror = () => reject(new Error("Could not read this image."));
-          reader.readAsDataURL(upscaleSelectedFile);
+        const imageUrl = URL.createObjectURL(upscaleSelectedFile);
+        const img = await new Promise((resolve, reject) => {
+          const image = new Image();
+          image.onload = () => resolve(image);
+          image.onerror = () => reject(new Error("Could not open this image. Please try another file."));
+          image.src = imageUrl;
         });
-        // Force TensorFlow.js CPU backend to avoid WebGL shader compilation errors
-        // on older/incompatible graphics drivers.
-        const tf = await import("https://esm.sh/@tensorflow/tfjs@4.22.0");
-        await tf.setBackend("cpu");
-        await tf.ready();
-        const [{ default: Upscaler }, { default: model }] = await Promise.all([
-          import("https://esm.sh/upscaler"),
-          import("https://esm.sh/@upscalerjs/esrgan-thick")
-        ]);
-        const upscaler = new Upscaler({ model });
-        upscaleButton.textContent = "AI is enhancing image...";
-        upscaleMessage.textContent = "AI processing is running on your CPU. This may take longer; please keep this tab open.";
-        const output = await upscaler.upscale(imageDataUrl);
-        const outputUrl = typeof output === "string" ? output : output.src;
-        if (!outputUrl) throw new Error("The AI model did not return an image. Please try another photo.");
-        const response = await fetch(outputUrl);
-        if (!response.ok) throw new Error("Could not prepare the enhanced image for download.");
-        const blob = await response.blob();
+        const factor = Number(upscaleFactor.value) === 4 ? 4 : 2;
+        const width = img.naturalWidth * factor;
+        const height = img.naturalHeight * factor;
+        if (width * height > 16000000) throw new Error("4× output bohot bara hai. 2× select karein ya chhoti image use karein.");
+        const canvas = document.createElement("canvas");
+        canvas.width = width; canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) throw new Error("Your browser could not start image processing.");
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = "high";
+        ctx.drawImage(img, 0, 0, width, height);
+        const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/png"));
+        if (!blob) throw new Error("Could not create the enlarged image.");
         upscaleResultUrl = URL.createObjectURL(blob);
-        const factor = upscaleFactor.value;
-        upscaleResult.innerHTML = `<h3>Image enhanced successfully!</h3><img src="${upscaleResultUrl}" alt="AI upscaled image" style="max-width:100%;max-height:500px;border-radius:14px;object-fit:contain"><p><a class="primary" href="${upscaleResultUrl}" download="TrivexaAI-upscaled-${factor}x.png" style="display:inline-block;text-decoration:none;margin-top:14px">⬇️ Download HD Image</a></p>`;
-        upscaleMessage.textContent = `Done! AI enhancement completed. Selected upscale setting: ${factor}×. Actual output dimensions depend on the model.`;
-        await upscaler.dispose();
+        upscaleResult.innerHTML = `<h3>Image enlarged successfully!</h3><p>${width} × ${height} pixels</p><img src="${upscaleResultUrl}" alt="Enlarged image" style="max-width:100%;max-height:500px;border-radius:14px;object-fit:contain"><p><a class="primary" href="${upscaleResultUrl}" download="TrivexaAI-upscaled-${factor}x.png" style="display:inline-block;text-decoration:none;margin-top:14px">⬇️ Download Enlarged Image</a></p>`;
+        upscaleMessage.textContent = `Done! Image ${factor}× enlarge ho gayi. Note: ye lightweight resize hai, AI detail restoration nahi.`;
+        URL.revokeObjectURL(imageUrl);
       } catch (error) {
         console.error("Upscaler error:", error);
-        upscaleMessage.textContent = error.message || "Upscaling failed. Try a smaller image or a modern browser.";
+        upscaleMessage.textContent = error.message || "Image processing failed. Please try another image.";
       } finally {
         upscaleButton.disabled = !upscaleSelectedFile;
-        upscaleButton.textContent = "✨ Upscale Image — Free";
+        upscaleButton.textContent = "✨ Enlarge Image — Free";
       }
     });
 
