@@ -236,6 +236,10 @@
           <span class="emoji">✂️</span><strong>AI Background Remover</strong>
           <small>Remove photo backgrounds and download transparent PNGs for free.</small>
         </button>
+        <button class="tool" data-tool="upscaler" id="upscalerTool" type="button">
+          <span class="emoji">✨</span><strong>AI Image Upscaler</strong>
+          <small>Improve image resolution and clarity with free browser-based AI.</small>
+        </button>
       </section>
     </section>
 
@@ -267,6 +271,19 @@
       <button class="primary" id="bgRemoveButton" type="button" disabled>Remove Background — Free</button>
       <div id="bgRemoveMessage" role="status" aria-live="polite" style="color:var(--muted);margin-top:12px"></div>
       <div id="bgRemoveResult" style="margin-top:20px"></div>
+    </section>
+
+    <section class="workspace" id="upscalerWorkspace" style="display:none">
+      <h2>✨ AI Image Upscaler — HD Quality</h2>
+      <p class="workspace-intro">Upload a low-resolution or blurry image. AI will enlarge it and improve visible details. Processing runs in your browser; no paid API is used.</p>
+      <label for="upscaleFile">Choose an image</label>
+      <input id="upscaleFile" type="file" accept="image/png,image/jpeg,image/webp">
+      <label for="upscaleFactor">Upscale size</label>
+      <select id="upscaleFactor"><option value="2">2× — Recommended</option><option value="4">4× — Larger output (uses more memory)</option></select>
+      <div id="upscalePreview" style="margin-top:14px"></div>
+      <button class="primary" id="upscaleButton" type="button" disabled>✨ Upscale Image — Free</button>
+      <div id="upscaleMessage" role="status" aria-live="polite" style="color:var(--muted);margin-top:12px"></div>
+      <div id="upscaleResult" style="margin-top:20px"></div>
     </section>
 
     <section class="workspace" id="imageWorkspace" style="display:none">
@@ -394,6 +411,7 @@
 
     const imageWorkspace = document.getElementById("imageWorkspace");
     const backgroundRemoverWorkspace = document.getElementById("backgroundRemoverWorkspace");
+    const upscalerWorkspace = document.getElementById("upscalerWorkspace");
 
     document.querySelectorAll(".tool[data-tool]").forEach(button => {
       button.addEventListener("click", () => {
@@ -405,6 +423,7 @@
         generatorWorkspace.style.display = "none";
         imageWorkspace.style.display = "none";
         backgroundRemoverWorkspace.style.display = "none";
+        upscalerWorkspace.style.display = "none";
 
         const toolName = button.dataset.tool;
 
@@ -423,6 +442,12 @@
         if (toolName === "background-remover") {
           backgroundRemoverWorkspace.style.display = "block";
           backgroundRemoverWorkspace.scrollIntoView({ behavior: "smooth" });
+          return;
+        }
+
+        if (toolName === "upscaler") {
+          upscalerWorkspace.style.display = "block";
+          upscalerWorkspace.scrollIntoView({ behavior: "smooth" });
           return;
         }
 
@@ -672,6 +697,77 @@
     });
 
 
+
+
+    // FREE browser-based AI image upscaler. No Worker or paid API calls.
+    const upscaleFile = document.getElementById("upscaleFile");
+    const upscaleFactor = document.getElementById("upscaleFactor");
+    const upscaleButton = document.getElementById("upscaleButton");
+    const upscalePreview = document.getElementById("upscalePreview");
+    const upscaleMessage = document.getElementById("upscaleMessage");
+    const upscaleResult = document.getElementById("upscaleResult");
+    let upscaleSelectedFile = null;
+    let upscaleResultUrl = null;
+
+    upscaleFile.addEventListener("change", () => {
+      upscaleSelectedFile = upscaleFile.files && upscaleFile.files[0];
+      upscaleButton.disabled = !upscaleSelectedFile;
+      upscaleMessage.textContent = "";
+      upscaleResult.innerHTML = "";
+      if (upscaleResultUrl) URL.revokeObjectURL(upscaleResultUrl);
+      upscaleResultUrl = null;
+      if (!upscaleSelectedFile) { upscalePreview.innerHTML = ""; return; }
+      if (!["image/png", "image/jpeg", "image/webp"].includes(upscaleSelectedFile.type)) {
+        upscaleMessage.textContent = "Please choose a PNG, JPG or WEBP image.";
+        upscaleButton.disabled = true; return;
+      }
+      if (upscaleSelectedFile.size > 8 * 1024 * 1024) {
+        upscaleMessage.textContent = "Please choose an image smaller than 8 MB for smoother processing.";
+        upscaleButton.disabled = true; return;
+      }
+      const previewUrl = URL.createObjectURL(upscaleSelectedFile);
+      upscalePreview.innerHTML = `<img src="${previewUrl}" alt="Selected image preview" style="max-width:100%;max-height:300px;border-radius:14px;object-fit:contain">`;
+    });
+
+    upscaleButton.addEventListener("click", async () => {
+      if (!upscaleSelectedFile) return;
+      upscaleButton.disabled = true;
+      upscaleButton.textContent = "Loading AI model...";
+      upscaleMessage.textContent = "First use par AI model download hoga. Model ka size bara ho sakta hai; please wait.";
+      upscaleResult.innerHTML = "";
+      try {
+        const imageDataUrl = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = () => reject(new Error("Could not read this image."));
+          reader.readAsDataURL(upscaleSelectedFile);
+        });
+        const [{ default: Upscaler }, { default: model }] = await Promise.all([
+          import("https://esm.sh/upscaler"),
+          import("https://esm.sh/@upscalerjs/esrgan-thick")
+        ]);
+        const upscaler = new Upscaler({ model });
+        upscaleButton.textContent = "AI is enhancing image...";
+        upscaleMessage.textContent = "AI processing is running on your device. This may take a few minutes.";
+        const output = await upscaler.upscale(imageDataUrl);
+        const outputUrl = typeof output === "string" ? output : output.src;
+        if (!outputUrl) throw new Error("The AI model did not return an image. Please try another photo.");
+        const response = await fetch(outputUrl);
+        if (!response.ok) throw new Error("Could not prepare the enhanced image for download.");
+        const blob = await response.blob();
+        upscaleResultUrl = URL.createObjectURL(blob);
+        const factor = upscaleFactor.value;
+        upscaleResult.innerHTML = `<h3>Image enhanced successfully!</h3><img src="${upscaleResultUrl}" alt="AI upscaled image" style="max-width:100%;max-height:500px;border-radius:14px;object-fit:contain"><p><a class="primary" href="${upscaleResultUrl}" download="TrivexaAI-upscaled-${factor}x.png" style="display:inline-block;text-decoration:none;margin-top:14px">⬇️ Download HD Image</a></p>`;
+        upscaleMessage.textContent = `Done! AI enhancement completed. Selected upscale setting: ${factor}×. Actual output dimensions depend on the model.`;
+        await upscaler.dispose();
+      } catch (error) {
+        console.error("Upscaler error:", error);
+        upscaleMessage.textContent = error.message || "Upscaling failed. Try a smaller image or a modern browser.";
+      } finally {
+        upscaleButton.disabled = !upscaleSelectedFile;
+        upscaleButton.textContent = "✨ Upscale Image — Free";
+      }
+    });
 
     // FREE, browser-only AI background remover (no Worker/API calls).
     const bgRemoveFile = document.getElementById("bgRemoveFile");
