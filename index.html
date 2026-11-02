@@ -237,6 +237,11 @@
           <small>Remove photo backgrounds and download transparent PNGs for free.</small>
         </button>
 
+
+        <button class="tool" data-tool="image-compressor" id="imageCompressorTool" type="button">
+          <span class="emoji">🗜️</span><strong>Free Image Compressor</strong>
+          <small>Reduce image file size and download a smaller JPG.</small>
+        </button>
         <button class="tool" data-tool="image-enhancer" id="imageEnhancerTool" type="button">
           <span class="emoji">🌈</span><strong>Free Image Enhancer</strong>
           <small>Adjust brightness, contrast and colours with live preview.</small>
@@ -292,6 +297,24 @@
       <div id="upscaleResult" style="margin-top:20px"></div>
     </section>
 
+
+
+    <section class="workspace" id="imageCompressorWorkspace" style="display:none">
+      <h2>🗜️ Free Image Compressor</h2>
+      <p class="workspace-intro">Reduce your image file size in your browser. Your photo stays on your device.</p>
+      <label for="compressorFile">Choose an image</label>
+      <input id="compressorFile" type="file" accept="image/png,image/jpeg,image/webp">
+      <p class="workspace-intro">PNG, JPG or WEBP. Maximum 10 MB. Output is JPG.</p>
+      <div id="compressorPreview" style="margin-top:14px"></div>
+      <div style="margin-top:18px">
+        <label for="compressorQuality">Compression quality: <span id="compressorQualityValue">75%</span></label>
+        <input id="compressorQuality" type="range" min="30" max="95" value="75" style="width:100%">
+        <p class="workspace-intro">Lower quality usually means a smaller file. You can compare the output size before downloading.</p>
+      </div>
+      <button class="primary" id="compressorButton" type="button" disabled style="margin-top:14px">Compress Image</button>
+      <div id="compressorResult" style="margin-top:14px"></div>
+      <div id="compressorMessage" role="status" aria-live="polite" style="color:var(--muted);margin-top:12px"></div>
+    </section>
 
     <section class="workspace" id="imageEnhancerWorkspace" style="display:none">
       <h2>🌈 Free Image Enhancer</h2>
@@ -438,6 +461,7 @@
     const backgroundRemoverWorkspace = document.getElementById("backgroundRemoverWorkspace");
     const upscalerWorkspace = document.getElementById("upscalerWorkspace");
     const imageEnhancerWorkspace = document.getElementById("imageEnhancerWorkspace");
+    const imageCompressorWorkspace = document.getElementById("imageCompressorWorkspace");
 
     document.querySelectorAll(".tool[data-tool]").forEach(button => {
       button.addEventListener("click", () => {
@@ -451,6 +475,7 @@
         backgroundRemoverWorkspace.style.display = "none";
         upscalerWorkspace.style.display = "none";
         imageEnhancerWorkspace.style.display = "none";
+        imageCompressorWorkspace.style.display = "none";
 
         const toolName = button.dataset.tool;
 
@@ -481,6 +506,12 @@
         if (toolName === "image-enhancer") {
           imageEnhancerWorkspace.style.display = "block";
           imageEnhancerWorkspace.scrollIntoView({ behavior: "smooth" });
+          return;
+        }
+
+        if (toolName === "image-compressor") {
+          imageCompressorWorkspace.style.display = "block";
+          imageCompressorWorkspace.scrollIntoView({ behavior: "smooth" });
           return;
         }
 
@@ -905,6 +936,102 @@
         enhancerMessage.textContent = error.message || "Image enhance nahi ho saki.";
       } finally {
         enhancerDownload.disabled = !enhancerImage;
+      }
+    });
+
+
+
+    // Free browser-only image compressor. No API or server upload.
+    const compressorFile = document.getElementById("compressorFile");
+    const compressorQuality = document.getElementById("compressorQuality");
+    const compressorQualityValue = document.getElementById("compressorQualityValue");
+    const compressorButton = document.getElementById("compressorButton");
+    const compressorPreview = document.getElementById("compressorPreview");
+    const compressorResult = document.getElementById("compressorResult");
+    const compressorMessage = document.getElementById("compressorMessage");
+    let compressorImage = null;
+    let compressorOriginalFile = null;
+    let compressorObjectUrl = null;
+    let compressorOutputUrl = null;
+
+    compressorQuality.addEventListener("input", () => {
+      compressorQualityValue.textContent = compressorQuality.value + "%";
+    });
+
+    compressorFile.addEventListener("change", () => {
+      const file = compressorFile.files && compressorFile.files[0];
+      compressorImage = null;
+      compressorOriginalFile = null;
+      compressorButton.disabled = true;
+      compressorPreview.innerHTML = "";
+      compressorResult.innerHTML = "";
+      compressorMessage.textContent = "";
+      if (compressorObjectUrl) URL.revokeObjectURL(compressorObjectUrl);
+      if (compressorOutputUrl) URL.revokeObjectURL(compressorOutputUrl);
+      compressorObjectUrl = null;
+      compressorOutputUrl = null;
+      if (!file) return;
+      if (!file.type.match(/^image\/(png|jpeg|webp)$/)) {
+        compressorMessage.textContent = "Please choose a PNG, JPG or WEBP image.";
+        return;
+      }
+      if (file.size > 10 * 1024 * 1024) {
+        compressorMessage.textContent = "Image 10 MB se chhoti honi chahiye.";
+        return;
+      }
+      compressorOriginalFile = file;
+      compressorObjectUrl = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => {
+        compressorImage = img;
+        compressorPreview.innerHTML = `<img src="${compressorObjectUrl}" alt="Original image preview" style="max-width:100%;max-height:360px;border-radius:14px;object-fit:contain"><p class="workspace-intro">Original size: ${(file.size / 1024).toFixed(1)} KB</p>`;
+        compressorButton.disabled = false;
+        compressorMessage.textContent = "Image ready. Quality select karke Compress Image dabayein.";
+      };
+      img.onerror = () => {
+        compressorMessage.textContent = "Image open nahi ho saki. Doosri image try karein.";
+        compressorOriginalFile = null;
+      };
+      img.src = compressorObjectUrl;
+    });
+
+    compressorButton.addEventListener("click", async () => {
+      if (!compressorImage || !compressorOriginalFile) return;
+      compressorButton.disabled = true;
+      compressorMessage.textContent = "Image compress ho rahi hai...";
+      compressorResult.innerHTML = "";
+      try {
+        const canvas = document.createElement("canvas");
+        canvas.width = compressorImage.naturalWidth;
+        canvas.height = compressorImage.naturalHeight;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) throw new Error("Browser image processing start nahi kar saka.");
+        // JPG has no transparency, so transparent areas are placed on white.
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(compressorImage, 0, 0);
+        const quality = Number(compressorQuality.value) / 100;
+        const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/jpeg", quality));
+        if (!blob) throw new Error("Compressed image export nahi ho saki.");
+        if (compressorOutputUrl) URL.revokeObjectURL(compressorOutputUrl);
+        compressorOutputUrl = URL.createObjectURL(blob);
+        const originalKB = compressorOriginalFile.size / 1024;
+        const outputKB = blob.size / 1024;
+        const saved = Math.max(0, (1 - blob.size / compressorOriginalFile.size) * 100);
+        const link = document.createElement("a");
+        link.href = compressorOutputUrl;
+        link.download = "TrivexaAI-compressed.jpg";
+        link.textContent = "⬇️ Download Compressed JPG";
+        link.className = "primary";
+        link.style.display = "inline-block";
+        link.style.marginTop = "10px";
+        compressorResult.innerHTML = `<p><strong>Original:</strong> ${originalKB.toFixed(1)} KB</p><p><strong>Compressed:</strong> ${outputKB.toFixed(1)} KB</p><p><strong>Size reduced:</strong> ${saved.toFixed(1)}%</p>`;
+        compressorResult.appendChild(link);
+        compressorMessage.textContent = "Done! Agar size kam na hua ho to quality slider ko neeche karein.";
+      } catch (error) {
+        compressorMessage.textContent = error.message || "Compression nahi ho saki.";
+      } finally {
+        compressorButton.disabled = !compressorImage;
       }
     });
 
