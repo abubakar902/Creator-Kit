@@ -236,6 +236,11 @@
           <span class="emoji">✂️</span><strong>AI Background Remover</strong>
           <small>Remove photo backgrounds and download transparent PNGs for free.</small>
         </button>
+
+        <button class="tool" data-tool="image-enhancer" id="imageEnhancerTool" type="button">
+          <span class="emoji">🌈</span><strong>Free Image Enhancer</strong>
+          <small>Adjust brightness, contrast and colours with live preview.</small>
+        </button>
         <button class="tool" data-tool="upscaler" id="upscalerTool" type="button">
           <span class="emoji">✨</span><strong>AI Image Upscaler</strong>
           <small>Improve image resolution and clarity with free browser-based AI.</small>
@@ -285,6 +290,25 @@
       <button class="primary" id="upscaleButton" type="button" disabled>✨ Enlarge Image — Free</button>
       <div id="upscaleMessage" role="status" aria-live="polite" style="color:var(--muted);margin-top:12px"></div>
       <div id="upscaleResult" style="margin-top:20px"></div>
+    </section>
+
+
+    <section class="workspace" id="imageEnhancerWorkspace" style="display:none">
+      <h2>🌈 Free Image Enhancer</h2>
+      <p class="workspace-intro">Upload a photo, adjust its look and download the result. Processing happens on your device; your photo is not uploaded.</p>
+      <label for="enhancerFile">Choose an image</label>
+      <input id="enhancerFile" type="file" accept="image/png,image/jpeg,image/webp">
+      <p class="workspace-intro">PNG, JPG or WEBP. Maximum 8 MB.</p>
+      <div id="enhancerPreview" style="margin-top:14px"></div>
+      <div style="margin-top:18px;display:grid;gap:14px">
+        <div><label for="enhancerBrightness">Brightness: <span id="brightnessValue">100%</span></label><input id="enhancerBrightness" type="range" min="50" max="150" value="100" style="width:100%"></div>
+        <div><label for="enhancerContrast">Contrast: <span id="contrastValue">100%</span></label><input id="enhancerContrast" type="range" min="50" max="150" value="100" style="width:100%"></div>
+        <div><label for="enhancerSaturation">Colour: <span id="saturationValue">100%</span></label><input id="enhancerSaturation" type="range" min="0" max="200" value="100" style="width:100%"></div>
+      </div>
+      <button class="secondary" id="enhancerReset" type="button" style="margin-top:16px">↺ Reset Adjustments</button>
+      <button class="primary" id="enhancerDownload" type="button" disabled style="margin-top:12px">⬇️ Download Enhanced Image</button>
+      <div id="enhancerMessage" role="status" aria-live="polite" style="color:var(--muted);margin-top:12px"></div>
+      <p class="workspace-intro">Note: This tool adjusts the photo's appearance. It does not use an AI model to recreate missing details.</p>
     </section>
 
     <section class="workspace" id="imageWorkspace" style="display:none">
@@ -413,6 +437,7 @@
     const imageWorkspace = document.getElementById("imageWorkspace");
     const backgroundRemoverWorkspace = document.getElementById("backgroundRemoverWorkspace");
     const upscalerWorkspace = document.getElementById("upscalerWorkspace");
+    const imageEnhancerWorkspace = document.getElementById("imageEnhancerWorkspace");
 
     document.querySelectorAll(".tool[data-tool]").forEach(button => {
       button.addEventListener("click", () => {
@@ -425,6 +450,7 @@
         imageWorkspace.style.display = "none";
         backgroundRemoverWorkspace.style.display = "none";
         upscalerWorkspace.style.display = "none";
+        imageEnhancerWorkspace.style.display = "none";
 
         const toolName = button.dataset.tool;
 
@@ -449,6 +475,12 @@
         if (toolName === "upscaler") {
           upscalerWorkspace.style.display = "block";
           upscalerWorkspace.scrollIntoView({ behavior: "smooth" });
+          return;
+        }
+
+        if (toolName === "image-enhancer") {
+          imageEnhancerWorkspace.style.display = "block";
+          imageEnhancerWorkspace.scrollIntoView({ behavior: "smooth" });
           return;
         }
 
@@ -769,6 +801,113 @@
         upscaleButton.textContent = "✨ Enlarge Image — Free";
       }
     });
+
+
+    // Free, lightweight browser-only image enhancer.
+    const enhancerFile = document.getElementById("enhancerFile");
+    const enhancerPreview = document.getElementById("enhancerPreview");
+    const enhancerMessage = document.getElementById("enhancerMessage");
+    const enhancerBrightness = document.getElementById("enhancerBrightness");
+    const enhancerContrast = document.getElementById("enhancerContrast");
+    const enhancerSaturation = document.getElementById("enhancerSaturation");
+    const brightnessValue = document.getElementById("brightnessValue");
+    const contrastValue = document.getElementById("contrastValue");
+    const saturationValue = document.getElementById("saturationValue");
+    const enhancerReset = document.getElementById("enhancerReset");
+    const enhancerDownload = document.getElementById("enhancerDownload");
+    let enhancerSelectedFile = null;
+    let enhancerImage = null;
+    let enhancerObjectUrl = null;
+
+    function enhancerFilter() {
+      return `brightness(${enhancerBrightness.value}%) contrast(${enhancerContrast.value}%) saturate(${enhancerSaturation.value}%)`;
+    }
+
+    function updateEnhancerPreview() {
+      brightnessValue.textContent = enhancerBrightness.value + "%";
+      contrastValue.textContent = enhancerContrast.value + "%";
+      saturationValue.textContent = enhancerSaturation.value + "%";
+      const previewImage = enhancerPreview.querySelector("img");
+      if (previewImage) previewImage.style.filter = enhancerFilter();
+    }
+
+    [enhancerBrightness, enhancerContrast, enhancerSaturation].forEach(slider => {
+      slider.addEventListener("input", updateEnhancerPreview);
+    });
+
+    enhancerFile.addEventListener("change", () => {
+      const file = enhancerFile.files && enhancerFile.files[0];
+      enhancerSelectedFile = null;
+      enhancerImage = null;
+      enhancerDownload.disabled = true;
+      enhancerPreview.innerHTML = "";
+      enhancerMessage.textContent = "";
+      if (enhancerObjectUrl) URL.revokeObjectURL(enhancerObjectUrl);
+      enhancerObjectUrl = null;
+      if (!file) return;
+      if (!file.type.match(/^image\/(png|jpeg|webp)$/)) {
+        enhancerMessage.textContent = "Please choose a PNG, JPG or WEBP image.";
+        return;
+      }
+      if (file.size > 8 * 1024 * 1024) {
+        enhancerMessage.textContent = "Image 8 MB se chhoti honi chahiye.";
+        return;
+      }
+      enhancerSelectedFile = file;
+      enhancerObjectUrl = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => {
+        enhancerImage = img;
+        enhancerPreview.innerHTML = `<img src="${enhancerObjectUrl}" alt="Image enhancement preview" style="max-width:100%;max-height:420px;border-radius:14px;object-fit:contain">`;
+        enhancerDownload.disabled = false;
+        updateEnhancerPreview();
+        enhancerMessage.textContent = "Image ready! Sliders move karke preview dekhein.";
+      };
+      img.onerror = () => {
+        enhancerMessage.textContent = "Image open nahi ho saki. Doosri image try karein.";
+        enhancerSelectedFile = null;
+      };
+      img.src = enhancerObjectUrl;
+    });
+
+    enhancerReset.addEventListener("click", () => {
+      enhancerBrightness.value = 100;
+      enhancerContrast.value = 100;
+      enhancerSaturation.value = 100;
+      updateEnhancerPreview();
+      enhancerMessage.textContent = "Adjustments reset ho gayi hain.";
+    });
+
+    enhancerDownload.addEventListener("click", async () => {
+      if (!enhancerImage || !enhancerSelectedFile) return;
+      enhancerDownload.disabled = true;
+      enhancerMessage.textContent = "Enhanced image ban rahi hai...";
+      try {
+        const canvas = document.createElement("canvas");
+        canvas.width = enhancerImage.naturalWidth;
+        canvas.height = enhancerImage.naturalHeight;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) throw new Error("Browser image processing start nahi kar saka.");
+        ctx.filter = enhancerFilter();
+        ctx.drawImage(enhancerImage, 0, 0);
+        const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/png"));
+        if (!blob) throw new Error("Image export nahi ho saki.");
+        const downloadUrl = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = downloadUrl;
+        link.download = "TrivexaAI-enhanced-image.png";
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
+        enhancerMessage.textContent = "Done! Enhanced photo download ho gayi.";
+      } catch (error) {
+        enhancerMessage.textContent = error.message || "Image enhance nahi ho saki.";
+      } finally {
+        enhancerDownload.disabled = !enhancerImage;
+      }
+    });
+
 
     // FREE, browser-only AI background remover (no Worker/API calls).
     const bgRemoveFile = document.getElementById("bgRemoveFile");
