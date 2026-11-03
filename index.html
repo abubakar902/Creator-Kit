@@ -274,7 +274,7 @@
       <button class="primary" id="voiceGenerateButton" type="button">🎧 Generate Voice</button>
       <div id="voiceMessage" role="status" aria-live="polite"></div>
       <div id="voiceResult" style="margin-top:18px"></div>
-      <p class="workspace-intro" style="margin-top:18px">Usage note: Voice generation depends on your ElevenLabs account credits and plan limits. Check the service's current licence terms before using generated audio commercially.</p>
+      <p class="workspace-intro" style="margin-top:18px">Usage note: Voice generation uses Cloudflare Workers AI. Free accounts have a daily AI usage allowance shared with other Workers AI tools on this Worker. This voice tool currently uses the English Aura-1 voices.</p>
     </section>
 
     <section class="workspace" id="generatorWorkspace">
@@ -889,7 +889,7 @@
         if (!response.ok || !contentType.includes("audio/")) {
           let errorData = {};
           try { errorData = await response.json(); } catch {}
-          throw new Error(errorData.error || errorData.message || `Voice generation failed (${response.status}). Check your ElevenLabs credits and API access.`);
+          throw new Error(errorData.error || errorData.message || `Voice generation failed (${response.status}). Check your Cloudflare Workers AI daily usage limit and try again.`);
         }
         const audioBlob = await response.blob();
         if (!audioBlob.size) throw new Error("The voice service returned an empty audio file. Please try again.");
