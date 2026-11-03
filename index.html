@@ -7,134 +7,25 @@
   <meta name="theme-color" content="#090711">
   <meta name="color-scheme" content="dark">
   <meta name="robots" content="index,follow,max-image-preview:large">
-  <title>TrivexaAI: YouTube Title, Caption & Shorts Tools</title>
-  <meta name="description" content="Create YouTube titles, social media captions, hashtags, video descriptions, hooks and Shorts scripts with TrivexaAI creator tools. Explore supported video download options.">
+  <title>TrivexaAI: Free Creator, Image & Voice Tools</title>
+  <meta name="description" content="Create YouTube titles, captions, hashtags, Shorts scripts, AI images and voiceovers with TrivexaAI free creator tools.">
   <link rel="canonical" href="https://abubakar902.github.io/Creator-Kit/">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="TrivexaAI">
-  <meta property="og:title" content="TrivexaAI — Creator Tools for YouTube & Social Media">
-  <meta property="og:description" content="Plan content with YouTube title ideas, captions, hashtags, descriptions, video hooks and Shorts scripts. Explore supported video tools.">
+  <meta property="og:title" content="TrivexaAI — Free Creator, Image & Voice Tools">
+  <meta property="og:description" content="Plan content, generate AI images and convert text into speech with TrivexaAI.">
   <meta property="og:url" content="https://abubakar902.github.io/Creator-Kit/">
   <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="TrivexaAI — Creator Tools for YouTube & Social Media">
-  <meta name="twitter:description" content="YouTube title ideas, captions, hashtags, descriptions, video hooks and Shorts scripts in one creator toolkit.">
+  <meta name="twitter:title" content="TrivexaAI — Free Creator, Image & Voice Tools">
+  <meta name="twitter:description" content="YouTube creator tools, AI image generation and text-to-speech in one toolkit.">
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "WebSite",
     "name": "TrivexaAI",
     "url": "https://abubakar902.github.io/Creator-Kit/",
-    "description": "Creator tools for YouTube titles, social media captions, hashtags, descriptions, video hooks and Shorts scripts."
+    "description": "Creator tools for YouTube titles, social media captions, hashtags, descriptions, video hooks, Shorts scripts, voice generation and image tools."
   }
-
-    // AI IMAGE GENERATOR — uses the existing Cloudflare Worker.
-    const imageMode = document.getElementById("imageMode");
-    const imageUploadArea = document.getElementById("imageUploadArea");
-    const imageFile = document.getElementById("imageFile");
-    const imagePrompt = document.getElementById("imagePrompt");
-    const imageGenerateButton = document.getElementById("imageGenerateButton");
-    const imageMessage = document.getElementById("imageMessage");
-    const imageResult = document.getElementById("imageResult");
-
-    imageMode.addEventListener("change", () => {
-      imageUploadArea.style.display = imageMode.value === "edit" ? "block" : "none";
-      imageMessage.textContent = "";
-      imageResult.innerHTML = "";
-    });
-
-    imageGenerateButton.addEventListener("click", async () => {
-      const prompt = imagePrompt.value.trim();
-      const mode = imageMode.value;
-      const file = imageFile.files && imageFile.files[0];
-
-      if (!prompt) {
-        imageMessage.textContent = "Please describe the image first.";
-        return;
-      }
-      if (mode === "edit" && !file) {
-        imageMessage.textContent = "Please upload an image to edit.";
-        return;
-      }
-      if (file && file.size > 3 * 1024 * 1024) {
-        imageMessage.textContent = "Please upload an image smaller than 3 MB.";
-        return;
-      }
-      if (file && !["image/png", "image/jpeg", "image/webp"].includes(file.type)) {
-        imageMessage.textContent = "Only PNG, JPG or WEBP images are supported.";
-        return;
-      }
-
-      imageGenerateButton.disabled = true;
-      imageGenerateButton.textContent = "Generating...";
-      imageMessage.textContent = "Please wait. Your image is being created...";
-      imageResult.innerHTML = "";
-
-      try {
-        let imageBase64 = "";
-        let mimeType = "";
-
-        if (mode === "edit") {
-          mimeType = file.type;
-          imageBase64 = await new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(String(reader.result).split(",")[1] || "");
-            reader.onerror = () => reject(new Error("Could not read the uploaded image."));
-            reader.readAsDataURL(file);
-          });
-        }
-
-        const response = await fetch(WORKER_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            action: "generate_image",
-            prompt,
-            imageBase64,
-            mimeType
-          })
-        });
-
-        let data;
-        try {
-          data = await response.json();
-        } catch {
-          throw new Error("The server returned an unreadable response. Please try again.");
-        }
-        if (!response.ok) {
-          throw new Error(data.error || data.details || data.message || "Image generation failed.");
-        }
-
-        const generatedImage =
-          data.result?.image ||
-          data.result?.images?.[0] ||
-          data.image;
-
-        if (!generatedImage || typeof generatedImage !== "string") {
-          throw new Error(data.error || "No image was returned. Please try again.");
-        }
-
-        const imageUrl = generatedImage.startsWith("data:")
-          ? generatedImage
-          : `data:image/png;base64,${generatedImage}`;
-
-        const originalUrl = mode === "edit" ? URL.createObjectURL(file) : null;
-        imageResult.innerHTML = `
-          <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start">
-            ${originalUrl ? `<div style="flex:1 1 220px;min-width:0"><p style="text-align:center">Original</p><img src="${originalUrl}" alt="Original uploaded image" style="width:100%;border-radius:12px"></div>` : ""}
-            <div style="flex:1 1 220px;min-width:0"><p style="text-align:center">AI Result</p><img src="${imageUrl}" alt="AI generated image" style="width:100%;border-radius:12px"></div>
-          </div>
-          <a href="${imageUrl}" download="TrivexaAI-${Date.now()}.png" class="primary" style="display:inline-block;text-decoration:none;margin-top:16px">⬇️ Download Image</a>
-        `;
-        imageMessage.textContent = "Your image is ready!";
-      } catch (error) {
-        console.error("Image generation error:", error);
-        imageMessage.textContent = error.message || "Something went wrong. Please try again.";
-      } finally {
-        imageGenerateButton.disabled = false;
-        imageGenerateButton.textContent = "Generate Image";
-      }
-    });
-
   </script>
   <style>
 
@@ -187,10 +78,10 @@
       <div class="hero-glow" aria-hidden="true"></div>
       <div class="eyebrow">✦ YOUR CREATOR TOOLKIT</div>
       <h1>Free Creator Tools for<br><span>YouTube & Social Media.</span></h1>
-      <p>Use TrivexaAI to brainstorm YouTube titles, write social media captions, find hashtags, draft video descriptions, create hooks and plan Shorts scripts — all in one creator workspace.</p>
-      <div class="hero-pills"><span>✍️ AI writing</span><span>⚡ Video hooks</span><span>⬇️ Video tools</span></div>
+      <p>Use TrivexaAI to brainstorm YouTube titles, write social media captions, find hashtags, draft video descriptions, create hooks, plan Shorts scripts and turn text into speech — all in one creator workspace.</p>
+      <div class="hero-pills"><span>✍️ AI writing</span><span>🎙️ AI voice</span><span>⚡ Video tools</span></div>
     </section>
-    <div class="tools-heading" id="tools"><div><div class="section-kicker">YOUR WORKSPACE</div><h2 class="section-title">Choose a tool</h2></div><span class="tools-count">6 creator tools · 1 video tool</span></div>
+    <div class="tools-heading" id="tools"><div><div class="section-kicker">YOUR WORKSPACE</div><h2 class="section-title">Choose a tool</h2></div><span class="tools-count">6 creator tools · 5 image tools · 1 voice tool · 1 video tool</span></div>
     <section class="category-block"><div class="category-heading"><span class="category-icon">✦</span><div><h3>Creator tools</h3><p>Turn your ideas into ready-to-use content.</p></div></div>
     <section class="tools" aria-label="Creator tools">
       <button class="tool active" data-tool="titles">
@@ -247,8 +138,18 @@
           <small>Adjust brightness, contrast and colours with live preview.</small>
         </button>
         <button class="tool" data-tool="upscaler" id="upscalerTool" type="button">
-          <span class="emoji">✨</span><strong>AI Image Upscaler</strong>
-          <small>Improve image resolution and clarity with free browser-based AI.</small>
+          <span class="emoji">✨</span><strong>Image Upscaler</strong>
+          <small>Enlarge images smoothly in your browser. No AI detail restoration.</small>
+        </button>
+      </section>
+    </section>
+
+    <section class="category-block">
+      <div class="category-heading"><span class="category-icon">🎙️</span><div><h3>AI Audio Tools</h3><p>Turn your written words into spoken audio.</p></div></div>
+      <section class="tools" aria-label="AI audio tools">
+        <button class="tool" data-tool="voice" id="voiceGeneratorTool" type="button">
+          <span class="emoji">🎙️</span><strong>AI Voice Generator</strong>
+          <small>Choose a voice, convert text to speech and download an MP3.</small>
         </button>
       </section>
     </section>
@@ -354,7 +255,29 @@
       <div id="imageResult" style="margin-top:20px"></div>
     </section>
 
-<section class="workspace" id="generatorWorkspace">
+    <section class="workspace" id="voiceWorkspace" style="display:none">
+      <h2>🎙️ AI Voice Generator</h2>
+      <p class="workspace-intro">Apna text likhein, available voice choose karein aur MP3 audio generate karein. Maximum 2,000 characters.</p>
+      <label for="voiceText">Text to speak</label>
+      <textarea id="voiceText" maxlength="2000" placeholder="Type or paste the text you want to convert into speech..."></textarea>
+      <div class="row">
+        <div>
+          <label for="voiceSelect">Choose a voice</label>
+          <select id="voiceSelect" disabled>
+            <option value="">Loading voices...</option>
+          </select>
+        </div>
+        <div style="display:flex;align-items:end">
+          <button class="secondary" id="refreshVoicesButton" type="button" style="width:100%;margin-top:20px">↻ Refresh voices</button>
+        </div>
+      </div>
+      <button class="primary" id="voiceGenerateButton" type="button">🎧 Generate Voice</button>
+      <div id="voiceMessage" role="status" aria-live="polite"></div>
+      <div id="voiceResult" style="margin-top:18px"></div>
+      <p class="workspace-intro" style="margin-top:18px">Usage note: Voice generation depends on your ElevenLabs account credits and plan limits. Check the service's current licence terms before using generated audio commercially.</p>
+    </section>
+
+    <section class="workspace" id="generatorWorkspace">
       <h2 id="toolTitle">🎬 YouTube Title Generator</h2>
       <p id="toolDescription" class="workspace-intro">Generate catchy YouTube titles using your topic or keywords. Create engaging title ideas for your next video.</p>
 
@@ -462,6 +385,7 @@
     const upscalerWorkspace = document.getElementById("upscalerWorkspace");
     const imageEnhancerWorkspace = document.getElementById("imageEnhancerWorkspace");
     const imageCompressorWorkspace = document.getElementById("imageCompressorWorkspace");
+    const voiceWorkspace = document.getElementById("voiceWorkspace");
 
     document.querySelectorAll(".tool[data-tool]").forEach(button => {
       button.addEventListener("click", () => {
@@ -476,8 +400,16 @@
         upscalerWorkspace.style.display = "none";
         imageEnhancerWorkspace.style.display = "none";
         imageCompressorWorkspace.style.display = "none";
+        voiceWorkspace.style.display = "none";
 
         const toolName = button.dataset.tool;
+
+        if (toolName === "voice") {
+          voiceWorkspace.style.display = "block";
+          loadVoices();
+          voiceWorkspace.scrollIntoView({ behavior: "smooth" });
+          return;
+        }
 
         if (toolName === "downloader") {
           downloaderWorkspace.style.display = "block";
@@ -762,6 +694,227 @@
 
 
 
+
+    // AI IMAGE GENERATOR — run in this normal JavaScript block (not inside JSON-LD).
+    const imageMode = document.getElementById("imageMode");
+    const imageUploadArea = document.getElementById("imageUploadArea");
+    const imageFile = document.getElementById("imageFile");
+    const imagePrompt = document.getElementById("imagePrompt");
+    const imageGenerateButton = document.getElementById("imageGenerateButton");
+    const imageMessage = document.getElementById("imageMessage");
+    const imageResult = document.getElementById("imageResult");
+    let imageOriginalUrl = null;
+
+    if (imageMode) {
+      imageMode.addEventListener("change", () => {
+        imageUploadArea.style.display = imageMode.value === "edit" ? "block" : "none";
+        imageMessage.textContent = "";
+        imageResult.replaceChildren();
+        if (imageOriginalUrl) URL.revokeObjectURL(imageOriginalUrl);
+        imageOriginalUrl = null;
+      });
+    }
+
+    function getImagePayload(data) {
+      // Cloudflare FLUX.2 Klein returns { image: "base64..." }.
+      return data?.image || data?.result?.image || data?.result?.images?.[0] || data?.images?.[0] || null;
+    }
+
+    if (imageGenerateButton) {
+      imageGenerateButton.addEventListener("click", async () => {
+        const prompt = imagePrompt.value.trim();
+        const mode = imageMode.value;
+        const file = imageFile.files && imageFile.files[0];
+
+        if (!prompt) { imageMessage.textContent = "Please describe the image first."; return; }
+        if (mode === "edit" && !file) { imageMessage.textContent = "Please upload an image to edit."; return; }
+        if (file && file.size > 3 * 1024 * 1024) { imageMessage.textContent = "Please upload an image smaller than 3 MB."; return; }
+        if (file && !["image/png", "image/jpeg", "image/webp"].includes(file.type)) {
+          imageMessage.textContent = "Only PNG, JPG or WEBP images are supported."; return;
+        }
+
+        imageGenerateButton.disabled = true;
+        imageGenerateButton.textContent = "Generating...";
+        imageMessage.textContent = "Please wait. Your image is being created...";
+        imageResult.replaceChildren();
+
+        try {
+          let imageBase64 = "";
+          let mimeType = "";
+          if (mode === "edit") {
+            mimeType = file.type;
+            imageBase64 = await new Promise((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onload = () => resolve(String(reader.result).split(",")[1] || "");
+              reader.onerror = () => reject(new Error("Could not read the uploaded image."));
+              reader.readAsDataURL(file);
+            });
+            if (!imageBase64) throw new Error("Uploaded image could not be prepared. Please try again.");
+          }
+
+          const response = await fetch(WORKER_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "generate_image", prompt, imageBase64, mimeType })
+          });
+          let data;
+          try { data = await response.json(); }
+          catch { throw new Error("The server returned an unreadable response. Please try again."); }
+          if (!response.ok) throw new Error(data.error || data.details || data.message || `Image generation failed (${response.status}).`);
+
+          const generatedImage = getImagePayload(data);
+          if (!generatedImage || typeof generatedImage !== "string") {
+            throw new Error(data.error || "The image service returned no image. Please try again.");
+          }
+          const imageUrl = generatedImage.startsWith("data:")
+            ? generatedImage
+            : `data:image/png;base64,${generatedImage}`;
+
+          if (mode === "edit") {
+            if (imageOriginalUrl) URL.revokeObjectURL(imageOriginalUrl);
+            imageOriginalUrl = URL.createObjectURL(file);
+          }
+
+          const previewWrap = document.createElement("div");
+          previewWrap.style.cssText = "display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start";
+          if (imageOriginalUrl && mode === "edit") {
+            const originalBox = document.createElement("div");
+            originalBox.style.cssText = "flex:1 1 220px;min-width:0";
+            const originalLabel = document.createElement("p");
+            originalLabel.textContent = "Original";
+            originalLabel.style.textAlign = "center";
+            const originalImg = document.createElement("img");
+            originalImg.src = imageOriginalUrl;
+            originalImg.alt = "Original uploaded image";
+            originalImg.style.cssText = "width:100%;border-radius:12px";
+            originalBox.append(originalLabel, originalImg);
+            previewWrap.appendChild(originalBox);
+          }
+          const resultBox = document.createElement("div");
+          resultBox.style.cssText = "flex:1 1 220px;min-width:0";
+          const resultLabel = document.createElement("p");
+          resultLabel.textContent = "AI Result";
+          resultLabel.style.textAlign = "center";
+          const resultImg = document.createElement("img");
+          resultImg.src = imageUrl;
+          resultImg.alt = "AI generated image";
+          resultImg.style.cssText = "width:100%;border-radius:12px";
+          const downloadLink = document.createElement("a");
+          downloadLink.href = imageUrl;
+          downloadLink.download = `TrivexaAI-${Date.now()}.png`;
+          downloadLink.className = "primary";
+          downloadLink.textContent = "⬇️ Download Image";
+          downloadLink.style.cssText = "display:inline-block;text-decoration:none;margin-top:16px";
+          resultBox.append(resultLabel, resultImg, downloadLink);
+          previewWrap.appendChild(resultBox);
+          imageResult.appendChild(previewWrap);
+          imageMessage.textContent = "Your image is ready!";
+        } catch (error) {
+          console.error("Image generation error:", error);
+          imageMessage.textContent = error.message || "Something went wrong. Please try again.";
+        } finally {
+          imageGenerateButton.disabled = false;
+          imageGenerateButton.textContent = "Generate Image";
+        }
+      });
+    }
+
+    // AI VOICE GENERATOR — communicates with the Worker; the API key stays server-side.
+    const voiceText = document.getElementById("voiceText");
+    const voiceSelect = document.getElementById("voiceSelect");
+    const voiceGenerateButton = document.getElementById("voiceGenerateButton");
+    const refreshVoicesButton = document.getElementById("refreshVoicesButton");
+    const voiceMessage = document.getElementById("voiceMessage");
+    const voiceResult = document.getElementById("voiceResult");
+    let voiceListLoaded = false;
+    let voiceAudioUrl = null;
+
+    async function loadVoices(forceRefresh = false) {
+      if (!voiceSelect) return;
+      if (voiceListLoaded && !forceRefresh) return;
+      voiceListLoaded = false;
+      voiceSelect.disabled = true;
+      voiceSelect.replaceChildren(new Option("Loading voices...", ""));
+      voiceMessage.textContent = "Loading available voices...";
+      try {
+        const response = await fetch(WORKER_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "get_voices" })
+        });
+        let data;
+        try { data = await response.json(); }
+        catch { throw new Error("Voice service returned an unreadable response."); }
+        if (!response.ok) throw new Error(data.error || data.message || `Could not load voices (${response.status}).`);
+        if (!Array.isArray(data.voices) || !data.voices.length) throw new Error("No voices are available for this account.");
+        voiceSelect.replaceChildren();
+        data.voices.forEach(voice => {
+          if (!voice || typeof voice.voice_id !== "string" || typeof voice.name !== "string") return;
+          const option = new Option(`${voice.name}${voice.category ? " — " + voice.category : ""}`, voice.voice_id);
+          voiceSelect.add(option);
+        });
+        if (!voiceSelect.options.length) throw new Error("No usable voices were returned.");
+        voiceListLoaded = true;
+        voiceSelect.disabled = false;
+        voiceMessage.textContent = "Voices loaded. Text likhein aur voice choose karein.";
+      } catch (error) {
+        voiceSelect.replaceChildren(new Option("Could not load voices", ""));
+        voiceMessage.textContent = error.message || "Could not load voices. Please refresh and try again.";
+      } finally {
+        voiceSelect.disabled = !voiceListLoaded;
+      }
+    }
+
+    refreshVoicesButton?.addEventListener("click", () => loadVoices(true));
+
+    voiceGenerateButton?.addEventListener("click", async () => {
+      const textToSpeak = voiceText.value.trim();
+      const voiceId = voiceSelect.value;
+      if (!textToSpeak) { voiceMessage.textContent = "Please enter the text you want to convert into speech."; return; }
+      if (textToSpeak.length > 2000) { voiceMessage.textContent = "Text must be 2,000 characters or fewer."; return; }
+      if (!voiceId) { voiceMessage.textContent = "Please choose a voice first."; return; }
+
+      voiceGenerateButton.disabled = true;
+      voiceGenerateButton.textContent = "Generating audio...";
+      voiceMessage.textContent = "Your voice is being generated. Please wait...";
+      voiceResult.replaceChildren();
+      if (voiceAudioUrl) { URL.revokeObjectURL(voiceAudioUrl); voiceAudioUrl = null; }
+      try {
+        const response = await fetch(WORKER_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "generate_voice", text: textToSpeak, voiceId })
+        });
+        const contentType = response.headers.get("content-type") || "";
+        if (!response.ok || !contentType.includes("audio/")) {
+          let errorData = {};
+          try { errorData = await response.json(); } catch {}
+          throw new Error(errorData.error || errorData.message || `Voice generation failed (${response.status}). Check your ElevenLabs credits and API access.`);
+        }
+        const audioBlob = await response.blob();
+        if (!audioBlob.size) throw new Error("The voice service returned an empty audio file. Please try again.");
+        voiceAudioUrl = URL.createObjectURL(audioBlob);
+        const player = document.createElement("audio");
+        player.controls = true;
+        player.preload = "metadata";
+        player.src = voiceAudioUrl;
+        player.style.width = "100%";
+        const downloadLink = document.createElement("a");
+        downloadLink.href = voiceAudioUrl;
+        downloadLink.download = "TrivexaAI-Voice.mp3";
+        downloadLink.className = "primary";
+        downloadLink.textContent = "⬇️ Download MP3";
+        downloadLink.style.cssText = "display:inline-flex;text-decoration:none;margin-top:14px";
+        voiceResult.append(player, downloadLink);
+        voiceMessage.textContent = "✓ Voice generated successfully!";
+      } catch (error) {
+        console.error("Voice generation error:", error);
+        voiceMessage.textContent = error.message || "Voice generation failed. Please try again.";
+      } finally {
+        voiceGenerateButton.disabled = false;
+        voiceGenerateButton.textContent = "🎧 Generate Voice";
+      }
+    });
 
     // Lightweight image upscaler: browser Canvas only (no AI model, no API, no GPU shaders).
     const upscaleFile = document.getElementById("upscaleFile");
