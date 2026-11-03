@@ -117,11 +117,15 @@
 </section></section>
 
     <section class="category-block">
-      <div class="category-heading"><span class="category-icon">🎨</span><div><h3>AI Image Tools</h3><p>Create images and edit your photos with AI.</p></div></div>
+      <div class="category-heading"><span class="category-icon">🎨</span><div><h3>AI Image Tools</h3><p>Create images, edit photos and design brand logos with AI.</p></div></div>
       <section class="tools" aria-label="AI Image tools">
         <button class="tool" data-tool="image" id="imageGeneratorTool" type="button">
           <span class="emoji">🖼️</span><strong>AI Image Generator</strong>
           <small>Create images from text or edit an uploaded photo.</small>
+        </button>
+        <button class="tool" data-tool="logo" id="logoGeneratorTool" type="button">
+          <span class="emoji">🔰</span><strong>AI Logo Generator</strong>
+          <small>Create a custom logo concept for your brand or business.</small>
         </button>
         <button class="tool" data-tool="background-remover" id="backgroundRemoverTool" type="button">
           <span class="emoji">✂️</span><strong>AI Background Remover</strong>
@@ -255,6 +259,38 @@
       <div id="imageResult" style="margin-top:20px"></div>
     </section>
 
+    <section class="workspace" id="logoWorkspace" style="display:none">
+      <h2>🔰 AI Logo Generator</h2>
+      <p class="workspace-intro">Apne brand ka naam aur details dein. TrivexaAI ek logo concept generate karega jise aap PNG mein download kar sakte hain.</p>
+      <label for="logoBrandName">Brand or business name</label>
+      <input id="logoBrandName" maxlength="40" placeholder="e.g. TrivexaAI" autocomplete="organization">
+      <label for="logoDescription">What does your brand do?</label>
+      <textarea id="logoDescription" maxlength="240" placeholder="e.g. AI tools and digital products for content creators"></textarea>
+      <div class="row">
+        <div>
+          <label for="logoStyle">Logo style</label>
+          <select id="logoStyle">
+            <option value="Minimalist and modern">Minimalist</option>
+            <option value="Professional geometric wordmark">Professional</option>
+            <option value="Bold and playful mascot emblem">Mascot</option>
+            <option value="Elegant monogram using brand initials">Monogram</option>
+            <option value="Classic badge or emblem">Emblem</option>
+            <option value="Futuristic technology-inspired mark">Futuristic</option>
+          </select>
+        </div>
+        <div>
+          <label for="logoColors">Preferred colours</label>
+          <input id="logoColors" maxlength="80" placeholder="e.g. dark purple and white">
+        </div>
+      </div>
+      <label for="logoTagline">Tagline (optional)</label>
+      <input id="logoTagline" maxlength="50" placeholder="A short brand slogan">
+      <button class="primary" id="logoGenerateButton" type="button">✨ Generate Logo</button>
+      <div id="logoMessage" role="status" aria-live="polite" style="color:var(--muted);margin-top:12px"></div>
+      <div id="logoResult" style="margin-top:20px"></div>
+      <p class="workspace-intro" style="margin-top:16px">Tip: AI-generated lettering can contain spelling mistakes. Check the brand name carefully before using the logo publicly. This is a logo concept, not a trademark or originality check.</p>
+    </section>
+
     <section class="workspace" id="voiceWorkspace" style="display:none">
       <h2>🎙️ AI Voice Generator</h2>
       <p class="workspace-intro">Apna text likhein, available voice choose karein aur MP3 audio generate karein. Maximum 2,000 characters.</p>
@@ -386,6 +422,7 @@
     const imageEnhancerWorkspace = document.getElementById("imageEnhancerWorkspace");
     const imageCompressorWorkspace = document.getElementById("imageCompressorWorkspace");
     const voiceWorkspace = document.getElementById("voiceWorkspace");
+    const logoWorkspace = document.getElementById("logoWorkspace");
 
     document.querySelectorAll(".tool[data-tool]").forEach(button => {
       button.addEventListener("click", () => {
@@ -401,8 +438,15 @@
         imageEnhancerWorkspace.style.display = "none";
         imageCompressorWorkspace.style.display = "none";
         voiceWorkspace.style.display = "none";
+        logoWorkspace.style.display = "none";
 
         const toolName = button.dataset.tool;
+
+        if (toolName === "logo") {
+          logoWorkspace.style.display = "block";
+          logoWorkspace.scrollIntoView({ behavior: "smooth" });
+          return;
+        }
 
         if (toolName === "voice") {
           voiceWorkspace.style.display = "block";
@@ -818,6 +862,98 @@
         }
       });
     }
+
+    // AI LOGO GENERATOR — reuses the existing generate_image Worker action.
+    const logoBrandName = document.getElementById("logoBrandName");
+    const logoDescription = document.getElementById("logoDescription");
+    const logoStyle = document.getElementById("logoStyle");
+    const logoColors = document.getElementById("logoColors");
+    const logoTagline = document.getElementById("logoTagline");
+    const logoGenerateButton = document.getElementById("logoGenerateButton");
+    const logoMessage = document.getElementById("logoMessage");
+    const logoResult = document.getElementById("logoResult");
+
+    logoGenerateButton?.addEventListener("click", async () => {
+      const brandName = logoBrandName.value.trim();
+      const description = logoDescription.value.trim();
+      const style = logoStyle.value;
+      const colors = logoColors.value.trim() || "a balanced, professional colour palette";
+      const tagline = logoTagline.value.trim();
+
+      if (!brandName) {
+        logoMessage.textContent = "Please enter your brand or business name.";
+        logoBrandName.focus();
+        return;
+      }
+      if (!description) {
+        logoMessage.textContent = "Please describe what your brand does.";
+        logoDescription.focus();
+        return;
+      }
+
+      const logoPrompt = [
+        `Create one original ${style.toLowerCase()} logo for the brand named exactly: "${brandName}".`,
+        `Brand purpose: ${description}.`,
+        `Colour palette: ${colors}.`,
+        tagline ? `Include this exact tagline if readable: "${tagline}".` : "Do not add a tagline.",
+        "Design a clean, distinctive, scalable vector-style logo with a memorable symbol and carefully arranged brand lettering. Use simple shapes, crisp edges, strong contrast, balanced spacing and a centered composition.",
+        "Show only one finished logo on a plain, clean, light background. No mockup, no business card, no device, no extra words, no watermark, no border. Keep all text minimal and spell the brand name exactly as supplied."
+      ].join(" ");
+
+      if (logoPrompt.length > 1000) {
+        logoMessage.textContent = "Please shorten the brand details or tagline and try again.";
+        return;
+      }
+
+      logoGenerateButton.disabled = true;
+      logoGenerateButton.textContent = "Creating your logo...";
+      logoMessage.textContent = "AI logo generate ho raha hai. Please wait...";
+      logoResult.replaceChildren();
+
+      try {
+        const response = await fetch(WORKER_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "generate_image", prompt: logoPrompt })
+        });
+
+        let data;
+        try { data = await response.json(); }
+        catch { throw new Error("The server returned an unreadable response. Please try again."); }
+        if (!response.ok) {
+          throw new Error(data.error || data.details || data.message || `Logo generation failed (${response.status}).`);
+        }
+
+        const generatedLogo = getImagePayload(data);
+        if (!generatedLogo || typeof generatedLogo !== "string") {
+          throw new Error(data.error || "The image service returned no logo. Please try again.");
+        }
+        const logoUrl = generatedLogo.startsWith("data:")
+          ? generatedLogo
+          : `data:image/png;base64,${generatedLogo}`;
+
+        const heading = document.createElement("h3");
+        heading.textContent = "Your logo concept is ready";
+        const image = document.createElement("img");
+        image.src = logoUrl;
+        image.alt = `AI-generated logo concept for ${brandName}`;
+        image.style.cssText = "display:block;width:100%;max-width:620px;max-height:620px;object-fit:contain;margin:12px auto;border-radius:14px;background:#fff";
+        const download = document.createElement("a");
+        download.href = logoUrl;
+        download.download = `TrivexaAI-${brandName.replace(/[^a-z0-9_-]/gi, "-").slice(0, 35) || "logo"}.png`;
+        download.className = "primary";
+        download.textContent = "⬇️ Download Logo PNG";
+        download.style.cssText = "display:inline-flex;text-decoration:none;margin-top:14px";
+        logoResult.append(heading, image, download);
+        logoMessage.textContent = "✓ Logo concept generated! Download se pehle spelling check kar lein.";
+      } catch (error) {
+        console.error("Logo generation error:", error);
+        logoMessage.textContent = error.message || "Logo generation failed. Please try again.";
+      } finally {
+        logoGenerateButton.disabled = false;
+        logoGenerateButton.textContent = "✨ Generate Logo";
+      }
+    });
 
     // AI VOICE GENERATOR — communicates with the Worker; the API key stays server-side.
     const voiceText = document.getElementById("voiceText");
