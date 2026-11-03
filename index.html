@@ -127,6 +127,10 @@
           <span class="emoji">🔰</span><strong>AI Logo Generator</strong>
           <small>Create a custom logo concept for your brand or business.</small>
         </button>
+        <button class="tool" data-tool="thumbnail" id="thumbnailGeneratorTool" type="button">
+          <span class="emoji">📺</span><strong>AI Thumbnail Generator</strong>
+          <small>Create eye-catching 16:9 YouTube thumbnails with your exact headline.</small>
+        </button>
         <button class="tool" data-tool="background-remover" id="backgroundRemoverTool" type="button">
           <span class="emoji">✂️</span><strong>AI Background Remover</strong>
           <small>Remove photo backgrounds and download transparent PNGs for free.</small>
@@ -291,6 +295,55 @@
       <p class="workspace-intro" style="margin-top:16px">Tip: AI-generated lettering can contain spelling mistakes. Check the brand name carefully before using the logo publicly. This is a logo concept, not a trademark or originality check.</p>
     </section>
 
+    <section class="workspace" id="thumbnailWorkspace" style="display:none">
+      <h2>📺 AI Thumbnail Generator</h2>
+      <p class="workspace-intro">Apne video ki details dein. AI background banayega aur aapka headline browser mein exact spelling ke saath add hoga. Final image 16:9 YouTube thumbnail format mein download hogi.</p>
+      <label for="thumbnailHeadline">Thumbnail headline (exact text)</label>
+      <input id="thumbnailHeadline" maxlength="70" placeholder="e.g. THIS CHANGES EVERYTHING!">
+      <label for="thumbnailTopic">Video kis bare mein hai?</label>
+      <textarea id="thumbnailTopic" maxlength="300" placeholder="e.g. A beginner-friendly review of the newest AI tools"></textarea>
+      <div class="row">
+        <div>
+          <label for="thumbnailStyle">Thumbnail style</label>
+          <select id="thumbnailStyle">
+            <option value="high-energy YouTube creator style">High-energy</option>
+            <option value="cinematic dramatic style">Cinematic</option>
+            <option value="gaming thumbnail style">Gaming</option>
+            <option value="sports broadcast thumbnail style">Sports</option>
+            <option value="clean technology explainer style">Technology</option>
+            <option value="bright tutorial and educational style">Tutorial</option>
+          </select>
+        </div>
+        <div>
+          <label for="thumbnailPosition">Headline position</label>
+          <select id="thumbnailPosition">
+            <option value="left">Left side</option>
+            <option value="right">Right side</option>
+          </select>
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label for="thumbnailAccent">Headline colour</label>
+          <select id="thumbnailAccent">
+            <option value="#ffffff">White</option>
+            <option value="#ffe500">Yellow</option>
+            <option value="#67e8f9">Cyan</option>
+            <option value="#ff5b67">Red</option>
+            <option value="#a7f36b">Lime</option>
+          </select>
+        </div>
+        <div>
+          <label for="thumbnailSubject">Main subject (optional)</label>
+          <input id="thumbnailSubject" maxlength="120" placeholder="e.g. a surprised young creator">
+        </div>
+      </div>
+      <button class="primary" id="thumbnailGenerateButton" type="button">✨ Generate Thumbnail</button>
+      <div id="thumbnailMessage" role="status" aria-live="polite" style="color:var(--muted);margin-top:12px"></div>
+      <div id="thumbnailResult" style="margin-top:20px"></div>
+      <p class="workspace-intro" style="margin-top:16px">Tip: Headline spelling is added exactly from your input. AI-generated pictures may still vary, so check the final design before publishing.</p>
+    </section>
+
     <section class="workspace" id="voiceWorkspace" style="display:none">
       <h2>🎙️ AI Voice Generator</h2>
       <p class="workspace-intro">Apna text likhein, available voice choose karein aur MP3 audio generate karein. Maximum 2,000 characters.</p>
@@ -423,6 +476,7 @@
     const imageCompressorWorkspace = document.getElementById("imageCompressorWorkspace");
     const voiceWorkspace = document.getElementById("voiceWorkspace");
     const logoWorkspace = document.getElementById("logoWorkspace");
+    const thumbnailWorkspace = document.getElementById("thumbnailWorkspace");
 
     document.querySelectorAll(".tool[data-tool]").forEach(button => {
       button.addEventListener("click", () => {
@@ -439,12 +493,19 @@
         imageCompressorWorkspace.style.display = "none";
         voiceWorkspace.style.display = "none";
         logoWorkspace.style.display = "none";
+        thumbnailWorkspace.style.display = "none";
 
         const toolName = button.dataset.tool;
 
         if (toolName === "logo") {
           logoWorkspace.style.display = "block";
           logoWorkspace.scrollIntoView({ behavior: "smooth" });
+          return;
+        }
+
+        if (toolName === "thumbnail") {
+          thumbnailWorkspace.style.display = "block";
+          thumbnailWorkspace.scrollIntoView({ behavior: "smooth" });
           return;
         }
 
@@ -952,6 +1013,211 @@
       } finally {
         logoGenerateButton.disabled = false;
         logoGenerateButton.textContent = "✨ Generate Logo";
+      }
+    });
+
+    // AI THUMBNAIL GENERATOR — reuses the existing Cloudflare generate_image action.
+    // The model creates the visual background; Canvas places the user headline exactly as typed.
+    const thumbnailHeadline = document.getElementById("thumbnailHeadline");
+    const thumbnailTopic = document.getElementById("thumbnailTopic");
+    const thumbnailStyle = document.getElementById("thumbnailStyle");
+    const thumbnailPosition = document.getElementById("thumbnailPosition");
+    const thumbnailAccent = document.getElementById("thumbnailAccent");
+    const thumbnailSubject = document.getElementById("thumbnailSubject");
+    const thumbnailGenerateButton = document.getElementById("thumbnailGenerateButton");
+    const thumbnailMessage = document.getElementById("thumbnailMessage");
+    const thumbnailResult = document.getElementById("thumbnailResult");
+    let thumbnailOutputUrl = null;
+
+    function loadImageForThumbnail(src) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = () => reject(new Error("Generated image could not be opened. Please try again."));
+        img.src = src;
+      });
+    }
+
+    function wrapThumbnailHeadline(ctx, text, maxWidth, maxLines) {
+      const words = text.trim().split(/\s+/).filter(Boolean);
+      const lines = [];
+      let line = "";
+      for (const word of words) {
+        const candidate = line ? `${line} ${word}` : word;
+        if (ctx.measureText(candidate).width <= maxWidth || !line) {
+          line = candidate;
+        } else {
+          lines.push(line);
+          line = word;
+        }
+      }
+      if (line) lines.push(line);
+      if (lines.length > maxLines) return null;
+      return lines;
+    }
+
+    async function composeThumbnail(generatedImageUrl, headline, position, accent) {
+      const sourceImage = await loadImageForThumbnail(generatedImageUrl);
+      const canvas = document.createElement("canvas");
+      canvas.width = 1280;
+      canvas.height = 720;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) throw new Error("Your browser could not start thumbnail processing.");
+
+      // Fill the 16:9 frame with a crop of the generated landscape artwork.
+      const scale = Math.max(canvas.width / sourceImage.naturalWidth, canvas.height / sourceImage.naturalHeight);
+      const drawWidth = sourceImage.naturalWidth * scale;
+      const drawHeight = sourceImage.naturalHeight * scale;
+      const drawX = (canvas.width - drawWidth) / 2;
+      const drawY = (canvas.height - drawHeight) / 2;
+      ctx.drawImage(sourceImage, drawX, drawY, drawWidth, drawHeight);
+
+      // Add a subtle dark gradient behind the exact headline for contrast.
+      const isRight = position === "right";
+      const gradient = isRight
+        ? ctx.createLinearGradient(canvas.width, 0, canvas.width - 760, 0)
+        : ctx.createLinearGradient(0, 0, 760, 0);
+      gradient.addColorStop(0, "rgba(4,3,12,0.82)");
+      gradient.addColorStop(0.72, "rgba(4,3,12,0.48)");
+      gradient.addColorStop(1, "rgba(4,3,12,0)");
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Choose the largest headline size that fits in up to three lines.
+      const maxWidth = 520;
+      const maxLines = 3;
+      let fontSize = 86;
+      let lines = null;
+      while (fontSize >= 42) {
+        ctx.font = `900 ${fontSize}px Arial, sans-serif`;
+        lines = wrapThumbnailHeadline(ctx, headline, maxWidth, maxLines);
+        if (lines && lines.every(item => ctx.measureText(item).width <= maxWidth)) break;
+        fontSize -= 2;
+      }
+      if (!lines) {
+        fontSize = 42;
+        ctx.font = `900 ${fontSize}px Arial, sans-serif`;
+        lines = wrapThumbnailHeadline(ctx, headline, maxWidth, maxLines);
+      }
+      if (!lines || lines.length > maxLines) {
+        throw new Error("Headline bohat lamba hai. Please shorter headline likhein.");
+      }
+
+      const lineHeight = Math.round(fontSize * 1.08);
+      const textBlockHeight = lines.length * lineHeight;
+      const textX = isRight ? canvas.width - 82 - maxWidth : 82;
+      const firstY = Math.round((canvas.height - textBlockHeight) / 2 + fontSize * 0.88);
+      ctx.textAlign = "left";
+      ctx.textBaseline = "alphabetic";
+      ctx.lineJoin = "round";
+      ctx.font = `900 ${fontSize}px Arial, sans-serif`;
+      ctx.shadowColor = "rgba(0,0,0,0.55)";
+      ctx.shadowBlur = 9;
+      ctx.shadowOffsetX = 2;
+      ctx.shadowOffsetY = 4;
+      ctx.lineWidth = Math.max(5, Math.round(fontSize * 0.10));
+      ctx.strokeStyle = "rgba(0,0,0,0.88)";
+      ctx.fillStyle = accent;
+      lines.forEach((line, index) => {
+        const y = firstY + index * lineHeight;
+        ctx.strokeText(line, textX, y, maxWidth);
+        ctx.fillText(line, textX, y, maxWidth);
+      });
+      ctx.shadowColor = "transparent";
+
+      const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/png"));
+      if (!blob) throw new Error("Could not export the 16:9 thumbnail. Please try again.");
+      return URL.createObjectURL(blob);
+    }
+
+    thumbnailGenerateButton?.addEventListener("click", async () => {
+      const headline = thumbnailHeadline.value.trim();
+      const topic = thumbnailTopic.value.trim();
+      const style = thumbnailStyle.value;
+      const position = thumbnailPosition.value;
+      const accent = thumbnailAccent.value;
+      const subject = thumbnailSubject.value.trim();
+
+      if (!headline) {
+        thumbnailMessage.textContent = "Please enter the exact thumbnail headline.";
+        thumbnailHeadline.focus();
+        return;
+      }
+      if (!topic) {
+        thumbnailMessage.textContent = "Please describe what your video is about.";
+        thumbnailTopic.focus();
+        return;
+      }
+
+      const subjectSide = position === "right" ? "left" : "right";
+      const thumbnailPrompt = [
+        `Create a dramatic, professional YouTube thumbnail background in a wide horizontal 16:9 composition for this video topic: ${topic}.`,
+        `Visual style: ${style}.`,
+        subject ? `Main subject: ${subject}. Place the main subject clearly on the ${subjectSide} side of the frame.` : `Create a strong topic-related visual focal point on the ${subjectSide} side of the frame.`,
+        `Keep the ${position} third visually simple and dark with generous clean negative space for a headline that will be added later.`,
+        "Use bold lighting, vivid but balanced colours, clear subject separation, strong contrast and a polished creator-thumbnail look.",
+        "Do not render any text, letters, numbers, captions, logos, watermarks, borders or UI. The headline will be added separately."
+      ].join(" ");
+
+      if (thumbnailPrompt.length > 1000) {
+        thumbnailMessage.textContent = "Please shorten the video topic or subject description and try again.";
+        return;
+      }
+
+      thumbnailGenerateButton.disabled = true;
+      thumbnailGenerateButton.textContent = "Creating thumbnail...";
+      thumbnailMessage.textContent = "AI background ban raha hai. Please wait...";
+      thumbnailResult.replaceChildren();
+      if (thumbnailOutputUrl) {
+        URL.revokeObjectURL(thumbnailOutputUrl);
+        thumbnailOutputUrl = null;
+      }
+
+      try {
+        const response = await fetch(WORKER_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "generate_image", prompt: thumbnailPrompt })
+        });
+
+        let data;
+        try { data = await response.json(); }
+        catch { throw new Error("The server returned an unreadable response. Please try again."); }
+        if (!response.ok) {
+          throw new Error(data.error || data.details || data.message || `Thumbnail generation failed (${response.status}).`);
+        }
+
+        const generatedImage = getImagePayload(data);
+        if (!generatedImage || typeof generatedImage !== "string") {
+          throw new Error(data.error || "The image service returned no picture. Please try again.");
+        }
+        const generatedImageUrl = generatedImage.startsWith("data:")
+          ? generatedImage
+          : `data:image/png;base64,${generatedImage}`;
+
+        thumbnailMessage.textContent = "Background ready. Exact headline aur 16:9 layout set ho raha hai...";
+        thumbnailOutputUrl = await composeThumbnail(generatedImageUrl, headline, position, accent);
+
+        const heading = document.createElement("h3");
+        heading.textContent = "Your YouTube thumbnail is ready (1280 × 720)";
+        const preview = document.createElement("img");
+        preview.src = thumbnailOutputUrl;
+        preview.alt = `YouTube thumbnail with headline: ${headline}`;
+        preview.style.cssText = "display:block;width:100%;max-width:850px;aspect-ratio:16/9;object-fit:contain;margin:12px auto;border-radius:14px;border:1px solid var(--border)";
+        const download = document.createElement("a");
+        download.href = thumbnailOutputUrl;
+        download.download = "TrivexaAI-YouTube-Thumbnail-1280x720.png";
+        download.className = "primary";
+        download.textContent = "⬇️ Download Thumbnail PNG";
+        download.style.cssText = "display:inline-flex;text-decoration:none;margin-top:14px";
+        thumbnailResult.append(heading, preview, download);
+        thumbnailMessage.textContent = "✓ Thumbnail ready! Headline spelling tumhare input ke mutabiq rakhi gayi hai.";
+      } catch (error) {
+        console.error("Thumbnail generation error:", error);
+        thumbnailMessage.textContent = error.message || "Thumbnail generation failed. Please try again.";
+      } finally {
+        thumbnailGenerateButton.disabled = false;
+        thumbnailGenerateButton.textContent = "✨ Generate Thumbnail";
       }
     });
 
