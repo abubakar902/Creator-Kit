@@ -162,7 +162,7 @@
     <p class="no-tools-message" id="noToolsMessage" hidden>No tools found. Try a different search term.</p>
     <section class="category-block" id="category-creator"><div class="category-heading"><span class="category-icon">✦</span><div><h3>Creator tools</h3><p>Turn your ideas into ready-to-use content.</p></div></div>
     <section class="tools" aria-label="Creator tools">
-      <button class="tool active" data-tool="titles">
+      <button class="tool" data-tool="titles">
         <span class="emoji">🎬</span>
         <strong>YouTube Title Generator</strong>
         <small>Create catchy titles that make people curious.</small>
@@ -444,7 +444,7 @@
       <p class="workspace-intro" style="margin-top:18px">Usage note: Voice generation uses Cloudflare Workers AI. Free accounts have a daily AI usage allowance shared with other Workers AI tools on this Worker. This voice tool currently uses the English Aura-1 voices.</p>
     </section>
 
-    <section class="workspace" id="generatorWorkspace">
+    <section class="workspace" id="generatorWorkspace" style="display:none">
       <h2 id="toolTitle">🎬 YouTube Title Generator</h2>
       <p id="toolDescription" class="workspace-intro">Generate catchy YouTube titles using your topic or keywords. Create engaging title ideas for your next video.</p>
 
@@ -534,7 +534,8 @@
       }
     };
 
-    let selectedTool = "titles";
+    // No tool is selected when the page first loads. A tool becomes active only after a click.
+    let selectedTool = null;
 
     const form = document.getElementById("generatorForm");
     const result = document.getElementById("result");
@@ -727,6 +728,11 @@
       const platform = document.getElementById("platform").value;
       const tone = document.getElementById("tone").value;
       const details = document.getElementById("details").value.trim();
+
+      if (!selectedTool || !toolInfo[selectedTool]) {
+        message.textContent = "Please select a creator tool first.";
+        return;
+      }
 
       if (!topic) {
         message.textContent = "Please enter a topic first.";
