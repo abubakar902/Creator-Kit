@@ -558,24 +558,38 @@
     const logoWorkspace = document.getElementById("logoWorkspace");
     const thumbnailWorkspace = document.getElementById("thumbnailWorkspace");
 
+    function hideAllToolWorkspaces() {
+      downloaderWorkspace.style.display = "none";
+      generatorWorkspace.style.display = "none";
+      imageWorkspace.style.display = "none";
+      backgroundRemoverWorkspace.style.display = "none";
+      upscalerWorkspace.style.display = "none";
+      imageEnhancerWorkspace.style.display = "none";
+      imageCompressorWorkspace.style.display = "none";
+      voiceWorkspace.style.display = "none";
+      logoWorkspace.style.display = "none";
+      thumbnailWorkspace.style.display = "none";
+    }
+
     document.querySelectorAll(".tool[data-tool]").forEach(button => {
       button.addEventListener("click", () => {
-        document.querySelectorAll(".tool").forEach(item => {
+        const toolName = button.dataset.tool;
+        const isAlreadySelected = button.classList.contains("active");
+
+        // Clicking the currently selected tool again deselects it and closes its workspace.
+        if (isAlreadySelected) {
+          document.querySelectorAll(".tool[data-tool]").forEach(item => item.classList.remove("active"));
+          selectedTool = null;
+          hideAllToolWorkspaces();
+          return;
+        }
+
+        // Selecting a different tool closes the previous workspace and activates only this card.
+        document.querySelectorAll(".tool[data-tool]").forEach(item => {
           item.classList.toggle("active", item === button);
         });
-
-        downloaderWorkspace.style.display = "none";
-        generatorWorkspace.style.display = "none";
-        imageWorkspace.style.display = "none";
-        backgroundRemoverWorkspace.style.display = "none";
-        upscalerWorkspace.style.display = "none";
-        imageEnhancerWorkspace.style.display = "none";
-        imageCompressorWorkspace.style.display = "none";
-        voiceWorkspace.style.display = "none";
-        logoWorkspace.style.display = "none";
-        thumbnailWorkspace.style.display = "none";
-
-        const toolName = button.dataset.tool;
+        selectedTool = null;
+        hideAllToolWorkspaces();
 
         if (toolName === "logo") {
           logoWorkspace.style.display = "block";
