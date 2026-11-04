@@ -143,6 +143,23 @@
     .recent-status{min-height:0;margin:10px 0 0;color:#b9f6d3;font-size:11px}
     @media(max-width:900px){.recent-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
     @media(max-width:600px){.recent-section{padding:15px;border-radius:18px}.recent-heading{align-items:flex-start;flex-direction:column}.recent-heading-actions{width:100%;justify-content:space-between}.recent-grid{grid-template-columns:1fr}.recent-card{padding:13px}.recent-media-preview{max-height:240px}}
+
+
+    /* FAVOURITE TOOLS */
+    .favourites-section{margin:0 0 38px;padding:clamp(17px,3vw,24px);border:1px solid var(--border-strong);border-radius:21px;background:linear-gradient(145deg,rgba(31,24,51,.93),rgba(15,12,26,.95));box-shadow:0 15px 45px rgba(0,0,0,.14)}
+    .favourites-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+    .favourites-heading p{margin:6px 0 0;color:var(--muted);font-size:12px}
+    .favourites-count{color:#f4d58a;font-size:11px;font-weight:800;white-space:nowrap}
+    .favourites-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+    .favourite-tool{display:flex;align-items:center;gap:12px;min-width:0;padding:13px;text-align:left;color:var(--text);border:1px solid var(--border);border-radius:14px;background:#ffffff06;cursor:pointer;transition:border-color .18s,background .18s}
+    .favourite-tool:hover{border-color:var(--border-strong);background:#a78bfa14}
+    .favourite-tool .emoji{font-size:22px}.favourite-tool strong{display:block;font-size:12px;line-height:1.4}.favourite-tool small{display:block;color:var(--muted);font-size:10px;margin-top:3px}
+    .favourites-empty{padding:20px;border:1px dashed var(--border-strong);border-radius:14px;color:var(--muted);text-align:center;font-size:12px}
+    .tool-favourite-toggle{position:absolute;top:13px;right:14px;z-index:3;display:grid;place-items:center;width:32px;height:32px;border:1px solid var(--border);border-radius:10px;background:#0b0815d9;color:#c7badf;font-size:19px;line-height:1;cursor:pointer;transition:transform .18s,border-color .18s,background .18s,color .18s}
+    .tool-favourite-toggle:hover{transform:scale(1.08);border-color:#f4d58a88}.tool-favourite-toggle.is-favourite{color:#ffd36e;background:#f4c95b18;border-color:#f4d58a66}
+    .tool.has-favourite-toggle{padding-right:54px}
+    @media(max-width:900px){.favourites-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media(max-width:600px){.favourites-section{padding:15px;border-radius:18px}.favourites-grid{grid-template-columns:1fr}.favourite-tool{padding:12px}}
   </style>
 </head>
 <body>
@@ -201,6 +218,11 @@
         <button type="button" class="quick-search-chip" data-search-term="video download">Video download</button>
       </div>
       <p class="search-hint" id="searchHint" role="status" aria-live="polite">Search by tool name, what it does, or a related phrase. Press / to focus search, Esc to clear.</p>
+    </section>
+    <section class="favourites-section" id="favouritesSection" aria-labelledby="favouritesTitle">
+      <div class="favourites-heading"><div><div class="section-kicker">QUICK ACCESS</div><h2 class="section-title" id="favouritesTitle">⭐ My Favourite Tools</h2><p>Your personal shortcuts, saved on this device.</p></div><span class="favourites-count" id="favouritesCount">0 saved</span></div>
+      <div class="favourites-grid" id="favouritesGrid" aria-live="polite"></div>
+      <div class="favourites-empty" id="favouritesEmpty">No favourite tools yet. Tap the ☆ on any tool card to save it here.</div>
     </section>
     <p class="no-tools-message" id="noToolsMessage" hidden>No tools found. Try a different search term.</p>
     <section class="recent-section" id="recentResultsSection" aria-labelledby="recentResultsTitle">
@@ -1013,6 +1035,107 @@
     const allToolCards = Array.from(document.querySelectorAll(".tool[data-tool]"));
     const toolCategoryBlocks = Array.from(document.querySelectorAll(".category-block"));
     const searchQuickPicks = document.getElementById("searchQuickPicks");
+
+
+    // FAVOURITE TOOLS — saved locally in this browser; no account or server required.
+    const FAVOURITES_STORAGE_KEY = "trivexaai-favourite-tools-v1";
+    const favouritesGrid = document.getElementById("favouritesGrid");
+    const favouritesEmpty = document.getElementById("favouritesEmpty");
+    const favouritesCount = document.getElementById("favouritesCount");
+    let favouriteToolIds = [];
+    try {
+      const savedFavourites = JSON.parse(localStorage.getItem(FAVOURITES_STORAGE_KEY) || "[]");
+      if (Array.isArray(savedFavourites)) favouriteToolIds = savedFavourites.filter(id => allToolCards.some(card => card.dataset.tool === id));
+    } catch (error) {
+      console.warn("Favourite Tools could not be loaded:", error);
+    }
+
+    function persistFavouriteTools() {
+      try {
+        localStorage.setItem(FAVOURITES_STORAGE_KEY, JSON.stringify(favouriteToolIds));
+      } catch (error) {
+        console.warn("Favourite Tools could not be saved:", error);
+        if (favouritesEmpty) favouritesEmpty.textContent = "Browser storage is unavailable. Your favourites may not remain after refresh.";
+      }
+    }
+
+    function renderFavouriteTools() {
+      if (!favouritesGrid) return;
+      favouritesGrid.replaceChildren();
+      const favouriteCards = favouriteToolIds.map(id => allToolCards.find(card => card.dataset.tool === id)).filter(Boolean);
+      if (favouritesCount) favouritesCount.textContent = `${favouriteCards.length} saved`;
+      if (favouritesEmpty) favouritesEmpty.hidden = favouriteCards.length > 0;
+      favouriteCards.forEach(card => {
+        const shortcut = document.createElement("button");
+        shortcut.type = "button";
+        shortcut.className = "favourite-tool";
+        const emoji = card.querySelector(".emoji");
+        const title = card.querySelector("strong");
+        const description = card.querySelector("small");
+        const icon = document.createElement("span");
+        icon.className = "emoji";
+        icon.textContent = emoji ? emoji.textContent : "⭐";
+        const copy = document.createElement("span");
+        const name = document.createElement("strong");
+        name.textContent = title ? title.textContent : card.dataset.tool;
+        const hint = document.createElement("small");
+        hint.textContent = description ? description.textContent : "Open this tool";
+        copy.append(name, hint);
+        shortcut.append(icon, copy);
+        shortcut.addEventListener("click", () => {
+          card.scrollIntoView({ behavior: "smooth", block: "center" });
+          card.click();
+        });
+        favouritesGrid.appendChild(shortcut);
+      });
+    }
+
+    function updateFavouriteButtons() {
+      allToolCards.forEach(card => {
+        card.classList.add("has-favourite-toggle");
+        let toggle = card.querySelector(".tool-favourite-toggle");
+        if (!toggle) {
+          toggle = document.createElement("span");
+          toggle.className = "tool-favourite-toggle";
+          toggle.setAttribute("role", "button");
+          toggle.setAttribute("tabindex", "0");
+          toggle.setAttribute("aria-label", "Add to favourites");
+          toggle.title = "Add to favourites";
+          card.appendChild(toggle);
+          toggle.addEventListener("click", event => {
+            event.preventDefault();
+            event.stopPropagation();
+            toggleFavouriteTool(card.dataset.tool);
+          });
+          toggle.addEventListener("keydown", event => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              event.stopPropagation();
+              toggleFavouriteTool(card.dataset.tool);
+            }
+          });
+        }
+        const isFavourite = favouriteToolIds.includes(card.dataset.tool);
+        toggle.textContent = isFavourite ? "★" : "☆";
+        toggle.classList.toggle("is-favourite", isFavourite);
+        toggle.setAttribute("aria-pressed", String(isFavourite));
+        toggle.setAttribute("aria-label", isFavourite ? "Remove from favourites" : "Add to favourites");
+        toggle.title = isFavourite ? "Remove from favourites" : "Add to favourites";
+      });
+    }
+
+    function toggleFavouriteTool(toolId) {
+      if (!toolId) return;
+      favouriteToolIds = favouriteToolIds.includes(toolId)
+        ? favouriteToolIds.filter(id => id !== toolId)
+        : [...favouriteToolIds, toolId];
+      persistFavouriteTools();
+      updateFavouriteButtons();
+      renderFavouriteTools();
+    }
+
+    updateFavouriteButtons();
+    renderFavouriteTools();
 
     const toolSearchAliases = {
       titles: ["title", "titles", "youtube title", "video title", "headline", "title maker", "clickable title", "yt title", "youtube ke title", "video ka title", "title banana"],
