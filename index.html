@@ -99,14 +99,20 @@
     .category-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
     .category-chip{display:inline-flex;align-items:center;gap:7px;padding:8px 11px;border:1px solid var(--border);border-radius:999px;background:#ffffff06;color:#e4dcf3;font-size:11px;font-weight:750;transition:background .18s,border-color .18s,transform .18s}
     .category-chip:hover{background:#a78bfa18;border-color:var(--border-strong);transform:translateY(-1px)}
-    .search-hint{margin:12px 0 0;color:#958ba9;font-size:11px;line-height:1.6}
+    .search-quick-picks{display:flex;align-items:center;flex-wrap:wrap;gap:7px;margin-top:13px}
+    .quick-picks-label{color:#a99dbd;font-size:10px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;margin-right:2px}
+    .quick-search-chip{border:1px solid var(--border);border-radius:999px;padding:6px 10px;background:#ffffff06;color:#ded4f1;font:inherit;font-size:10px;font-weight:700;cursor:pointer;transition:background .18s,border-color .18s,transform .18s}
+    .quick-search-chip:hover,.quick-search-chip:focus-visible{background:#a78bfa1b;border-color:var(--border-strong);transform:translateY(-1px);outline:none}
+    .search-hint{margin:10px 0 0;color:#958ba9;font-size:11px;line-height:1.6}
+    .tool.search-best-match{border-color:#c4a8ffad;box-shadow:inset 0 0 0 1px #a78bfa38,0 0 0 3px #a78bfa12}
+    .tool.search-best-match:after{background:radial-gradient(circle at 0 0,#a78bfa30,transparent 65%)}
     .no-tools-message{margin:18px 0 28px;padding:18px;border:1px dashed var(--border-strong);border-radius:15px;color:var(--muted);text-align:center;background:#ffffff04}
     .tool[hidden],.category-block[hidden]{display:none!important}
     .tools-count{white-space:nowrap}
     .category-block{scroll-margin-top:95px}
     .workspace{scroll-margin-top:95px}
     @media(max-width:820px){.hero.hero-v2{grid-template-columns:1fr;gap:30px;padding-top:50px}.hero-v2 .hero-glow{left:20%;top:12px}.hero-copy{max-width:720px}.hero-showcase{width:min(100%,640px);margin:0 auto}.showcase-card{padding:22px}}
-    @media(max-width:600px){.hero.hero-v2{padding:42px 0 36px;gap:24px}.hero-copy h1{font-size:clamp(37px,11vw,52px);letter-spacing:-1.7px}.hero-actions{display:grid;grid-template-columns:1fr 1fr}.hero-cta{padding:11px 10px;font-size:12px}.hero-v2 .hero-pills{gap:6px}.showcase-card{padding:18px;border-radius:19px}.showcase-heading{font-size:27px}.showcase-grid{gap:8px}.showcase-tile{padding:12px}.tool-explorer{padding:15px;border-radius:17px}.tool-search-row{grid-template-columns:1fr}.tool-search-row #clearToolSearch{width:100%}.tools-count{font-size:10px}.category-chips{gap:6px}.category-chip{font-size:10px;padding:7px 9px}}
+    @media(max-width:600px){.hero.hero-v2{padding:42px 0 36px;gap:24px}.hero-copy h1{font-size:clamp(37px,11vw,52px);letter-spacing:-1.7px}.hero-actions{display:grid;grid-template-columns:1fr 1fr}.hero-cta{padding:11px 10px;font-size:12px}.hero-v2 .hero-pills{gap:6px}.showcase-card{padding:18px;border-radius:19px}.showcase-heading{font-size:27px}.showcase-grid{gap:8px}.showcase-tile{padding:12px}.tool-explorer{padding:15px;border-radius:17px}.tool-search-row{grid-template-columns:1fr}.tool-search-row #clearToolSearch{width:100%}.tools-count{font-size:10px}.category-chips{gap:6px}.category-chip{font-size:10px;padding:7px 9px}.search-quick-picks{gap:6px}.quick-search-chip{font-size:9px;padding:6px 9px}}
 
 
     /* RECENT RESULTS — local browser history */
@@ -186,7 +192,15 @@
         <a class="category-chip" href="#category-audio">🎙️ Audio tools</a>
         <a class="category-chip" href="#category-video">⬇️ Video tools</a>
       </nav>
-      <p class="search-hint">Search by tool name or purpose, or jump directly to a category.</p>
+      <div class="search-quick-picks" id="searchQuickPicks" aria-label="Popular tool searches">
+        <span class="quick-picks-label">Popular:</span>
+        <button type="button" class="quick-search-chip" data-search-term="captions">Captions</button>
+        <button type="button" class="quick-search-chip" data-search-term="text to speech">Text to speech</button>
+        <button type="button" class="quick-search-chip" data-search-term="logo">Logo</button>
+        <button type="button" class="quick-search-chip" data-search-term="remove background">Remove background</button>
+        <button type="button" class="quick-search-chip" data-search-term="video download">Video download</button>
+      </div>
+      <p class="search-hint" id="searchHint" role="status" aria-live="polite">Search by tool name, what it does, or a related phrase. Press / to focus search, Esc to clear.</p>
     </section>
     <p class="no-tools-message" id="noToolsMessage" hidden>No tools found. Try a different search term.</p>
     <section class="recent-section" id="recentResultsSection" aria-labelledby="recentResultsTitle">
@@ -969,41 +983,183 @@
       });
     });
 
-    // Search all tool cards and keep the category directory in sync.
+    // SMART TOOL SEARCH: understands names, purposes, common aliases and small typos.
+    // Searching only filters the directory; it never selects or opens a tool.
     const toolSearchInput = document.getElementById("toolSearch");
     const clearToolSearchButton = document.getElementById("clearToolSearch");
     const toolCountLabel = document.getElementById("toolCount");
     const noToolsMessage = document.getElementById("noToolsMessage");
+    const searchHint = document.getElementById("searchHint");
     const allToolCards = Array.from(document.querySelectorAll(".tool[data-tool]"));
     const toolCategoryBlocks = Array.from(document.querySelectorAll(".category-block"));
+    const searchQuickPicks = document.getElementById("searchQuickPicks");
+
+    const toolSearchAliases = {
+      titles: ["title", "titles", "youtube title", "video title", "headline", "title maker", "clickable title", "yt title", "youtube ke title", "video ka title", "title banana"],
+      caption: ["caption", "captions", "social caption", "social media captions", "instagram caption", "post caption", "reel caption", "post text", "caption writer", "caption likhna"],
+      hashtags: ["hashtag", "hashtags", "tags", "tag generator", "social tags", "instagram tags", "tiktok tags", "youtube tags"],
+      description: ["description", "youtube description", "video description", "video details", "seo description", "video summary"],
+      hooks: ["hook", "hooks", "viral hook", "opening line", "video intro", "attention grabber", "first line", "intro generator"],
+      script: ["script", "shorts script", "youtube shorts", "reels script", "tiktok script", "short video script", "video screenplay"],
+      image: ["image", "images", "image generator", "text to image", "ai art", "picture generator", "photo generator", "photo edit", "image editing", "tasveer", "photo banana", "image banana"],
+      logo: ["logo", "logos", "logo maker", "logo generator", "brand logo", "business logo", "company logo", "brand identity", "logo banana"],
+      thumbnail: ["thumbnail", "thumbnails", "youtube thumbnail", "video thumbnail", "cover image", "video cover", "youtube cover", "thumbnail maker", "thumbnail banana"],
+      "background-remover": ["background remover", "remove background", "transparent background", "cutout", "background eraser", "photo cutout", "bg remover", "background hatana", "photo background"],
+      "image-compressor": ["compress image", "image compressor", "photo compressor", "reduce image size", "smaller image", "compress jpg", "photo size kam", "image size reduce"],
+      "image-enhancer": ["enhance image", "image enhancer", "photo enhancer", "improve photo", "brightness", "contrast", "saturation", "photo editor", "tasveer behtar", "photo clear"],
+      upscaler: ["upscale", "upscaler", "image upscaler", "enlarge image", "increase resolution", "image resize", "2x", "4x", "photo enlarge", "image bari", "resolution barhana"],
+      voice: ["voice", "voice generator", "ai voice", "text to speech", "tts", "speech generator", "voiceover", "voice over", "mp3 voice", "spoken audio", "text bolna", "awaz", "awaaz", "voiceover banana"],
+      downloader: ["download", "downloader", "video download", "download video", "youtube downloader", "tiktok downloader", "instagram downloader", "save video", "video saver", "video utarna", "video save karna"]
+    };
+
+    function normalizeSearchText(value) {
+      return String(value || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]+/g, " ")
+        .trim()
+        .replace(/\s+/g, " ");
+    }
+
+    function editDistance(a, b) {
+      if (a === b) return 0;
+      if (!a.length) return b.length;
+      if (!b.length) return a.length;
+      if (Math.abs(a.length - b.length) > 2) return 3;
+      let previous = Array.from({ length: b.length + 1 }, (_, i) => i);
+      for (let i = 1; i <= a.length; i++) {
+        const current = [i];
+        let rowMinimum = i;
+        for (let j = 1; j <= b.length; j++) {
+          const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+          current[j] = Math.min(current[j - 1] + 1, previous[j] + 1, previous[j - 1] + cost);
+          rowMinimum = Math.min(rowMinimum, current[j]);
+        }
+        if (rowMinimum > 2) return 3;
+        previous = current;
+      }
+      return previous[b.length];
+    }
+
+    function expandSearchTerms(query) {
+      const replacements = {
+        yt: "youtube",
+        ig: "instagram",
+        tt: "tiktok",
+        tts: "text to speech",
+        bg: "background"
+      };
+      return query.split(" ").flatMap(term => (replacements[term] || term).split(" ")).filter(Boolean);
+    }
+
+    function getToolSearchScore(card, query) {
+      const toolKey = card.dataset.tool || "";
+      const aliases = toolSearchAliases[toolKey] || [];
+      const corpus = normalizeSearchText(`${card.textContent || ""} ${toolKey} ${aliases.join(" ")}`);
+      const queryNormalized = normalizeSearchText(query);
+      if (!queryNormalized) return 1;
+      if (corpus.includes(queryNormalized)) return 100 + queryNormalized.length;
+
+      const terms = expandSearchTerms(queryNormalized);
+      const corpusWords = corpus.split(" ").filter(Boolean);
+      let score = 0;
+      let matchedTerms = 0;
+
+      for (const term of terms) {
+        let best = 0;
+        for (const word of corpusWords) {
+          if (word === term) best = Math.max(best, 12);
+          else if (term.length >= 2 && word.startsWith(term)) best = Math.max(best, 9);
+          else if (term.length >= 4 && term.startsWith(word)) best = Math.max(best, 7);
+          else if (term.length >= 5 && Math.abs(word.length - term.length) <= 2) {
+            const distance = editDistance(term, word);
+            if (distance === 1) best = Math.max(best, 6);
+            else if (distance === 2 && term.length >= 8) best = Math.max(best, 3);
+          }
+        }
+        if (best > 0) {
+          matchedTerms += 1;
+          score += best;
+        }
+      }
+
+      // Require all words for multi-word searches to avoid unrelated partial results.
+      if (matchedTerms !== terms.length) return 0;
+      return score + matchedTerms * 2;
+    }
 
     function filterToolDirectory() {
-      const query = (toolSearchInput?.value || "").trim().toLowerCase();
+      const query = (toolSearchInput?.value || "").trim();
+      const hasQuery = Boolean(query);
       let visibleCount = 0;
+      let bestCard = null;
+      let bestScore = 0;
+
       allToolCards.forEach(card => {
-        const searchableText = `${card.textContent || ""} ${card.dataset.tool || ""}`.toLowerCase();
-        const isMatch = !query || searchableText.includes(query);
+        const score = getToolSearchScore(card, query);
+        const isMatch = !hasQuery || score > 0;
         card.hidden = !isMatch;
-        if (isMatch) visibleCount += 1;
+        card.classList.remove("search-best-match");
+        if (isMatch) {
+          visibleCount += 1;
+          if (score > bestScore) {
+            bestScore = score;
+            bestCard = card;
+          }
+        }
       });
+
+      // A subtle outline marks the closest match; it does not select or open the card.
+      if (hasQuery && bestCard && visibleCount > 1) bestCard.classList.add("search-best-match");
+
       toolCategoryBlocks.forEach(category => {
         const hasVisibleTools = Array.from(category.querySelectorAll(".tool[data-tool]")).some(card => !card.hidden);
         category.hidden = !hasVisibleTools;
       });
+
       if (toolCountLabel) {
-        toolCountLabel.textContent = query
-          ? `Showing ${visibleCount} of ${allToolCards.length} tools`
+        toolCountLabel.textContent = hasQuery
+          ? `Found ${visibleCount} matching ${visibleCount === 1 ? "tool" : "tools"}`
           : `${allToolCards.length} tools across ${toolCategoryBlocks.length} categories`;
       }
       if (noToolsMessage) noToolsMessage.hidden = visibleCount !== 0;
+      if (searchHint) {
+        searchHint.textContent = !hasQuery
+          ? "Search by tool name, purpose or related phrase. Press / to focus search, Esc to clear."
+          : visibleCount
+            ? `${visibleCount} matching ${visibleCount === 1 ? "tool" : "tools"} found. Choose a tool card to open it.`
+            : "No matches yet. Try a shorter phrase such as “voice”, “logo”, “captions” or “download”.";
+      }
     }
 
     toolSearchInput?.addEventListener("input", filterToolDirectory);
+    toolSearchInput?.addEventListener("keydown", event => {
+      if (event.key === "Escape") {
+        toolSearchInput.value = "";
+        filterToolDirectory();
+      }
+    });
     clearToolSearchButton?.addEventListener("click", () => {
       if (!toolSearchInput) return;
       toolSearchInput.value = "";
       filterToolDirectory();
       toolSearchInput.focus();
+    });
+    searchQuickPicks?.addEventListener("click", event => {
+      const chip = event.target.closest("[data-search-term]");
+      if (!chip || !toolSearchInput) return;
+      toolSearchInput.value = chip.dataset.searchTerm || "";
+      filterToolDirectory();
+      toolSearchInput.focus();
+    });
+    document.addEventListener("keydown", event => {
+      const target = event.target;
+      const isTyping = target && (target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName));
+      if (event.key === "/" && !isTyping && toolSearchInput) {
+        event.preventDefault();
+        toolSearchInput.focus();
+      }
     });
     document.getElementById("categoryChips")?.addEventListener("click", event => {
       if (event.target.closest("a")) {
