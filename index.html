@@ -4,7 +4,7 @@
   <meta name="google-site-verification" content="d9Gi-QsiGTSQKIBlDwPSwpECq7tCETKhJc7uaKKQlMM" />
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#090711">
+  <meta name="theme-color" content="#100b20">
   <meta name="color-scheme" content="dark">
   <meta name="robots" content="index,follow,max-image-preview:large">
   <title>TrivexaAI — 15 Free AI Creator Tools for YouTube, Images & Social Media</title>
@@ -15,7 +15,7 @@
   <meta property="og:title" content="TrivexaAI — 15 Free AI Creator Tools for YouTube, Images & Social Media">
   <meta property="og:description" content="Explore 15 free tools for YouTube content, social media, AI images, logos, thumbnails, voiceovers and image editing.">
   <meta property="og:url" content="https://abubakar902.github.io/Creator-Kit/">
-  <meta name="twitter:card" content="summary">
+  <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="TrivexaAI — 15 Free AI Creator Tools for YouTube, Images & Social Media">
   <meta name="twitter:description" content="15 free tools for YouTube content, social media, AI images, logos, thumbnails, voiceovers and image editing.">
   <script type="application/ld+json">
@@ -28,377 +28,1764 @@
   }
   </script>
   <style>
+    :root {
+      color-scheme: dark;
+      --bg: #100b20;
+      --bg-alt: #160f2c;
+      --panel: #1a1230;
+      --panel-elevated: #21183a;
+      --panel-hover: #291f47;
+      --purple: #9b6cff;
+      --purple-light: #c09fff;
+      --pink: #e879f9;
+      --pink-glow: rgba(232, 121, 249, 0.28);
+      --purple-glow: rgba(155, 108, 255, 0.32);
+      --text: #f8f6fc;
+      --text-secondary: #c8c0da;
+      --muted: #958ba9;
+      --border: rgba(155, 108, 255, 0.18);
+      --border-strong: rgba(155, 108, 255, 0.38);
+      --shadow: 0 24px 60px rgba(5, 2, 14, 0.65);
+      --shadow-card: 0 12px 34px rgba(0, 0, 0, 0.35);
+      --radius-sm: 10px;
+      --radius-md: 16px;
+      --radius-lg: 22px;
+      --radius-pill: 9999px;
+    }
 
-    :root{color-scheme:dark;--bg:#090711;--panel:#151126;--purple:#ad91ff;--pink:#f0a8f8;--text:#faf8ff;--muted:#b9b2ca;--border:rgba(193,171,255,.16);--border-strong:rgba(193,171,255,.35);--shadow:0 20px 60px rgba(0,0,0,.24)}
-    *{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:100px}
-    body{margin:0;min-height:100vh;overflow-x:hidden;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text);line-height:1.55;-webkit-font-smoothing:antialiased;background:radial-gradient(ellipse at 50% -10%,rgba(126,87,194,.23),transparent 44rem),radial-gradient(ellipse at 95% 42%,rgba(216,70,239,.07),transparent 30rem),var(--bg)}
-    button,input,textarea,select{font:inherit}button,a{-webkit-tap-highlight-color:transparent}a{color:inherit;text-decoration:none}
-    header{position:sticky;top:0;z-index:30;padding:13px max(4%,calc((100% - 1180px)/2));border-bottom:1px solid var(--border);background:rgba(9,7,17,.84);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
-    .nav{max-width:1180px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:14px}.brand-link{display:inline-flex;align-items:center;gap:10px;min-width:0}
-    .brand-mark{display:grid;place-items:center;width:36px;height:36px;flex:0 0 auto;border-radius:12px;color:#160d27;font-size:19px;font-weight:950;background:linear-gradient(135deg,#d3c4ff,#eea8f7);box-shadow:0 5px 20px #ad91ff33}
-    .logo{font-size:clamp(19px,2.2vw,23px);font-weight:850;letter-spacing:-.8px;white-space:nowrap}.logo span{background:linear-gradient(100deg,var(--purple),var(--pink));-webkit-background-clip:text;background-clip:text;color:transparent}
-    .nav-right{display:flex;align-items:center;gap:18px}.nav-link{font-size:13px;color:#ded6ef;font-weight:650}.nav-link:hover,.footer-links a:hover{color:var(--pink)}
-    .status{display:inline-flex;align-items:center;gap:8px;font-size:11px;font-weight:700;border:1px solid var(--border-strong);border-radius:999px;padding:7px 11px;color:#e9ddff;background:#a78bfa12;white-space:nowrap}.status-dot{width:7px;height:7px;border-radius:50%;background:#86efac;box-shadow:0 0 12px #86efac88}
-    main{width:min(1180px,92%);margin:auto}.hero{position:relative;isolation:isolate;text-align:center;padding:clamp(48px,7vw,78px) 10px 43px}.hero-glow{position:absolute;width:330px;height:230px;left:50%;top:35px;transform:translateX(-50%);z-index:-1;background:#8b5cf633;filter:blur(65px);pointer-events:none}
-    .eyebrow{display:inline-flex;align-items:center;gap:7px;color:#e9d5ff;background:#a78bfa14;border:1px solid var(--border);border-radius:999px;padding:7px 12px;font-size:10px;letter-spacing:1.7px;font-weight:850}
-    h1{font-size:clamp(38px,6.5vw,68px);line-height:1.04;letter-spacing:clamp(-2.8px,-.22vw,-1px);margin:22px 0 18px;font-weight:880}h1 span{background:linear-gradient(95deg,#c4b5fd 5%,#e9a8ff 55%,#fbcfe8 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
-    .hero p{color:var(--muted);max-width:650px;margin:auto;line-height:1.8;font-size:clamp(14px,1.6vw,17px)}.hero-pills{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin-top:22px}.hero-pills span{color:#d8d0e8;font-size:11px;padding:7px 10px;border:1px solid var(--border);border-radius:999px;background:#ffffff05}
-    .tools-heading{display:flex;align-items:end;justify-content:space-between;gap:12px;margin:8px 0 18px}.section-kicker{color:var(--pink);font-size:10px;font-weight:850;letter-spacing:1.8px;margin-bottom:4px}.section-title{margin:0;font-size:clamp(21px,3vw,26px);letter-spacing:-.6px}.tools-count{color:var(--muted);font-size:12px;padding-bottom:4px}
-    .category-block{margin-bottom:28px}.category-heading{display:flex;align-items:center;gap:12px;margin:0 0 14px}.category-icon{display:grid;place-items:center;width:38px;height:38px;flex:0 0 auto;border:1px solid var(--border);border-radius:12px;color:#e9d5ff;background:#a78bfa1a;font-size:18px}.download-category-icon{color:#b9f6d3;background:#86efac14;border-color:#86efac30}.category-heading h3{margin:0;font-size:16px}.category-heading p{margin:2px 0 0;color:var(--muted);font-size:12px}
-    .tools{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px;margin-bottom:28px}.tool{position:relative;isolation:isolate;display:flex;flex-direction:column;align-items:flex-start;min-width:0;min-height:176px;padding:21px;text-align:left;color:var(--text);cursor:pointer;border:1px solid var(--border);border-radius:19px;background:linear-gradient(145deg,#1e1833f5,#110e1ef5);box-shadow:0 8px 26px #0000001a;transition:border-color .2s,transform .2s,background .2s,box-shadow .2s}
-    .tool::after{content:"";position:absolute;inset:0;z-index:-1;border-radius:inherit;background:radial-gradient(circle at 0 0,#a78bfa24,transparent 65%);pointer-events:none}.tool:hover,.tool:focus-visible,.tool.active{border-color:#c0a5ffa6;background:linear-gradient(145deg,#251c3c,#191329);box-shadow:0 12px 34px #5d32a026;outline:none}.tool:hover{transform:translateY(-3px)}.tool.active{box-shadow:inset 0 0 0 1px #a78bfa2e,0 12px 34px #5d32a024}
-    .tool .emoji{display:grid;place-items:center;width:44px;height:44px;margin-bottom:15px;border:1px solid #c0a5ff33;border-radius:13px;background:#a78bfa1c;font-size:23px}.tool strong{display:block;font-size:14px;line-height:1.4;margin-bottom:7px;font-weight:780}.tool small{color:var(--muted);line-height:1.65;font-size:12px}.tool-arrow{position:absolute;top:18px;right:18px;color:#bca9e9;font-size:15px}
-    .downloader-grid{grid-template-columns:minmax(0,1fr)}.downloader-grid .tool{min-height:0;flex-direction:row;align-items:center;gap:15px;padding:17px 20px}.downloader-grid .tool .emoji{margin:0;flex:0 0 auto}.downloader-grid .tool strong{margin:0 0 4px}
-    .workspace{background:linear-gradient(145deg,#19142bf7,#0f0c1afa);border:1px solid var(--border-strong);border-radius:23px;padding:clamp(18px,4vw,34px);margin:0 0 58px;box-shadow:var(--shadow);min-width:0;scroll-margin-top:90px}.workspace h2{margin:0 0 8px;font-size:clamp(21px,3vw,27px);letter-spacing:-.6px}.workspace-intro{color:var(--muted);line-height:1.7;margin:0 0 10px;font-size:13px}
-    label{display:block;margin:20px 0 8px;font-weight:700;font-size:13px;color:#e9e2f8}input,textarea,select{display:block;width:100%;min-width:0;color:var(--text);background:#080610cc;border:1px solid #bea0ff3b;border-radius:13px;padding:14px 15px;font:inherit;font-size:15px;outline:none;transition:border-color .18s,box-shadow .18s,background .18s}
-    input::placeholder,textarea::placeholder{color:#827992}input:focus,textarea:focus,select:focus{border-color:var(--purple);box-shadow:0 0 0 3px #a78bfa22;background:#0a0714f5}textarea{min-height:110px;resize:vertical}.row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
-    button.primary,button.secondary{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:46px;font:inherit;font-weight:780;border-radius:13px;padding:12px 18px;cursor:pointer;transition:transform .18s,filter .18s,border-color .18s}
-    button.primary{margin-top:20px;width:100%;border:1px solid #ffffff2e;color:#170d28;background:linear-gradient(100deg,#c4b5fd,#e9a8ff 60%,#f5b8e8);box-shadow:0 8px 24px #a78bfa26}button.primary:hover:not(:disabled),button.secondary:hover{transform:translateY(-1px);filter:brightness(1.06)}button.primary:focus-visible,button.secondary:focus-visible{outline:2px solid #e9d5ff;outline-offset:3px}button.primary:disabled{opacity:.62;cursor:wait;transform:none}
-    button.secondary{color:var(--text);background:#a78bfa1a;border:1px solid var(--border-strong)}.result-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-top:29px;margin-bottom:10px}.result-head h3{margin:0;font-size:17px}
-    #result{min-height:116px;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.8;color:#f0eaff;background:#080610cc;border:1px solid var(--border);border-radius:15px;padding:18px}#result.result-empty{color:#9288a7}
-    #message,#downloadMessage{color:var(--muted);font-size:13px;margin-top:12px;overflow-wrap:anywhere}#downloadOptions{min-width:0}#downloadOptions .primary{margin-top:14px}
-    footer{border-top:1px solid var(--border);padding:28px 16px 22px;color:var(--muted);font-size:12px;background:#08060f73}.footer-inner{max-width:1180px;margin:auto;display:grid;grid-template-columns:1fr auto;align-items:center;gap:9px 20px}.footer-brand{justify-self:start}.footer-brand .brand-mark{width:30px;height:30px;font-size:15px;border-radius:10px}.footer-brand .logo{font-size:17px}.footer-inner p{margin:0;grid-column:1}.footer-links{grid-column:2;grid-row:1/span 2;display:flex;gap:17px;flex-wrap:wrap}.footer-links a{color:#d2c9e4}.footer-inner>small{grid-column:1/-1;padding-top:15px;border-top:1px solid var(--border);margin-top:8px}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
-    @media(min-width:1400px){main{width:min(1180px,88%)}}@media(max-width:900px){.tools{grid-template-columns:repeat(2,minmax(0,1fr))}.tool{min-height:160px}}
-    @media(max-width:600px){header{padding:11px 4%}.brand-mark{width:32px;height:32px;border-radius:10px}.logo{font-size:19px}.nav-right{gap:8px}.nav-link{font-size:11px}.status{font-size:10px;padding:6px 8px}main{width:92%}.hero{padding:46px 2px 34px}h1{letter-spacing:-1.6px}.hero-pills{gap:6px}.hero-pills span{font-size:10px;padding:6px 8px}.tools-heading{align-items:start}.tools-count{font-size:10px;text-align:right}.tools{gap:11px}.tool{padding:15px;min-height:154px;border-radius:16px}.tool .emoji{width:39px;height:39px;font-size:21px;margin-bottom:12px;border-radius:11px}.tool strong{font-size:13px}.tool small{font-size:11px}.downloader-grid .tool{padding:14px;gap:12px}.workspace{border-radius:19px;margin-bottom:38px}.row{grid-template-columns:1fr;gap:0}.result-head{align-items:stretch}.result-head .secondary{width:100%}input,textarea,select{font-size:16px}.footer-inner{grid-template-columns:1fr}.footer-links{grid-column:1;grid-row:auto}.footer-inner>small{grid-column:1}}
-    @media(max-width:390px){.nav-link{display:none}.status{white-space:normal;text-align:center;max-width:132px}}@media(max-width:340px){.tools{grid-template-columns:1fr}.tool{min-height:auto}.tools-count{display:none}}
-    @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important}}
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 90px; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      overflow-x: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Inter, Arial, sans-serif;
+      color: var(--text);
+      line-height: 1.6;
+      background-color: var(--bg);
+      background-image: 
+        radial-gradient(circle at 50% -12%, rgba(155, 108, 255, 0.28), transparent 48rem),
+        radial-gradient(circle at 88% 38%, rgba(232, 121, 249, 0.12), transparent 36rem),
+        radial-gradient(circle at 10% 75%, rgba(120, 60, 240, 0.14), transparent 40rem);
+      -webkit-font-smoothing: antialiased;
+    }
 
+    button, input, textarea, select { font: inherit; }
+    button, a { -webkit-tap-highlight-color: transparent; }
+    a { color: inherit; text-decoration: none; }
 
+    /* HEADER & NAV */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 14px max(4%, calc((100% - 1200px) / 2));
+      border-bottom: 1px solid var(--border);
+      background: rgba(16, 11, 32, 0.88);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      transition: border-color 0.2s ease;
+    }
+    .nav {
+      max-width: 1200px;
+      margin: auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .brand-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+    .brand-mark {
+      display: grid;
+      place-items: center;
+      width: 38px;
+      height: 38px;
+      flex: 0 0 auto;
+      border-radius: 12px;
+      color: #100b20;
+      font-size: 20px;
+      font-weight: 900;
+      background: linear-gradient(135deg, #d3c4ff, #e879f9);
+      box-shadow: 0 4px 18px var(--purple-glow);
+    }
+    .logo {
+      font-size: clamp(20px, 2.3vw, 24px);
+      font-weight: 850;
+      letter-spacing: -0.6px;
+      white-space: nowrap;
+    }
+    .logo span {
+      background: linear-gradient(105deg, var(--purple-light), var(--pink));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .nav-link {
+      font-size: 13.5px;
+      color: var(--text-secondary);
+      font-weight: 600;
+      transition: color 0.18s ease;
+    }
+    .nav-link:hover, .footer-links a:hover {
+      color: var(--pink);
+    }
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-pill);
+      padding: 6px 12px;
+      color: #f0eaff;
+      background: rgba(155, 108, 255, 0.12);
+      white-space: nowrap;
+    }
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #4ade80;
+      box-shadow: 0 0 10px #4ade80cc;
+      animation: pulse 2.5s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(0.85); }
+    }
 
-    /* TRIVEXAAI PREMIUM HOMEPAGE V2 */
-    .hero.hero-v2{display:grid;grid-template-columns:minmax(0,1.08fr) minmax(320px,.92fr);align-items:center;gap:clamp(28px,5vw,68px);text-align:left;padding:clamp(48px,7vw,82px) 0 58px}
-    .hero-v2 .hero-glow{left:25%;top:22px;width:420px;height:280px}
-    .hero-copy{min-width:0;position:relative;z-index:1}
-    .hero-copy h1{font-size:clamp(39px,5.6vw,65px);max-width:720px;margin:20px 0 18px;line-height:1.04}
-    .hero-copy p{max-width:610px;margin:0;line-height:1.85}
-    .hero-actions{display:flex;align-items:center;flex-wrap:wrap;gap:11px;margin-top:25px}
-    .hero-cta{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:46px;padding:12px 18px;border-radius:13px;font-size:13px;font-weight:800;transition:transform .18s,filter .18s,border-color .18s}
-    .hero-cta:hover{transform:translateY(-2px);filter:brightness(1.07)}
-    .hero-cta-primary{color:#170d28;background:linear-gradient(100deg,#c4b5fd,#e9a8ff 60%,#f5b8e8);box-shadow:0 8px 24px #a78bfa26;border:1px solid #ffffff2e}
-    .hero-cta-secondary{color:#f3edff;background:#a78bfa12;border:1px solid var(--border-strong)}
-    .hero-v2 .hero-pills{justify-content:flex-start;gap:8px;margin-top:20px}
-    .hero-showcase{position:relative;min-width:0;padding:1px}
-    .showcase-card{position:relative;overflow:hidden;padding:clamp(20px,3vw,29px);border:1px solid rgba(204,183,255,.25);border-radius:25px;background:radial-gradient(circle at 85% 0%,rgba(210,145,255,.18),transparent 45%),linear-gradient(145deg,#211936,#100d1d 74%);box-shadow:0 26px 75px rgba(0,0,0,.36),inset 0 1px 0 rgba(255,255,255,.06)}
-    .showcase-card:after{content:"";position:absolute;width:230px;height:230px;right:-100px;bottom:-130px;border-radius:50%;background:#a78bfa21;filter:blur(35px);pointer-events:none}
-    .showcase-top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-bottom:19px;border-bottom:1px solid var(--border)}
-    .showcase-brand{font-size:12px;font-weight:850;letter-spacing:.2px;color:#f2eaff}.showcase-ready{display:inline-flex;align-items:center;gap:7px;color:#b9f6d3;font-size:9px;font-weight:850;letter-spacing:1px;border:1px solid #86efac38;background:#86efac10;padding:6px 9px;border-radius:999px;white-space:nowrap}
-    .showcase-ready i{width:6px;height:6px;border-radius:50%;background:#86efac;box-shadow:0 0 10px #86efac88}
-    .showcase-heading{font-size:clamp(24px,3.2vw,34px);line-height:1.12;letter-spacing:-1.1px;font-weight:850;margin:23px 0 19px}.showcase-heading span{background:linear-gradient(95deg,#c4b5fd,#f0a8f8);color:transparent;background-clip:text;-webkit-background-clip:text}
-    .showcase-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
-    .showcase-tile{min-width:0;padding:15px;border:1px solid var(--border);border-radius:15px;background:rgba(255,255,255,.035)}
-    .showcase-tile .tile-icon{display:grid;place-items:center;width:32px;height:32px;border-radius:10px;margin-bottom:11px;background:#a78bfa1b;border:1px solid #c0a5ff2c;font-size:16px}
-    .showcase-tile strong{display:block;font-size:12px;margin-bottom:4px}.showcase-tile small{display:block;color:var(--muted);font-size:10px;line-height:1.55}
-    .showcase-bottom{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:17px;padding-top:15px;border-top:1px solid var(--border);color:#d9d0e9;font-size:10px}
-    .showcase-dots{display:flex;align-items:center}.showcase-dots span{display:grid;place-items:center;width:25px;height:25px;margin-left:-5px;border:2px solid #181329;border-radius:50%;background:#302348;font-size:11px}.showcase-dots span:first-child{margin-left:0}
-    .tool-explorer{margin:0 0 36px;padding:clamp(17px,3vw,24px);border:1px solid var(--border-strong);border-radius:21px;background:linear-gradient(145deg,rgba(31,24,51,.93),rgba(15,12,26,.95));box-shadow:0 15px 45px rgba(0,0,0,.16)}
-    .tool-explorer .tools-heading{margin:0 0 15px;align-items:end}
-    .tool-search-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center}
-    .tool-search-wrap{position:relative;min-width:0}.tool-search-icon{position:absolute;left:15px;top:50%;transform:translateY(-50%);font-size:19px;color:#bca9e9;pointer-events:none}
-    #toolSearch{margin:0;padding-left:45px;min-height:50px;background:rgba(5,4,12,.72)}
-    #clearToolSearch{min-height:50px;margin:0;padding:11px 16px}
-    .category-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
-    .category-chip{display:inline-flex;align-items:center;gap:7px;padding:8px 11px;border:1px solid var(--border);border-radius:999px;background:#ffffff06;color:#e4dcf3;font-size:11px;font-weight:750;transition:background .18s,border-color .18s,transform .18s}
-    .category-chip:hover{background:#a78bfa18;border-color:var(--border-strong);transform:translateY(-1px)}
-    .search-quick-picks{display:flex;align-items:center;flex-wrap:wrap;gap:7px;margin-top:13px}
-    .quick-picks-label{color:#a99dbd;font-size:10px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;margin-right:2px}
-    .quick-search-chip{border:1px solid var(--border);border-radius:999px;padding:6px 10px;background:#ffffff06;color:#ded4f1;font:inherit;font-size:10px;font-weight:700;cursor:pointer;transition:background .18s,border-color .18s,transform .18s}
-    .quick-search-chip:hover,.quick-search-chip:focus-visible{background:#a78bfa1b;border-color:var(--border-strong);transform:translateY(-1px);outline:none}
-    .search-hint{margin:10px 0 0;color:#958ba9;font-size:11px;line-height:1.6}
-    .tool.search-best-match{border-color:#c4a8ffad;box-shadow:inset 0 0 0 1px #a78bfa38,0 0 0 3px #a78bfa12}
-    .tool.search-best-match:after{background:radial-gradient(circle at 0 0,#a78bfa30,transparent 65%)}
-    .no-tools-message{margin:18px 0 28px;padding:18px;border:1px dashed var(--border-strong);border-radius:15px;color:var(--muted);text-align:center;background:#ffffff04}
-    .tool[hidden],.category-block[hidden]{display:none!important}
-    .tools-count{white-space:nowrap}
-    .category-block{scroll-margin-top:95px}
-    .workspace{scroll-margin-top:95px}
-    @media(max-width:820px){.hero.hero-v2{grid-template-columns:1fr;gap:30px;padding-top:50px}.hero-v2 .hero-glow{left:20%;top:12px}.hero-copy{max-width:720px}.hero-showcase{width:min(100%,640px);margin:0 auto}.showcase-card{padding:22px}}
-    @media(max-width:600px){.hero.hero-v2{padding:42px 0 36px;gap:24px}.hero-copy h1{font-size:clamp(37px,11vw,52px);letter-spacing:-1.7px}.hero-actions{display:grid;grid-template-columns:1fr 1fr}.hero-cta{padding:11px 10px;font-size:12px}.hero-v2 .hero-pills{gap:6px}.showcase-card{padding:18px;border-radius:19px}.showcase-heading{font-size:27px}.showcase-grid{gap:8px}.showcase-tile{padding:12px}.tool-explorer{padding:15px;border-radius:17px}.tool-search-row{grid-template-columns:1fr}.tool-search-row #clearToolSearch{width:100%}.tools-count{font-size:10px}.category-chips{gap:6px}.category-chip{font-size:10px;padding:7px 9px}.search-quick-picks{gap:6px}.quick-search-chip{font-size:9px;padding:6px 9px}}
+    /* MAIN CONTAINER */
+    main {
+      width: min(1200px, 92%);
+      margin: auto;
+    }
 
+    /* HERO V2 */
+    .hero {
+      position: relative;
+      isolation: isolate;
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+      align-items: center;
+      gap: clamp(32px, 5vw, 68px);
+      padding: clamp(48px, 7vw, 84px) 0 44px;
+    }
+    .hero-glow {
+      position: absolute;
+      width: 440px;
+      height: 280px;
+      left: 18%;
+      top: 15px;
+      transform: translateX(-50%);
+      z-index: -1;
+      background: var(--purple-glow);
+      filter: blur(80px);
+      pointer-events: none;
+    }
+    .hero-copy {
+      min-width: 0;
+      position: relative;
+      z-index: 1;
+    }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: #edd5ff;
+      background: rgba(155, 108, 255, 0.12);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-pill);
+      padding: 6px 14px;
+      font-size: 11px;
+      letter-spacing: 1.2px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+    h1 {
+      font-size: clamp(38px, 5.8vw, 64px);
+      line-height: 1.05;
+      letter-spacing: clamp(-2.4px, -0.2vw, -1px);
+      margin: 18px 0 18px;
+      font-weight: 850;
+    }
+    h1 span {
+      background: linear-gradient(98deg, #c4b5fd 10%, #e879f9 60%, #ffd6fb 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .hero p {
+      color: var(--text-secondary);
+      max-width: 580px;
+      margin: 0;
+      line-height: 1.8;
+      font-size: clamp(15px, 1.6vw, 17px);
+    }
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 26px;
+    }
+    .hero-cta {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 48px;
+      padding: 12px 22px;
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      font-weight: 750;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    .hero-cta:hover {
+      transform: translateY(-2px);
+      filter: brightness(1.08);
+    }
+    .hero-cta-primary {
+      color: #120b24;
+      background: linear-gradient(100deg, #c4b5fd, #e879f9 70%, #f5b8e8);
+      box-shadow: 0 8px 25px rgba(232, 121, 249, 0.26);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+    }
+    .hero-cta-secondary {
+      color: var(--text);
+      background: rgba(155, 108, 255, 0.12);
+      border: 1px solid var(--border-strong);
+    }
+    .hero-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 22px;
+    }
+    .hero-pills span {
+      color: #e5ddf5;
+      font-size: 11.5px;
+      font-weight: 600;
+      padding: 6px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-pill);
+      background: rgba(255, 255, 255, 0.04);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
 
-    /* RECENT RESULTS — local browser history */
-    .recent-section{margin:0 0 38px;padding:clamp(17px,3vw,24px);border:1px solid var(--border-strong);border-radius:21px;background:linear-gradient(145deg,rgba(31,24,51,.93),rgba(15,12,26,.95));box-shadow:0 15px 45px rgba(0,0,0,.14)}
-    .recent-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:14px}
-    .recent-description{margin:7px 0 0;color:var(--muted);font-size:12px;line-height:1.65}
-    .recent-heading-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
-    .recent-count{color:#d9cff0;font-size:11px;font-weight:750;white-space:nowrap}
-    #clearRecentResults{min-height:38px;margin:0;padding:8px 12px;font-size:11px}
-    #clearRecentResults:disabled{opacity:.45;cursor:not-allowed}
-    .recent-storage-note{margin:0 0 15px;color:#958ba9;font-size:10px;line-height:1.6}
-    .recent-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}
-    .recent-card{display:flex;flex-direction:column;gap:10px;min-width:0;padding:14px;border:1px solid var(--border);border-radius:16px;background:linear-gradient(145deg,#1e1833d9,#100d1de8)}
-    .recent-card-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
-    .recent-kind{display:inline-flex;align-items:center;padding:5px 8px;border:1px solid var(--border-strong);border-radius:999px;color:#e6d9ff;background:#a78bfa12;font-size:9px;font-weight:850;letter-spacing:.7px;text-transform:uppercase}
-    .recent-date{color:#9389a8;font-size:9px;text-align:right}
-    .recent-card h3{margin:0;color:var(--text);font-size:13px;line-height:1.45;overflow-wrap:anywhere}
-    .recent-tool-name{margin:-5px 0 0;color:#b8accd;font-size:10px}
-    .recent-text-preview{max-height:135px;overflow:auto;margin:0;padding:10px;border:1px solid var(--border);border-radius:10px;background:#08061099;color:#e8e0f7;font-size:11px;line-height:1.65;white-space:pre-wrap;overflow-wrap:anywhere}
-    .recent-media-preview{display:block;width:100%;max-height:190px;object-fit:contain;border:1px solid var(--border);border-radius:10px;background:#08061099}
-    .recent-audio-preview{width:100%;min-width:0;height:42px}
-    .recent-card-actions{display:flex;align-items:center;gap:8px;margin-top:auto;flex-wrap:wrap}
-    .recent-card-actions a,.recent-card-actions button{min-height:34px;margin:0;padding:7px 10px;font-size:10px}
-    .recent-card-actions .recent-download{display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--border-strong);border-radius:10px;color:#1a1028;background:linear-gradient(100deg,#c4b5fd,#e9a8ff);font-weight:800;text-decoration:none}
-    .recent-delete{margin-left:auto!important}
-    .recent-empty{padding:23px 15px;border:1px dashed var(--border-strong);border-radius:14px;color:var(--muted);background:#ffffff04;text-align:center;font-size:12px}
-    .recent-empty[hidden]{display:none!important}
-    .recent-status{min-height:0;margin:10px 0 0;color:#b9f6d3;font-size:11px}
-    @media(max-width:900px){.recent-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-    @media(max-width:600px){.recent-section{padding:15px;border-radius:18px}.recent-heading{align-items:flex-start;flex-direction:column}.recent-heading-actions{width:100%;justify-content:space-between}.recent-grid{grid-template-columns:1fr}.recent-card{padding:13px}.recent-media-preview{max-height:240px}}
+    /* HERO SHOWCASE CARD */
+    .hero-showcase {
+      position: relative;
+      min-width: 0;
+    }
+    .showcase-card {
+      position: relative;
+      overflow: hidden;
+      padding: clamp(22px, 3.2vw, 32px);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-lg);
+      background: radial-gradient(circle at 88% 5%, rgba(232, 121, 249, 0.18), transparent 50%),
+                  linear-gradient(145deg, #21183a, #130d24 85%);
+      box-shadow: var(--shadow);
+    }
+    .showcase-card::after {
+      content: "";
+      position: absolute;
+      width: 240px;
+      height: 240px;
+      right: -80px;
+      bottom: -110px;
+      border-radius: 50%;
+      background: rgba(155, 108, 255, 0.22);
+      filter: blur(45px);
+      pointer-events: none;
+    }
+    .showcase-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .showcase-brand {
+      font-size: 13px;
+      font-weight: 850;
+      color: #f4ecff;
+    }
+    .showcase-ready {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      color: #86efac;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.8px;
+      border: 1px solid rgba(134, 239, 172, 0.3);
+      background: rgba(134, 239, 172, 0.08);
+      padding: 5px 10px;
+      border-radius: var(--radius-pill);
+    }
+    .showcase-ready i {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #86efac;
+      box-shadow: 0 0 8px #86efac;
+    }
+    .showcase-heading {
+      font-size: clamp(23px, 2.8vw, 30px);
+      line-height: 1.15;
+      letter-spacing: -0.8px;
+      font-weight: 850;
+      margin: 20px 0 16px;
+    }
+    .showcase-heading span {
+      background: linear-gradient(95deg, #c4b5fd, #e879f9);
+      color: transparent;
+      -webkit-background-clip: text;
+      background-clip: text;
+    }
+    .showcase-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .showcase-tile {
+      padding: 13px 14px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.035);
+      transition: background 0.18s ease;
+    }
+    .showcase-tile:hover {
+      background: rgba(155, 108, 255, 0.08);
+    }
+    .showcase-tile .tile-icon {
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      background: rgba(155, 108, 255, 0.18);
+      border: 1px solid rgba(192, 159, 255, 0.25);
+      font-size: 17px;
+    }
+    .showcase-tile strong {
+      display: block;
+      font-size: 12.5px;
+      font-weight: 750;
+      margin-bottom: 2px;
+      color: #f7f3ff;
+    }
+    .showcase-tile small {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.45;
+    }
+    .showcase-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 18px;
+      padding-top: 15px;
+      border-top: 1px solid var(--border);
+      color: var(--text-secondary);
+      font-size: 11px;
+    }
+    .showcase-dots {
+      display: flex;
+      align-items: center;
+    }
+    .showcase-dots span {
+      display: grid;
+      place-items: center;
+      width: 26px;
+      height: 26px;
+      margin-left: -6px;
+      border: 2px solid #1a1230;
+      border-radius: 50%;
+      background: #2e204d;
+      font-size: 12px;
+    }
+    .showcase-dots span:first-child { margin-left: 0; }
 
+    /* DASHBOARD TABS (REDESIGNED NAVIGATION) */
+    .dashboard-tabs-container {
+      margin: 20px 0 34px;
+    }
+    .tabs-nav-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #140d28;
+      padding: 6px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-strong);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .tabs-nav-bar::-webkit-scrollbar { display: none; }
+    .tab-btn {
+      flex: 1 1 0;
+      min-width: 150px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      padding: 12px 18px;
+      border: 1px solid transparent;
+      border-radius: 12px;
+      background: transparent;
+      color: var(--text-secondary);
+      font-size: 13.5px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+    .tab-btn:hover {
+      color: var(--text);
+      background: rgba(155, 108, 255, 0.08);
+    }
+    .tab-btn.active {
+      color: #ffffff;
+      background: linear-gradient(135deg, #2a1f47, #1e1538);
+      border-color: rgba(155, 108, 255, 0.45);
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    }
+    .tab-icon {
+      font-size: 16px;
+      display: grid;
+      place-items: center;
+    }
+    .tab-badge {
+      padding: 2px 7px;
+      border-radius: var(--radius-pill);
+      font-size: 10px;
+      font-weight: 800;
+      background: rgba(155, 108, 255, 0.2);
+      color: #e5ddf5;
+      border: 1px solid rgba(155, 108, 255, 0.3);
+      line-height: 1.4;
+    }
+    .tab-btn.active .tab-badge {
+      background: linear-gradient(90deg, #9b6cff, #e879f9);
+      color: #100b20;
+      border-color: transparent;
+    }
 
-    /* FAVOURITE TOOLS */
-    .favourites-section{margin:0 0 38px;padding:clamp(17px,3vw,24px);border:1px solid var(--border-strong);border-radius:21px;background:linear-gradient(145deg,rgba(31,24,51,.93),rgba(15,12,26,.95));box-shadow:0 15px 45px rgba(0,0,0,.14)}
-    .favourites-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
-    .favourites-heading p{margin:6px 0 0;color:var(--muted);font-size:12px}
-    .favourites-count{color:#f4d58a;font-size:11px;font-weight:800;white-space:nowrap}
-    .favourites-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
-    .favourite-tool{display:flex;align-items:center;gap:12px;min-width:0;padding:13px;text-align:left;color:var(--text);border:1px solid var(--border);border-radius:14px;background:#ffffff06;cursor:pointer;transition:border-color .18s,background .18s}
-    .favourite-tool:hover{border-color:var(--border-strong);background:#a78bfa14}
-    .favourite-tool .emoji{font-size:22px}.favourite-tool strong{display:block;font-size:12px;line-height:1.4}.favourite-tool small{display:block;color:var(--muted);font-size:10px;margin-top:3px}
-    .favourites-empty{padding:20px;border:1px dashed var(--border-strong);border-radius:14px;color:var(--muted);text-align:center;font-size:12px}
-    .tool-favourite-toggle{position:absolute;top:13px;right:14px;z-index:3;display:grid;place-items:center;width:32px;height:32px;border:1px solid var(--border);border-radius:10px;background:#0b0815d9;color:#c7badf;font-size:19px;line-height:1;cursor:pointer;transition:transform .18s,border-color .18s,background .18s,color .18s}
-    .tool-favourite-toggle:hover{transform:scale(1.08);border-color:#f4d58a88}.tool-favourite-toggle.is-favourite{color:#ffd36e;background:#f4c95b18;border-color:#f4d58a66}
-    .tool.has-favourite-toggle{padding-right:54px}
-    @media(max-width:900px){.favourites-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-    @media(max-width:600px){.favourites-section{padding:15px;border-radius:18px}.favourites-grid{grid-template-columns:1fr}.favourite-tool{padding:12px}}
-  
+    /* TAB PANELS */
+    .tab-panel {
+      display: none;
+      animation: fadeIn 0.25s ease forwards;
+    }
+    .tab-panel.active {
+      display: block;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
 
+    /* TOOL EXPLORER / SEARCH BOX */
+    .tool-explorer {
+      margin: 0 0 32px;
+      padding: clamp(20px, 3.5vw, 28px);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-lg);
+      background: linear-gradient(145deg, rgba(29, 20, 52, 0.95), rgba(19, 13, 36, 0.98));
+      box-shadow: var(--shadow-card);
+    }
+    .tools-heading {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+      margin: 0 0 18px;
+    }
+    .section-kicker {
+      color: var(--pink);
+      font-size: 10.5px;
+      font-weight: 850;
+      letter-spacing: 1.8px;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .section-title {
+      margin: 0;
+      font-size: clamp(21px, 2.6vw, 28px);
+      letter-spacing: -0.6px;
+      font-weight: 800;
+    }
+    .tools-count {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+      padding-bottom: 4px;
+    }
 
-    .seo-tool-directory li{padding:8px 0}
-    .seo-tool-directory a{display:block;color:#e9d5ff;font-weight:750;text-decoration:underline;text-underline-offset:3px}
-    .seo-tool-directory span{display:block;margin-top:4px;color:var(--muted);font-size:12px;line-height:1.6}
+    .tool-search-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+    }
+    .tool-search-wrap {
+      position: relative;
+      min-width: 0;
+    }
+    .tool-search-icon {
+      position: absolute;
+      left: 17px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 18px;
+      color: var(--purple-light);
+      pointer-events: none;
+    }
+    #toolSearch {
+      margin: 0;
+      padding: 14px 16px 14px 48px;
+      min-height: 52px;
+      background: rgba(10, 6, 22, 0.75);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-md);
+      color: var(--text);
+      font-size: 15px;
+      width: 100%;
+      transition: all 0.2s ease;
+    }
+    #toolSearch:focus {
+      border-color: var(--purple);
+      box-shadow: 0 0 0 3px rgba(155, 108, 255, 0.22);
+      background: rgba(12, 7, 26, 0.95);
+    }
+    #clearToolSearch {
+      min-height: 52px;
+      margin: 0;
+      padding: 12px 18px;
+    }
 
-  
+    .category-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 16px;
+    }
+    .category-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 8px 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-pill);
+      background: rgba(255, 255, 255, 0.04);
+      color: #ede7fa;
+      font-size: 12px;
+      font-weight: 700;
+      transition: all 0.18s ease;
+    }
+    .category-chip:hover {
+      background: rgba(155, 108, 255, 0.16);
+      border-color: var(--border-strong);
+      transform: translateY(-1px);
+    }
+
+    .search-quick-picks {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
+    .quick-picks-label {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-right: 2px;
+    }
+    .quick-search-chip {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-pill);
+      padding: 6px 12px;
+      background: rgba(255, 255, 255, 0.035);
+      color: #dfd7f2;
+      font-size: 11px;
+      font-weight: 650;
+      cursor: pointer;
+      transition: all 0.18s ease;
+    }
+    .quick-search-chip:hover {
+      background: rgba(155, 108, 255, 0.18);
+      border-color: var(--border-strong);
+      transform: translateY(-1px);
+    }
+    .search-hint {
+      margin: 12px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    /* TOOL CATEGORIES & CARDS */
+    .category-block {
+      margin-bottom: 34px;
+      scroll-margin-top: 100px;
+    }
+    .category-heading {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 0 0 16px;
+    }
+    .category-icon {
+      display: grid;
+      place-items: center;
+      width: 40px;
+      height: 40px;
+      flex: 0 0 auto;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: #e9d5ff;
+      background: rgba(155, 108, 255, 0.14);
+      font-size: 18px;
+    }
+    .download-category-icon {
+      color: #86efac;
+      background: rgba(134, 239, 172, 0.1);
+      border-color: rgba(134, 239, 172, 0.25);
+    }
+    .category-heading h3 {
+      margin: 0;
+      font-size: 17px;
+      font-weight: 800;
+    }
+    .category-heading p {
+      margin: 2px 0 0;
+      color: var(--text-secondary);
+      font-size: 12.5px;
+    }
+
+    .tools {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+    .tool {
+      position: relative;
+      isolation: isolate;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      min-width: 0;
+      min-height: 190px;
+      padding: 22px;
+      text-align: left;
+      color: var(--text);
+      cursor: pointer;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: linear-gradient(145deg, #1d1435, #140d26);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+      transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .tool::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      border-radius: inherit;
+      background: radial-gradient(circle at 10% 10%, rgba(155, 108, 255, 0.16), transparent 70%);
+      pointer-events: none;
+    }
+    .tool:hover, .tool:focus-visible, .tool.active {
+      border-color: rgba(155, 108, 255, 0.55);
+      background: linear-gradient(145deg, #271a47, #181030);
+      box-shadow: 0 14px 38px rgba(155, 108, 255, 0.18);
+      outline: none;
+      transform: translateY(-3px);
+    }
+    .tool.active {
+      border-color: var(--pink);
+      box-shadow: 0 14px 38px rgba(232, 121, 249, 0.24);
+    }
+    .tool .emoji {
+      display: grid;
+      place-items: center;
+      width: 44px;
+      height: 44px;
+      margin-bottom: 14px;
+      border: 1px solid rgba(192, 159, 255, 0.28);
+      border-radius: 13px;
+      background: rgba(155, 108, 255, 0.14);
+      font-size: 22px;
+    }
+    .tool strong {
+      display: block;
+      font-size: 14.5px;
+      line-height: 1.35;
+      margin-bottom: 7px;
+      font-weight: 780;
+      color: #ffffff;
+    }
+    .tool small {
+      color: var(--text-secondary);
+      line-height: 1.6;
+      font-size: 12px;
+      margin-bottom: 16px;
+      flex-grow: 1;
+    }
+    .tool-arrow {
+      position: absolute;
+      top: 18px;
+      right: 18px;
+      color: var(--purple-light);
+      font-size: 15px;
+    }
+    .tool-cta-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11.5px;
+      font-weight: 750;
+      color: var(--purple-light);
+      padding-top: 6px;
+      transition: color 0.18s ease;
+    }
+    .tool:hover .tool-cta-label {
+      color: var(--pink);
+    }
+    .tool-favourite-toggle {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      z-index: 3;
+      display: grid;
+      place-items: center;
+      width: 32px;
+      height: 32px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: rgba(13, 8, 26, 0.85);
+      color: #baaace;
+      font-size: 18px;
+      line-height: 1;
+      cursor: pointer;
+      transition: all 0.18s ease;
+    }
+    .tool-favourite-toggle:hover {
+      transform: scale(1.1);
+      border-color: #fcd34d;
+      color: #fcd34d;
+    }
+    .tool-favourite-toggle.is-favourite {
+      color: #fcd34d;
+      background: rgba(252, 211, 77, 0.14);
+      border-color: rgba(252, 211, 77, 0.5);
+    }
+    .tool.has-favourite-toggle {
+      padding-right: 50px;
+    }
+
+    .downloader-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .downloader-grid .tool {
+      min-height: 0;
+      flex-direction: row;
+      align-items: center;
+      gap: 16px;
+      padding: 18px 22px;
+    }
+    .downloader-grid .tool .emoji { margin: 0; flex: 0 0 auto; }
+    .downloader-grid .tool strong { margin: 0 0 3px; }
+    .downloader-grid .tool small { margin: 0; }
+
+    .no-tools-message {
+      margin: 22px 0 32px;
+      padding: 24px;
+      border: 1px dashed var(--border-strong);
+      border-radius: var(--radius-md);
+      color: var(--muted);
+      text-align: center;
+      background: rgba(255, 255, 255, 0.02);
+      font-size: 13.5px;
+    }
+    .tool[hidden], .category-block[hidden] { display: none !important; }
+    .tool.search-best-match {
+      border-color: var(--purple-light);
+      box-shadow: 0 0 0 2px rgba(155, 108, 255, 0.35), 0 12px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    /* FAVOURITES SECTION (TAB 2) */
+    .favourites-section {
+      margin: 0 0 38px;
+      padding: clamp(20px, 3.5vw, 30px);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-lg);
+      background: linear-gradient(145deg, rgba(29, 20, 52, 0.95), rgba(19, 13, 36, 0.98));
+      box-shadow: var(--shadow-card);
+    }
+    .favourites-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 16px;
+    }
+    .favourites-heading p {
+      margin: 4px 0 0;
+      color: var(--text-secondary);
+      font-size: 12.5px;
+    }
+    .favourites-count {
+      color: #fcd34d;
+      font-size: 12px;
+      font-weight: 800;
+      border: 1px solid rgba(252, 211, 77, 0.35);
+      background: rgba(252, 211, 77, 0.1);
+      padding: 5px 12px;
+      border-radius: var(--radius-pill);
+      white-space: nowrap;
+    }
+    .favourites-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+    .favourite-tool {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+      padding: 16px;
+      text-align: left;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: linear-gradient(145deg, #1f153a, #150e29);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .favourite-tool:hover {
+      border-color: var(--purple-light);
+      background: linear-gradient(145deg, #271a47, #181030);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    }
+    .favourite-tool .emoji {
+      font-size: 24px;
+      flex: 0 0 auto;
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      border-radius: 12px;
+      background: rgba(155, 108, 255, 0.16);
+      border: 1px solid rgba(155, 108, 255, 0.25);
+    }
+    .favourite-tool strong {
+      display: block;
+      font-size: 13.5px;
+      line-height: 1.35;
+      color: #ffffff;
+    }
+    .favourite-tool small {
+      display: block;
+      color: var(--text-secondary);
+      font-size: 11px;
+      margin-top: 3px;
+      line-height: 1.45;
+    }
+    .favourites-empty {
+      padding: 34px 20px;
+      border: 1px dashed var(--border-strong);
+      border-radius: var(--radius-md);
+      color: var(--muted);
+      text-align: center;
+      font-size: 13px;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    /* RECENT RESULTS (TAB 3) */
+    .recent-section {
+      margin: 0 0 38px;
+      padding: clamp(20px, 3.5vw, 30px);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-lg);
+      background: linear-gradient(145deg, rgba(29, 20, 52, 0.95), rgba(19, 13, 36, 0.98));
+      box-shadow: var(--shadow-card);
+    }
+    .recent-heading {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 16px;
+    }
+    .recent-description {
+      margin: 4px 0 0;
+      color: var(--text-secondary);
+      font-size: 12.5px;
+      line-height: 1.6;
+    }
+    .recent-heading-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+    .recent-count {
+      color: #e5ddf5;
+      font-size: 11px;
+      font-weight: 750;
+      padding: 5px 10px;
+      border-radius: var(--radius-pill);
+      background: rgba(155, 108, 255, 0.15);
+      border: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    #clearRecentResults {
+      min-height: 38px;
+      margin: 0;
+      padding: 8px 14px;
+      font-size: 11.5px;
+    }
+    #clearRecentResults:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+    .recent-storage-note {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.6;
+    }
+    .recent-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+    .recent-card {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-width: 0;
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: linear-gradient(145deg, #1e1538, #130d24);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+    }
+    .recent-card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .recent-kind {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 8px;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-pill);
+      color: #f0eaff;
+      background: rgba(155, 108, 255, 0.14);
+      font-size: 9.5px;
+      font-weight: 850;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+    }
+    .recent-date {
+      color: var(--muted);
+      font-size: 10px;
+      text-align: right;
+    }
+    .recent-card h3 {
+      margin: 0;
+      color: #ffffff;
+      font-size: 13.5px;
+      line-height: 1.45;
+      overflow-wrap: anywhere;
+    }
+    .recent-tool-name {
+      margin: -4px 0 0;
+      color: var(--purple-light);
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .recent-text-preview {
+      max-height: 135px;
+      overflow: auto;
+      margin: 0;
+      padding: 11px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: rgba(9, 5, 20, 0.7);
+      color: #e8e0f7;
+      font-size: 11.5px;
+      line-height: 1.65;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+    .recent-media-preview {
+      display: block;
+      width: 100%;
+      max-height: 190px;
+      object-fit: contain;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: rgba(9, 5, 20, 0.7);
+    }
+    .recent-audio-preview {
+      width: 100%;
+      min-width: 0;
+      height: 42px;
+    }
+    .recent-card-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: auto;
+      flex-wrap: wrap;
+    }
+    .recent-card-actions a, .recent-card-actions button {
+      min-height: 34px;
+      margin: 0;
+      padding: 7px 12px;
+      font-size: 11px;
+    }
+    .recent-card-actions .recent-download {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: 10px;
+      color: #100b20;
+      background: linear-gradient(100deg, #c4b5fd, #e879f9);
+      font-weight: 800;
+      text-decoration: none;
+    }
+    .recent-delete {
+      margin-left: auto !important;
+    }
+    .recent-empty {
+      padding: 34px 20px;
+      border: 1px dashed var(--border-strong);
+      border-radius: var(--radius-md);
+      color: var(--muted);
+      background: rgba(255, 255, 255, 0.02);
+      text-align: center;
+      font-size: 13px;
+    }
+    .recent-empty[hidden] { display: none !important; }
+    .recent-status {
+      min-height: 0;
+      margin: 10px 0 0;
+      color: #86efac;
+      font-size: 11.5px;
+    }
+
+    /* WORKSPACE STYLES */
+    .workspace {
+      background: linear-gradient(145deg, #1a1230, #120b24 90%);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-lg);
+      padding: clamp(22px, 4.5vw, 36px);
+      margin: 0 0 54px;
+      box-shadow: var(--shadow);
+      min-width: 0;
+      scroll-margin-top: 100px;
+      position: relative;
+    }
+    .workspace h2 {
+      margin: 0 0 8px;
+      font-size: clamp(22px, 3.2vw, 29px);
+      letter-spacing: -0.6px;
+      font-weight: 850;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .workspace-intro {
+      color: var(--text-secondary);
+      line-height: 1.7;
+      margin: 0 0 14px;
+      font-size: 13.5px;
+    }
+    label {
+      display: block;
+      margin: 20px 0 8px;
+      font-weight: 750;
+      font-size: 13px;
+      color: #ede5f8;
+    }
+    input, textarea, select {
+      display: block;
+      width: 100%;
+      min-width: 0;
+      color: var(--text);
+      background: rgba(9, 5, 20, 0.85);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      padding: 13px 15px;
+      font: inherit;
+      font-size: 15px;
+      outline: none;
+      transition: all 0.18s ease;
+    }
+    input::placeholder, textarea::placeholder {
+      color: #796f8c;
+    }
+    input:focus, textarea:focus, select:focus {
+      border-color: var(--purple-light);
+      box-shadow: 0 0 0 3px rgba(155, 108, 255, 0.22);
+      background: rgba(13, 8, 28, 0.95);
+    }
+    textarea {
+      min-height: 110px;
+      resize: vertical;
+    }
+    .row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    button.primary, button.secondary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 48px;
+      font: inherit;
+      font-weight: 750;
+      border-radius: var(--radius-sm);
+      padding: 12px 20px;
+      cursor: pointer;
+      transition: all 0.18s ease;
+    }
+    button.primary {
+      margin-top: 22px;
+      width: 100%;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: #100b20;
+      background: linear-gradient(100deg, #c4b5fd, #e879f9 65%, #f5b8e8);
+      box-shadow: 0 8px 24px rgba(232, 121, 249, 0.22);
+    }
+    button.primary:hover:not(:disabled), button.secondary:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.08);
+    }
+    button.primary:focus-visible, button.secondary:focus-visible {
+      outline: 2px solid var(--pink);
+      outline-offset: 3px;
+    }
+    button.primary:disabled {
+      opacity: 0.62;
+      cursor: wait;
+      transform: none;
+    }
+    button.secondary {
+      color: var(--text);
+      background: rgba(155, 108, 255, 0.12);
+      border: 1px solid var(--border-strong);
+    }
+
+    .result-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 28px;
+      margin-bottom: 12px;
+    }
+    .result-head h3 {
+      margin: 0;
+      font-size: 17px;
+      font-weight: 800;
+    }
+    #result {
+      min-height: 116px;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      line-height: 1.8;
+      color: #f5f0ff;
+      background: rgba(8, 4, 18, 0.85);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      font-size: 14.5px;
+    }
+    #result.result-empty {
+      color: var(--muted);
+    }
+    #message, #downloadMessage, #imageMessage, #logoMessage, #thumbnailMessage, #voiceMessage, #bgRemoveMessage, #upscaleMessage, #compressorMessage, #enhancerMessage {
+      color: var(--text-secondary);
+      font-size: 13px;
+      margin-top: 12px;
+      overflow-wrap: anywhere;
+    }
+
+    /* SEO DIRECTORY & FOOTER */
+    .seo-tool-directory {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px 24px;
+      padding-left: 20px;
+      margin: 18px 0 0;
+    }
+    .seo-tool-directory li {
+      padding: 6px 0;
+    }
+    .seo-tool-directory a {
+      color: #c4b5fd;
+      font-weight: 750;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      transition: color 0.18s ease;
+    }
+    .seo-tool-directory a:hover {
+      color: var(--pink);
+    }
+    .seo-tool-directory span {
+      display: block;
+      margin-top: 5px;
+      color: var(--text-secondary);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 36px 16px 28px;
+      color: var(--muted);
+      font-size: 12.5px;
+      background: rgba(10, 6, 20, 0.7);
+      margin-top: 50px;
+    }
+    .footer-inner {
+      max-width: 1200px;
+      margin: auto;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 12px 24px;
+    }
+    .footer-brand {
+      justify-self: start;
+    }
+    .footer-brand .brand-mark {
+      width: 32px;
+      height: 32px;
+      font-size: 16px;
+      border-radius: 10px;
+    }
+    .footer-brand .logo {
+      font-size: 18px;
+    }
+    .footer-inner p {
+      margin: 0;
+      grid-column: 1;
+      color: var(--text-secondary);
+    }
+    .footer-links {
+      grid-column: 2;
+      grid-row: 1 / span 2;
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .footer-links a {
+      color: #d6cee8;
+      font-weight: 600;
+    }
+    .footer-inner > small {
+      grid-column: 1 / -1;
+      padding-top: 18px;
+      border-top: 1px solid var(--border);
+      margin-top: 10px;
+      color: #796f8c;
+    }
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    /* RESPONSIVE BREAKPOINTS */
+    @media (max-width: 960px) {
+      .hero {
+        grid-template-columns: 1fr;
+        gap: 36px;
+        padding-top: 48px;
+      }
+      .hero-glow { left: 30%; top: 20px; }
+      .tools {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .favourites-grid, .recent-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+    @media (max-width: 650px) {
+      header { padding: 12px 4%; }
+      .brand-mark { width: 34px; height: 34px; font-size: 17px; }
+      .logo { font-size: 20px; }
+      .nav-right { gap: 10px; }
+      .status { font-size: 10px; padding: 5px 9px; }
+      h1 { font-size: clamp(34px, 9.5vw, 44px); letter-spacing: -1.4px; }
+      .hero-actions { display: grid; grid-template-columns: 1fr; }
+      .hero-cta { width: 100%; }
+      .tabs-nav-bar { gap: 4px; padding: 4px; }
+      .tab-btn { min-width: 110px; padding: 10px 8px; font-size: 12px; gap: 6px; }
+      .tool-search-row { grid-template-columns: 1fr; }
+      #clearToolSearch { width: 100%; }
+      .tools { grid-template-columns: 1fr; gap: 12px; }
+      .favourites-grid, .recent-grid { grid-template-columns: 1fr; }
+      .row { grid-template-columns: 1fr; gap: 0; }
+      .workspace { padding: 20px 16px; border-radius: 18px; }
+      .footer-inner { grid-template-columns: 1fr; }
+      .footer-links { grid-column: 1; grid-row: auto; }
+      .footer-inner > small { grid-column: 1; }
+    }
+    @media (max-width: 380px) {
+      .nav-link { display: none; }
+      .tab-btn { font-size: 11px; padding: 8px 6px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+      }
+    }
   </style>
 </head>
 <body>
+
+  <!-- HEADER -->
   <header>
     <div class="nav">
-      <a class="brand-link" href="#" aria-label="TrivexaAI home"><span class="brand-mark" aria-hidden="true">T</span><span class="logo">Trivexa<span>AI</span></span></a>
-      <div class="nav-right"><a class="nav-link" href="#tools">Explore tools</a><a class="nav-link" href="#recentResultsSection">Recent results</a><a class="nav-link" href="#about">About</a><div class="status"><span class="status-dot"></span> Creator workspace</div></div>
+      <a class="brand-link" href="#" aria-label="TrivexaAI home">
+        <span class="brand-mark" aria-hidden="true">T</span>
+        <span class="logo">Trivexa<span>AI</span></span>
+      </a>
+      <div class="nav-right">
+        <a class="nav-link" href="#workspaceTabs" data-switch-tab="search">Explore tools</a>
+        <a class="nav-link" href="#workspaceTabs" data-switch-tab="favourites">Favourites</a>
+        <a class="nav-link" href="#workspaceTabs" data-switch-tab="history">Recent results</a>
+        <div class="status">
+          <span class="status-dot"></span> Studio Online
+        </div>
+      </div>
     </div>
   </header>
 
   <main>
+    <!-- HERO SECTION -->
     <section class="hero hero-v2">
       <div class="hero-glow" aria-hidden="true"></div>
       <div class="hero-copy">
-        <div class="eyebrow">✦ YOUR ALL-IN-ONE CREATOR STUDIO</div>
+        <div class="eyebrow">✦ ALL-IN-ONE AI CREATOR PLATFORM</div>
         <h1>Turn your ideas into<br><span>content that stands out.</span></h1>
-        <p>Write better content, create AI visuals, design thumbnails and logos, generate voiceovers, and explore video tools — all in one simple workspace.</p>
+        <p>Write captivating titles, generate AI visuals, craft thumbnails and logos, generate studio-grade voiceovers, and download videos — in one unified creative workspace.</p>
         <div class="hero-actions">
-          <a class="hero-cta hero-cta-primary" href="#tools">Explore all tools <span aria-hidden="true">↗</span></a>
-          <a class="hero-cta hero-cta-secondary" href="#category-image">Explore AI visuals</a>
+          <a class="hero-cta hero-cta-primary" href="#workspaceTabs" data-switch-tab="search">Explore 15 AI Tools <span aria-hidden="true">↗</span></a>
+          <a class="hero-cta hero-cta-secondary" href="#category-image" data-switch-tab="search">Try AI Visuals</a>
         </div>
-        <div class="hero-pills"><span>✍️ English AI writing</span><span>🎨 AI image tools</span><span>🎙️ Voice generation</span></div>
+        <div class="hero-pills">
+          <span>✍️ English AI writing</span>
+          <span>🎨 AI image suite</span>
+          <span>🎙️ Voice generation</span>
+          <span>⚡ No sign-up required</span>
+        </div>
       </div>
       <div class="hero-showcase" aria-label="TrivexaAI creator studio preview">
         <div class="showcase-card">
-          <div class="showcase-top"><span class="showcase-brand">✦ TrivexaAI Studio</span><span class="showcase-ready"><i></i> READY TO CREATE</span></div>
-          <div class="showcase-heading">One workspace.<br><span>More ways to create.</span></div>
-          <div class="showcase-grid">
-            <div class="showcase-tile"><span class="tile-icon">✍️</span><strong>AI Writing</strong><small>Titles, captions, hooks and scripts</small></div>
-            <div class="showcase-tile"><span class="tile-icon">🎨</span><strong>AI Visuals</strong><small>Images, logos and thumbnails</small></div>
-            <div class="showcase-tile"><span class="tile-icon">🎙️</span><strong>AI Voice</strong><small>Turn text into spoken audio</small></div>
-            <div class="showcase-tile"><span class="tile-icon">⚡</span><strong>Creator Utilities</strong><small>Useful tools for everyday work</small></div>
+          <div class="showcase-top">
+            <span class="showcase-brand">✦ TrivexaAI Studio Pro</span>
+            <span class="showcase-ready"><i></i> ALL SYSTEMS ACTIVE</span>
           </div>
-          <div class="showcase-bottom"><div class="showcase-dots" aria-hidden="true"><span>✍️</span><span>🎨</span><span>🎙️</span></div><span>15 tools in one creator workspace</span></div>
+          <div class="showcase-heading">One workspace.<br><span>Limitless creativity.</span></div>
+          <div class="showcase-grid">
+            <div class="showcase-tile">
+              <span class="tile-icon">✍️</span>
+              <strong>AI Writing</strong>
+              <small>Titles, captions, hooks & scripts</small>
+            </div>
+            <div class="showcase-tile">
+              <span class="tile-icon">🎨</span>
+              <strong>AI Visuals</strong>
+              <small>Images, logos & thumbnails</small>
+            </div>
+            <div class="showcase-tile">
+              <span class="tile-icon">🎙️</span>
+              <strong>AI Voice</strong>
+              <small>Natural text-to-speech engine</small>
+            </div>
+            <div class="showcase-tile">
+              <span class="tile-icon">⚡</span>
+              <strong>Photo Tools</strong>
+              <small>Compress, enhance & upscale</small>
+            </div>
+          </div>
+          <div class="showcase-bottom">
+            <div class="showcase-dots" aria-hidden="true">
+              <span>✍️</span><span>🎨</span><span>🎙️</span>
+            </div>
+            <span>15 free tools on one dashboard</span>
+          </div>
         </div>
       </div>
     </section>
-    <section class="tool-explorer" id="tools" aria-labelledby="tools-title">
-      <div class="tools-heading"><div><div class="section-kicker">YOUR WORKSPACE</div><h2 class="section-title" id="tools-title">Find the right tool</h2></div><span class="tools-count" id="toolCount">15 tools across 4 categories</span></div>
-      <div class="tool-search-row">
-        <div class="tool-search-wrap"><span class="tool-search-icon" aria-hidden="true">⌕</span><label class="sr-only" for="toolSearch">Search all tools</label><input id="toolSearch" type="search" placeholder="Search tools — try captions, logo, thumbnail or voice..." autocomplete="off"></div>
-        <button class="secondary" id="clearToolSearch" type="button">Clear search</button>
-      </div>
-      <nav class="category-chips" id="categoryChips" aria-label="Browse tool categories">
-        <a class="category-chip" href="#category-creator">✍️ Creator tools</a>
-        <a class="category-chip" href="#category-image">🎨 AI image tools</a>
-        <a class="category-chip" href="#category-audio">🎙️ Audio tools</a>
-        <a class="category-chip" href="#category-video">⬇️ Video tools</a>
+
+    <!-- DASHBOARD NAVIGATION TABS (SEARCH / FAVOURITES / HISTORY) -->
+    <div class="dashboard-tabs-container" id="workspaceTabs">
+      <nav class="tabs-nav-bar" role="tablist" aria-label="Workspace Views">
+        <button type="button" class="tab-btn active" id="tabNavSearch" role="tab" aria-selected="true" aria-controls="panelSearch">
+          <span class="tab-icon">🔍</span>
+          <span>Search Tools</span>
+          <span class="tab-badge" id="tabBadgeSearch">15</span>
+        </button>
+        <button type="button" class="tab-btn" id="tabNavFavourites" role="tab" aria-selected="false" aria-controls="panelFavourites">
+          <span class="tab-icon">⭐</span>
+          <span>Favourites</span>
+          <span class="tab-badge" id="tabBadgeFavourites">0</span>
+        </button>
+        <button type="button" class="tab-btn" id="tabNavHistory" role="tab" aria-selected="false" aria-controls="panelHistory">
+          <span class="tab-icon">🕘</span>
+          <span>Recent History</span>
+          <span class="tab-badge" id="tabBadgeHistory">0</span>
+        </button>
       </nav>
-      <div class="search-quick-picks" id="searchQuickPicks" aria-label="Popular tool searches">
-        <span class="quick-picks-label">Popular:</span>
-        <button type="button" class="quick-search-chip" data-search-term="captions">Captions</button>
-        <button type="button" class="quick-search-chip" data-search-term="text to speech">Text to speech</button>
-        <button type="button" class="quick-search-chip" data-search-term="logo">Logo</button>
-        <button type="button" class="quick-search-chip" data-search-term="remove background">Remove background</button>
-        <button type="button" class="quick-search-chip" data-search-term="video download">Video download</button>
-      </div>
-      <p class="search-hint" id="searchHint" role="status" aria-live="polite">Search by tool name, what it does, or a related phrase. Press / to focus search, Esc to clear.</p>
-    </section>
-    <section class="favourites-section" id="favouritesSection" aria-labelledby="favouritesTitle">
-      <div class="favourites-heading"><div><div class="section-kicker">QUICK ACCESS</div><h2 class="section-title" id="favouritesTitle">⭐ My Favourite Tools</h2><p>Your personal shortcuts, saved on this device.</p></div><span class="favourites-count" id="favouritesCount">0 saved</span></div>
-      <div class="favourites-grid" id="favouritesGrid" aria-live="polite"></div>
-      <div class="favourites-empty" id="favouritesEmpty">No favourite tools yet. Tap the ☆ on any tool card to save it here.</div>
-    </section>
-    <p class="no-tools-message" id="noToolsMessage" hidden>No tools found. Try a different search term.</p>
-    <section class="recent-section" id="recentResultsSection" aria-labelledby="recentResultsTitle">
-      <div class="recent-heading">
-        <div>
-          <div class="section-kicker">YOUR CREATION HISTORY</div>
-          <h2 class="section-title" id="recentResultsTitle">Recent Results</h2>
-          <p class="recent-description">Quickly revisit your latest text, images, logos, thumbnails and voiceovers.</p>
+    </div>
+
+    <!-- TAB PANEL 1: SEARCH & BROWSE TOOLS -->
+    <div class="tab-panel active" id="panelSearch" role="tabpanel" aria-labelledby="tabNavSearch">
+      <!-- Search Card -->
+      <section class="tool-explorer" id="tools" aria-labelledby="tools-title">
+        <div class="tools-heading">
+          <div>
+            <div class="section-kicker">SUITE DIRECTORY</div>
+            <h2 class="section-title" id="tools-title">Find the right tool</h2>
+          </div>
+          <span class="tools-count" id="toolCount">15 tools across 4 categories</span>
         </div>
-        <div class="recent-heading-actions">
-          <span id="recentResultsCount" class="recent-count">0 saved</span>
-          <button class="secondary" id="clearRecentResults" type="button" disabled>Clear history</button>
+        <div class="tool-search-row">
+          <div class="tool-search-wrap">
+            <span class="tool-search-icon" aria-hidden="true">⌕</span>
+            <label class="sr-only" for="toolSearch">Search all tools</label>
+            <input id="toolSearch" type="search" placeholder="Search tools — try captions, logo, thumbnail, voice or download..." autocomplete="off">
+          </div>
+          <button class="secondary" id="clearToolSearch" type="button">Clear search</button>
         </div>
-      </div>
-      <p class="recent-storage-note">Your latest 10 results are saved only in this browser on this device. They are not uploaded to TrivexaAI. Clearing browser data may remove them.</p>
-      <div id="recentResultsGrid" class="recent-grid" aria-live="polite"></div>
-      <div id="recentResultsEmpty" class="recent-empty">No recent results yet. Generate something with any tool and it will appear here.</div>
-      <p id="recentResultsStatus" class="recent-status" role="status" aria-live="polite"></p>
-    </section>
-    <section class="category-block" id="category-creator"><div class="category-heading"><span class="category-icon">✦</span><div><h3>Creator tools</h3><p>Turn your ideas into ready-to-use content.</p></div></div>
-    <section class="tools" aria-label="Creator tools">
-      <button class="tool" data-tool="titles">
-        <span class="emoji">🎬</span>
-        <strong>YouTube Title Generator</strong>
-        <small>Create catchy titles that make people curious.</small>
-      </button>
-      <button class="tool" data-tool="caption">
-        <span class="emoji">✍️</span>
-        <strong>Social Media Captions</strong>
-        <small>Write engaging captions for your posts.</small>
-      </button>
-      <button class="tool" data-tool="hashtags">
-        <span class="emoji">#️⃣</span>
-        <strong>Hashtag Generator</strong>
-        <small>Get relevant hashtags for your content.</small>
-      </button>
-      <button class="tool" data-tool="description">
-        <span class="emoji">📝</span>
-        <strong>YouTube Description</strong>
-        <small>Build clear descriptions for your videos.</small>
-      </button>
-      <button class="tool" data-tool="hooks">
-        <span class="emoji">⚡</span>
-        <strong>Viral Hook Generator</strong>
-        <small>Start your video with an attention-grabbing hook.</small>
-      </button>
-      <button class="tool" data-tool="script">
-        <span class="emoji">📱</span>
-        <strong>Shorts Script Generator</strong>
-        <small>Create short-form video scripts with a strong opening.</small>
-      </button> 
-</section></section>
-
-    <section class="category-block" id="category-image">
-      <div class="category-heading"><span class="category-icon">🎨</span><div><h3>AI Image Tools</h3><p>Create images, edit photos, remove backgrounds and design brand visuals.</p></div></div>
-      <section class="tools" aria-label="AI Image tools">
-        <button class="tool" data-tool="image" id="imageGeneratorTool" type="button">
-          <span class="emoji">🖼️</span><strong>AI Image Generator</strong>
-          <small>Create images from text or edit an uploaded photo.</small>
-        </button>
-        <button class="tool" data-tool="logo" id="logoGeneratorTool" type="button">
-          <span class="emoji">🔰</span><strong>AI Logo Generator</strong>
-          <small>Create a custom logo concept for your brand or business.</small>
-        </button>
-        <button class="tool" data-tool="thumbnail" id="thumbnailGeneratorTool" type="button">
-          <span class="emoji">📺</span><strong>AI Thumbnail Generator</strong>
-          <small>Create eye-catching 16:9 YouTube thumbnails with your exact headline.</small>
-        </button>
-        <button class="tool" data-tool="background-remover" id="backgroundRemoverTool" type="button">
-          <span class="emoji">✂️</span><strong>AI Background Remover</strong>
-          <small>Remove photo backgrounds and download transparent PNGs for free.</small>
-        </button>
-
-
-        <button class="tool" data-tool="image-compressor" id="imageCompressorTool" type="button">
-          <span class="emoji">🗜️</span><strong>Free Image Compressor</strong>
-          <small>Reduce image file size and download a smaller JPG.</small>
-        </button>
-        <button class="tool" data-tool="image-enhancer" id="imageEnhancerTool" type="button">
-          <span class="emoji">🌈</span><strong>Free Image Enhancer</strong>
-          <small>Adjust brightness, contrast and colours with live preview.</small>
-        </button>
-        <button class="tool" data-tool="upscaler" id="upscalerTool" type="button">
-          <span class="emoji">✨</span><strong>Image Upscaler</strong>
-          <small>Enlarge images smoothly in your browser. No AI detail restoration.</small>
-        </button>
+        <nav class="category-chips" id="categoryChips" aria-label="Browse tool categories">
+          <a class="category-chip" href="#category-creator">✍️ Creator Tools</a>
+          <a class="category-chip" href="#category-image">🎨 AI Image Tools</a>
+          <a class="category-chip" href="#category-audio">🎙️ Audio Tools</a>
+          <a class="category-chip" href="#category-video">⬇️ Video Tools</a>
+        </nav>
+        <div class="search-quick-picks" id="searchQuickPicks" aria-label="Popular tool searches">
+          <span class="quick-picks-label">Quick Search:</span>
+          <button type="button" class="quick-search-chip" data-search-term="captions">Captions</button>
+          <button type="button" class="quick-search-chip" data-search-term="text to speech">Text to speech</button>
+          <button type="button" class="quick-search-chip" data-search-term="logo">Logo</button>
+          <button type="button" class="quick-search-chip" data-search-term="remove background">Remove background</button>
+          <button type="button" class="quick-search-chip" data-search-term="video download">Video download</button>
+        </div>
+        <p class="search-hint" id="searchHint" role="status" aria-live="polite">Search by tool name, purpose, or a related phrase. Press / to search, Esc to clear.</p>
       </section>
-    </section>
 
-    <section class="category-block" id="category-audio">
-      <div class="category-heading"><span class="category-icon">🎙️</span><div><h3>AI Audio Tools</h3><p>Turn your written words into spoken audio.</p></div></div>
-      <section class="tools" aria-label="AI audio tools">
-        <button class="tool" data-tool="voice" id="voiceGeneratorTool" type="button">
-          <span class="emoji">🎙️</span><strong>AI Voice Generator</strong>
-          <small>Choose a voice, convert text to speech and download an MP3.</small>
-        </button>
-      </section>
-    </section>
+      <p class="no-tools-message" id="noToolsMessage" hidden>No tools found matching your search. Try a different keyword.</p>
 
-    <section class="category-block downloader-category" id="category-video"><div class="category-heading"><span class="category-icon download-category-icon">↓</span><div><h3>Video tools</h3><p>Find download options for supported public links.</p></div></div>
-      <section class="tools downloader-grid" aria-label="Video tools">
-        <button class="tool" data-tool="downloader" id="downloaderTool"><span class="emoji">⬇️</span><div><strong>Video Downloader</strong><small>Get download options for supported YouTube, TikTok and Instagram links.</small></div><span class="tool-arrow" aria-hidden="true">↗</span></button>
+      <!-- Category 1: Creator Tools -->
+      <section class="category-block" id="category-creator">
+        <div class="category-heading">
+          <span class="category-icon">✦</span>
+          <div>
+            <h3>Creator tools</h3>
+            <p>Turn your ideas into ready-to-use content and viral scripts.</p>
+          </div>
+        </div>
+        <section class="tools" aria-label="Creator tools">
+          <button class="tool" data-tool="titles" type="button">
+            <span class="emoji">🎬</span>
+            <strong>YouTube Title Generator</strong>
+            <small>Create catchy titles that spark curiosity and drive clicks.</small>
+            <span class="tool-cta-label">Open Tool →</span>
+          </button>
+          <button class="tool" data-tool="caption" type="button">
+            <span class="emoji">✍️</span>
+            <strong>Social Media Captions</strong>
+            <small>Write engaging captions tailored for Instagram, TikTok and Facebook.</small>
+            <span class="tool-cta-label">Open Tool →</span>
+          </button>
+          <button class="tool" data-tool="hashtags" type="button">
+            <span class="emoji">#️⃣</span>
+            <strong>Hashtag Generator</strong>
+            <small>Get relevant broad, niche and specific hashtags for discovery.</small>
+            <span class="tool-cta-label">Open Tool →</span>
+          </button>
+          <button class="tool" data-tool="description" type="button">
+            <span class="emoji">📝</span>
+            <strong>YouTube Description</strong>
+            <small>Build clear, SEO-friendly descriptions with summaries and prompts.</small>
+            <span class="tool-cta-label">Open Tool →</span>
+          </button>
+          <button class="tool" data-tool="hooks" type="button">
+            <span class="emoji">⚡</span>
+            <strong>Viral Hook Generator</strong>
+            <small>Start your video with attention-grabbing hooks in varied styles.</small>
+            <span class="tool-cta-label">Open Tool →</span>
+          </button>
+          <button class="tool" data-tool="script" type="button">
+            <span class="emoji">📱</span>
+            <strong>Shorts Script Generator</strong>
+            <small>Draft 30–45s short-form scripts with visual cues and strong hooks.</small>
+            <span class="tool-cta-label">Open Tool →</span>
+          </button> 
+        </section>
       </section>
-    </section>
+
+      <!-- Category 2: AI Image Tools -->
+      <section class="category-block" id="category-image">
+        <div class="category-heading">
+          <span class="category-icon">🎨</span>
+          <div>
+            <h3>AI Image Tools</h3>
+            <p>Create images, edit photos, remove backgrounds and design brand visuals.</p>
+          </div>
+        </div>
+        <section class="tools" aria-label="AI Image tools">
+          <button class="tool" data-tool="image" id="imageGeneratorTool" type="button">
+            <span class="emoji">🖼️</span>
+            <strong>AI Image Generator</strong>
+            <small>Create images from text or edit an uploaded photo with AI.</small>
+            <span class="tool-cta-label">Open Tool →</span>
+          </button>
+          <button class="tool" data-tool="logo" id="logoGeneratorTool" type="button">
+            <span class="emoji">🔰</span>
+            <strong>AI Logo Generator</strong>
+            <small>Create custom vector-style logo concepts for your brand or channel.</small>
+            <span class="tool-cta-label">Open Tool →</span>
+          </button>
+          <button class="tool" data-tool="thumbnail" id="thumbnailGeneratorTool" type="button">
+            <span class="emoji">📺</span>
+            <strong>AI Thumbnail Generator</strong>
+            <small>Create eye-catching 16:9 YouTube thumbnails with your exact headline.</small>
+            <span class="tool-cta-label">Open Tool →</span>
+          </button>
+          <button class="tool" data-tool="background-remover" id="backgroundRemoverTool" type="button">
+            <span class="emoji">✂️</span>
+            <strong>AI Background Remover</strong>
+            <small>Remove photo backgrounds and download transparent PNGs in-browser.</small>
+            <span class="tool-cta-label">Open Tool →</span>
+          </button>
+          <button class="tool" data-tool="image-compressor" id="imageCompressorTool" type="button">
+            <span class="emoji">🗜️</span>
+            <strong>Free Image Compressor</strong>
+            <small>Reduce image file size and download a compressed JPG without uploads.</small>
+            <span class="tool-cta-label">Open Tool →</span>
+          </button>
+          <button class="tool" data-tool="image-enhancer" id="imageEnhancerTool" type="button">
+            <span class="emoji">🌈</span>
+            <strong>Free Image Enhancer</strong>
+            <small>Adjust brightness, contrast and colours with instant live preview.</small>
+            <span class="tool-cta-label">Open Tool →</span>
+          </button>
+          <button class="tool" data-tool="upscaler" id="upscalerTool" type="button">
+            <span class="emoji">✨</span>
+            <strong>Image Upscaler</strong>
+            <small>Enlarge images smoothly in your browser with 2× or 4× output.</small>
+            <span class="tool-cta-label">Open Tool →</span>
+          </button>
+        </section>
+      </section>
+
+      <!-- Category 3: AI Audio Tools -->
+      <section class="category-block" id="category-audio">
+        <div class="category-heading">
+          <span class="category-icon">🎙️</span>
+          <div>
+            <h3>AI Audio Tools</h3>
+            <p>Turn your written words into human-like spoken audio.</p>
+          </div>
+        </div>
+        <section class="tools" aria-label="AI audio tools">
+          <button class="tool" data-tool="voice" id="voiceGeneratorTool" type="button">
+            <span class="emoji">🎙️</span>
+            <strong>AI Voice Generator</strong>
+            <small>Choose a voice, convert text to speech and download crisp MP3 audio.</small>
+            <span class="tool-cta-label">Open Tool →</span>
+          </button>
+        </section>
+      </section>
+
+      <!-- Category 4: Video Tools -->
+      <section class="category-block downloader-category" id="category-video">
+        <div class="category-heading">
+          <span class="category-icon download-category-icon">↓</span>
+          <div>
+            <h3>Video tools</h3>
+            <p>Find download options for supported public links.</p>
+          </div>
+        </div>
+        <section class="tools downloader-grid" aria-label="Video tools">
+          <button class="tool" data-tool="downloader" id="downloaderTool" type="button">
+            <span class="emoji">⬇️</span>
+            <div>
+              <strong>Video Downloader</strong>
+              <small>Get download options for supported YouTube, TikTok and Instagram links.</small>
+            </div>
+            <span class="tool-arrow" aria-hidden="true">↗</span>
+          </button>
+        </section>
+      </section>
+    </div>
+
+    <!-- TAB PANEL 2: FAVOURITES -->
+    <div class="tab-panel" id="panelFavourites" role="tabpanel" aria-labelledby="tabNavFavourites">
+      <section class="favourites-section" id="favouritesSection" aria-labelledby="favouritesTitle">
+        <div class="favourites-heading">
+          <div>
+            <div class="section-kicker">PERSONAL SHORTCUTS</div>
+            <h2 class="section-title" id="favouritesTitle">⭐ My Favourite Tools</h2>
+            <p>Your pinned tools for rapid access, saved securely on this browser.</p>
+          </div>
+          <span class="favourites-count" id="favouritesCount">0 saved</span>
+        </div>
+        <div class="favourites-grid" id="favouritesGrid" aria-live="polite"></div>
+        <div class="favourites-empty" id="favouritesEmpty">No favourite tools yet. Tap the ☆ star icon on any tool card to pin it here.</div>
+      </section>
+    </div>
+
+    <!-- TAB PANEL 3: RECENT RESULTS / HISTORY -->
+    <div class="tab-panel" id="panelHistory" role="tabpanel" aria-labelledby="tabNavHistory">
+      <section class="recent-section" id="recentResultsSection" aria-labelledby="recentResultsTitle">
+        <div class="recent-heading">
+          <div>
+            <div class="section-kicker">CREATION TIMELINE</div>
+            <h2 class="section-title" id="recentResultsTitle">🕘 Recent Results & History</h2>
+            <p class="recent-description">Revisit, copy, or download your latest text, images, logos, thumbnails and voiceovers.</p>
+          </div>
+          <div class="recent-heading-actions">
+            <span id="recentResultsCount" class="recent-count">0 saved</span>
+            <button class="secondary" id="clearRecentResults" type="button" disabled>Clear history</button>
+          </div>
+        </div>
+        <p class="recent-storage-note">Your latest 10 results are cached locally in this browser via IndexedDB. They are completely private and never uploaded to external servers.</p>
+        <div id="recentResultsGrid" class="recent-grid" aria-live="polite"></div>
+        <div id="recentResultsEmpty" class="recent-empty">No recent results yet. Generate content with any tool to see your work recorded here.</div>
+        <p id="recentResultsStatus" class="recent-status" role="status" aria-live="polite"></p>
+      </section>
+    </div>
+
+    <!-- ==================== WORKSPACE PANELS ==================== -->
+
+    <!-- Downloader Workspace -->
     <section class="workspace" id="downloaderWorkspace" style="display:none">
       <h2>⬇️ Video Downloader</h2>
-      <p class="workspace-intro">Paste a video link to check the available download options.</p>
+      <p class="workspace-intro">Paste a public video link to inspect available download resolutions.</p>
       <form id="downloaderForm">
         <label for="videoUrl">Video link</label>
-        <input id="videoUrl" type="url" required placeholder="https://www.youtube.com/...">
+        <input id="videoUrl" type="url" required placeholder="https://www.youtube.com/... or TikTok / Instagram URL">
         <button class="primary" id="getFormatsButton" type="submit">Get Download Options</button>
       </form>
       <div id="downloadOptions" style="margin-top:20px"></div>
       <div id="downloadMessage" style="color:var(--muted);margin-top:12px"></div>
     </section>
 
-
+    <!-- Background Remover Workspace -->
     <section class="workspace" id="backgroundRemoverWorkspace" style="display:none">
       <h2>✂️ AI Background Remover</h2>
-      <p class="workspace-intro">Upload a photo and remove its background. Processing happens in your browser; your image is not uploaded.</p>
+      <p class="workspace-intro">Upload a photo to isolate the subject. Processing runs privately inside your browser; your image is never uploaded to a cloud server.</p>
       <label for="bgRemoveFile">Choose an image</label>
       <input id="bgRemoveFile" type="file" accept="image/png,image/jpeg,image/webp">
-      <p class="workspace-intro">PNG, JPG or WEBP. Maximum 8 MB and 12 megapixels. For best results, use a clear photo with one main subject.</p>
+      <p class="workspace-intro">PNG, JPG or WEBP. Maximum 8 MB and 12 megapixels. For best results, use a high-contrast photo.</p>
       <div id="bgRemovePreview" style="margin-top:14px"></div>
       <button class="primary" id="bgRemoveButton" type="button" disabled>Remove Background — Free</button>
       <div id="bgRemoveMessage" role="status" aria-live="polite" style="color:var(--muted);margin-top:12px"></div>
       <div id="bgRemoveResult" style="margin-top:20px"></div>
     </section>
 
+    <!-- Upscaler Workspace -->
     <section class="workspace" id="upscalerWorkspace" style="display:none">
       <h2>✨ Lightweight Image Upscaler — HD Size</h2>
-      <p class="workspace-intro">Upload a low-resolution image to enlarge it in your browser. This lightweight tool smooths the resized image but does not recreate missing details. No paid API is used.</p>
+      <p class="workspace-intro">Upload a low-resolution image to enlarge it in your browser. This lightweight tool smooths the resized canvas without heavy API fees.</p>
       <label for="upscaleFile">Choose an image</label>
       <input id="upscaleFile" type="file" accept="image/png,image/jpeg,image/webp">
-      <label for="upscaleFactor">Upscale size</label>
-      <select id="upscaleFactor"><option value="2">2× — Recommended</option><option value="4">4× — Larger output (uses more memory)</option></select>
+      <label for="upscaleFactor">Upscale factor</label>
+      <select id="upscaleFactor">
+        <option value="2">2× — Recommended</option>
+        <option value="4">4× — Ultra Large (uses more memory)</option>
+      </select>
       <div id="upscalePreview" style="margin-top:14px"></div>
-      <p style="color:var(--muted)">Lightweight browser processing. Enlarges your image smoothly without a heavy AI model. It improves display size, but cannot recreate missing details.</p>
+      <p style="color:var(--muted)">In-browser smooth bicubic scaling. Expands resolution cleanly without external compute.</p>
       <button class="primary" id="upscaleButton" type="button" disabled>✨ Enlarge Image — Free</button>
       <div id="upscaleMessage" role="status" aria-live="polite" style="color:var(--muted);margin-top:12px"></div>
       <div id="upscaleResult" style="margin-top:20px"></div>
     </section>
 
-
-
+    <!-- Image Compressor Workspace -->
     <section class="workspace" id="imageCompressorWorkspace" style="display:none">
       <h2>🗜️ Free Image Compressor</h2>
-      <p class="workspace-intro">Reduce your image file size in your browser. Your photo stays on your device.</p>
+      <p class="workspace-intro">Reduce file size client-side for rapid web performance. Your photo never leaves your machine.</p>
       <label for="compressorFile">Choose an image</label>
       <input id="compressorFile" type="file" accept="image/png,image/jpeg,image/webp">
-      <p class="workspace-intro">PNG, JPG or WEBP. Maximum 10 MB. Output is JPG.</p>
+      <p class="workspace-intro">PNG, JPG or WEBP up to 10 MB. Exports optimized JPG.</p>
       <div id="compressorPreview" style="margin-top:14px"></div>
       <div style="margin-top:18px">
         <label for="compressorQuality">Compression quality: <span id="compressorQualityValue">75%</span></label>
         <input id="compressorQuality" type="range" min="30" max="95" value="75" style="width:100%">
-        <p class="workspace-intro">Lower quality usually means a smaller file. You can compare the output size before downloading.</p>
+        <p class="workspace-intro">Adjust slider to balance file size against visual clarity.</p>
       </div>
       <button class="primary" id="compressorButton" type="button" disabled style="margin-top:14px">Compress Image</button>
       <div id="compressorResult" style="margin-top:14px"></div>
       <div id="compressorMessage" role="status" aria-live="polite" style="color:var(--muted);margin-top:12px"></div>
     </section>
 
+    <!-- Image Enhancer Workspace -->
     <section class="workspace" id="imageEnhancerWorkspace" style="display:none">
       <h2>🌈 Free Image Enhancer</h2>
-      <p class="workspace-intro">Upload a photo, adjust its look and download the result. Processing happens on your device; your photo is not uploaded.</p>
+      <p class="workspace-intro">Adjust lighting, contrast, and colour saturation with immediate real-time feedback.</p>
       <label for="enhancerFile">Choose an image</label>
       <input id="enhancerFile" type="file" accept="image/png,image/jpeg,image/webp">
-      <p class="workspace-intro">PNG, JPG or WEBP. Maximum 8 MB.</p>
+      <p class="workspace-intro">PNG, JPG or WEBP up to 8 MB.</p>
       <div id="enhancerPreview" style="margin-top:14px"></div>
       <div style="margin-top:18px;display:grid;gap:14px">
         <div><label for="enhancerBrightness">Brightness: <span id="brightnessValue">100%</span></label><input id="enhancerBrightness" type="range" min="50" max="150" value="100" style="width:100%"></div>
@@ -408,82 +1795,83 @@
       <button class="secondary" id="enhancerReset" type="button" style="margin-top:16px">↺ Reset Adjustments</button>
       <button class="primary" id="enhancerDownload" type="button" disabled style="margin-top:12px">⬇️ Download Enhanced Image</button>
       <div id="enhancerMessage" role="status" aria-live="polite" style="color:var(--muted);margin-top:12px"></div>
-      <p class="workspace-intro">Note: This tool adjusts the photo's appearance. It does not use an AI model to recreate missing details.</p>
     </section>
 
+    <!-- AI Image Generator Workspace -->
     <section class="workspace" id="imageWorkspace" style="display:none">
       <h2>🎨 AI Image Generator</h2>
-      <p class="workspace-intro">Create a new image or edit an existing photo using AI.</p>
-      <label for="imageMode">Choose mode</label>
+      <p class="workspace-intro">Synthesize entirely new images from text prompts or transform an uploaded photo using FLUX AI.</p>
+      <label for="imageMode">Mode</label>
       <select id="imageMode">
         <option value="text">Text to Image</option>
         <option value="edit">Image to Image</option>
       </select>
       <div id="imageUploadArea" style="display:none;margin-top:16px">
-        <label for="imageFile">Upload your image</label>
+        <label for="imageFile">Upload reference photo</label>
         <input id="imageFile" type="file" accept="image/png,image/jpeg,image/webp">
-        <p class="workspace-intro">PNG, JPG or WEBP. Maximum 3 MB.</p>
+        <p class="workspace-intro">PNG, JPG or WEBP up to 3 MB.</p>
       </div>
-      <label for="imagePrompt">Describe your image or edit</label>
-      <textarea id="imagePrompt" maxlength="1000" placeholder="Example: Keep my face the same, change my outfit to a black suit and use a studio background."></textarea>
+      <label for="imagePrompt">Describe your concept</label>
+      <textarea id="imagePrompt" maxlength="1000" placeholder="Example: Futuristic cyber studio with neon purple lighting and cinematic volumetric smoke."></textarea>
       <button class="primary" id="imageGenerateButton" type="button">Generate Image</button>
       <div id="imageMessage" role="status" aria-live="polite"></div>
       <div id="imageResult" style="margin-top:20px"></div>
     </section>
 
+    <!-- AI Logo Generator Workspace -->
     <section class="workspace" id="logoWorkspace" style="display:none">
       <h2>🔰 AI Logo Generator</h2>
-      <p class="workspace-intro">Enter your brand name and details to create a logo concept. You can preview it and download the result as a PNG.</p>
-      <label for="logoBrandName">Brand or business name</label>
+      <p class="workspace-intro">Enter your brand identity to generate a vector-aesthetic logo mark. Check and download as high-res PNG.</p>
+      <label for="logoBrandName">Brand or channel name</label>
       <input id="logoBrandName" maxlength="40" placeholder="e.g. TrivexaAI" autocomplete="organization">
       <label for="logoDescription">What does your brand do?</label>
-      <textarea id="logoDescription" maxlength="240" placeholder="e.g. AI tools and digital products for content creators"></textarea>
+      <textarea id="logoDescription" maxlength="240" placeholder="e.g. Digital tools and generative AI workflows for next-gen creators"></textarea>
       <div class="row">
         <div>
-          <label for="logoStyle">Logo style</label>
+          <label for="logoStyle">Design aesthetic</label>
           <select id="logoStyle">
-            <option value="Minimalist and modern">Minimalist</option>
-            <option value="Professional geometric wordmark">Professional</option>
-            <option value="Bold and playful mascot emblem">Mascot</option>
-            <option value="Elegant monogram using brand initials">Monogram</option>
-            <option value="Classic badge or emblem">Emblem</option>
-            <option value="Futuristic technology-inspired mark">Futuristic</option>
+            <option value="Minimalist and modern">Minimalist & Clean</option>
+            <option value="Professional geometric wordmark">Geometric Wordmark</option>
+            <option value="Bold and playful mascot emblem">Playful Mascot</option>
+            <option value="Elegant monogram using brand initials">Elegant Monogram</option>
+            <option value="Classic badge or emblem">Classic Emblem</option>
+            <option value="Futuristic technology-inspired mark">Futuristic Tech</option>
           </select>
         </div>
         <div>
-          <label for="logoColors">Preferred colours</label>
-          <input id="logoColors" maxlength="80" placeholder="e.g. dark purple and white">
+          <label for="logoColors">Color palette</label>
+          <input id="logoColors" maxlength="80" placeholder="e.g. deep purple and cyan accent">
         </div>
       </div>
       <label for="logoTagline">Tagline (optional)</label>
-      <input id="logoTagline" maxlength="50" placeholder="A short brand slogan">
+      <input id="logoTagline" maxlength="50" placeholder="e.g. Create Without Limits">
       <button class="primary" id="logoGenerateButton" type="button">✨ Generate Logo</button>
       <div id="logoMessage" role="status" aria-live="polite" style="color:var(--muted);margin-top:12px"></div>
       <div id="logoResult" style="margin-top:20px"></div>
-      <p class="workspace-intro" style="margin-top:16px">Tip: AI-generated lettering can contain spelling mistakes. Check the brand name carefully before using the logo publicly. This is a logo concept, not a trademark or originality check.</p>
     </section>
 
+    <!-- AI Thumbnail Generator Workspace -->
     <section class="workspace" id="thumbnailWorkspace" style="display:none">
       <h2>📺 AI Thumbnail Generator</h2>
-      <p class="workspace-intro">Enter your video details in English. AI will create the background, then your English headline will be added with the exact spelling you enter. Download the finished 16:9 YouTube thumbnail.</p>
-      <label for="thumbnailHeadline">Thumbnail headline (enter in English)</label>
+      <p class="workspace-intro">AI produces a 16:9 cinematic backdrop, then Canvas overlays your exact headline text in high-contrast typography.</p>
+      <label for="thumbnailHeadline">Headline text (exact spelling)</label>
       <input id="thumbnailHeadline" maxlength="70" placeholder="e.g. THIS CHANGES EVERYTHING!">
-      <label for="thumbnailTopic">What is your video about?</label>
-      <textarea id="thumbnailTopic" maxlength="300" placeholder="e.g. A beginner-friendly review of the newest AI tools"></textarea>
+      <label for="thumbnailTopic">Video topic</label>
+      <textarea id="thumbnailTopic" maxlength="300" placeholder="e.g. Detailed breakdown of new AI models breaking performance records"></textarea>
       <div class="row">
         <div>
-          <label for="thumbnailStyle">Thumbnail style</label>
+          <label for="thumbnailStyle">Visual style</label>
           <select id="thumbnailStyle">
-            <option value="high-energy YouTube creator style">High-energy</option>
-            <option value="cinematic dramatic style">Cinematic</option>
-            <option value="gaming thumbnail style">Gaming</option>
-            <option value="sports broadcast thumbnail style">Sports</option>
-            <option value="clean technology explainer style">Technology</option>
-            <option value="bright tutorial and educational style">Tutorial</option>
+            <option value="high-energy YouTube creator style">High-Energy Creator</option>
+            <option value="cinematic dramatic style">Cinematic Dramatic</option>
+            <option value="gaming thumbnail style">Gaming & Esports</option>
+            <option value="sports broadcast thumbnail style">Sports Action</option>
+            <option value="clean technology explainer style">Tech Explainer</option>
+            <option value="bright tutorial and educational style">Bright Tutorial</option>
           </select>
         </div>
         <div>
-          <label for="thumbnailPosition">Headline position</label>
+          <label for="thumbnailPosition">Headline alignment</label>
           <select id="thumbnailPosition">
             <option value="left">Left side</option>
             <option value="right">Right side</option>
@@ -492,36 +1880,36 @@
       </div>
       <div class="row">
         <div>
-          <label for="thumbnailAccent">Headline colour</label>
+          <label for="thumbnailAccent">Headline accent colour</label>
           <select id="thumbnailAccent">
             <option value="#ffffff">White</option>
-            <option value="#ffe500">Yellow</option>
-            <option value="#67e8f9">Cyan</option>
-            <option value="#ff5b67">Red</option>
-            <option value="#a7f36b">Lime</option>
+            <option value="#ffe500">Electric Yellow</option>
+            <option value="#67e8f9">Neon Cyan</option>
+            <option value="#ff5b67">Vibrant Red</option>
+            <option value="#a7f36b">Lime Green</option>
           </select>
         </div>
         <div>
           <label for="thumbnailSubject">Main subject (optional)</label>
-          <input id="thumbnailSubject" maxlength="120" placeholder="e.g. a surprised young creator">
+          <input id="thumbnailSubject" maxlength="120" placeholder="e.g. shocked tech reviewer holding glowing device">
         </div>
       </div>
       <button class="primary" id="thumbnailGenerateButton" type="button">✨ Generate Thumbnail</button>
       <div id="thumbnailMessage" role="status" aria-live="polite" style="color:var(--muted);margin-top:12px"></div>
       <div id="thumbnailResult" style="margin-top:20px"></div>
-      <p class="workspace-intro" style="margin-top:16px">Tip: Headline spelling is added exactly from your input. AI-generated pictures may still vary, so check the final design before publishing.</p>
     </section>
 
+    <!-- AI Voice Generator Workspace -->
     <section class="workspace" id="voiceWorkspace" style="display:none">
       <h2>🎙️ AI Voice Generator</h2>
-      <p class="workspace-intro">Enter your text, choose an available voice, and generate an MP3 audio file. Maximum 2,000 characters.</p>
-      <label for="voiceText">Text to speak (English)</label>
-      <textarea id="voiceText" maxlength="2000" placeholder="Type or paste the text you want to convert into speech..."></textarea>
+      <p class="workspace-intro">Synthesize natural speech from English text using Cloudflare Aura-1 neural models. Up to 2,000 characters.</p>
+      <label for="voiceText">Script text (English)</label>
+      <textarea id="voiceText" maxlength="2000" placeholder="Type or paste the speech you wish to generate into high-quality MP3 audio..."></textarea>
       <div class="row">
         <div>
-          <label for="voiceSelect">Choose a voice</label>
+          <label for="voiceSelect">Select voice</label>
           <select id="voiceSelect" disabled>
-            <option value="">Loading voices...</option>
+            <option value="">Loading voice models...</option>
           </select>
         </div>
         <div style="display:flex;align-items:end">
@@ -531,16 +1919,16 @@
       <button class="primary" id="voiceGenerateButton" type="button">🎧 Generate Voice</button>
       <div id="voiceMessage" role="status" aria-live="polite"></div>
       <div id="voiceResult" style="margin-top:18px"></div>
-      <p class="workspace-intro" style="margin-top:18px">Usage note: Voice generation uses Cloudflare Workers AI. Free accounts have a daily AI usage allowance shared with other Workers AI tools on this Worker. This voice tool currently uses the English Aura-1 voices.</p>
     </section>
 
+    <!-- General Text Generator Workspace (Titles, Captions, Hashtags, Hooks, Scripts, Descriptions) -->
     <section class="workspace" id="generatorWorkspace" style="display:none">
       <h2 id="toolTitle">🎬 YouTube Title Generator</h2>
-      <p id="toolDescription" class="workspace-intro">Generate catchy YouTube titles using your topic or keywords. Create engaging title ideas for your next video.</p>
+      <p id="toolDescription" class="workspace-intro">Generate high-converting suggestions using your topic, target audience, and style preferences.</p>
 
       <form id="generatorForm">
         <label for="topic">Your topic</label>
-        <input id="topic" maxlength="500" required placeholder="e.g. Best AI tools for students">
+        <input id="topic" maxlength="500" required placeholder="e.g. Best AI productivity tools for freelancers in 2026">
 
         <div class="row">
           <div>
@@ -554,7 +1942,7 @@
             </select>
           </div>
           <div>
-            <label for="tone">Style</label>
+            <label for="tone">Tone & Style</label>
             <select id="tone">
               <option>Engaging</option>
               <option>Funny</option>
@@ -565,55 +1953,75 @@
           </div>
         </div>
 
-        <label for="details">Extra details (optional)</label>
-        <textarea id="details" maxlength="1000" placeholder="Audience, video length, or any special instructions..."></textarea>
-        <p class="workspace-intro" style="margin-top:10px">AI text results are generated in English, even when your topic or extra details are entered in another language.</p>
-        <button class="primary" id="generateButton" type="submit">Generate</button>
+        <label for="details">Additional context (optional)</label>
+        <textarea id="details" maxlength="1000" placeholder="Target demographic, tone specifics, constraints, or unique angles..."></textarea>
+        <p class="workspace-intro" style="margin-top:10px">Results are generated strictly in polished English for international reach.</p>
+        <button class="primary" id="generateButton" type="submit">Generate Content</button>
       </form>
 
       <div class="result-head">
-        <h3>Your result</h3>
-        <button class="secondary" id="copyButton" type="button">Copy result</button>
+        <h3>Generated Result</h3>
+        <button class="secondary" id="copyButton" type="button">Copy to Clipboard</button>
       </div>
-      <div id="result" class="result-empty" aria-live="polite">Your result will appear here. Add a topic above and select Generate to get started.</div>
+      <div id="result" class="result-empty" aria-live="polite">Your generated output will appear here. Submit your topic above to begin.</div>
       <div id="message" role="status" aria-live="polite"></div>
     </section>
+
+    <!-- SEO DIRECTORY SECTION -->
+    <section id="all-tool-pages" aria-labelledby="all-tool-pages-title" style="margin:48px auto;padding:clamp(20px,3.5vw,30px);border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--panel);color:var(--muted)">
+      <h2 id="all-tool-pages-title" style="color:var(--text);margin:0 0 8px;font-size:22px;font-weight:800">Explore all 15 free online tools</h2>
+      <p style="color:var(--text-secondary);font-size:13.5px;margin:0 0 16px">Open individual tool guides to discover step-by-step documentation, recommended prompts, and technical specifications for each creator tool.</p>
+      <ul class="seo-tool-directory">
+        <li><a href="youtube-title-generator.html">YouTube Title Generator</a><span>Generate catchy YouTube video title ideas with TrivexaAI. Enter your topic and audience to create clear, curiosity-driven titles for your next upload.</span></li>
+        <li><a href="social-media-caption-generator.html">Social Media Caption Generator</a><span>Write social media captions for posts with TrivexaAI. Create engaging caption ideas for Instagram, Facebook, TikTok and other platforms.</span></li>
+        <li><a href="hashtag-generator.html">Hashtag Generator</a><span>Find relevant hashtag ideas for social media posts. Describe your topic and generate a useful starting list with TrivexaAI.</span></li>
+        <li><a href="youtube-description-generator.html">YouTube Description Generator</a><span>Draft clear YouTube video descriptions from your topic with TrivexaAI. Create a useful starting point for your next upload.</span></li>
+        <li><a href="viral-hook-generator.html">Viral Hook Generator</a><span>Create opening hook ideas for videos and short-form content. Use TrivexaAI to brainstorm clear, attention-grabbing first lines.</span></li>
+        <li><a href="youtube-shorts-script-generator.html">Shorts Script Generator</a><span>Draft short-form video scripts with a strong opening, concise spoken lines and an ending using TrivexaAI.</span></li>
+        <li><a href="ai-image-generator.html">AI Image Generator</a><span>Create an image from a written prompt or edit an uploaded photo with TrivexaAI's AI image tool.</span></li>
+        <li><a href="ai-logo-generator.html">AI Logo Generator</a><span>Explore logo concepts for a brand, channel or small business with TrivexaAI's AI logo generator.</span></li>
+        <li><a href="youtube-thumbnail-generator.html">AI Thumbnail Generator</a><span>Create 16:9 YouTube thumbnail concepts with your requested headline using TrivexaAI's thumbnail generator.</span></li>
+        <li><a href="image-background-remover.html">AI Background Remover</a><span>Remove the background from a photo and download a transparent PNG using TrivexaAI's browser-based background remover.</span></li>
+        <li><a href="image-compressor.html">Free Image Compressor</a><span>Compress an image and export a smaller JPG with TrivexaAI's free browser-based image compressor.</span></li>
+        <li><a href="image-enhancer.html">Free Image Enhancer</a><span>Adjust image brightness, contrast and colours with TrivexaAI's free image enhancer and live preview.</span></li>
+        <li><a href="image-upscaler.html">Image Upscaler</a><span>Enlarge an image by 2x or 4x in your browser with TrivexaAI's lightweight image upscaler.</span></li>
+        <li><a href="ai-voice-generator-text-to-speech.html">AI Voice Generator</a><span>Convert written text into spoken audio with TrivexaAI's voice generator. Choose an available voice and download an MP3.</span></li>
+        <li><a href="video-downloader.html">Video Downloader</a><span>Check available download options for supported public YouTube, TikTok and Instagram links with TrivexaAI.</span></li>
+      </ul>
+    </section>
+
+    <!-- ABOUT SECTION -->
+    <section id="about" aria-labelledby="about-title" style="margin:0 auto 48px;padding:clamp(20px,3.5vw,30px);border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--panel);color:var(--text-secondary)">
+      <h2 id="about-title" style="color:var(--text);margin:0 0 10px;font-size:22px;font-weight:800">About TrivexaAI Creator Tools</h2>
+      <p>TrivexaAI brings practical content-planning tools together for YouTube creators, social managers, and digital designers. Generate title ideas, captions, hashtags, video descriptions, opening hooks and short-form video scripts from your topic and audience details.</p>
+      <p>Choose a tool, enter your topic, and review the generated suggestions before publishing. Results may need editing to match your voice and audience. Video download options depend on the supported link and the availability of the connected service. Only download content you own or have permission to use, and follow each platform's terms.</p>
+    </section>
+    
+    <section id="privacy" class="sr-only" aria-label="Privacy">Do not submit passwords, private information or sensitive personal data in tool prompts. Review connected services and their policies before using the tools.</section>
   </main>
 
-<section id="all-tool-pages" aria-labelledby="all-tool-pages-title" style="width:min(1000px,92%);margin:0 auto 48px;padding:24px;border:1px solid var(--border);border-radius:18px;background:#151126;color:var(--muted)">
-    <h2 id="all-tool-pages-title" style="color:var(--text);margin:0 0 8px;font-size:22px">Explore all 15 free online tools</h2>
-    <p>Open a tool guide to learn what it does, how to use it, and launch the tool. Each guide has its own page so search engines and visitors can find the specific tool they need.</p>
-    <ul class="seo-tool-directory" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px 24px;padding-left:20px">
-      <li><a href="youtube-title-generator.html">YouTube Title Generator</a><span>Generate catchy YouTube video title ideas with TrivexaAI. Enter your topic and audience to create clear, curiosity-driven titles for your next upload.</span></li>
-      <li><a href="social-media-caption-generator.html">Social Media Caption Generator</a><span>Write social media captions for posts with TrivexaAI. Create engaging caption ideas for Instagram, Facebook, TikTok and other platforms.</span></li>
-      <li><a href="hashtag-generator.html">Hashtag Generator</a><span>Find relevant hashtag ideas for social media posts. Describe your topic and generate a useful starting list with TrivexaAI.</span></li>
-      <li><a href="youtube-description-generator.html">YouTube Description Generator</a><span>Draft clear YouTube video descriptions from your topic with TrivexaAI. Create a useful starting point for your next upload.</span></li>
-      <li><a href="viral-hook-generator.html">Viral Hook Generator</a><span>Create opening hook ideas for videos and short-form content. Use TrivexaAI to brainstorm clear, attention-grabbing first lines.</span></li>
-      <li><a href="youtube-shorts-script-generator.html">Shorts Script Generator</a><span>Draft short-form video scripts with a strong opening, concise spoken lines and an ending using TrivexaAI.</span></li>
-      <li><a href="ai-image-generator.html">AI Image Generator</a><span>Create an image from a written prompt or edit an uploaded photo with TrivexaAI&#x27;s AI image tool.</span></li>
-      <li><a href="ai-logo-generator.html">AI Logo Generator</a><span>Explore logo concepts for a brand, channel or small business with TrivexaAI&#x27;s AI logo generator.</span></li>
-      <li><a href="youtube-thumbnail-generator.html">AI Thumbnail Generator</a><span>Create 16:9 YouTube thumbnail concepts with your requested headline using TrivexaAI&#x27;s thumbnail generator.</span></li>
-      <li><a href="image-background-remover.html">AI Background Remover</a><span>Remove the background from a photo and download a transparent PNG using TrivexaAI&#x27;s browser-based background remover.</span></li>
-      <li><a href="image-compressor.html">Free Image Compressor</a><span>Compress an image and export a smaller JPG with TrivexaAI&#x27;s free browser-based image compressor.</span></li>
-      <li><a href="image-enhancer.html">Free Image Enhancer</a><span>Adjust image brightness, contrast and colours with TrivexaAI&#x27;s free image enhancer and live preview.</span></li>
-      <li><a href="image-upscaler.html">Image Upscaler</a><span>Enlarge an image by 2x or 4x in your browser with TrivexaAI&#x27;s lightweight image upscaler.</span></li>
-      <li><a href="ai-voice-generator-text-to-speech.html">AI Voice Generator</a><span>Convert written text into spoken audio with TrivexaAI&#x27;s voice generator. Choose an available voice and download an MP3.</span></li>
-      <li><a href="video-downloader.html">Video Downloader</a><span>Check available download options for supported public YouTube, TikTok and Instagram links with TrivexaAI.</span></li>
-    </ul>
-  </section>
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-inner">
+      <a class="brand-link footer-brand" href="#" aria-label="TrivexaAI home">
+        <span class="brand-mark">T</span>
+        <span class="logo">Trivexa<span>AI</span></span>
+      </a>
+      <p>Simple tools for your next big idea.</p>
+      <div class="footer-links">
+        <a href="#workspaceTabs" data-switch-tab="search">Tools</a>
+        <a href="#about">About</a>
+        <a href="#privacy">Privacy</a>
+      </div>
+      <small>© 2026 TrivexaAI. All creator tools engineered for maximum privacy and performance.</small>
+    </div>
+  </footer>
 
-    <section id="about" aria-labelledby="about-title" style="width:min(900px,92%);margin:0 auto 48px;padding:24px;border:1px solid var(--border);border-radius:18px;background:#151126;color:var(--muted)">
-    <h2 id="about-title" style="color:var(--text);margin:0 0 10px;font-size:22px">About TrivexaAI Creator Tools</h2>
-    <p>TrivexaAI brings practical content-planning tools together for YouTube creators and social media users. Generate title ideas, captions, hashtags, video descriptions, opening hooks and short-form video scripts from your topic and audience details.</p>
-    <p>Choose a tool, enter your topic, and review the generated suggestions before publishing. Results may need editing to match your voice and audience. Video download options depend on the supported link and the availability of the connected service. Only download content you own or have permission to use, and follow each platform’s terms.</p>
-  </section>
-  <section id="privacy" class="sr-only" aria-label="Privacy">Do not submit passwords, private information or sensitive personal data in tool prompts. Review the connected services and their policies before using the tools.</section>
-    <footer><div class="footer-inner"><a class="brand-link footer-brand" href="#" aria-label="TrivexaAI home"><span class="brand-mark">T</span><span class="logo">Trivexa<span>AI</span></span></a><p>Simple tools for your next big idea.</p><div class="footer-links"><a href="#tools">Tools</a><a href="#about">About</a><a href="#privacy">Privacy</a></div><small>© 2026 TrivexaAI. Use tools responsibly.</small></div></footer>
-
+  <!-- SCRIPT LOGIC (ALL EXISTING API & WORKER FUNCTIONS PRESERVED) -->
   <script>
     const WORKER_URL = "https://creatorkit-ai.abubakar647648.workers.dev";
 
-    // Worker requests now have a timeout so a stalled provider cannot leave a tool spinning forever.
+    // Worker requests with timeout
     async function workerFetch(url, options = {}, timeoutMs = 180000) {
       const controller = new AbortController();
       const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
@@ -632,6 +2040,43 @@
       }
     }
 
+    // TAB SWITCHING MANAGEMENT
+    const tabNavSearch = document.getElementById("tabNavSearch");
+    const tabNavFavourites = document.getElementById("tabNavFavourites");
+    const tabNavHistory = document.getElementById("tabNavHistory");
+    const panelSearch = document.getElementById("panelSearch");
+    const panelFavourites = document.getElementById("panelFavourites");
+    const panelHistory = document.getElementById("panelHistory");
+
+    function switchDashboardTab(tabId) {
+      const isSearch = tabId === "search";
+      const isFavourites = tabId === "favourites";
+      const isHistory = tabId === "history";
+
+      tabNavSearch?.classList.toggle("active", isSearch);
+      tabNavSearch?.setAttribute("aria-selected", String(isSearch));
+      tabNavFavourites?.classList.toggle("active", isFavourites);
+      tabNavFavourites?.setAttribute("aria-selected", String(isFavourites));
+      tabNavHistory?.classList.toggle("active", isHistory);
+      tabNavHistory?.setAttribute("aria-selected", String(isHistory));
+
+      panelSearch?.classList.toggle("active", isSearch);
+      panelFavourites?.classList.toggle("active", isFavourites);
+      panelHistory?.classList.toggle("active", isHistory);
+    }
+
+    tabNavSearch?.addEventListener("click", () => switchDashboardTab("search"));
+    tabNavFavourites?.addEventListener("click", () => switchDashboardTab("favourites"));
+    tabNavHistory?.addEventListener("click", () => switchDashboardTab("history"));
+
+    document.querySelectorAll("[data-switch-tab]").forEach(trigger => {
+      trigger.addEventListener("click", (e) => {
+        const targetTab = trigger.getAttribute("data-switch-tab");
+        if (targetTab) {
+          switchDashboardTab(targetTab);
+        }
+      });
+    });
 
     // RECENT RESULTS: saved locally in this browser with IndexedDB (no upload).
     const RECENT_DB_NAME = "trivexaai-recent-results";
@@ -641,6 +2086,7 @@
     const recentResultsGrid = document.getElementById("recentResultsGrid");
     const recentResultsEmpty = document.getElementById("recentResultsEmpty");
     const recentResultsCount = document.getElementById("recentResultsCount");
+    const tabBadgeHistory = document.getElementById("tabBadgeHistory");
     const recentResultsStatus = document.getElementById("recentResultsStatus");
     const clearRecentResultsButton = document.getElementById("clearRecentResults");
     let recentDbPromise = null;
@@ -779,6 +2225,7 @@
       try {
         const items = await readRecentResults();
         if (recentResultsCount) recentResultsCount.textContent = `${items.length} saved`;
+        if (tabBadgeHistory) tabBadgeHistory.textContent = `${items.length}`;
         if (clearRecentResultsButton) clearRecentResultsButton.disabled = items.length === 0;
         if (recentResultsEmpty) recentResultsEmpty.hidden = items.length > 0;
 
@@ -895,7 +2342,6 @@
       }
     });
 
-    // Load local history when the page opens.
     renderRecentResults();
 
     const toolInfo = {
@@ -931,7 +2377,6 @@
       }
     };
 
-    // No tool is selected when the page first loads. A tool becomes active only after a click.
     let selectedTool = null;
 
     const form = document.getElementById("generatorForm");
@@ -944,7 +2389,6 @@
     const downloaderForm = document.getElementById("downloaderForm");
     const downloadOptions = document.getElementById("downloadOptions");
     const downloadMessage = document.getElementById("downloadMessage");
-
 
     const imageWorkspace = document.getElementById("imageWorkspace");
     const backgroundRemoverWorkspace = document.getElementById("backgroundRemoverWorkspace");
@@ -973,7 +2417,6 @@
         const toolName = button.dataset.tool;
         const isAlreadySelected = button.classList.contains("active");
 
-        // Clicking the currently selected tool again deselects it and closes its workspace.
         if (isAlreadySelected) {
           document.querySelectorAll(".tool[data-tool]").forEach(item => item.classList.remove("active"));
           selectedTool = null;
@@ -981,7 +2424,6 @@
           return;
         }
 
-        // Selecting a different tool closes the previous workspace and activates only this card.
         document.querySelectorAll(".tool[data-tool]").forEach(item => {
           item.classList.toggle("active", item === button);
         });
@@ -1055,8 +2497,7 @@
       });
     });
 
-    // SMART TOOL SEARCH: understands names, purposes, common aliases and small typos.
-    // Searching only filters the directory; it never selects or opens a tool.
+    // SEARCH & FILTER FUNCTIONALITY
     const toolSearchInput = document.getElementById("toolSearch");
     const clearToolSearchButton = document.getElementById("clearToolSearch");
     const toolCountLabel = document.getElementById("toolCount");
@@ -1066,12 +2507,12 @@
     const toolCategoryBlocks = Array.from(document.querySelectorAll(".category-block"));
     const searchQuickPicks = document.getElementById("searchQuickPicks");
 
-
-    // FAVOURITE TOOLS — saved locally in this browser; no account or server required.
+    // FAVOURITE TOOLS STORAGE & DOM
     const FAVOURITES_STORAGE_KEY = "trivexaai-favourite-tools-v1";
     const favouritesGrid = document.getElementById("favouritesGrid");
     const favouritesEmpty = document.getElementById("favouritesEmpty");
     const favouritesCount = document.getElementById("favouritesCount");
+    const tabBadgeFavourites = document.getElementById("tabBadgeFavourites");
     let favouriteToolIds = [];
     try {
       const savedFavourites = JSON.parse(localStorage.getItem(FAVOURITES_STORAGE_KEY) || "[]");
@@ -1094,6 +2535,7 @@
       favouritesGrid.replaceChildren();
       const favouriteCards = favouriteToolIds.map(id => allToolCards.find(card => card.dataset.tool === id)).filter(Boolean);
       if (favouritesCount) favouritesCount.textContent = `${favouriteCards.length} saved`;
+      if (tabBadgeFavourites) tabBadgeFavourites.textContent = `${favouriteCards.length}`;
       if (favouritesEmpty) favouritesEmpty.hidden = favouriteCards.length > 0;
       favouriteCards.forEach(card => {
         const shortcut = document.createElement("button");
@@ -1113,6 +2555,7 @@
         copy.append(name, hint);
         shortcut.append(icon, copy);
         shortcut.addEventListener("click", () => {
+          switchDashboardTab("search");
           card.scrollIntoView({ behavior: "smooth", block: "center" });
           card.click();
         });
@@ -1257,7 +2700,6 @@
         }
       }
 
-      // Require all words for multi-word searches to avoid unrelated partial results.
       if (matchedTerms !== terms.length) return 0;
       return score + matchedTerms * 2;
     }
@@ -1283,7 +2725,6 @@
         }
       });
 
-      // A subtle outline marks the closest match; it does not select or open the card.
       if (hasQuery && bestCard && visibleCount > 1) bestCard.classList.add("search-best-match");
 
       toolCategoryBlocks.forEach(category => {
@@ -1331,6 +2772,7 @@
       const isTyping = target && (target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName));
       if (event.key === "/" && !isTyping && toolSearchInput) {
         event.preventDefault();
+        switchDashboardTab("search");
         toolSearchInput.focus();
       }
     });
@@ -1342,8 +2784,8 @@
     });
     filterToolDirectory();
 
+    // GEMINI AI INTEGRATION
     async function askGemini(prompt) {
-      // Enforce English output for every text-generation tool, even when the topic is entered in Urdu or Roman Urdu.
       const englishOnlyPrompt = [
         "MANDATORY OUTPUT LANGUAGE: ENGLISH ONLY.",
         "Write the entire answer in clear, natural English. Do not use Urdu script, Roman Urdu, Hindi, or mixed-language wording.",
@@ -1426,12 +2868,13 @@
     document.getElementById("copyButton").addEventListener("click", async () => {
       try {
         await navigator.clipboard.writeText(result.textContent);
-        message.textContent = "✓ Result copied.";
+        message.textContent = "✓ Result copied to clipboard.";
       } catch {
-        message.textContent = "Copy isn't available here. Select the result text and copy it.";
+        message.textContent = "Copy isn't available here. Select the result text and copy it manually.";
       }
     });
 
+    // VIDEO DOWNLOADER INTEGRATION
     downloaderForm.addEventListener("submit", async event => {
       event.preventDefault();
 
@@ -1456,7 +2899,6 @@
         let formats = data.formats || data.data?.formats || [];
         if (!formats.length) throw new Error("No formats were returned for this video.");
 
-        // For YouTube, show only the three formats confirmed to work.
         let isYouTube = false;
         try {
           const parsedVideoUrl = new URL(url);
@@ -1522,8 +2964,6 @@
               contentType.startsWith("audio/") ||
               contentType.includes("application/octet-stream");
 
-            // TikTok audio downloads are returned as audio/mpeg, not video/*.
-            // Handle both audio and video streams as files instead of trying to parse them as JSON.
             if (isBinaryResponse) {
               if (!downloadResponse.ok) throw new Error("The media download failed. Please try again.");
 
@@ -1602,10 +3042,7 @@
       }
     });
 
-
-
-
-    // AI IMAGE GENERATOR — run in this normal JavaScript block (not inside JSON-LD).
+    // AI IMAGE GENERATOR
     const imageMode = document.getElementById("imageMode");
     const imageUploadArea = document.getElementById("imageUploadArea");
     const imageFile = document.getElementById("imageFile");
@@ -1627,7 +3064,6 @@
     }
 
     function getImagePayload(data) {
-      // Cloudflare FLUX.2 Klein returns { image: "base64..." }.
       return data?.image || data?.result?.image || data?.result?.images?.[0] || data?.images?.[0] || null;
     }
 
@@ -1731,7 +3167,7 @@
       });
     }
 
-    // AI LOGO GENERATOR — reuses the existing generate_image Worker action.
+    // AI LOGO GENERATOR
     const logoBrandName = document.getElementById("logoBrandName");
     const logoDescription = document.getElementById("logoDescription");
     const logoStyle = document.getElementById("logoStyle");
@@ -1824,8 +3260,7 @@
       }
     });
 
-    // AI THUMBNAIL GENERATOR — reuses the existing Cloudflare generate_image action.
-    // The model creates the visual background; Canvas places the user headline exactly as typed.
+    // AI THUMBNAIL GENERATOR
     const thumbnailHeadline = document.getElementById("thumbnailHeadline");
     const thumbnailTopic = document.getElementById("thumbnailTopic");
     const thumbnailStyle = document.getElementById("thumbnailStyle");
@@ -1872,7 +3307,6 @@
       const ctx = canvas.getContext("2d");
       if (!ctx) throw new Error("Your browser could not start thumbnail processing.");
 
-      // Fill the 16:9 frame with a crop of the generated landscape artwork.
       const scale = Math.max(canvas.width / sourceImage.naturalWidth, canvas.height / sourceImage.naturalHeight);
       const drawWidth = sourceImage.naturalWidth * scale;
       const drawHeight = sourceImage.naturalHeight * scale;
@@ -1880,7 +3314,6 @@
       const drawY = (canvas.height - drawHeight) / 2;
       ctx.drawImage(sourceImage, drawX, drawY, drawWidth, drawHeight);
 
-      // Add a subtle dark gradient behind the exact headline for contrast.
       const isRight = position === "right";
       const gradient = isRight
         ? ctx.createLinearGradient(canvas.width, 0, canvas.width - 760, 0)
@@ -1891,7 +3324,6 @@
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Choose the largest headline size that fits in up to three lines.
       const maxWidth = 520;
       const maxLines = 3;
       let fontSize = 86;
@@ -2030,7 +3462,7 @@
       }
     });
 
-    // AI VOICE GENERATOR — communicates with the Worker; the API key stays server-side.
+    // AI VOICE GENERATOR
     const voiceText = document.getElementById("voiceText");
     const voiceSelect = document.getElementById("voiceSelect");
     const voiceGenerateButton = document.getElementById("voiceGenerateButton");
@@ -2128,7 +3560,7 @@
       }
     });
 
-    // Lightweight image upscaler: browser Canvas only (no AI model, no API, no GPU shaders).
+    // LIGHTWEIGHT IMAGE UPSCALER
     const upscaleFile = document.getElementById("upscaleFile");
     const upscaleFactor = document.getElementById("upscaleFactor");
     const upscaleButton = document.getElementById("upscaleButton");
@@ -2206,8 +3638,7 @@
       }
     });
 
-
-    // Free, lightweight browser-only image enhancer.
+    // FREE IMAGE ENHANCER
     const enhancerFile = document.getElementById("enhancerFile");
     const enhancerPreview = document.getElementById("enhancerPreview");
     const enhancerMessage = document.getElementById("enhancerMessage");
@@ -2313,9 +3744,7 @@
       }
     });
 
-
-
-    // Free browser-only image compressor. No API or server upload.
+    // FREE IMAGE COMPRESSOR
     const compressorFile = document.getElementById("compressorFile");
     const compressorQuality = document.getElementById("compressorQuality");
     const compressorQualityValue = document.getElementById("compressorQualityValue");
@@ -2380,7 +3809,6 @@
         canvas.height = compressorImage.naturalHeight;
         const ctx = canvas.getContext("2d");
         if (!ctx) throw new Error("Your browser could not start image processing.");
-        // JPG has no transparency, so transparent areas are placed on white.
         ctx.fillStyle = "#ffffff";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(compressorImage, 0, 0);
@@ -2410,8 +3838,7 @@
       }
     });
 
-
-    // FREE, browser-only AI background remover (no Worker/API calls).
+    // AI BACKGROUND REMOVER (CLIENT-SIDE)
     const bgRemoveFile = document.getElementById("bgRemoveFile");
     const bgRemoveButton = document.getElementById("bgRemoveButton");
     const bgRemovePreview = document.getElementById("bgRemovePreview");
@@ -2488,8 +3915,8 @@
           }
         });
         bgRemoveResultUrl = URL.createObjectURL(output.blob);
-        bgRemoveResult.innerHTML = `<h3>Background removed!</h3><img src="${bgRemoveResultUrl}" alt="Transparent background result" style="max-width:100%;max-height:420px;border-radius:14px;background:repeating-conic-gradient(#ddd 0% 25%,#fff 0% 50%) 50%/20px 20px"><p><a class="primary" href="${bgRemoveResultUrl}" download="TrivexaAI-background-removed.png" style="display:inline-block;text-decoration:none;margin-top:14px">⬇️ Download Transparent PNG</a></p>`;
-        bgRemoveMessage.textContent = "Done! Your image stayed on your device.";
+        bgRemoveResult.innerHTML = `<h3>Background removed!</h3><img src="${bgRemoveResultUrl}" alt="Transparent background result" style="max-width:100%;max-height:420px;border-radius:14px;background:repeating-conic-gradient(#22183c 0% 25%, #18112c 0% 50%) 50%/20px 20px;border:1px solid var(--border)"><p><a class="primary" href="${bgRemoveResultUrl}" download="TrivexaAI-background-removed.png" style="display:inline-block;text-decoration:none;margin-top:14px">⬇️ Download Transparent PNG</a></p>`;
+        bgRemoveMessage.textContent = "Done! Your image stayed completely private on your device.";
         void saveRecentResult({ kind: "image", tool: "AI Background Remover", title: "Background removed", blob: output.blob, filename: "TrivexaAI-background-removed.png" });
       } catch (error) {
         console.error("Background removal error:", error);
@@ -2499,16 +3926,20 @@
         bgRemoveButton.textContent = "Remove Background — Free";
       }
     });
-
   </script>
 
+  <!-- URL HASH ROUTER FOR SEO TOOL PAGES & DIRECT ACCESS -->
   <script>
-    // Open the matching existing tool when a visitor follows a link from an SEO guide page.
     (() => {
       const match = /^#tool-([a-z0-9-]+)$/.exec(window.location.hash);
       if (!match) return;
       const card = document.querySelector('.tool[data-tool="' + match[1] + '"]');
-      if (card) card.click();
+      if (card) {
+        if (typeof switchDashboardTab === "function") {
+          switchDashboardTab("search");
+        }
+        card.click();
+      }
     })();
   </script>
 
