@@ -2527,6 +2527,9 @@
       panelSearch?.classList.toggle("active", isSearch);
       panelFavourites?.classList.toggle("active", isFavourites);
       panelHistory?.classList.toggle("active", isHistory);
+
+      // Load IndexedDB history only when the user opens the History tab.
+      if (isHistory) renderRecentResults();
     }
 
     tabNavSearch?.addEventListener("click", () => switchDashboardTab("search"));
@@ -2636,7 +2639,7 @@
         transaction.objectStore(RECENT_STORE_NAME).put(record);
         await recentTransactionDone(transaction);
         await trimRecentResults();
-        await renderRecentResults();
+        if (panelHistory?.classList.contains("active")) await renderRecentResults();
         if (recentResultsStatus) recentResultsStatus.textContent = "Latest result saved on this device.";
       } catch (error) {
         console.warn("Recent Results could not save this item:", error);
@@ -2806,7 +2809,7 @@
       }
     });
 
-    renderRecentResults();
+    // Recent Results are loaded on demand when the History tab is opened.
 
     const toolInfo = {
       titles: {
