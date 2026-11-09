@@ -1495,17 +1495,30 @@
     .prompt-section-heading {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      margin: 0 0 14px;
-      padding: 8px 15px;
-      border: 1px solid rgba(232, 121, 249, 0.48);
+      gap: 6px;
+      margin: 0 0 9px;
+      padding: 4px 10px;
+      border: 1px solid rgba(232, 121, 249, 0.38);
       border-radius: 999px;
-      color: #fff;
-      background: linear-gradient(100deg, rgba(155, 108, 255, 0.30), rgba(232, 121, 249, 0.22));
-      box-shadow: 0 5px 18px rgba(155, 108, 255, 0.14);
+      color: #f7efff;
+      background: linear-gradient(100deg, rgba(155, 108, 255, 0.19), rgba(232, 121, 249, 0.13));
+      font-size: 11px;
+      line-height: 1.35;
+      font-weight: 800;
+      letter-spacing: 1px;
+    }
+    .field-label-highlight {
+      display: inline-flex;
+      align-items: center;
+      width: fit-content;
+      margin-bottom: 8px;
+      padding: 3px 9px;
+      border-left: 2px solid var(--pink);
+      border-radius: 5px;
+      color: #f2e8ff;
+      background: rgba(155, 108, 255, 0.10);
       font-size: 13px;
-      font-weight: 900;
-      letter-spacing: 1.4px;
+      font-weight: 750;
     }
 
     .download-cta, .logo-download-cta {
@@ -2664,7 +2677,7 @@
       </div>
 
       <div class="field-group">
-        <label for="logoBrandName">Brand or channel name (exact spelling)</label>
+        <label class="field-label-highlight" for="logoBrandName">✦ Brand or channel name (exact spelling)</label>
         <input id="logoBrandName" maxlength="40" placeholder="e.g. TrivexaAI" autocomplete="organization">
       </div>
 
@@ -2727,7 +2740,7 @@
 
       <div class="field-group">
         <div class="field-label">
-          <span>Headline text (exact spelling)</span>
+          <span class="field-label-highlight">✦ Headline text (exact spelling)</span>
           <span class="field-hint-badge">Max 70 chars</span>
         </div>
         <input id="thumbnailHeadline" maxlength="70" placeholder="e.g. THIS CHANGES EVERYTHING!">
