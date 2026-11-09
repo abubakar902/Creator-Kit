@@ -1761,6 +1761,238 @@
         animation-duration: 0.01ms !important;
       }
     }
+
+    /* =========================================================
+       TRIVEXAAI VISUAL POLISH — ACCESSIBILITY & EASY CONTROLS
+       CSS-only layer: keeps existing tools and event handlers intact.
+       ========================================================= */
+    :root {
+      --surface-soft: rgba(255, 255, 255, 0.045);
+      --surface-raised: rgba(35, 24, 61, 0.88);
+      --control-ring: rgba(192, 159, 255, 0.32);
+    }
+
+    body {
+      background-attachment: fixed;
+      text-rendering: optimizeLegibility;
+    }
+
+    ::selection {
+      color: #100b20;
+      background: #d7b9ff;
+    }
+
+    a:focus-visible,
+    button:focus-visible,
+    input:focus-visible,
+    textarea:focus-visible,
+    select:focus-visible {
+      outline: 2px solid var(--purple-light);
+      outline-offset: 3px;
+    }
+
+    button {
+      touch-action: manipulation;
+    }
+
+    button:disabled,
+    button[aria-disabled="true"] {
+      opacity: 0.58;
+      cursor: not-allowed;
+      transform: none !important;
+      filter: saturate(0.65);
+      box-shadow: none !important;
+    }
+
+    button.primary,
+    button.secondary,
+    .btn-reset-form,
+    .hero-cta,
+    .tab-btn,
+    .category-chip,
+    .workspace-close-btn {
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    button.primary {
+      min-height: 52px;
+      font-size: 14.5px;
+      letter-spacing: 0;
+      position: relative;
+      isolation: isolate;
+    }
+
+    button.primary:active:not(:disabled),
+    button.secondary:active:not(:disabled),
+    .btn-reset-form:active,
+    .hero-cta:active {
+      transform: translateY(1px) scale(0.99);
+    }
+
+    button.secondary {
+      min-height: 44px;
+      font-size: 13px;
+    }
+
+    .btn-reset-form {
+      min-height: 48px;
+    }
+
+    .workspace {
+      border-color: rgba(177, 139, 255, 0.42);
+      box-shadow:
+        0 26px 72px rgba(5, 2, 16, 0.62),
+        0 0 0 1px rgba(192, 159, 255, 0.09) inset,
+        0 0 42px rgba(115, 70, 210, 0.08);
+    }
+
+    .workspace-header-bar {
+      border-bottom-color: rgba(192, 159, 255, 0.2);
+    }
+
+    .field-label,
+    label {
+      color: #f1eaff;
+    }
+
+    input:not([type="range"]):not([type="checkbox"]):not([type="radio"]),
+    textarea,
+    select {
+      min-height: 48px;
+      border-color: rgba(177, 139, 255, 0.32);
+      background-color: rgba(8, 4, 18, 0.78);
+    }
+
+    input:not([type="range"]):not([type="checkbox"]):not([type="radio"]):hover,
+    textarea:hover,
+    select:hover {
+      border-color: rgba(192, 159, 255, 0.62);
+    }
+
+    input::placeholder,
+    textarea::placeholder {
+      color: #9589ad;
+      opacity: 1;
+    }
+
+    .result-head {
+      border-bottom-color: rgba(192, 159, 255, 0.22);
+    }
+
+    #result {
+      border-color: rgba(177, 139, 255, 0.34);
+    }
+
+    .tool-explorer,
+    .showcase-card {
+      box-shadow: var(--shadow-card), 0 0 34px rgba(155, 108, 255, 0.07);
+    }
+
+    .tabs-nav-bar {
+      scrollbar-width: thin;
+      scrollbar-color: rgba(177, 139, 255, 0.38) transparent;
+    }
+
+    .tab-btn:focus-visible,
+    .category-chip:focus-visible {
+      outline-offset: -2px;
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .workspace,
+      .tool-explorer,
+      .showcase-card {
+        transition: border-color 0.22s ease, box-shadow 0.22s ease;
+      }
+      .workspace:hover {
+        border-color: rgba(192, 159, 255, 0.56);
+      }
+    }
+
+    @media (max-width: 650px) {
+      main {
+        width: min(100% - 28px, 1200px);
+      }
+
+      .workspace {
+        padding: 20px 16px;
+        margin-bottom: 36px;
+        border-radius: 19px;
+      }
+
+      .workspace-header-bar {
+        gap: 10px;
+        margin-bottom: 20px;
+        padding-bottom: 16px;
+      }
+
+      .workspace h2 {
+        font-size: clamp(20px, 6vw, 25px);
+        gap: 8px;
+      }
+
+      .workspace-intro {
+        font-size: 13px;
+      }
+
+      .row {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 4px;
+      }
+
+      .generator-actions-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+      }
+
+      .generator-actions-row button.primary,
+      .generator-actions-row .btn-reset-form {
+        width: 100%;
+      }
+
+      .result-head {
+        align-items: flex-start;
+        margin-top: 26px;
+      }
+
+      .result-actions-group {
+        width: 100%;
+      }
+
+      .result-actions-group button {
+        min-height: 42px;
+        flex: 1 1 auto;
+      }
+
+      #result {
+        padding: 17px;
+        font-size: 14px;
+      }
+
+      .field-group {
+        margin-top: 16px;
+      }
+
+      input:not([type="range"]):not([type="checkbox"]):not([type="radio"]),
+      textarea,
+      select {
+        font-size: 16px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
   </style>
 </head>
 <body>
