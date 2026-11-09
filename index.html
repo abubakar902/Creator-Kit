@@ -847,6 +847,68 @@
       box-shadow: 0 0 0 2px rgba(155, 108, 255, 0.35), 0 12px 30px rgba(0, 0, 0, 0.4);
     }
 
+    /* RECENTLY OPENED TOOLS — lightweight local shortcuts */
+    .recently-opened-section {
+      margin: 0 0 28px;
+      padding: clamp(18px, 3vw, 24px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      background: linear-gradient(145deg, rgba(29, 20, 52, 0.82), rgba(19, 13, 36, 0.92));
+    }
+    .recently-opened-section[hidden] { display: none !important; }
+    .recently-opened-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .recently-opened-heading p {
+      margin: 3px 0 0;
+      color: var(--text-secondary);
+      font-size: 12px;
+    }
+    .recently-opened-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .recently-opened-tool {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+      padding: 12px;
+      text-align: left;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      background: rgba(255, 255, 255, 0.035);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .recently-opened-tool:hover {
+      border-color: var(--purple-light);
+      background: rgba(155, 108, 255, 0.12);
+      transform: translateY(-2px);
+    }
+    .recently-opened-tool .emoji {
+      flex: 0 0 auto;
+      font-size: 21px;
+    }
+    .recently-opened-tool strong {
+      display: block;
+      overflow-wrap: anywhere;
+      font-size: 12px;
+      line-height: 1.35;
+    }
+    .recently-opened-tool small {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 10px;
+    }
+
     /* FAVOURITES SECTION (TAB 2) */
     .favourites-section {
       margin: 0 0 38px;
@@ -1799,6 +1861,19 @@
         </button>
       </nav>
     </div>
+
+    <!-- PERSONAL QUICK ACCESS: RECENTLY OPENED TOOLS -->
+    <section class="recently-opened-section" id="recentlyOpenedSection" aria-labelledby="recentlyOpenedTitle" hidden>
+      <div class="recently-opened-heading">
+        <div>
+          <div class="section-kicker">QUICK ACCESS</div>
+          <h2 class="section-title" id="recentlyOpenedTitle">↻ Recently Opened</h2>
+          <p>Your last-used tools, saved only in this browser.</p>
+        </div>
+        <button class="secondary" id="clearRecentlyOpened" type="button">Clear</button>
+      </div>
+      <div class="recently-opened-grid" id="recentlyOpenedGrid" aria-live="polite"></div>
+    </section>
 
     <!-- TAB PANEL 1: SEARCH & BROWSE TOOLS -->
     <div class="tab-panel active" id="panelSearch" role="tabpanel" aria-labelledby="tabNavSearch">
@@ -3086,6 +3161,80 @@
 
     updateFavouriteButtons();
     renderFavouriteTools();
+
+    // RECENTLY OPENED TOOLS: keep the last 4 shortcuts locally on this device.
+    const RECENT_TOOLS_STORAGE_KEY = "trivexaai-recently-opened-tools-v1";
+    const recentlyOpenedSection = document.getElementById("recentlyOpenedSection");
+    const recentlyOpenedGrid = document.getElementById("recentlyOpenedGrid");
+    const clearRecentlyOpenedButton = document.getElementById("clearRecentlyOpened");
+    let recentlyOpenedToolIds = [];
+    try {
+      const savedRecentTools = JSON.parse(localStorage.getItem(RECENT_TOOLS_STORAGE_KEY) || "[]");
+      if (Array.isArray(savedRecentTools)) {
+        recentlyOpenedToolIds = [...new Set(savedRecentTools.filter(id => allToolCards.some(card => card.dataset.tool === id)))].slice(0, 4);
+      }
+    } catch (error) {
+      console.warn("Recently opened tools could not be loaded:", error);
+    }
+
+    function persistRecentlyOpenedTools() {
+      try {
+        localStorage.setItem(RECENT_TOOLS_STORAGE_KEY, JSON.stringify(recentlyOpenedToolIds));
+      } catch (error) {
+        console.warn("Recently opened tools could not be saved:", error);
+      }
+    }
+
+    function renderRecentlyOpenedTools() {
+      if (!recentlyOpenedSection || !recentlyOpenedGrid) return;
+      recentlyOpenedGrid.replaceChildren();
+      recentlyOpenedToolIds.forEach(id => {
+        const card = allToolCards.find(item => item.dataset.tool === id);
+        if (!card) return;
+        const shortcut = document.createElement("button");
+        shortcut.type = "button";
+        shortcut.className = "recently-opened-tool";
+        const emoji = document.createElement("span");
+        emoji.className = "emoji";
+        emoji.textContent = card.querySelector(".emoji")?.textContent || "✦";
+        const copy = document.createElement("span");
+        const title = document.createElement("strong");
+        title.textContent = card.querySelector("strong")?.textContent || id;
+        const hint = document.createElement("small");
+        hint.textContent = "Open tool →";
+        copy.append(title, hint);
+        shortcut.append(emoji, copy);
+        shortcut.addEventListener("click", () => {
+          switchDashboardTab("search");
+          toolSearchInput.value = "";
+          filterToolDirectory();
+          const targetCard = allToolCards.find(item => item.dataset.tool === id);
+          if (targetCard) {
+            targetCard.scrollIntoView({ behavior: "smooth", block: "center" });
+            targetCard.click();
+          }
+        });
+        recentlyOpenedGrid.appendChild(shortcut);
+      });
+      recentlyOpenedSection.hidden = recentlyOpenedToolIds.length === 0;
+    }
+
+    function rememberOpenedTool(toolId) {
+      if (!toolId || !allToolCards.some(card => card.dataset.tool === toolId)) return;
+      recentlyOpenedToolIds = [toolId, ...recentlyOpenedToolIds.filter(id => id !== toolId)].slice(0, 4);
+      persistRecentlyOpenedTools();
+      renderRecentlyOpenedTools();
+    }
+
+    allToolCards.forEach(card => {
+      card.addEventListener("click", () => rememberOpenedTool(card.dataset.tool));
+    });
+    clearRecentlyOpenedButton?.addEventListener("click", () => {
+      recentlyOpenedToolIds = [];
+      persistRecentlyOpenedTools();
+      renderRecentlyOpenedTools();
+    });
+    renderRecentlyOpenedTools();
 
     const toolSearchAliases = {
       titles: ["title", "titles", "youtube title", "video title", "headline", "title maker", "clickable title", "yt title", "youtube ke title", "video ka title", "title banana"],
