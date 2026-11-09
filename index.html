@@ -1492,7 +1492,7 @@
       font-size: 12px;
       margin-top: 7px;
     }
-    .logo-download-cta {
+    .download-cta, .logo-download-cta {
       display: flex;
       align-items: center;
       justify-content: center;
@@ -1513,18 +1513,18 @@
       text-decoration: none !important;
       transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
     }
-    .logo-download-cta::before { content: "⬇"; font-size: 21px; line-height: 1; }
-    .logo-download-cta:hover {
+    .download-cta::before, .logo-download-cta::before { content: "⬇"; font-size: 21px; line-height: 1; }
+    .download-cta:hover, .logo-download-cta:hover {
       transform: translateY(-3px);
       filter: brightness(1.08);
       box-shadow: 0 15px 36px rgba(232,121,249,0.34), 0 0 24px rgba(155,108,255,0.22);
     }
-    .logo-download-cta:focus-visible {
+    .download-cta:focus-visible, .logo-download-cta:focus-visible {
       outline: 3px solid var(--pink);
       outline-offset: 4px;
     }
     @media (max-width: 600px) {
-      .logo-download-cta { min-height: 58px; font-size: 15px; }
+      .download-cta, .logo-download-cta { min-height: 58px; font-size: 15px; }
       .prompt-mode-panel { padding: 14px; }
     }
 
@@ -2591,7 +2591,7 @@
 
       <div class="generator-actions-row">
         <button class="secondary btn-reset-form" id="enhancerReset" type="button">↺ Reset Sliders</button>
-        <button class="primary" id="enhancerDownload" type="button" disabled>⬇️ Download Enhanced Image</button>
+        <button class="primary download-cta" id="enhancerDownload" type="button" disabled>Download Enhanced Image</button>
       </div>
       <div id="enhancerMessage" role="status" aria-live="polite"></div>
     </section>
@@ -3221,7 +3221,7 @@
             const fileUrl = URL.createObjectURL(item.blob);
             recentPreviewUrls.add(fileUrl);
             const download = document.createElement("a");
-            download.className = "recent-download";
+            download.className = "recent-download download-cta";
             download.href = fileUrl;
             download.download = item.filename || "TrivexaAI-result";
             download.textContent = item.kind === "audio" ? "Download MP3" : "Download image";
@@ -3951,7 +3951,7 @@
 
         const downloadButton = document.createElement("button");
         downloadButton.type = "button";
-        downloadButton.className = "primary";
+        downloadButton.className = "primary download-cta";
         downloadButton.textContent = "⚡ Get Download Link";
         downloadButton.style.marginTop = "14px";
         downloadOptions.appendChild(downloadButton);
@@ -4043,7 +4043,7 @@
 
             downloadButton.dataset.readyUrl = parsedReadyUrl.href;
             downloadButton.disabled = false;
-            downloadButton.textContent = "⬇️ Download Now";
+            downloadButton.textContent = "Download Now";
             downloadMessage.textContent = "Your link is ready. Click Download Now to continue.";
           } catch (error) {
             console.error("Video download error:", error);
@@ -4169,7 +4169,7 @@
           const downloadLink = document.createElement("a");
           downloadLink.href = imageUrl;
           downloadLink.download = `TrivexaAI-${Date.now()}.png`;
-          downloadLink.className = "primary";
+          downloadLink.className = "download-cta";
           downloadLink.textContent = "⬇️ Download Image";
           downloadLink.style.cssText = "display:inline-block;text-decoration:none;margin-top:16px";
           resultBox.append(resultLabel, resultImg, downloadLink);
@@ -4295,7 +4295,7 @@
         const download = document.createElement("a");
         download.href = logoUrl;
         download.download = `TrivexaAI-${brandName.replace(/[^a-z0-9_-]/gi, "-").slice(0, 35) || "logo"}.png`;
-        download.className = "logo-download-cta";
+        download.className = "download-cta logo-download-cta";
         download.textContent = "Download Logo PNG";
         logoResult.append(heading, image, download);
         logoMessage.textContent = "✓ Your logo concept is ready. Check the spelling before downloading.";
@@ -4524,8 +4524,8 @@
         const download = document.createElement("a");
         download.href = thumbnailOutputUrl;
         download.download = "TrivexaAI-YouTube-Thumbnail-1280x720.png";
-        download.className = "primary";
-        download.textContent = "⬇️ Download Thumbnail PNG";
+        download.className = "download-cta";
+        download.textContent = "Download Thumbnail PNG";
         download.style.cssText = "display:inline-flex;text-decoration:none;margin-top:14px";
         thumbnailResult.append(heading, preview, download);
         thumbnailMessage.textContent = "✓ Your thumbnail is ready. The headline was added exactly as entered.";
@@ -4622,7 +4622,7 @@
         const downloadLink = document.createElement("a");
         downloadLink.href = voiceAudioUrl;
         downloadLink.download = "TrivexaAI-Voice.mp3";
-        downloadLink.className = "primary";
+        downloadLink.className = "download-cta";
         downloadLink.textContent = "⬇️ Download MP3";
         downloadLink.style.cssText = "display:inline-flex;text-decoration:none;margin-top:14px";
         voiceResult.append(player, downloadLink);
@@ -4702,7 +4702,7 @@
         const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/png"));
         if (!blob) throw new Error("Could not create the enlarged image.");
         upscaleResultUrl = URL.createObjectURL(blob);
-        upscaleResult.innerHTML = `<h3>Image enlarged successfully!</h3><p>${width} × ${height} pixels</p><img src="${upscaleResultUrl}" alt="Enlarged image" style="max-width:100%;max-height:500px;border-radius:14px;object-fit:contain"><p><a class="primary" href="${upscaleResultUrl}" download="TrivexaAI-upscaled-${factor}x.png" style="display:inline-block;text-decoration:none;margin-top:14px">⬇️ Download Enlarged Image</a></p>`;
+        upscaleResult.innerHTML = `<h3>Image enlarged successfully!</h3><p>${width} × ${height} pixels</p><img src="${upscaleResultUrl}" alt="Enlarged image" style="max-width:100%;max-height:500px;border-radius:14px;object-fit:contain"><p><a class="download-cta" href="${upscaleResultUrl}" download="TrivexaAI-upscaled-${factor}x.png">Download Enlarged Image</a></p>`;
         upscaleMessage.textContent = `Done! Your image was enlarged by ${factor}×. This is a lightweight resize, not AI detail restoration.`;
         void saveRecentResult({ kind: "image", tool: "Image Upscaler", title: `Upscaled image (${factor}×)`, blob, filename: `TrivexaAI-upscaled-${factor}x.png` });
       } catch (error) {
@@ -4901,8 +4901,8 @@
         link.href = compressorOutputUrl;
         link.download = "TrivexaAI-compressed.jpg";
         link.textContent = "⬇️ Download Compressed JPG";
-        link.className = "primary";
-        link.style.display = "inline-block";
+        link.className = "download-cta";
+        link.style.display = "flex";
         link.style.marginTop = "10px";
         compressorResult.innerHTML = `<p><strong>Original:</strong> ${originalKB.toFixed(1)} KB</p><p><strong>Compressed:</strong> ${outputKB.toFixed(1)} KB</p><p><strong>Size reduced:</strong> ${saved.toFixed(1)}%</p>`;
         compressorResult.appendChild(link);
@@ -4992,7 +4992,7 @@
           }
         });
         bgRemoveResultUrl = URL.createObjectURL(output.blob);
-        bgRemoveResult.innerHTML = `<h3>Background removed!</h3><img src="${bgRemoveResultUrl}" alt="Transparent background result" style="max-width:100%;max-height:420px;border-radius:14px;background:repeating-conic-gradient(#22183c 0% 25%, #18112c 0% 50%) 50%/20px 20px;border:1px solid var(--border)"><p><a class="primary" href="${bgRemoveResultUrl}" download="TrivexaAI-background-removed.png" style="display:inline-block;text-decoration:none;margin-top:14px">⬇️ Download Transparent PNG</a></p>`;
+        bgRemoveResult.innerHTML = `<h3>Background removed!</h3><img src="${bgRemoveResultUrl}" alt="Transparent background result" style="max-width:100%;max-height:420px;border-radius:14px;background:repeating-conic-gradient(#22183c 0% 25%, #18112c 0% 50%) 50%/20px 20px;border:1px solid var(--border)"><p><a class="download-cta" href="${bgRemoveResultUrl}" download="TrivexaAI-background-removed.png">Download Transparent PNG</a></p>`;
         bgRemoveMessage.textContent = "Done! Your image stayed completely private on your device.";
         void saveRecentResult({ kind: "image", tool: "AI Background Remover", title: "Background removed", blob: output.blob, filename: "TrivexaAI-background-removed.png" });
       } catch (error) {
