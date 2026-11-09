@@ -1492,6 +1492,22 @@
       font-size: 12px;
       margin-top: 7px;
     }
+    .prompt-section-heading {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 14px;
+      padding: 8px 15px;
+      border: 1px solid rgba(232, 121, 249, 0.48);
+      border-radius: 999px;
+      color: #fff;
+      background: linear-gradient(100deg, rgba(155, 108, 255, 0.30), rgba(232, 121, 249, 0.22));
+      box-shadow: 0 5px 18px rgba(155, 108, 255, 0.14);
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 1.4px;
+    }
+
     .download-cta, .logo-download-cta {
       display: flex;
       align-items: center;
@@ -2684,6 +2700,7 @@
 
       <div id="logoPromptMode" class="prompt-mode-panel" hidden>
         <div class="field-group">
+          <div class="prompt-section-heading">✍️ PROMPT</div>
           <label for="logoCustomPrompt">Describe the logo you want</label>
           <textarea id="logoCustomPrompt" maxlength="650" placeholder="e.g. A premium futuristic purple fox symbol made from clean geometric lines, with a modern technology feel."></textarea>
           <p class="workspace-intro prompt-help">Your brand name will still be included separately with exact-spelling instructions. Be specific about the symbol, style and colours.</p>
@@ -2763,6 +2780,7 @@
 
       <div id="thumbnailPromptMode" class="prompt-mode-panel" hidden>
         <div class="field-group">
+          <div class="prompt-section-heading">✍️ PROMPT</div>
           <label for="thumbnailCustomPrompt">Describe the thumbnail background you want</label>
           <textarea id="thumbnailCustomPrompt" maxlength="700" placeholder="e.g. A dramatic cricket stadium at night, a fast bowler in action on the right, bright floodlights, energetic sports photography."></textarea>
           <p class="workspace-intro prompt-help">Your headline is added separately with exact spelling. Describe the background, subject, lighting and mood. Do not include text in this prompt.</p>
