@@ -1473,6 +1473,61 @@
       transform: translateY(-1px);
     }
 
+    .prompt-mode-toggle {
+      width: 100%;
+      min-height: 48px;
+      margin: 14px 0 16px;
+      justify-content: center;
+      font-weight: 800;
+    }
+    .prompt-mode-panel {
+      margin: 0 0 18px;
+      padding: 18px;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-md);
+      background: linear-gradient(145deg, rgba(155, 108, 255, 0.10), rgba(232, 121, 249, 0.05));
+    }
+    .prompt-mode-panel[hidden] { display: none !important; }
+    .prompt-help {
+      font-size: 12px;
+      margin-top: 7px;
+    }
+    .logo-download-cta {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      width: min(100%, 520px);
+      min-height: 62px;
+      margin: 20px auto 0;
+      padding: 16px 24px;
+      border: 1px solid rgba(255,255,255,0.55);
+      border-radius: 16px;
+      color: #160b2b !important;
+      background: linear-gradient(105deg, #c4b5fd 0%, #e879f9 58%, #ffd1f7 100%);
+      box-shadow: 0 10px 30px rgba(155,108,255,0.30), 0 0 0 1px rgba(255,255,255,0.08) inset;
+      font-size: 16px;
+      font-weight: 850;
+      letter-spacing: 0.1px;
+      text-align: center;
+      text-decoration: none !important;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+    }
+    .logo-download-cta::before { content: "⬇"; font-size: 21px; line-height: 1; }
+    .logo-download-cta:hover {
+      transform: translateY(-3px);
+      filter: brightness(1.08);
+      box-shadow: 0 15px 36px rgba(232,121,249,0.34), 0 0 24px rgba(155,108,255,0.22);
+    }
+    .logo-download-cta:focus-visible {
+      outline: 3px solid var(--pink);
+      outline-offset: 4px;
+    }
+    @media (max-width: 600px) {
+      .logo-download-cta { min-height: 58px; font-size: 15px; }
+      .prompt-mode-panel { padding: 14px; }
+    }
+
     /* Generator Action Toolbar */
     .generator-actions-row {
       display: flex;
@@ -2593,10 +2648,20 @@
       </div>
 
       <div class="field-group">
-        <label for="logoBrandName">Brand or channel name</label>
+        <label for="logoBrandName">Brand or channel name (exact spelling)</label>
         <input id="logoBrandName" maxlength="40" placeholder="e.g. TrivexaAI" autocomplete="organization">
       </div>
 
+      <button type="button" class="secondary prompt-mode-toggle" id="logoPromptToggle" aria-expanded="false" aria-controls="logoPromptMode">✨ Use a Specific Prompt</button>
+      <div id="logoPromptMode" class="prompt-mode-panel" hidden>
+        <div class="field-group">
+          <label for="logoCustomPrompt">Describe the logo you want</label>
+          <textarea id="logoCustomPrompt" maxlength="650" placeholder="e.g. A premium futuristic purple fox symbol made from clean geometric lines, with a modern technology feel."></textarea>
+          <p class="workspace-intro prompt-help">Your brand name will still be included separately with exact-spelling instructions. Be specific about the symbol, style and colours.</p>
+        </div>
+      </div>
+
+      <div id="logoStandardOptions">
       <div class="field-group">
         <label for="logoDescription">What does your brand or company do?</label>
         <textarea id="logoDescription" maxlength="240" placeholder="e.g. Digital tools and generative AI workflows for next-generation content creators"></textarea>
@@ -2624,6 +2689,7 @@
         <label for="logoTagline">Tagline (optional)</label>
         <input id="logoTagline" maxlength="50" placeholder="e.g. Create Without Limits">
       </div>
+      </div>
 
       <button class="primary" id="logoGenerateButton" type="button">✨ Generate Logo</button>
       <div id="logoMessage" role="status" aria-live="polite"></div>
@@ -2649,6 +2715,16 @@
         <input id="thumbnailHeadline" maxlength="70" placeholder="e.g. THIS CHANGES EVERYTHING!">
       </div>
 
+      <button type="button" class="secondary prompt-mode-toggle" id="thumbnailPromptToggle" aria-expanded="false" aria-controls="thumbnailPromptMode">✨ Use a Specific Prompt</button>
+      <div id="thumbnailPromptMode" class="prompt-mode-panel" hidden>
+        <div class="field-group">
+          <label for="thumbnailCustomPrompt">Describe the thumbnail background you want</label>
+          <textarea id="thumbnailCustomPrompt" maxlength="700" placeholder="e.g. A dramatic cricket stadium at night, a fast bowler in action on the right, bright floodlights, energetic sports photography."></textarea>
+          <p class="workspace-intro prompt-help">Your headline is added separately with exact spelling. Describe the background, subject, lighting and mood. Do not include text in this prompt.</p>
+        </div>
+      </div>
+
+      <div id="thumbnailStandardOptions">
       <div class="field-group">
         <label for="thumbnailTopic">Video topic</label>
         <textarea id="thumbnailTopic" maxlength="300" placeholder="e.g. Detailed breakdown of new AI models breaking performance records"></textarea>
@@ -2690,6 +2766,7 @@
           <label for="thumbnailSubject">Main subject (optional)</label>
           <input id="thumbnailSubject" maxlength="120" placeholder="e.g. shocked tech reviewer holding glowing device">
         </div>
+      </div>
       </div>
 
       <button class="primary" id="thumbnailGenerateButton" type="button">✨ Generate Thumbnail</button>
@@ -4116,9 +4193,23 @@
     const logoStyle = document.getElementById("logoStyle");
     const logoColors = document.getElementById("logoColors");
     const logoTagline = document.getElementById("logoTagline");
+    const logoPromptToggle = document.getElementById("logoPromptToggle");
+    const logoPromptMode = document.getElementById("logoPromptMode");
+    const logoStandardOptions = document.getElementById("logoStandardOptions");
+    const logoCustomPrompt = document.getElementById("logoCustomPrompt");
+    let logoUsesCustomPrompt = false;
     const logoGenerateButton = document.getElementById("logoGenerateButton");
     const logoMessage = document.getElementById("logoMessage");
     const logoResult = document.getElementById("logoResult");
+
+    logoPromptToggle?.addEventListener("click", () => {
+      logoUsesCustomPrompt = !logoUsesCustomPrompt;
+      logoPromptMode.hidden = !logoUsesCustomPrompt;
+      logoStandardOptions.hidden = logoUsesCustomPrompt;
+      logoPromptToggle.setAttribute("aria-expanded", String(logoUsesCustomPrompt));
+      logoPromptToggle.textContent = logoUsesCustomPrompt ? "↩ Back to Standard Options" : "✨ Use a Specific Prompt";
+      logoMessage.textContent = "";
+    });
 
     logoGenerateButton?.addEventListener("click", async () => {
       const brandName = logoBrandName.value.trim();
@@ -4138,14 +4229,29 @@
         return;
       }
 
-      const logoPrompt = [
-        `Create one original ${style.toLowerCase()} logo for the brand named exactly: "${brandName}".`,
-        `Brand purpose: ${description}.`,
-        `Colour palette: ${colors}.`,
-        tagline ? `Include this exact tagline if readable: "${tagline}".` : "Do not add a tagline.",
-        "Design a clean, distinctive, scalable vector-style logo with a memorable symbol and carefully arranged brand lettering. Use simple shapes, crisp edges, strong contrast, balanced spacing and a centered composition.",
-        "Show only one finished logo on a plain, clean, light background. No mockup, no business card, no device, no extra words, no watermark, no border. Keep all text minimal and spell the brand name exactly as supplied. Do not add Urdu, Roman Urdu, Hindi or any extra non-English wording."
-      ].join(" ");
+      const customLogoDirection = logoCustomPrompt.value.trim();
+      if (logoUsesCustomPrompt && !customLogoDirection) {
+        logoMessage.textContent = "Please describe the logo you want in the prompt box.";
+        logoCustomPrompt.focus();
+        return;
+      }
+      const logoPrompt = logoUsesCustomPrompt
+        ? [
+            `Create one premium, original logo for the brand named exactly: "${brandName}".`,
+            `Creative direction: ${customLogoDirection}.`,
+            tagline ? `Include this exact tagline if it can be rendered clearly: "${tagline}".` : "Do not add a tagline.",
+            "Prioritize exceptional visual quality, clean composition, distinctive memorable symbolism, precise geometry, crisp edges, balanced spacing and professional brand identity design.",
+            `The brand name must be spelled exactly "${brandName}" with no missing, extra or changed letters. Preserve the exact capitalization. Do not invent any other words or letters.`,
+            "Show one finished logo only on a plain clean light background. No mockup, business card, device, watermark, border, Urdu, Roman Urdu, Hindi or other extra wording."
+          ].join(" ")
+        : [
+            `Create one original ${style.toLowerCase()} logo for the brand named exactly: "${brandName}".`,
+            `Brand purpose: ${description}.`,
+            `Colour palette: ${colors}.`,
+            tagline ? `Include this exact tagline if readable: "${tagline}".` : "Do not add a tagline.",
+            "Design a clean, distinctive, scalable vector-style logo with a memorable symbol and carefully arranged brand lettering. Use simple shapes, crisp edges, strong contrast, balanced spacing and a centered composition.",
+            "Show only one finished logo on a plain, clean, light background. No mockup, no business card, no device, no extra words, no watermark, no border. Keep all text minimal and spell the brand name exactly as supplied. Do not add Urdu, Roman Urdu, Hindi or any extra non-English wording."
+          ].join(" ");
 
       if (logoPrompt.length > 1000) {
         logoMessage.textContent = "Please shorten the brand details or tagline and try again.";
@@ -4189,9 +4295,8 @@
         const download = document.createElement("a");
         download.href = logoUrl;
         download.download = `TrivexaAI-${brandName.replace(/[^a-z0-9_-]/gi, "-").slice(0, 35) || "logo"}.png`;
-        download.className = "primary";
-        download.textContent = "⬇️ Download Logo PNG";
-        download.style.cssText = "display:inline-flex;text-decoration:none;margin-top:14px";
+        download.className = "logo-download-cta";
+        download.textContent = "Download Logo PNG";
         logoResult.append(heading, image, download);
         logoMessage.textContent = "✓ Your logo concept is ready. Check the spelling before downloading.";
         void saveRecentBlobFromUrl({ tool: "AI Logo Generator", title: brandName, url: logoUrl, filename: `TrivexaAI-${brandName.replace(/[^a-z0-9_-]/gi, "-").slice(0, 35) || "logo"}.png` });
@@ -4211,6 +4316,11 @@
     const thumbnailPosition = document.getElementById("thumbnailPosition");
     const thumbnailAccent = document.getElementById("thumbnailAccent");
     const thumbnailSubject = document.getElementById("thumbnailSubject");
+    const thumbnailPromptToggle = document.getElementById("thumbnailPromptToggle");
+    const thumbnailPromptMode = document.getElementById("thumbnailPromptMode");
+    const thumbnailStandardOptions = document.getElementById("thumbnailStandardOptions");
+    const thumbnailCustomPrompt = document.getElementById("thumbnailCustomPrompt");
+    let thumbnailUsesCustomPrompt = false;
     const thumbnailGenerateButton = document.getElementById("thumbnailGenerateButton");
     const thumbnailMessage = document.getElementById("thumbnailMessage");
     const thumbnailResult = document.getElementById("thumbnailResult");
@@ -4314,6 +4424,15 @@
       return URL.createObjectURL(blob);
     }
 
+    thumbnailPromptToggle?.addEventListener("click", () => {
+      thumbnailUsesCustomPrompt = !thumbnailUsesCustomPrompt;
+      thumbnailPromptMode.hidden = !thumbnailUsesCustomPrompt;
+      thumbnailStandardOptions.hidden = thumbnailUsesCustomPrompt;
+      thumbnailPromptToggle.setAttribute("aria-expanded", String(thumbnailUsesCustomPrompt));
+      thumbnailPromptToggle.textContent = thumbnailUsesCustomPrompt ? "↩ Back to Standard Options" : "✨ Use a Specific Prompt";
+      thumbnailMessage.textContent = "";
+    });
+
     thumbnailGenerateButton?.addEventListener("click", async () => {
       const headline = thumbnailHeadline.value.trim();
       const topic = thumbnailTopic.value.trim();
@@ -4321,27 +4440,40 @@
       const position = thumbnailPosition.value;
       const accent = thumbnailAccent.value;
       const subject = thumbnailSubject.value.trim();
+      const customThumbnailDirection = thumbnailCustomPrompt.value.trim();
 
       if (!headline) {
         thumbnailMessage.textContent = "Please enter the exact thumbnail headline.";
         thumbnailHeadline.focus();
         return;
       }
-      if (!topic) {
+      if (thumbnailUsesCustomPrompt && !customThumbnailDirection) {
+        thumbnailMessage.textContent = "Please describe the thumbnail background in the prompt box.";
+        thumbnailCustomPrompt.focus();
+        return;
+      }
+      if (!thumbnailUsesCustomPrompt && !topic) {
         thumbnailMessage.textContent = "Please describe what your video is about.";
         thumbnailTopic.focus();
         return;
       }
 
       const subjectSide = position === "right" ? "left" : "right";
-      const thumbnailPrompt = [
-        `Create a dramatic, professional YouTube thumbnail background in a wide horizontal 16:9 composition for this video topic: ${topic}.`,
-        `Visual style: ${style}.`,
-        subject ? `Main subject: ${subject}. Place the main subject clearly on the ${subjectSide} side of the frame.` : `Create a strong topic-related visual focal point on the ${subjectSide} side of the frame.`,
-        `Keep the ${position} third visually simple and dark with generous clean negative space for a headline that will be added later.`,
-        "Use bold lighting, vivid but balanced colours, clear subject separation, strong contrast and a polished creator-thumbnail look.",
-        "Do not render any text, letters, numbers, captions, logos, watermarks, borders or UI. The headline will be added separately."
-      ].join(" ");
+      const thumbnailPrompt = thumbnailUsesCustomPrompt
+        ? [
+            `Create a premium, professional YouTube thumbnail background in a wide horizontal 16:9 composition. Creative direction: ${customThumbnailDirection}.`,
+            `Keep the ${position} third visually simple and dark with generous clean negative space for the exact headline "${headline}", which will be added separately.`,
+            "Prioritize exceptional visual quality, cinematic lighting, vivid but balanced colours, a clear focal subject, strong subject separation, depth, contrast and polished professional creator-thumbnail composition.",
+            "Do not render any text, letters, numbers, captions, logos, watermarks, borders or UI. Do not alter or attempt to write the headline; it is overlaid separately with exact spelling."
+          ].join(" ")
+        : [
+            `Create a dramatic, professional YouTube thumbnail background in a wide horizontal 16:9 composition for this video topic: ${topic}.`,
+            `Visual style: ${style}.`,
+            subject ? `Main subject: ${subject}. Place the main subject clearly on the ${subjectSide} side of the frame.` : `Create a strong topic-related visual focal point on the ${subjectSide} side of the frame.`,
+            `Keep the ${position} third visually simple and dark with generous clean negative space for a headline that will be added later.`,
+            "Use bold lighting, vivid but balanced colours, clear subject separation, strong contrast and a polished creator-thumbnail look.",
+            "Do not render any text, letters, numbers, captions, logos, watermarks, borders or UI. The headline will be added separately."
+          ].join(" ");
 
       if (thumbnailPrompt.length > 1000) {
         thumbnailMessage.textContent = "Please shorten the video topic or subject description and try again.";
