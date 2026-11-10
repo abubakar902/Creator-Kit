@@ -4306,22 +4306,22 @@
         logoCustomPrompt.focus();
         return;
       }
+      // Keep the complete prompt below the Worker's 1,000-character limit.
+      // Field limits (brand 40, tagline 50, custom direction 650) are accounted for here.
       const logoPrompt = logoUsesCustomPrompt
         ? [
-            `Create one premium, original logo for the brand named exactly: "${brandName}".`,
-            `Creative direction: ${customLogoDirection}.`,
-            tagline ? `Include this exact tagline if it can be rendered clearly: "${tagline}".` : "Do not add a tagline.",
-            "Prioritize exceptional visual quality, clean composition, distinctive memorable symbolism, precise geometry, crisp edges, balanced spacing and professional brand identity design.",
-            `The brand name must be spelled exactly "${brandName}" with no missing, extra or changed letters. Preserve the exact capitalization. Do not invent any other words or letters.`,
-            "Show one finished logo only on a plain clean light background. No mockup, business card, device, watermark, border, Urdu, Roman Urdu, Hindi or other extra wording."
+            `Logo "${brandName}", exact spelling.`,
+            `Direction: ${customLogoDirection}.`,
+            tagline ? `Exact tagline "${tagline}".` : "No tagline.",
+            "Premium, clean logo; memorable symbol, crisp geometry, balanced spacing, strong contrast. One logo on plain light background; no mockups, borders, watermark or extra text."
           ].join(" ")
         : [
-            `Create one original ${style.toLowerCase()} logo for the brand named exactly: "${brandName}".`,
-            `Brand purpose: ${description}.`,
-            `Colour palette: ${colors}.`,
-            tagline ? `Include this exact tagline if readable: "${tagline}".` : "Do not add a tagline.",
-            "Design a clean, distinctive, scalable vector-style logo with a memorable symbol and carefully arranged brand lettering. Use simple shapes, crisp edges, strong contrast, balanced spacing and a centered composition.",
-            "Show only one finished logo on a plain, clean, light background. No mockup, no business card, no device, no extra words, no watermark, no border. Keep all text minimal and spell the brand name exactly as supplied. Do not add Urdu, Roman Urdu, Hindi or any extra non-English wording."
+            `Logo "${brandName}", exact spelling.`,
+            `Purpose: ${description}.`,
+            `Style: ${style.toLowerCase()}.`,
+            `Palette: ${colors}.`,
+            tagline ? `Exact tagline "${tagline}".` : "No tagline.",
+            "Premium clean vector-style design, memorable symbol, crisp geometry, balanced spacing and strong contrast. One logo on a plain light background; no mockups, borders, watermark or extra text."
           ].join(" ");
 
       if (logoPrompt.length > 1000) {
