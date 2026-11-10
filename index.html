@@ -4519,8 +4519,8 @@
             "Background only: no text, pseudo-text, letters, numbers, captions, signage, logos, watermarks, borders or UI. The exact headline is added separately by TrivexaAI."
           ].join(" ");
 
-      if (thumbnailPrompt.length > 1000) {
-        thumbnailMessage.textContent = "Please shorten the video topic or subject description and try again.";
+      if (thumbnailPrompt.length > 1800) {
+        thumbnailMessage.textContent = "Please shorten the video topic or subject description a little and try again.";
         return;
       }
 
