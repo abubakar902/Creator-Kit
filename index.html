@@ -2620,9 +2620,9 @@
         <p class="workspace-intro" style="font-size:12px">PNG, JPG or WEBP up to 8 MB.</p>
       </div>
       <div id="enhancerPreview" style="margin-top:16px"></div>
-      <div id="enhancerStartActions" class="generator-actions-row" style="display:none">
-        <button class="primary" id="enhancerOpenEdit" type="button">✏️ Edit</button>
-        <button class="secondary" id="enhancerOpenCrop" type="button">✂️ Crop</button>
+      <div id="enhancerStartActions" style="display:none;justify-content:center;align-items:center;gap:12px;margin:18px auto 0">
+        <button class="primary" id="enhancerOpenEdit" type="button" style="width:128px;min-height:40px;padding:9px 12px;font-size:13px">✏️ Edit</button>
+        <button class="secondary" id="enhancerOpenCrop" type="button" style="width:128px;min-height:40px;padding:9px 12px;font-size:13px">✂️ Crop</button>
       </div>
       <div id="enhancerCropPanel" class="field-group" style="display:none;margin-top:18px">
         <div class="field-label"><span>Crop your image</span><span class="field-hint-badge">Drag to select area</span></div>
@@ -2631,7 +2631,7 @@
           <option value="4:5">Portrait (4:5)</option><option value="16:9">Landscape (16:9)</option>
           <option value="9:16">Story (9:16)</option>
         </select>
-        <canvas id="enhancerCropCanvas" style="display:block;width:100%;max-height:420px;margin-top:12px;border-radius:12px;touch-action:none;cursor:crosshair"></canvas>
+        <canvas id="enhancerCropCanvas" style="display:block;width:100%;height:auto;max-width:100%;margin:12px auto 0;border-radius:12px;touch-action:none;cursor:crosshair;background:#100b20"></canvas>
         <div class="generator-actions-row"><button class="secondary" id="enhancerCancelCrop" type="button">Cancel Crop</button><button class="primary" id="enhancerApplyCrop" type="button">Apply Crop</button></div>
       </div>
       <div id="enhancerEditPanel" style="display:none;margin-top:20px;gap:16px">
@@ -4852,7 +4852,7 @@
     const brightnessValue=document.getElementById("brightnessValue"), contrastValue=document.getElementById("contrastValue");
     const saturationValue=document.getElementById("saturationValue"), warmthValue=document.getElementById("warmthValue"), blurValue=document.getElementById("blurValue");
     const enhancerCropCanvas=document.getElementById("enhancerCropCanvas"), cropCtx=enhancerCropCanvas.getContext("2d");
-    let enhancerImage=null, enhancerObjectUrl=null, enhancerSavedBlob=null, cropRect=null, cropStart=null, enhancerRotation=0, enhancerFlip=false;
+    let enhancerImage=null, enhancerObjectUrl=null, enhancerSavedBlob=null, cropRect=null, cropStart=null, enhancerRotation=0, enhancerFlip=false, cropRenderScale=1;
 
     function enhancerFilter(){return "brightness("+enhancerBrightness.value+"%) contrast("+enhancerContrast.value+"%) saturate("+enhancerSaturation.value+"%) sepia("+enhancerWarmth.value+"%) blur("+enhancerBlur.value+"px)";}
     function updateEnhancerPreview(){
@@ -4875,7 +4875,8 @@
       enhancerObjectUrl=URL.createObjectURL(file);const img=new Image();
       img.onload=()=>{
         if(img.naturalWidth*img.naturalHeight>24000000){enhancerMessage.textContent="This image is too large to edit safely. Please choose an image under 24 megapixels.";enhancerFile.value="";return;}
-        enhancerImage=img;enhancerPreview.innerHTML='<img alt="Image preview" style="display:block;max-width:100%;max-height:420px;margin:auto;border-radius:14px;object-fit:contain;transform-origin:center">';
+        enhancerImage=img;
+        enhancerPreview.innerHTML='<img alt="Image preview" style="display:block;width:auto;height:auto;max-width:100%;max-height:420px;margin:auto;border-radius:14px;object-fit:contain;transform-origin:center">';
         enhancerPreview.querySelector("img").src=enhancerObjectUrl;resetEnhancer();enhancerStartActions.style.display="flex";
         enhancerMessage.textContent="Image ready. Choose Edit or Crop.";
       };
@@ -4886,44 +4887,81 @@
       enhancerSavePanel.style.display="none";enhancerDownloadPanel.style.display="none";updateEnhancerPreview();
       enhancerMessage.textContent="Adjust your image, then press Done Editing.";
     });
-    document.getElementById("enhancerOpenCrop").addEventListener("click",()=>{
-      if(!enhancerImage)return;enhancerStartActions.style.display="none";enhancerEditPanel.style.display="none";
-      enhancerSavePanel.style.display="none";enhancerDownloadPanel.style.display="none";enhancerCropPanel.style.display="block";
-      enhancerCropCanvas.width=enhancerImage.naturalWidth;enhancerCropCanvas.height=enhancerImage.naturalHeight;
-      cropRect=null;cropCtx.drawImage(enhancerImage,0,0);enhancerMessage.textContent="Drag on the image to select the crop area.";
-    });
-    document.getElementById("enhancerCancelCrop").addEventListener("click",()=>{
-      enhancerCropPanel.style.display="none";enhancerStartActions.style.display="flex";enhancerMessage.textContent="Crop cancelled.";
-    });
-    function drawCrop(){
-      cropCtx.clearRect(0,0,enhancerCropCanvas.width,enhancerCropCanvas.height);cropCtx.drawImage(enhancerImage,0,0);
-      if(!cropRect)return;cropCtx.fillStyle="rgba(0,0,0,.5)";cropCtx.fillRect(0,0,enhancerCropCanvas.width,enhancerCropCanvas.height);
+    function drawCropSelection(){
+      if(!enhancerImage)return;
+      cropCtx.clearRect(0,0,enhancerCropCanvas.width,enhancerCropCanvas.height);
+      cropCtx.drawImage(enhancerImage,0,0,enhancerCropCanvas.width,enhancerCropCanvas.height);
+      if(!cropRect)return;
+      cropCtx.fillStyle="rgba(0,0,0,.52)";cropCtx.fillRect(0,0,enhancerCropCanvas.width,enhancerCropCanvas.height);
       cropCtx.clearRect(cropRect.x,cropRect.y,cropRect.w,cropRect.h);
       cropCtx.drawImage(enhancerImage,cropRect.x,cropRect.y,cropRect.w,cropRect.h,cropRect.x,cropRect.y,cropRect.w,cropRect.h);
-      cropCtx.strokeStyle="#e879f9";cropCtx.lineWidth=Math.max(2,enhancerImage.naturalWidth/500);cropCtx.strokeRect(cropRect.x,cropRect.y,cropRect.w,cropRect.h);
+      cropCtx.strokeStyle="#e879f9";cropCtx.lineWidth=Math.max(2,enhancerCropCanvas.width/500);cropCtx.strokeRect(cropRect.x,cropRect.y,cropRect.w,cropRect.h);
     }
-    enhancerCropCanvas.addEventListener("pointerdown",e=>{
-      const r=enhancerCropCanvas.getBoundingClientRect();cropStart={x:(e.clientX-r.left)*enhancerCropCanvas.width/r.width,y:(e.clientY-r.top)*enhancerCropCanvas.height/r.height};
-      cropRect={x:cropStart.x,y:cropStart.y,w:0,h:0};enhancerCropCanvas.setPointerCapture(e.pointerId);drawCrop();
+    function openEnhancerCrop(){
+      if(!enhancerImage)return;
+      enhancerStartActions.style.display="none";enhancerEditPanel.style.display="none";enhancerSavePanel.style.display="none";enhancerDownloadPanel.style.display="none";
+      enhancerCropPanel.style.display="block";cropStart=null;cropRect=null;
+      const maxW=1000,maxH=620;
+      cropRenderScale=Math.min(1,maxW/enhancerImage.naturalWidth,maxH/enhancerImage.naturalHeight);
+      enhancerCropCanvas.width=Math.max(1,Math.round(enhancerImage.naturalWidth*cropRenderScale));
+      enhancerCropCanvas.height=Math.max(1,Math.round(enhancerImage.naturalHeight*cropRenderScale));
+      enhancerCropCanvas.style.width="100%";enhancerCropCanvas.style.height="auto";
+      drawCropSelection();enhancerMessage.textContent="Drag your mouse across the photo to select the area you want to keep.";
+    }
+    document.getElementById("enhancerOpenCrop").addEventListener("click",openEnhancerCrop);
+    document.getElementById("enhancerCancelCrop").addEventListener("click",()=>{
+      cropStart=null;enhancerCropPanel.style.display="none";enhancerStartActions.style.display="flex";enhancerMessage.textContent="Crop cancelled.";
     });
-    enhancerCropCanvas.addEventListener("pointermove",e=>{
-      if(!cropStart)return;const r=enhancerCropCanvas.getBoundingClientRect();
-      let x=Math.max(0,Math.min(enhancerCropCanvas.width,(e.clientX-r.left)*enhancerCropCanvas.width/r.width));
-      let y=Math.max(0,Math.min(enhancerCropCanvas.height,(e.clientY-r.top)*enhancerCropCanvas.height/r.height));
-      let w=x-cropStart.x,h=y-cropStart.y;const ratio=document.getElementById("enhancerCropRatio").value;
-      if(ratio!=="free"){const parts=ratio.split(":").map(Number),v=parts[0]/parts[1];if(Math.abs(w)/Math.max(1,Math.abs(h))>v)h=Math.sign(h||1)*Math.abs(w)/v;else w=Math.sign(w||1)*Math.abs(h)*v;}
-      x=Math.max(0,Math.min(enhancerCropCanvas.width,cropStart.x+w));y=Math.max(0,Math.min(enhancerCropCanvas.height,cropStart.y+h));
-      cropRect={x:Math.min(cropStart.x,x),y:Math.min(cropStart.y,y),w:Math.abs(x-cropStart.x),h:Math.abs(y-cropStart.y)};drawCrop();
+    function updateCropFromPointer(event){
+      if(!cropStart)return;
+      const rect=enhancerCropCanvas.getBoundingClientRect();
+      const px=Math.max(0,Math.min(enhancerCropCanvas.width,(event.clientX-rect.left)*enhancerCropCanvas.width/rect.width));
+      const py=Math.max(0,Math.min(enhancerCropCanvas.height,(event.clientY-rect.top)*enhancerCropCanvas.height/rect.height));
+      const dx=px-cropStart.x,dy=py-cropStart.y,sx=Math.sign(dx)||1,sy=Math.sign(dy)||1;
+      let w=Math.abs(dx),h=Math.abs(dy);
+      const ratioValue=document.getElementById("enhancerCropRatio").value;
+      if(ratioValue!=="free"){
+        const parts=ratioValue.split(":").map(Number),ratio=parts[0]/parts[1];
+        const maxW=sx>0?enhancerCropCanvas.width-cropStart.x:cropStart.x;
+        const maxH=sy>0?enhancerCropCanvas.height-cropStart.y:cropStart.y;
+        if(w/Math.max(h,0.001)>ratio)h=w/ratio;else w=h*ratio;
+        const fit=Math.min(1,maxW/Math.max(w,0.001),maxH/Math.max(h,0.001));w*=fit;h*=fit;
+      }else{w=Math.min(w,sx>0?enhancerCropCanvas.width-cropStart.x:cropStart.x);h=Math.min(h,sy>0?enhancerCropCanvas.height-cropStart.y:cropStart.y);}
+      const endX=cropStart.x+sx*w,endY=cropStart.y+sy*h;
+      cropRect={x:Math.min(cropStart.x,endX),y:Math.min(cropStart.y,endY),w:Math.abs(endX-cropStart.x),h:Math.abs(endY-cropStart.y)};
+      drawCropSelection();
+    }
+    enhancerCropCanvas.addEventListener("pointerdown",event=>{
+      if(!enhancerImage)return;const r=enhancerCropCanvas.getBoundingClientRect();
+      cropStart={x:Math.max(0,Math.min(enhancerCropCanvas.width,(event.clientX-r.left)*enhancerCropCanvas.width/r.width)),
+        y:Math.max(0,Math.min(enhancerCropCanvas.height,(event.clientY-r.top)*enhancerCropCanvas.height/r.height))};
+      cropRect=null;enhancerCropCanvas.setPointerCapture(event.pointerId);enhancerMessage.textContent="Keep holding and drag to make your crop selection.";
     });
-    ["pointerup","pointercancel","lostpointercapture"].forEach(t=>enhancerCropCanvas.addEventListener(t,()=>{cropStart=null;}));
-    document.getElementById("enhancerCropRatio").addEventListener("change",()=>{cropRect=null;cropCtx.drawImage(enhancerImage,0,0);});
-    document.getElementById("enhancerApplyCrop").addEventListener("click",()=>{
-      if(!cropRect||cropRect.w<2||cropRect.h<2){enhancerMessage.textContent="Select a crop area first.";return;}
-      const c=document.createElement("canvas");c.width=Math.round(cropRect.w);c.height=Math.round(cropRect.h);
-      const ctx=c.getContext("2d");ctx.drawImage(enhancerImage,cropRect.x,cropRect.y,cropRect.w,cropRect.h,0,0,c.width,c.height);
-      const data=c.toDataURL("image/png"),im=new Image();im.onload=()=>{enhancerImage=im;enhancerPreview.innerHTML='<img alt="Cropped preview" style="display:block;max-width:100%;max-height:420px;margin:auto;border-radius:14px;object-fit:contain;transform-origin:center">';
-        enhancerPreview.querySelector("img").src=data;enhancerCropPanel.style.display="none";enhancerStartActions.style.display="flex";enhancerSavedBlob=null;
-        enhancerMessage.textContent="Crop applied. Now you can edit or crop again.";updateEnhancerPreview();};im.src=data;
+    enhancerCropCanvas.addEventListener("pointermove",updateCropFromPointer);
+    enhancerCropCanvas.addEventListener("pointerup",event=>{updateCropFromPointer(event);cropStart=null;});
+    enhancerCropCanvas.addEventListener("pointercancel",()=>{cropStart=null;});
+    document.getElementById("enhancerCropRatio").addEventListener("change",()=>{cropRect=null;cropStart=null;drawCropSelection();enhancerMessage.textContent="Drag again to make a selection with the chosen ratio.";});
+    document.getElementById("enhancerApplyCrop").addEventListener("click",async()=>{
+      if(!enhancerImage||!cropRect||cropRect.w<3||cropRect.h<3){enhancerMessage.textContent="Please drag on the photo to select a crop area first.";return;}
+      const sx=Math.max(0,Math.floor(cropRect.x/cropRenderScale)),sy=Math.max(0,Math.floor(cropRect.y/cropRenderScale));
+      const sw=Math.min(enhancerImage.naturalWidth-sx,Math.max(1,Math.ceil(cropRect.w/cropRenderScale)));
+      const sh=Math.min(enhancerImage.naturalHeight-sy,Math.max(1,Math.ceil(cropRect.h/cropRenderScale)));
+      if(sw<2||sh<2){enhancerMessage.textContent="The selected area is too small. Please select a larger area.";return;}
+      const canvas=document.createElement("canvas");canvas.width=sw;canvas.height=sh;
+      const ctx=canvas.getContext("2d");if(!ctx){enhancerMessage.textContent="Your browser could not crop this image.";return;}
+      ctx.drawImage(enhancerImage,sx,sy,sw,sh,0,0,sw,sh);
+      const blob=await new Promise(resolve=>canvas.toBlob(resolve,"image/png"));
+      if(!blob){enhancerMessage.textContent="Could not apply this crop. Please try again.";return;}
+      const nextUrl=URL.createObjectURL(blob),cropped=new Image();
+      cropped.onload=()=>{
+        if(enhancerObjectUrl)URL.revokeObjectURL(enhancerObjectUrl);enhancerObjectUrl=nextUrl;enhancerImage=cropped;
+        enhancerPreview.innerHTML='<img alt="Cropped image preview" style="display:block;width:auto;height:auto;max-width:100%;max-height:420px;margin:auto;border-radius:14px;object-fit:contain;transform-origin:center">';
+        enhancerPreview.querySelector("img").src=nextUrl;enhancerCropPanel.style.display="none";enhancerStartActions.style.display="flex";
+        enhancerSavedBlob=null;enhancerDownloadPanel.style.display="none";resetEnhancer();
+        enhancerMessage.textContent="Crop applied successfully. You can now edit the cropped image or crop again.";
+      };
+      cropped.onerror=()=>{URL.revokeObjectURL(nextUrl);enhancerMessage.textContent="Could not open the cropped image. Please try again.";};
+      cropped.src=nextUrl;
     });
     document.getElementById("enhancerRotateLeft").addEventListener("click",()=>{enhancerRotation=(enhancerRotation+270)%360;updateEnhancerPreview();});
     document.getElementById("enhancerRotateRight").addEventListener("click",()=>{enhancerRotation=(enhancerRotation+90)%360;updateEnhancerPreview();});
@@ -4936,11 +4974,11 @@
     document.getElementById("enhancerSave").addEventListener("click",async()=>{
       if(!enhancerImage)return;const btn=document.getElementById("enhancerSave");btn.disabled=true;enhancerMessage.textContent="Saving image...";
       try{
-        const rotated=enhancerRotation%180!==0,c=document.createElement("canvas");
-        c.width=rotated?enhancerImage.naturalHeight:enhancerImage.naturalWidth;c.height=rotated?enhancerImage.naturalWidth:enhancerImage.naturalHeight;
-        const ctx=c.getContext("2d");ctx.translate(c.width/2,c.height/2);ctx.rotate(enhancerRotation*Math.PI/180);ctx.scale(enhancerFlip?-1:1,1);
+        const rotated=enhancerRotation%180!==0,canvas=document.createElement("canvas");
+        canvas.width=rotated?enhancerImage.naturalHeight:enhancerImage.naturalWidth;canvas.height=rotated?enhancerImage.naturalWidth:enhancerImage.naturalHeight;
+        const ctx=canvas.getContext("2d");ctx.translate(canvas.width/2,canvas.height/2);ctx.rotate(enhancerRotation*Math.PI/180);ctx.scale(enhancerFlip?-1:1,1);
         ctx.filter=enhancerFilter();ctx.drawImage(enhancerImage,-enhancerImage.naturalWidth/2,-enhancerImage.naturalHeight/2);
-        enhancerSavedBlob=await new Promise(resolve=>c.toBlob(resolve,"image/png"));if(!enhancerSavedBlob)throw Error("Could not save this image.");
+        enhancerSavedBlob=await new Promise(resolve=>canvas.toBlob(resolve,"image/png"));if(!enhancerSavedBlob)throw Error("Could not save this image.");
         enhancerDownloadPanel.style.display="block";enhancerMessage.textContent="Saved! Your final image is ready to download.";
         void saveRecentResult({kind:"image",tool:"Free Image Enhancer",title:"Enhanced photo",blob:enhancerSavedBlob,filename:"TrivexaAI-enhanced-image.png"});
       }catch(err){enhancerMessage.textContent=err.message||"Image saving failed.";}finally{btn.disabled=false;}
