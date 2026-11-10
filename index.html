@@ -2804,7 +2804,7 @@
         <div class="field-group">
           <div class="prompt-section-heading">✍️ PROMPT</div>
           <label for="thumbnailCustomPrompt">Describe the thumbnail background you want</label>
-          <textarea id="thumbnailCustomPrompt" maxlength="700" placeholder="e.g. A dramatic cricket stadium at night, a fast bowler in action on the right, bright floodlights, energetic sports photography."></textarea>
+          <textarea id="thumbnailCustomPrompt" maxlength="650" placeholder="e.g. A dramatic cricket stadium at night, a fast bowler in action on the right, bright floodlights, energetic sports photography."></textarea>
           <p class="workspace-intro prompt-help">Your headline is added separately with exact spelling. Describe the background, subject, lighting and mood. Do not include text in this prompt.</p>
         </div>
       </div>
@@ -4503,24 +4503,21 @@
       const subjectSide = position === "right" ? "left" : "right";
       const thumbnailPrompt = thumbnailUsesCustomPrompt
         ? [
-            `Create a premium, professional YouTube thumbnail background in a wide horizontal 16:9 composition. Creative direction: ${customThumbnailDirection}.`,
-            `Place the main subject opposite the ${position} headline area. Use a pulled-back medium-wide camera view, not a close-up or zoom. Keep the entire head, hair and face fully inside the frame with clear space above and beside the subject; do not crop the face or head.`,
-            `Keep the ${position} third visually simple and dark with generous clean negative space for the exact headline "${headline}", which will be added separately.`,
-            "Prioritize exceptional visual quality, cinematic lighting, vivid but balanced colours, a clear focal subject, strong subject separation, depth, contrast and polished professional creator-thumbnail composition.",
-            "Background only: no text, pseudo-text, letters, numbers, captions, signage, logos, watermarks, borders or UI. The exact headline is added separately by TrivexaAI."
+            `16:9 YouTube thumbnail background. ${customThumbnailDirection}.`,
+            "Medium-wide pulled-back view, not zoomed. Keep the full head and face inside frame with margins.",
+            `Leave the ${position} side dark and clear for headline.`,
+            "Cinematic lighting, vivid balanced colours. Background only: no text, letters, numbers, logos or watermarks; TrivexaAI adds the exact headline separately."
           ].join(" ")
         : [
-            `Create a dramatic, professional YouTube thumbnail background in a wide horizontal 16:9 composition for this video topic: ${topic}.`,
-            `Visual style: ${style}.`,
-            subject ? `Main subject: ${subject}. Place the main subject clearly on the ${subjectSide} side of the frame.` : `Create a strong topic-related visual focal point on the ${subjectSide} side of the frame.`,
-            "Use a pulled-back medium-wide camera view, not a close-up or zoom. If a person is shown, keep the entire head, hair and face fully inside the frame with clear space above and beside them; never crop the face or head.",
-            `Keep the ${position} third visually simple and dark with generous clean negative space for the headline that TrivexaAI will add later.`,
-            "Use bold lighting, vivid but balanced colours, clear subject separation, strong contrast and a polished creator-thumbnail look.",
-            "Background only: no text, pseudo-text, letters, numbers, captions, signage, logos, watermarks, borders or UI. The exact headline is added separately by TrivexaAI."
+            `16:9 YouTube thumbnail about: ${topic}. Style: ${style}.`,
+            subject ? `Subject: ${subject}, placed on the ${subjectSide} side.` : `Clear topic-related subject on the ${subjectSide} side.`,
+            "Medium-wide pulled-back view, not zoomed. Keep the full head and face inside frame with margins.",
+            `Leave the ${position} side dark and clear for headline.`,
+            "Cinematic lighting, vivid balanced colours. Background only: no text, letters, numbers, logos or watermarks; TrivexaAI adds the exact headline separately."
           ].join(" ");
 
-      if (thumbnailPrompt.length > 1800) {
-        thumbnailMessage.textContent = "Please shorten the video topic or subject description a little and try again.";
+      if (thumbnailPrompt.length > 1000) {
+        thumbnailMessage.textContent = "Please shorten the background description slightly. The image service accepts up to 1000 characters.";
         return;
       }
 
