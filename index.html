@@ -2620,9 +2620,9 @@
         <p class="workspace-intro" style="font-size:12px">PNG, JPG or WEBP up to 8 MB.</p>
       </div>
       <div id="enhancerPreview" style="margin-top:16px"></div>
-      <div id="enhancerStartActions" style="display:none;flex-wrap:nowrap;justify-content:center;align-items:center;gap:10px;margin:18px auto 0">
-        <button class="primary" id="enhancerOpenEdit" type="button" style="width:128px;min-height:40px;padding:9px 12px;font-size:13px">✏️ Edit</button>
-        <button class="secondary" id="enhancerOpenCrop" type="button" style="width:128px;min-height:40px;padding:9px 12px;font-size:13px">✂️ Crop</button>
+      <div id="enhancerStartActions" style="display:none;flex-direction:row;flex-wrap:nowrap;justify-content:center;align-items:center;gap:8px;width:100%;margin:18px auto 0">
+        <button class="primary" id="enhancerOpenEdit" type="button" style="flex:0 0 116px;width:116px;min-height:38px;padding:8px 10px;font-size:13px;white-space:nowrap">✏️ Edit</button>
+        <button class="secondary" id="enhancerOpenCrop" type="button" style="flex:0 0 116px;width:116px;min-height:38px;padding:8px 10px;font-size:13px;white-space:nowrap">✂️ Crop</button>
       </div>
       <div id="enhancerCropPanel" class="field-group" style="display:none;margin-top:18px">
         <div class="field-label"><span>Crop your image</span><span class="field-hint-badge">Drag to select area</span></div>
@@ -4852,7 +4852,7 @@
     const brightnessValue=document.getElementById("brightnessValue"), contrastValue=document.getElementById("contrastValue");
     const saturationValue=document.getElementById("saturationValue"), warmthValue=document.getElementById("warmthValue"), blurValue=document.getElementById("blurValue");
     const enhancerCropCanvas=document.getElementById("enhancerCropCanvas"), cropCtx=enhancerCropCanvas.getContext("2d");
-    let enhancerImage=null, enhancerObjectUrl=null, enhancerSavedBlob=null, cropRect=null, cropStart=null, enhancerRotation=0, enhancerFlip=false, cropRenderScale=1;
+    let enhancerImage=null, enhancerObjectUrl=null, enhancerOriginalObjectUrl=null, enhancerSavedBlob=null, cropRect=null, cropStart=null, enhancerRotation=0, enhancerFlip=false, cropRenderScale=1;
 
     function enhancerFilter(){return "brightness("+enhancerBrightness.value+"%) contrast("+enhancerContrast.value+"%) saturate("+enhancerSaturation.value+"%) sepia("+enhancerWarmth.value+"%) blur("+enhancerBlur.value+"px)";}
     function updateEnhancerPreview(){
@@ -4871,10 +4871,10 @@
       const file=enhancerFile.files&&enhancerFile.files[0];enhancerImage=null;enhancerSavedBlob=null;enhancerPreview.replaceChildren();
       enhancerMessage.textContent="";enhancerStartActions.style.display="none";enhancerEditPanel.style.display="none";
       enhancerCropPanel.style.display="none";enhancerSavePanel.style.display="none";enhancerDownloadPanel.style.display="none";
-      if(enhancerObjectUrl)URL.revokeObjectURL(enhancerObjectUrl);enhancerObjectUrl=null;if(!file)return;
+      if(enhancerObjectUrl&&enhancerObjectUrl!==enhancerOriginalObjectUrl)URL.revokeObjectURL(enhancerObjectUrl);if(enhancerOriginalObjectUrl)URL.revokeObjectURL(enhancerOriginalObjectUrl);enhancerObjectUrl=null;enhancerOriginalObjectUrl=null;if(!file)return;
       if(!/^image\/(png|jpeg|webp)$/.test(file.type)){enhancerMessage.textContent="Please choose a PNG, JPG or WEBP image.";enhancerFile.value="";return;}
       if(file.size>8*1024*1024){enhancerMessage.textContent="Please choose an image smaller than 8 MB.";enhancerFile.value="";return;}
-      enhancerObjectUrl=URL.createObjectURL(file);const img=new Image();
+      enhancerOriginalObjectUrl=URL.createObjectURL(file);enhancerObjectUrl=enhancerOriginalObjectUrl;const img=new Image();
       img.onload=()=>{
         if(img.naturalWidth*img.naturalHeight>24000000){enhancerMessage.textContent="This image is too large to edit safely. Please choose an image under 24 megapixels.";enhancerFile.value="";return;}
         enhancerImage=img;
@@ -4889,8 +4889,8 @@
       enhancerSavePanel.style.display="none";enhancerDownloadPanel.style.display="none";
       const comparison=document.getElementById("enhancerComparePreview");
       if(comparison&&enhancerObjectUrl){
-        comparison.innerHTML='<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:18px"><div><p style="text-align:center;font-size:12px;font-weight:700;margin:0 0 7px">Original</p><img id="enhancerBeforeImage" alt="Original image" style="display:block;width:100%;height:190px;object-fit:contain;border-radius:10px;background:#100b20"></div><div><p style="text-align:center;font-size:12px;font-weight:700;margin:0 0 7px">Live Preview</p><img id="enhancerAfterImage" alt="Edited preview" style="display:block;width:100%;height:190px;object-fit:contain;border-radius:10px;background:#100b20"></div></div>';
-        document.getElementById("enhancerBeforeImage").src=enhancerObjectUrl;
+        comparison.innerHTML='<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:18px"><div><p style="text-align:center;font-size:12px;font-weight:700;margin:0 0 7px">Original Upload</p><img id="enhancerBeforeImage" alt="Original uploaded image" style="display:block;width:100%;height:190px;object-fit:contain;border-radius:10px;background:#100b20"></div><div><p style="text-align:center;font-size:12px;font-weight:700;margin:0 0 7px">Live Preview</p><img id="enhancerAfterImage" alt="Current edited image preview" style="display:block;width:100%;height:190px;object-fit:contain;border-radius:10px;background:#100b20"></div></div>';
+        document.getElementById("enhancerBeforeImage").src=enhancerOriginalObjectUrl||enhancerObjectUrl;
         document.getElementById("enhancerAfterImage").src=enhancerObjectUrl;
       }
       updateEnhancerPreview();
@@ -4901,13 +4901,15 @@
       cropCtx.clearRect(0,0,enhancerCropCanvas.width,enhancerCropCanvas.height);
       cropCtx.drawImage(enhancerImage,0,0,enhancerCropCanvas.width,enhancerCropCanvas.height);
       if(!cropRect)return;
-      // Darken only the area outside the selection. Keep the selected photo pixels untouched.
-      cropCtx.fillStyle="rgba(0,0,0,.48)";
-      cropCtx.fillRect(0,0,enhancerCropCanvas.width,cropRect.y);
-      cropCtx.fillRect(0,cropRect.y+cropRect.h,enhancerCropCanvas.width,enhancerCropCanvas.height-(cropRect.y+cropRect.h));
-      cropCtx.fillRect(0,cropRect.y,cropRect.x,cropRect.h);
-      cropCtx.fillRect(cropRect.x+cropRect.w,cropRect.y,enhancerCropCanvas.width-(cropRect.x+cropRect.w),cropRect.h);
-      cropCtx.strokeStyle="#e879f9";cropCtx.lineWidth=Math.max(2,enhancerCropCanvas.width/500);cropCtx.strokeRect(cropRect.x,cropRect.y,cropRect.w,cropRect.h);
+      // Keep the whole photo fully visible; outline the crop area without dimming the subject.
+      cropCtx.save();
+      cropCtx.strokeStyle="#e879f9";cropCtx.lineWidth=Math.max(2,enhancerCropCanvas.width/500);
+      cropCtx.setLineDash([Math.max(6,enhancerCropCanvas.width/100),Math.max(4,enhancerCropCanvas.width/160)]);
+      cropCtx.strokeRect(cropRect.x,cropRect.y,cropRect.w,cropRect.h);
+      cropCtx.setLineDash([]);
+      cropCtx.fillStyle="#ffffff";const handle=Math.max(5,enhancerCropCanvas.width/100);
+      [[cropRect.x,cropRect.y],[cropRect.x+cropRect.w,cropRect.y],[cropRect.x,cropRect.y+cropRect.h],[cropRect.x+cropRect.w,cropRect.y+cropRect.h]].forEach(([x,y])=>{cropCtx.fillRect(x-handle/2,y-handle/2,handle,handle);});
+      cropCtx.restore();
     }
     function openEnhancerCrop(){
       if(!enhancerImage)return;
@@ -4966,7 +4968,7 @@
       if(!blob){enhancerMessage.textContent="Could not apply this crop. Please try again.";return;}
       const nextUrl=URL.createObjectURL(blob),cropped=new Image();
       cropped.onload=()=>{
-        if(enhancerObjectUrl)URL.revokeObjectURL(enhancerObjectUrl);enhancerObjectUrl=nextUrl;enhancerImage=cropped;
+        if(enhancerObjectUrl&&enhancerObjectUrl!==enhancerOriginalObjectUrl)URL.revokeObjectURL(enhancerObjectUrl);enhancerObjectUrl=nextUrl;enhancerImage=cropped;
         enhancerPreview.innerHTML='<img alt="Cropped image preview" style="display:block;width:auto;height:auto;max-width:100%;max-height:420px;margin:auto;border-radius:14px;object-fit:contain;transform-origin:center">';
         enhancerPreview.querySelector("img").src=nextUrl;enhancerCropPanel.style.display="none";enhancerStartActions.style.display="flex";
         enhancerSavedBlob=null;enhancerDownloadPanel.style.display="none";resetEnhancer();
