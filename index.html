@@ -4252,15 +4252,18 @@
     const logoCustomPrompt = document.getElementById("logoCustomPrompt");
     const logoPromptCounter = document.getElementById("logoPromptCounter");
     const logoPromptLimit = 650;
+    let logoUsesCustomPrompt = false;
+    let logoIsGenerating = false;
+    const logoGenerateButton = document.getElementById("logoGenerateButton");
     function updateLogoPromptCounter() {
       const count = logoCustomPrompt.value.length;
+      const overLimit = count > logoPromptLimit;
       logoPromptCounter.textContent = `${count} / ${logoPromptLimit} characters`;
-      logoPromptCounter.classList.toggle("over-limit", count > logoPromptLimit);
+      logoPromptCounter.classList.toggle("over-limit", overLimit);
+      logoGenerateButton.disabled = logoIsGenerating || (logoUsesCustomPrompt && overLimit);
     }
     logoCustomPrompt.addEventListener("input", updateLogoPromptCounter);
     updateLogoPromptCounter();
-    let logoUsesCustomPrompt = false;
-    const logoGenerateButton = document.getElementById("logoGenerateButton");
     const logoMessage = document.getElementById("logoMessage");
     const logoResult = document.getElementById("logoResult");
 
@@ -4270,6 +4273,7 @@
       logoStandardOptions.hidden = logoUsesCustomPrompt;
       logoPromptToggle.setAttribute("aria-expanded", String(logoUsesCustomPrompt));
       logoPromptToggle.textContent = logoUsesCustomPrompt ? "↩ Back to Standard Options" : "✨ Use a Specific Prompt";
+      updateLogoPromptCounter();
       logoMessage.textContent = "";
     });
 
@@ -4325,7 +4329,8 @@
         return;
       }
 
-      logoGenerateButton.disabled = true;
+      logoIsGenerating = true;
+      updateLogoPromptCounter();
       logoGenerateButton.textContent = "Creating your logo...";
       logoMessage.textContent = "Creating your logo. Please wait...";
       logoResult.replaceChildren();
@@ -4371,8 +4376,9 @@
         console.error("Logo generation error:", error);
         logoMessage.textContent = error.message || "Logo generation failed. Please try again.";
       } finally {
-        logoGenerateButton.disabled = false;
+        logoIsGenerating = false;
         logoGenerateButton.textContent = "✨ Generate Logo";
+        updateLogoPromptCounter();
       }
     });
 
@@ -4389,15 +4395,18 @@
     const thumbnailCustomPrompt = document.getElementById("thumbnailCustomPrompt");
     const thumbnailPromptCounter = document.getElementById("thumbnailPromptCounter");
     const thumbnailPromptLimit = 650;
+    let thumbnailUsesCustomPrompt = false;
+    let thumbnailIsGenerating = false;
+    const thumbnailGenerateButton = document.getElementById("thumbnailGenerateButton");
     function updateThumbnailPromptCounter() {
       const count = thumbnailCustomPrompt.value.length;
+      const overLimit = count > thumbnailPromptLimit;
       thumbnailPromptCounter.textContent = `${count} / ${thumbnailPromptLimit} characters`;
-      thumbnailPromptCounter.classList.toggle("over-limit", count > thumbnailPromptLimit);
+      thumbnailPromptCounter.classList.toggle("over-limit", overLimit);
+      thumbnailGenerateButton.disabled = thumbnailIsGenerating || (thumbnailUsesCustomPrompt && overLimit);
     }
     thumbnailCustomPrompt.addEventListener("input", updateThumbnailPromptCounter);
     updateThumbnailPromptCounter();
-    let thumbnailUsesCustomPrompt = false;
-    const thumbnailGenerateButton = document.getElementById("thumbnailGenerateButton");
     const thumbnailMessage = document.getElementById("thumbnailMessage");
     const thumbnailResult = document.getElementById("thumbnailResult");
     let thumbnailOutputUrl = null;
@@ -4520,6 +4529,7 @@
       thumbnailStandardOptions.hidden = thumbnailUsesCustomPrompt;
       thumbnailPromptToggle.setAttribute("aria-expanded", String(thumbnailUsesCustomPrompt));
       thumbnailPromptToggle.textContent = thumbnailUsesCustomPrompt ? "↩ Back to Standard Options" : "✨ Use a Specific Prompt";
+      updateThumbnailPromptCounter();
       thumbnailMessage.textContent = "";
     });
 
@@ -4574,7 +4584,8 @@
         return;
       }
 
-      thumbnailGenerateButton.disabled = true;
+      thumbnailIsGenerating = true;
+      updateThumbnailPromptCounter();
       thumbnailGenerateButton.textContent = "Creating thumbnail...";
       thumbnailMessage.textContent = "Creating your thumbnail background. Please wait...";
       thumbnailResult.replaceChildren();
@@ -4628,8 +4639,9 @@
         console.error("Thumbnail generation error:", error);
         thumbnailMessage.textContent = error.message || "Thumbnail generation failed. Please try again.";
       } finally {
-        thumbnailGenerateButton.disabled = false;
+        thumbnailIsGenerating = false;
         thumbnailGenerateButton.textContent = "✨ Generate Thumbnail";
+        updateThumbnailPromptCounter();
       }
     });
 
