@@ -3978,7 +3978,7 @@
         } catch {}
 
         if (isYouTube) {
-          const allowedYouTubeFormats = new Set(["v-1080", "v-720", "v-480"]);
+          const allowedYouTubeFormats = new Set(["v-1080", "v-720", "v-480", "v-360", "a-mp3", "a-m4a"]);
           formats = formats.filter(format => allowedYouTubeFormats.has(String(format.id || format.format || "").toLowerCase()));
           if (!formats.length) {
             throw new Error("1080p, 720p, and 480p formats are not available for this video.");
