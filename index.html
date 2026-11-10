@@ -4265,7 +4265,7 @@
         logoBrandName.focus();
         return;
       }
-      if (!description) {
+      if (!logoUsesCustomPrompt && !description) {
         logoMessage.textContent = "Please describe what your brand does.";
         logoDescription.focus();
         return;
