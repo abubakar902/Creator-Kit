@@ -3995,8 +3995,23 @@
 
         formats.forEach(format => {
           const option = document.createElement("option");
+          const formatId = String(format.id || format.format || "").toLowerCase();
+          const qualityLabel = String(format.quality || format.label || "").trim();
+
           option.value = format.id || format.format;
-          option.textContent = format.quality || format.label || format.container || format.id || format.format;
+
+          if (formatId === "a-mp3" || formatId.includes("mp3")) {
+            option.textContent = qualityLabel && /kbps/i.test(qualityLabel)
+              ? `MP3 Audio (${qualityLabel})`
+              : "MP3 Audio";
+          } else if (formatId === "a-m4a" || formatId.includes("m4a")) {
+            option.textContent = qualityLabel && /kbps/i.test(qualityLabel)
+              ? `M4A Audio (${qualityLabel})`
+              : "M4A Audio";
+          } else {
+            option.textContent = format.quality || format.label || format.container || format.id || format.format;
+          }
+
           select.appendChild(option);
         });
 
