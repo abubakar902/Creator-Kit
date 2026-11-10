@@ -4504,17 +4504,19 @@
       const thumbnailPrompt = thumbnailUsesCustomPrompt
         ? [
             `Create a premium, professional YouTube thumbnail background in a wide horizontal 16:9 composition. Creative direction: ${customThumbnailDirection}.`,
+            `Place the main subject opposite the ${position} headline area. Use a pulled-back medium-wide camera view, not a close-up or zoom. Keep the entire head, hair and face fully inside the frame with clear space above and beside the subject; do not crop the face or head.`,
             `Keep the ${position} third visually simple and dark with generous clean negative space for the exact headline "${headline}", which will be added separately.`,
             "Prioritize exceptional visual quality, cinematic lighting, vivid but balanced colours, a clear focal subject, strong subject separation, depth, contrast and polished professional creator-thumbnail composition.",
-            "Do not render any text, letters, numbers, captions, logos, watermarks, borders or UI. Do not alter or attempt to write the headline; it is overlaid separately with exact spelling."
+            "Background only: no text, pseudo-text, letters, numbers, captions, signage, logos, watermarks, borders or UI. The exact headline is added separately by TrivexaAI."
           ].join(" ")
         : [
             `Create a dramatic, professional YouTube thumbnail background in a wide horizontal 16:9 composition for this video topic: ${topic}.`,
             `Visual style: ${style}.`,
             subject ? `Main subject: ${subject}. Place the main subject clearly on the ${subjectSide} side of the frame.` : `Create a strong topic-related visual focal point on the ${subjectSide} side of the frame.`,
-            `Keep the ${position} third visually simple and dark with generous clean negative space for a headline that will be added later.`,
+            "Use a pulled-back medium-wide camera view, not a close-up or zoom. If a person is shown, keep the entire head, hair and face fully inside the frame with clear space above and beside them; never crop the face or head.",
+            `Keep the ${position} third visually simple and dark with generous clean negative space for the headline that TrivexaAI will add later.`,
             "Use bold lighting, vivid but balanced colours, clear subject separation, strong contrast and a polished creator-thumbnail look.",
-            "Do not render any text, letters, numbers, captions, logos, watermarks, borders or UI. The headline will be added separately."
+            "Background only: no text, pseudo-text, letters, numbers, captions, signage, logos, watermarks, borders or UI. The exact headline is added separately by TrivexaAI."
           ].join(" ");
 
       if (thumbnailPrompt.length > 1000) {
