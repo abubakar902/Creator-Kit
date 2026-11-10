@@ -4905,7 +4905,7 @@
       cropRenderScale=Math.min(1,maxW/enhancerImage.naturalWidth,maxH/enhancerImage.naturalHeight);
       enhancerCropCanvas.width=Math.max(1,Math.round(enhancerImage.naturalWidth*cropRenderScale));
       enhancerCropCanvas.height=Math.max(1,Math.round(enhancerImage.naturalHeight*cropRenderScale));
-      enhancerCropCanvas.style.width="100%";enhancerCropCanvas.style.height="auto";
+      enhancerCropCanvas.style.width="auto";enhancerCropCanvas.style.height="auto";enhancerCropCanvas.style.maxWidth="100%";enhancerCropCanvas.style.maxHeight="620px";
       drawCropSelection();enhancerMessage.textContent="Drag your mouse across the photo to select the area you want to keep.";
     }
     document.getElementById("enhancerOpenCrop").addEventListener("click",openEnhancerCrop);
