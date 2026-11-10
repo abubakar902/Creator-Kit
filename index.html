@@ -4403,14 +4403,28 @@
       const ctx = canvas.getContext("2d");
       if (!ctx) throw new Error("Your browser could not start thumbnail processing.");
 
-      const scale = Math.max(canvas.width / sourceImage.naturalWidth, canvas.height / sourceImage.naturalHeight);
-      const drawWidth = sourceImage.naturalWidth * scale;
-      const drawHeight = sourceImage.naturalHeight * scale;
-      const drawX = (canvas.width - drawWidth) / 2;
+      const isRight = position === "right";
+      const subjectOnRight = !isRight;
+
+      // Fill the full 16:9 canvas with a softly blurred version, avoiding empty bars.
+      const coverScale = Math.max(canvas.width / sourceImage.naturalWidth, canvas.height / sourceImage.naturalHeight);
+      const coverWidth = sourceImage.naturalWidth * coverScale;
+      const coverHeight = sourceImage.naturalHeight * coverScale;
+      const coverX = (canvas.width - coverWidth) / 2;
+      const coverY = (canvas.height - coverHeight) / 2;
+      ctx.save();
+      ctx.filter = "blur(26px) brightness(0.62)";
+      ctx.drawImage(sourceImage, coverX - 34, coverY - 34, coverWidth + 68, coverHeight + 68);
+      ctx.restore();
+
+      // Place the complete, sharp source image on the side opposite the headline.
+      // "contain" keeps the top of a person's head and the full original frame visible.
+      const containScale = Math.min(canvas.width / sourceImage.naturalWidth, canvas.height / sourceImage.naturalHeight);
+      const drawWidth = sourceImage.naturalWidth * containScale;
+      const drawHeight = sourceImage.naturalHeight * containScale;
+      const drawX = subjectOnRight ? canvas.width - drawWidth : 0;
       const drawY = (canvas.height - drawHeight) / 2;
       ctx.drawImage(sourceImage, drawX, drawY, drawWidth, drawHeight);
-
-      const isRight = position === "right";
       const gradient = isRight
         ? ctx.createLinearGradient(canvas.width, 0, canvas.width - 760, 0)
         : ctx.createLinearGradient(0, 0, 760, 0);
@@ -4503,17 +4517,17 @@
       const subjectSide = position === "right" ? "left" : "right";
       const thumbnailPrompt = thumbnailUsesCustomPrompt
         ? [
-            `16:9 YouTube thumbnail background. ${customThumbnailDirection}.`,
-            "Medium-wide pulled-back view, not zoomed. Keep the full head and face inside frame with margins.",
-            `Leave the ${position} side dark and clear for headline.`,
-            "Cinematic lighting, vivid balanced colours. Background only: no text, letters, numbers, logos or watermarks; TrivexaAI adds the exact headline separately."
+            `16:9 thumbnail background: ${customThumbnailDirection}.`,
+            "Medium-wide view. If a person appears, show the entire head and hair with clear space above; never crop the head or face.",
+            `Place the subject on the ${subjectSide}; keep the ${position} side clear for the headline.`,
+            "Cinematic vivid lighting. No text, letters, logos or watermarks; TrivexaAI adds the exact headline."
           ].join(" ")
         : [
-            `16:9 YouTube thumbnail about: ${topic}. Style: ${style}.`,
-            subject ? `Subject: ${subject}, placed on the ${subjectSide} side.` : `Clear topic-related subject on the ${subjectSide} side.`,
-            "Medium-wide pulled-back view, not zoomed. Keep the full head and face inside frame with margins.",
-            `Leave the ${position} side dark and clear for headline.`,
-            "Cinematic lighting, vivid balanced colours. Background only: no text, letters, numbers, logos or watermarks; TrivexaAI adds the exact headline separately."
+            `16:9 thumbnail about: ${topic}. Style: ${style}.`,
+            subject ? `Subject: ${subject}, on the ${subjectSide}.` : `Topic-related subject on the ${subjectSide}.`,
+            "Medium-wide view. If a person appears, show the entire head and hair with clear space above; never crop the head or face.",
+            `Keep the ${position} side clear for the headline.`,
+            "Cinematic vivid lighting. No text, letters, logos or watermarks; TrivexaAI adds the exact headline."
           ].join(" ");
 
       if (thumbnailPrompt.length > 1000) {
