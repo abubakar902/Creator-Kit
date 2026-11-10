@@ -2620,9 +2620,9 @@
         <p class="workspace-intro" style="font-size:12px">PNG, JPG or WEBP up to 8 MB.</p>
       </div>
       <div id="enhancerPreview" style="margin-top:16px"></div>
-      <div id="enhancerStartActions" style="display:none;flex-direction:row;flex-wrap:nowrap;justify-content:center;align-items:center;gap:8px;width:100%;margin:18px auto 0">
-        <button class="primary" id="enhancerOpenEdit" type="button" style="flex:0 0 116px;width:116px;min-height:38px;padding:8px 10px;font-size:13px;white-space:nowrap">✏️ Edit</button>
-        <button class="secondary" id="enhancerOpenCrop" type="button" style="flex:0 0 116px;width:116px;min-height:38px;padding:8px 10px;font-size:13px;white-space:nowrap">✂️ Crop</button>
+      <div id="enhancerStartActions" style="display:none;flex-direction:row!important;flex-wrap:nowrap!important;justify-content:center;align-items:center;gap:10px;width:100%;margin:18px auto 0">
+        <button class="primary" id="enhancerOpenEdit" type="button" style="display:inline-flex!important;flex:0 0 116px!important;width:116px!important;min-width:116px!important;max-width:116px!important;min-height:38px;padding:8px 10px;font-size:13px;white-space:nowrap;justify-content:center">✏️ Edit</button>
+        <button class="secondary" id="enhancerOpenCrop" type="button" style="display:inline-flex!important;flex:0 0 116px!important;width:116px!important;min-width:116px!important;max-width:116px!important;min-height:38px;padding:8px 10px;font-size:13px;white-space:nowrap;justify-content:center">✂️ Crop</button>
       </div>
       <div id="enhancerCropPanel" class="field-group" style="display:none;margin-top:18px">
         <div class="field-label"><span>Crop your image</span><span class="field-hint-badge">Drag to select area</span></div>
@@ -2632,9 +2632,9 @@
           <option value="9:16">Story (9:16)</option>
         </select>
         <canvas id="enhancerCropCanvas" style="display:block;width:auto;height:auto;max-width:min(100%,760px);max-height:420px;margin:12px auto 0;border-radius:12px;touch-action:none;cursor:crosshair;background:#100b20;object-fit:contain"></canvas>
-        <div class="generator-actions-row"><button class="secondary" id="enhancerCancelCrop" type="button">Cancel Crop</button><button class="primary" id="enhancerApplyCrop" type="button">Apply Crop</button></div>
+        <div class="generator-actions-row"><button class="secondary" id="enhancerClearCrop" type="button">Clear Selection</button><button class="secondary" id="enhancerCancelCrop" type="button">Cancel Crop</button><button class="primary" id="enhancerApplyCrop" type="button">Apply Crop</button></div>
       </div>
-      <div id="enhancerEditPanel" style="display:none;margin-top:20px;gap:16px"><div id="enhancerComparePreview"></div>
+      <div id="enhancerEditPanel" style="display:none;margin-top:20px;gap:16px">
         <div class="field-group"><div class="field-label"><span>Brightness</span><span id="brightnessValue" class="field-hint-badge">100%</span></div><input id="enhancerBrightness" type="range" min="50" max="150" value="100" style="width:100%"></div>
         <div class="field-group"><div class="field-label"><span>Contrast</span><span id="contrastValue" class="field-hint-badge">100%</span></div><input id="enhancerContrast" type="range" min="50" max="150" value="100" style="width:100%"></div>
         <div class="field-group"><div class="field-label"><span>Colour Saturation</span><span id="saturationValue" class="field-hint-badge">100%</span></div><input id="enhancerSaturation" type="range" min="0" max="200" value="100" style="width:100%"></div>
@@ -2644,6 +2644,12 @@
           <button class="secondary" id="enhancerRotateLeft" type="button">↶ Rotate Left</button><button class="secondary" id="enhancerRotateRight" type="button">↷ Rotate Right</button><button class="secondary" id="enhancerFlip" type="button">↔ Flip</button>
         </div></div>
         <div class="generator-actions-row"><button class="secondary" id="enhancerReset" type="button">↺ Reset All</button><button class="primary" id="enhancerFinishEdit" type="button">Done Editing</button></div>
+        <div id="enhancerWorkPreview" style="margin-top:8px"></div>
+        <button class="secondary" id="enhancerShowLivePreview" type="button" style="justify-self:center;min-width:170px">👁 Live Preview</button>
+      </div>
+      <div id="enhancerLivePreviewPanel" style="display:none;margin-top:20px">
+        <div id="enhancerComparePreview"></div>
+        <button class="secondary" id="enhancerBackToEdit" type="button" style="margin-top:12px">← Back to Edit</button>
       </div>
       <div id="enhancerSavePanel" style="display:none;margin-top:18px"><p class="workspace-intro">Editing complete. Save to prepare your final image.</p><button class="primary" id="enhancerSave" type="button">💾 Save Changes</button></div>
       <div id="enhancerDownloadPanel" style="display:none;margin-top:14px"><button class="primary download-cta" id="enhancerDownload" type="button">⬇️ Download Image</button></div>
@@ -4846,13 +4852,14 @@
     const enhancerFile=document.getElementById("enhancerFile"), enhancerPreview=document.getElementById("enhancerPreview");
     const enhancerMessage=document.getElementById("enhancerMessage"), enhancerStartActions=document.getElementById("enhancerStartActions");
     const enhancerEditPanel=document.getElementById("enhancerEditPanel"), enhancerCropPanel=document.getElementById("enhancerCropPanel");
+    const enhancerLivePreviewPanel=document.getElementById("enhancerLivePreviewPanel");
     const enhancerSavePanel=document.getElementById("enhancerSavePanel"), enhancerDownloadPanel=document.getElementById("enhancerDownloadPanel");
     const enhancerBrightness=document.getElementById("enhancerBrightness"), enhancerContrast=document.getElementById("enhancerContrast");
     const enhancerSaturation=document.getElementById("enhancerSaturation"), enhancerWarmth=document.getElementById("enhancerWarmth"), enhancerBlur=document.getElementById("enhancerBlur");
     const brightnessValue=document.getElementById("brightnessValue"), contrastValue=document.getElementById("contrastValue");
     const saturationValue=document.getElementById("saturationValue"), warmthValue=document.getElementById("warmthValue"), blurValue=document.getElementById("blurValue");
     const enhancerCropCanvas=document.getElementById("enhancerCropCanvas"), cropCtx=enhancerCropCanvas.getContext("2d");
-    let enhancerImage=null, enhancerObjectUrl=null, enhancerOriginalObjectUrl=null, enhancerSavedBlob=null, cropRect=null, cropStart=null, enhancerRotation=0, enhancerFlip=false, cropRenderScale=1;
+    let enhancerImage=null, enhancerObjectUrl=null, enhancerOriginalObjectUrl=null, enhancerEditBaseUrl=null, enhancerSavedBlob=null, cropRect=null, cropStart=null, enhancerRotation=0, enhancerFlip=false, cropRenderScale=1;
 
     function enhancerFilter(){return "brightness("+enhancerBrightness.value+"%) contrast("+enhancerContrast.value+"%) saturate("+enhancerSaturation.value+"%) sepia("+enhancerWarmth.value+"%) blur("+enhancerBlur.value+"px)";}
     function updateEnhancerPreview(){
@@ -4861,6 +4868,7 @@
       const transform="rotate("+enhancerRotation+"deg) scaleX("+(enhancerFlip?-1:1)+")";
       const img=enhancerPreview.querySelector("img");if(img){img.style.filter=enhancerFilter();img.style.transform=transform;}
       const after=document.getElementById("enhancerAfterImage");if(after){after.style.filter=enhancerFilter();after.style.transform=transform;}
+      const work=document.getElementById("enhancerWorkImage");if(work){work.style.filter=enhancerFilter();work.style.transform=transform;}
     }
     function resetEnhancer(){
       enhancerBrightness.value=100;enhancerContrast.value=100;enhancerSaturation.value=100;enhancerWarmth.value=0;enhancerBlur.value=0;
@@ -4870,7 +4878,7 @@
     enhancerFile.addEventListener("change",()=>{
       const file=enhancerFile.files&&enhancerFile.files[0];enhancerImage=null;enhancerSavedBlob=null;enhancerPreview.replaceChildren();
       enhancerMessage.textContent="";enhancerStartActions.style.display="none";enhancerEditPanel.style.display="none";
-      enhancerCropPanel.style.display="none";enhancerSavePanel.style.display="none";enhancerDownloadPanel.style.display="none";
+      enhancerCropPanel.style.display="none";enhancerSavePanel.style.display="none";enhancerDownloadPanel.style.display="none";enhancerLivePreviewPanel.style.display="none";
       if(enhancerObjectUrl&&enhancerObjectUrl!==enhancerOriginalObjectUrl)URL.revokeObjectURL(enhancerObjectUrl);if(enhancerOriginalObjectUrl)URL.revokeObjectURL(enhancerOriginalObjectUrl);enhancerObjectUrl=null;enhancerOriginalObjectUrl=null;if(!file)return;
       if(!/^image\/(png|jpeg|webp)$/.test(file.type)){enhancerMessage.textContent="Please choose a PNG, JPG or WEBP image.";enhancerFile.value="";return;}
       if(file.size>8*1024*1024){enhancerMessage.textContent="Please choose an image smaller than 8 MB.";enhancerFile.value="";return;}
@@ -4886,15 +4894,12 @@
     });
     document.getElementById("enhancerOpenEdit").addEventListener("click",()=>{
       enhancerStartActions.style.display="none";enhancerCropPanel.style.display="none";enhancerEditPanel.style.display="grid";
-      enhancerSavePanel.style.display="none";enhancerDownloadPanel.style.display="none";
-      const comparison=document.getElementById("enhancerComparePreview");
-      if(comparison&&enhancerObjectUrl){
-        comparison.innerHTML='<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:18px"><div><p style="text-align:center;font-size:12px;font-weight:700;margin:0 0 7px">Original Upload</p><img id="enhancerBeforeImage" alt="Original uploaded image" style="display:block;width:100%;height:190px;object-fit:contain;border-radius:10px;background:#100b20"></div><div><p style="text-align:center;font-size:12px;font-weight:700;margin:0 0 7px">Live Preview</p><img id="enhancerAfterImage" alt="Current edited image preview" style="display:block;width:100%;height:190px;object-fit:contain;border-radius:10px;background:#100b20"></div></div>';
-        document.getElementById("enhancerBeforeImage").src=enhancerOriginalObjectUrl||enhancerObjectUrl;
-        document.getElementById("enhancerAfterImage").src=enhancerObjectUrl;
-      }
+      enhancerLivePreviewPanel.style.display="none";enhancerSavePanel.style.display="none";enhancerDownloadPanel.style.display="none";
+      enhancerEditBaseUrl=enhancerObjectUrl;
+      document.getElementById("enhancerWorkPreview").innerHTML='<p style="text-align:center;font-size:13px;font-weight:700;margin:0 0 8px">Current Editing Preview</p><img id="enhancerWorkImage" alt="Current editing preview" style="display:block;width:auto;height:auto;max-width:100%;max-height:360px;object-fit:contain;margin:auto;border-radius:12px;transform-origin:center">';
+      document.getElementById("enhancerWorkImage").src=enhancerEditBaseUrl;
       updateEnhancerPreview();
-      enhancerMessage.textContent="Original aur Live Preview compare karo. Sliders se changes foran preview mein nazar aayenge.";
+      enhancerMessage.textContent="Adjust the controls above. Your changes will appear in the preview below.";
     });
     function drawCropSelection(){
       if(!enhancerImage)return;
@@ -4925,6 +4930,9 @@
     document.getElementById("enhancerOpenCrop").addEventListener("click",openEnhancerCrop);
     document.getElementById("enhancerCancelCrop").addEventListener("click",()=>{
       cropStart=null;enhancerCropPanel.style.display="none";enhancerStartActions.style.display="flex";enhancerMessage.textContent="Crop cancelled.";
+    });
+    document.getElementById("enhancerClearCrop").addEventListener("click",()=>{
+      cropStart=null;cropRect=null;drawCropSelection();enhancerMessage.textContent="Selection cleared. Drag again to choose a new crop area.";
     });
     function updateCropFromPointer(event){
       if(!cropStart)return;
@@ -4981,6 +4989,18 @@
     document.getElementById("enhancerRotateRight").addEventListener("click",()=>{enhancerRotation=(enhancerRotation+90)%360;updateEnhancerPreview();});
     document.getElementById("enhancerFlip").addEventListener("click",()=>{enhancerFlip=!enhancerFlip;updateEnhancerPreview();});
     document.getElementById("enhancerReset").addEventListener("click",()=>{resetEnhancer();enhancerMessage.textContent="All edits reset.";});
+    document.getElementById("enhancerShowLivePreview").addEventListener("click",()=>{
+      enhancerEditPanel.style.display="none";enhancerLivePreviewPanel.style.display="block";
+      const comparison=document.getElementById("enhancerComparePreview");
+      comparison.innerHTML='<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:18px"><div><p style="text-align:center;font-size:12px;font-weight:700;margin:0 0 7px">Original</p><img id="enhancerBeforeImage" alt="Original image before edits" style="display:block;width:100%;height:190px;object-fit:contain;border-radius:10px;background:#100b20"></div><div><p style="text-align:center;font-size:12px;font-weight:700;margin:0 0 7px">Live Preview</p><img id="enhancerAfterImage" alt="Current edited image preview" style="display:block;width:100%;height:190px;object-fit:contain;border-radius:10px;background:#100b20"></div></div>';
+      document.getElementById("enhancerBeforeImage").src=enhancerEditBaseUrl||enhancerObjectUrl;
+      document.getElementById("enhancerAfterImage").src=enhancerEditBaseUrl||enhancerObjectUrl;
+      updateEnhancerPreview();enhancerMessage.textContent="Compare your original image with the current edited preview.";
+    });
+    document.getElementById("enhancerBackToEdit").addEventListener("click",()=>{
+      enhancerLivePreviewPanel.style.display="none";enhancerEditPanel.style.display="grid";
+      enhancerMessage.textContent="You can continue adjusting your image.";
+    });
     document.getElementById("enhancerFinishEdit").addEventListener("click",()=>{
       enhancerEditPanel.style.display="none";enhancerSavePanel.style.display="block";enhancerDownloadPanel.style.display="none";
       enhancerMessage.textContent="Editing finished. Press Save Changes to prepare the final image.";
