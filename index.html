@@ -2631,7 +2631,7 @@
           <option value="4:5">Portrait (4:5)</option><option value="16:9">Landscape (16:9)</option>
           <option value="9:16">Story (9:16)</option>
         </select>
-        <canvas id="enhancerCropCanvas" style="display:block;width:100%;height:auto;max-width:100%;margin:12px auto 0;border-radius:12px;touch-action:none;cursor:crosshair;background:#100b20"></canvas>
+        <canvas id="enhancerCropCanvas" style="display:block;width:auto;height:auto;max-width:min(100%,760px);max-height:420px;margin:12px auto 0;border-radius:12px;touch-action:none;cursor:crosshair;background:#100b20;object-fit:contain"></canvas>
         <div class="generator-actions-row"><button class="secondary" id="enhancerCancelCrop" type="button">Cancel Crop</button><button class="primary" id="enhancerApplyCrop" type="button">Apply Crop</button></div>
       </div>
       <div id="enhancerEditPanel" style="display:none;margin-top:20px;gap:16px">
@@ -4901,11 +4901,11 @@
       if(!enhancerImage)return;
       enhancerStartActions.style.display="none";enhancerEditPanel.style.display="none";enhancerSavePanel.style.display="none";enhancerDownloadPanel.style.display="none";
       enhancerCropPanel.style.display="block";cropStart=null;cropRect=null;
-      const maxW=1000,maxH=620;
+      const maxW=760,maxH=420;
       cropRenderScale=Math.min(1,maxW/enhancerImage.naturalWidth,maxH/enhancerImage.naturalHeight);
       enhancerCropCanvas.width=Math.max(1,Math.round(enhancerImage.naturalWidth*cropRenderScale));
       enhancerCropCanvas.height=Math.max(1,Math.round(enhancerImage.naturalHeight*cropRenderScale));
-      enhancerCropCanvas.style.width="auto";enhancerCropCanvas.style.height="auto";enhancerCropCanvas.style.maxWidth="100%";enhancerCropCanvas.style.maxHeight="620px";
+      enhancerCropCanvas.style.width="auto";enhancerCropCanvas.style.height="auto";enhancerCropCanvas.style.maxWidth="min(100%, 760px)";enhancerCropCanvas.style.maxHeight="420px";
       drawCropSelection();enhancerMessage.textContent="Drag your mouse across the photo to select the area you want to keep.";
     }
     document.getElementById("enhancerOpenCrop").addEventListener("click",openEnhancerCrop);
