@@ -2309,42 +2309,19 @@
           <span>Favourites</span>
           <span class="tab-badge" id="tabBadgeFavourites">0</span>
         </button>
-        <button type="button" class="tab-btn" id="tabNavHistory" role="tab" aria-selected="false" aria-controls="panelHistory">
-          <span class="tab-icon">🕘</span>
-          <span>Recent History</span>
-          <span class="tab-badge" id="tabBadgeHistory">0</span>
-        </button>
       </nav>
     </div>
-
-    <!-- PERSONAL QUICK ACCESS: RECENTLY OPENED TOOLS -->
-    <section class="recently-opened-section" id="recentlyOpenedSection" aria-labelledby="recentlyOpenedTitle" hidden>
-      <div class="recently-opened-heading">
-        <div>
-          <div class="section-kicker">QUICK ACCESS</div>
-          <h2 class="section-title" id="recentlyOpenedTitle">↻ Recently Opened</h2>
-          <p>Your last-used tools, saved only in this browser.</p>
-        </div>
-        <button class="secondary" id="clearRecentlyOpened" type="button">Clear</button>
-      </div>
-      <div class="recently-opened-grid" id="recentlyOpenedGrid" aria-live="polite"></div>
-    </section>
 
     <!-- CREATOR HUB: central access to tools, favourites and recent tools -->
     <div class="tab-panel active creator-hub-panel" id="panelHub" role="tabpanel" aria-labelledby="tabNavHub">
       <section class="hub-welcome">
         <div class="section-kicker">YOUR CREATOR WORKSPACE</div>
         <h2>✨ Welcome to TrivexaAI Creator Hub</h2>
-        <p>All your creator tools, favourite shortcuts and recently opened tools — together in one simple workspace.</p>
+        <p>Your tools and recent activity — all organized in one simple workspace.</p>
         <div class="hub-quick-actions">
           <button class="hub-action" type="button" data-switch-tab="search">🔎 Browse all tools</button>
-          <button class="hub-action" type="button" data-switch-tab="favourites">⭐ My favourites</button>
-          <button class="hub-action" type="button" data-switch-tab="history">🕘 Recent results</button>
+          <button class="hub-action" type="button" data-switch-tab="history">🕘 Recent History</button>
         </div>
-      </section>
-      <section class="hub-section">
-        <div class="hub-section-heading"><div><h3>⭐ Your Favourite Tools</h3><p>Your saved shortcuts on this device</p></div><span class="tab-badge" id="hubFavouriteCount">0</span></div>
-        <div class="hub-tool-grid" id="hubFavouriteGrid"></div><div class="hub-empty" id="hubFavouriteEmpty">Tap the star on any tool to save it here.</div>
       </section>
       <section class="hub-section">
         <div class="hub-section-heading"><div><h3>↻ Recently Opened</h3><p>Jump back into the tools you used last</p></div></div>
@@ -2353,6 +2330,27 @@
       <section class="hub-section">
         <div class="hub-section-heading"><div><h3>🚀 Explore All Tools</h3><p>Quick access to every available tool</p></div><button class="hub-action" type="button" data-switch-tab="search">Full directory →</button></div>
         <div class="hub-tool-grid" id="hubAllToolsGrid"></div>
+      </section>
+    
+      <section class="hub-section hub-history-section">
+        <div class="hub-section-heading"><div><h3>🕘 Recent History</h3><p>Your latest creations, saved privately on this device</p></div></div>
+        <section class="recent-section" id="recentResultsSection" aria-labelledby="recentResultsTitle">
+        <div class="recent-heading">
+          <div>
+            <div class="section-kicker">CREATION TIMELINE</div>
+            <h2 class="section-title" id="recentResultsTitle">🕘 Recent Results & History</h2>
+            <p class="recent-description">Revisit, copy, or download your latest text, images, logos, thumbnails and voiceovers.</p>
+          </div>
+          <div class="recent-heading-actions">
+            <span id="recentResultsCount" class="recent-count">0 saved</span>
+            <button class="secondary" id="clearRecentResults" type="button" disabled>Clear history</button>
+          </div>
+        </div>
+        <p class="recent-storage-note">Your latest 10 results are cached locally in this browser via IndexedDB. They are completely private and never uploaded to external servers.</p>
+        <div id="recentResultsGrid" class="recent-grid" aria-live="polite"></div>
+        <div id="recentResultsEmpty" class="recent-empty">No recent results yet. Generate content with any tool to see your work recorded here.</div>
+        <p id="recentResultsStatus" class="recent-status" role="status" aria-live="polite"></p>
+      </section>
       </section>
     </div>
 
@@ -2548,26 +2546,7 @@
       </section>
     </div>
 
-    <!-- TAB PANEL 3: RECENT RESULTS / HISTORY -->
-    <div class="tab-panel" id="panelHistory" role="tabpanel" aria-labelledby="tabNavHistory">
-      <section class="recent-section" id="recentResultsSection" aria-labelledby="recentResultsTitle">
-        <div class="recent-heading">
-          <div>
-            <div class="section-kicker">CREATION TIMELINE</div>
-            <h2 class="section-title" id="recentResultsTitle">🕘 Recent Results & History</h2>
-            <p class="recent-description">Revisit, copy, or download your latest text, images, logos, thumbnails and voiceovers.</p>
-          </div>
-          <div class="recent-heading-actions">
-            <span id="recentResultsCount" class="recent-count">0 saved</span>
-            <button class="secondary" id="clearRecentResults" type="button" disabled>Clear history</button>
-          </div>
-        </div>
-        <p class="recent-storage-note">Your latest 10 results are cached locally in this browser via IndexedDB. They are completely private and never uploaded to external servers.</p>
-        <div id="recentResultsGrid" class="recent-grid" aria-live="polite"></div>
-        <div id="recentResultsEmpty" class="recent-empty">No recent results yet. Generate content with any tool to see your work recorded here.</div>
-        <p id="recentResultsStatus" class="recent-status" role="status" aria-live="polite"></p>
-      </section>
-    </div>
+
 
     <!-- ==================== PREMIUM WORKSPACE PANELS ==================== -->
 
@@ -3175,16 +3154,13 @@
     const panelHub = document.getElementById("panelHub");
     const tabNavSearch = document.getElementById("tabNavSearch");
     const tabNavFavourites = document.getElementById("tabNavFavourites");
-    const tabNavHistory = document.getElementById("tabNavHistory");
     const panelSearch = document.getElementById("panelSearch");
     const panelFavourites = document.getElementById("panelFavourites");
-    const panelHistory = document.getElementById("panelHistory");
 
     function switchDashboardTab(tabId) {
       const isHub = tabId === "hub";
       const isSearch = tabId === "search";
       const isFavourites = tabId === "favourites";
-      const isHistory = tabId === "history";
 
       tabNavHub?.classList.toggle("active", isHub);
       tabNavHub?.setAttribute("aria-selected", String(isHub));
@@ -3193,27 +3169,29 @@
       tabNavSearch?.setAttribute("aria-selected", String(isSearch));
       tabNavFavourites?.classList.toggle("active", isFavourites);
       tabNavFavourites?.setAttribute("aria-selected", String(isFavourites));
-      tabNavHistory?.classList.toggle("active", isHistory);
-      tabNavHistory?.setAttribute("aria-selected", String(isHistory));
 
       panelSearch?.classList.toggle("active", isSearch);
       panelFavourites?.classList.toggle("active", isFavourites);
-      panelHistory?.classList.toggle("active", isHistory);
-
-      // Load IndexedDB history only when the user opens the History tab.
-      if (isHistory) renderRecentResults();
+      // History is displayed inside Creator Hub and loaded when requested.
+      if (tabId === "history") {
+        renderRecentResults();
+        document.getElementById("recentResultsSection")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
     }
 
     tabNavHub?.addEventListener("click", () => switchDashboardTab("hub"));
     tabNavSearch?.addEventListener("click", () => switchDashboardTab("search"));
     tabNavFavourites?.addEventListener("click", () => switchDashboardTab("favourites"));
-    tabNavHistory?.addEventListener("click", () => switchDashboardTab("history"));
 
     document.querySelectorAll("[data-switch-tab]").forEach(trigger => {
       trigger.addEventListener("click", (e) => {
         const targetTab = trigger.getAttribute("data-switch-tab");
         if (targetTab) {
-          switchDashboardTab(targetTab);
+          switchDashboardTab(targetTab === "history" ? "hub" : targetTab);
+          if (targetTab === "history") {
+            renderRecentResults();
+            document.getElementById("recentResultsSection")?.scrollIntoView({ behavior: "smooth", block: "start" });
+          }
         }
       });
     });
@@ -3312,7 +3290,7 @@
         transaction.objectStore(RECENT_STORE_NAME).put(record);
         await recentTransactionDone(transaction);
         await trimRecentResults();
-        if (panelHistory?.classList.contains("active")) await renderRecentResults();
+        if (panelHub?.classList.contains("active")) await renderRecentResults();
         if (recentResultsStatus) recentResultsStatus.textContent = "Latest result saved on this device.";
       } catch (error) {
         console.warn("Recent Results could not save this item:", error);
@@ -3880,11 +3858,8 @@
       });
     }
     function renderCreatorHub() {
-      renderHubShortcuts("hubFavouriteGrid", favouriteToolIds, "hubFavouriteEmpty", "Tap the star on any tool to save it here.");
       renderHubShortcuts("hubRecentGrid", recentlyOpenedToolIds, "hubRecentEmpty", "Your recently opened tools will appear here.", 4);
       renderHubShortcuts("hubAllToolsGrid", allToolCards.map(card => card.dataset.tool), "hubAllToolsEmpty", "No tools are available right now.");
-      const count = document.getElementById("hubFavouriteCount");
-      if (count) count.textContent = String(favouriteToolIds.length);
     }
     renderCreatorHub();
 
