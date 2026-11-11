@@ -2543,19 +2543,21 @@
     <section class="workspace" id="upscalerWorkspace" style="display:none">
       <div class="workspace-header-bar">
         <div class="workspace-title-wrap">
-          <span class="workspace-badge">Image & Design Utility</span>
-          <h2>🎨 Free Image Color Picker</h2>
-          <p class="workspace-intro">Upload an image and click any spot to pick its exact colour. Copy the HEX or RGB code instantly. Your image stays on your device.</p>
+          <span class="workspace-badge">Advanced Image Utility</span>
+          <h2>🎨 Image Color Picker Pro</h2>
+          <p class="workspace-intro">Pick exact colours, explore automatic palettes and copy professional colour codes. Everything runs privately in your browser.</p>
         </div>
         <button type="button" class="workspace-close-btn" data-close-workspace aria-label="Close workspace">✕</button>
       </div>
-      <div class="field-group">
-        <label for="colorPickerFile">Choose an image</label>
-        <input id="colorPickerFile" type="file" accept="image/png,image/jpeg,image/webp">
-        <p class="workspace-intro" style="font-size:12px">PNG, JPG or WebP · Maximum file size 10 MB.</p>
+      <div id="colorPickerDrop" class="field-group" style="padding:20px;border:2px dashed var(--border-strong);border-radius:16px;text-align:center;background:rgba(155,108,255,.06)">
+        <strong style="display:block;margin-bottom:6px">📁 Drop an image here</strong>
+        <p class="workspace-intro" style="margin:0 0 12px">PNG, JPG or WebP · Maximum 10 MB</p>
+        <label for="colorPickerFile" class="secondary" style="display:inline-flex;cursor:pointer;padding:10px 16px;border-radius:10px">Choose or replace image</label>
+        <input id="colorPickerFile" type="file" accept="image/png,image/jpeg,image/webp" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none">
       </div>
       <div id="colorPickerPreview" style="margin-top:16px"></div>
       <div id="colorPickerResult" style="margin-top:16px"></div>
+      <div id="colorPickerPalette" style="margin-top:18px"></div>
       <div id="colorPickerMessage" role="status" aria-live="polite"></div>
     </section>
 
@@ -4771,61 +4773,94 @@
       }
     });
 
-    // LIGHTWEIGHT IMAGE COLOR PICKER
+    // IMAGE COLOR PICKER PRO — local browser processing only
     const colorPickerFile = document.getElementById("colorPickerFile");
+    const colorPickerDrop = document.getElementById("colorPickerDrop");
     const colorPickerPreview = document.getElementById("colorPickerPreview");
     const colorPickerResult = document.getElementById("colorPickerResult");
+    const colorPickerPalette = document.getElementById("colorPickerPalette");
     const colorPickerMessage = document.getElementById("colorPickerMessage");
-    let colorPickerImage = null;
-    let colorPickerObjectUrl = null;
+    let colorPickerImage = null, colorPickerObjectUrl = null, colorPickerZoom = 1;
+    let colorPickerHistory = [], colorPickerLast = null, colorPickerPaletteItems = [];
 
-    colorPickerFile.addEventListener("change", () => {
-      const file = colorPickerFile.files && colorPickerFile.files[0];
-      colorPickerImage = null;
-      colorPickerPreview.replaceChildren();
-      colorPickerResult.replaceChildren();
-      colorPickerMessage.textContent = "";
-      if (colorPickerObjectUrl) URL.revokeObjectURL(colorPickerObjectUrl);
-      colorPickerObjectUrl = null;
-      if (!file) return;
-      if (!["image/png", "image/jpeg", "image/webp"].includes(file.type)) { colorPickerMessage.textContent = "Please choose a PNG, JPG or WebP image."; colorPickerFile.value = ""; return; }
-      if (file.size > 10 * 1024 * 1024) { colorPickerMessage.textContent = "Please choose an image smaller than 10 MB."; colorPickerFile.value = ""; return; }
-      colorPickerObjectUrl = URL.createObjectURL(file);
-      const img = new Image();
-      img.onload = () => {
-        colorPickerImage = img;
-        colorPickerPreview.innerHTML = '<p class="workspace-intro">Click anywhere on the image to pick a colour.</p><img id="colorPickerImage" src="' + colorPickerObjectUrl + '" alt="Image for colour picking" style="display:block;max-width:100%;max-height:460px;object-fit:contain;border-radius:14px;border:1px solid var(--border-strong);cursor:crosshair">';
-        colorPickerMessage.textContent = "Image ready · " + img.naturalWidth + " × " + img.naturalHeight + " pixels";
+    const cpHex = (r,g,b) => "#" + [r,g,b].map(v => Math.round(v).toString(16).padStart(2,"0")).join("").toUpperCase();
+    const cpHsl = (r,g,b) => { r/=255;g/=255;b/=255;const max=Math.max(r,g,b),min=Math.min(r,g,b),d=max-min;let h=0,ss=0,l=(max+min)/2;if(d){ss=d/(1-Math.abs(2*l-1));switch(max){case r:h=((g-b)/d)%6;break;case g:h=(b-r)/d+2;break;default:h=(r-g)/d+4;}h*=60;if(h<0)h+=360;}return "hsl("+Math.round(h)+", "+Math.round(ss*100)+"%, "+Math.round(l*100)+"%)"; };
+    const cpCmyk = (r,g,b) => { const R=r/255,G=g/255,B=b/255,k=1-Math.max(R,G,B);if(k>=1)return "0%, 0%, 0%, 100%";return Math.round((1-R-k)/(1-k)*100)+"%, "+Math.round((1-G-k)/(1-k)*100)+"%, "+Math.round((1-B-k)/(1-k)*100)+"%, "+Math.round(k*100)+"%"; };
+    const cpEsc = value => String(value).replace(/[&<>"\']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","\'":"&#39;"}[ch]));
+    const cpCopy = async (value) => { try { await navigator.clipboard.writeText(value); colorPickerMessage.textContent=value+" copied to clipboard."; } catch(e) { colorPickerMessage.textContent="Clipboard access was blocked. Select and copy the value manually."; } };
+    const cpShowColor = (r,g,b,x,y,remember=true) => {
+      const hex=cpHex(r,g,b), rgb="rgb("+r+", "+g+", "+b+")", hsl=cpHsl(r,g,b), cmyk=cpCmyk(r,g,b);
+      colorPickerLast={r,g,b,hex,rgb,hsl,cmyk,x,y};
+      colorPickerResult.innerHTML = '<div style="padding:16px;border:1px solid var(--border-strong);border-radius:15px;background:var(--panel)"><div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap"><span style="width:68px;height:68px;flex:0 0 68px;border-radius:13px;background:'+hex+';border:1px solid var(--border-strong)"></span><div style="flex:1;min-width:160px"><strong>Selected colour</strong><p style="font-size:20px;font-weight:800;margin:5px 0">'+hex+'</p><span class="workspace-intro">Pixel position: '+(x+1)+', '+(y+1)+'</span></div></div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:9px;margin-top:15px">'+[["HEX",hex],["RGB",rgb],["HSL",hsl],["CMYK",cmyk]].map((item,i)=>'<div style="padding:10px;border-radius:10px;background:var(--panel2);min-width:0"><small style="color:var(--muted)">'+item[0]+'</small><div style="font-weight:700;overflow-wrap:anywhere">'+item[1]+'</div><button type="button" class="secondary cp-copy-value" data-copy="'+i+'" style="margin-top:7px;padding:6px 10px">Copy '+item[0]+'</button></div>').join("")+'</div></div>';
+      if(remember){colorPickerHistory=[colorPickerLast,...colorPickerHistory.filter(v=>v.hex!==hex)].slice(0,12);cpRenderHistory();}
+    };
+    const cpValues = () => colorPickerLast ? [colorPickerLast.hex,colorPickerLast.rgb,colorPickerLast.hsl,colorPickerLast.cmyk] : [];
+    const cpRenderHistory = () => {
+      let box=document.getElementById("colorPickerHistory"); if(!box){box=document.createElement("div");box.id="colorPickerHistory";colorPickerResult.appendChild(box);}
+      box.innerHTML='<div style="margin-top:16px"><strong>🕘 Recent colours</strong><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:9px">'+(colorPickerHistory.length?colorPickerHistory.map((v,i)=>'<button type="button" class="cp-history" data-history="'+i+'" title="'+v.hex+'" style="width:42px;height:42px;border-radius:9px;border:2px solid var(--border-strong);background:'+v.hex+'"></button>').join(""):'<span class="workspace-intro">Your picked colours will appear here.</span>')+'</div></div>';
+    };
+    const cpDrawMagnifier = (x,y) => {
+      const lens=document.getElementById("colorPickerLens"); if(!lens||!colorPickerImage)return;
+      const c=lens.querySelector("canvas"),ctx=c.getContext("2d");ctx.imageSmoothingEnabled=false;
+      const sx=Math.max(0,Math.min(colorPickerImage.naturalWidth-13,x-6)),sy=Math.max(0,Math.min(colorPickerImage.naturalHeight-13,y-6));
+      ctx.clearRect(0,0,117,117);ctx.drawImage(colorPickerImage,sx,sy,13,13,0,0,117,117);
+      ctx.strokeStyle="#ffffff";ctx.lineWidth=2;ctx.strokeRect(54,54,9,9);lens.style.display="block";
+    };
+    const cpLoadFile = file => {
+      colorPickerImage=null;colorPickerResult.replaceChildren();colorPickerPalette.replaceChildren();colorPickerPreview.replaceChildren();colorPickerHistory=[];colorPickerLast=null;colorPickerZoom=1;
+      if(colorPickerObjectUrl)URL.revokeObjectURL(colorPickerObjectUrl);colorPickerObjectUrl=null;
+      if(!file)return;
+      if(!["image/png","image/jpeg","image/webp"].includes(file.type)){colorPickerMessage.textContent="Please choose a PNG, JPG or WebP image.";return;}
+      if(file.size>10*1024*1024){colorPickerMessage.textContent="This image is larger than 10 MB. Please choose a smaller image.";return;}
+      colorPickerMessage.textContent="Loading image…";colorPickerObjectUrl=URL.createObjectURL(file);const img=new Image();
+      img.onload=()=>{colorPickerImage=img;colorPickerPreview.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px"><strong>Click the image to pick a colour</strong><div style="display:flex;gap:7px;flex-wrap:wrap"><button class="secondary" id="cpZoomOut" type="button">−</button><button class="secondary" id="cpZoomIn" type="button">+</button><button class="secondary" id="cpZoomReset" type="button">Reset zoom</button></div></div><div id="colorPickerImageStage" style="position:relative;overflow:auto;max-height:540px;padding:4px;border:1px solid var(--border-strong);border-radius:13px;background:var(--panel2)"><img id="colorPickerImage" alt="Image for colour picking" style="display:block;max-width:100%;max-height:460px;object-fit:contain;transform-origin:top left;cursor:crosshair"><div id="colorPickerLens" style="display:none;position:sticky;left:10px;bottom:10px;width:117px;height:117px;border:3px solid white;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px #0008;pointer-events:none"><canvas width="117" height="117"></canvas></div></div>';
+        const view=document.getElementById("colorPickerImage");view.src=colorPickerObjectUrl;
+        colorPickerMessage.textContent="Image ready · "+img.naturalWidth+" × "+img.naturalHeight+" pixels. Hover to preview; click to select.";
+        cpRenderHistory();
       };
-      img.onerror = () => { colorPickerMessage.textContent = "Could not open this image. Please choose another file."; if (colorPickerObjectUrl) URL.revokeObjectURL(colorPickerObjectUrl); colorPickerObjectUrl = null; };
-      img.src = colorPickerObjectUrl;
+      img.onerror=()=>{colorPickerMessage.textContent="Could not open this image. Please try another file.";if(colorPickerObjectUrl)URL.revokeObjectURL(colorPickerObjectUrl);colorPickerObjectUrl=null;};img.src=colorPickerObjectUrl;
+    };
+    colorPickerFile.addEventListener("change",()=>cpLoadFile(colorPickerFile.files&&colorPickerFile.files[0]));
+    colorPickerDrop.addEventListener("dragover",e=>{e.preventDefault();colorPickerDrop.style.borderColor="var(--purple)";});
+    colorPickerDrop.addEventListener("dragleave",()=>{colorPickerDrop.style.borderColor="var(--border-strong)";});
+    colorPickerDrop.addEventListener("drop",e=>{e.preventDefault();colorPickerDrop.style.borderColor="var(--border-strong)";const f=e.dataTransfer.files&&e.dataTransfer.files[0];if(f){colorPickerFile.value="";cpLoadFile(f);}});
+    colorPickerPreview.addEventListener("click",e=>{
+      const image=e.target.closest("#colorPickerImage");if(!image||!colorPickerImage)return;
+      const rect=image.getBoundingClientRect(),x=Math.max(0,Math.min(colorPickerImage.naturalWidth-1,Math.floor((e.clientX-rect.left)*colorPickerImage.naturalWidth/rect.width))),y=Math.max(0,Math.min(colorPickerImage.naturalHeight-1,Math.floor((e.clientY-rect.top)*colorPickerImage.naturalHeight/rect.height)));
+      const c=document.createElement("canvas");c.width=1;c.height=1;const ctx=c.getContext("2d",{willReadFrequently:true});ctx.drawImage(colorPickerImage,x,y,1,1,0,0,1,1);const p=ctx.getImageData(0,0,1,1).data;cpShowColor(p[0],p[1],p[2],x,y);colorPickerMessage.textContent="Colour selected. Copy any colour code below.";
     });
-
-    colorPickerPreview.addEventListener("click", (event) => {
-      if (!colorPickerImage || event.target.id !== "colorPickerImage") return;
-      const rect = event.target.getBoundingClientRect();
-      const x = Math.max(0, Math.min(colorPickerImage.naturalWidth - 1, Math.floor((event.clientX - rect.left) * colorPickerImage.naturalWidth / rect.width)));
-      const y = Math.max(0, Math.min(colorPickerImage.naturalHeight - 1, Math.floor((event.clientY - rect.top) * colorPickerImage.naturalHeight / rect.height)));
-      const sampleCanvas = document.createElement("canvas"); sampleCanvas.width = 1; sampleCanvas.height = 1;
-      const sampleContext = sampleCanvas.getContext("2d", { willReadFrequently: true });
-      if (!sampleContext) { colorPickerMessage.textContent = "Your browser could not read this colour."; return; }
-      sampleContext.drawImage(colorPickerImage, x, y, 1, 1, 0, 0, 1, 1);
-      const pixel = sampleContext.getImageData(0, 0, 1, 1).data;
-      const hex = "#" + [pixel[0], pixel[1], pixel[2]].map(value => value.toString(16).padStart(2, "0")).join("").toUpperCase();
-      const rgb = "rgb(" + pixel[0] + ", " + pixel[1] + ", " + pixel[2] + ")";
-      colorPickerResult.innerHTML = '<div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:16px;border:1px solid var(--border-strong);border-radius:14px;background:var(--panel)"><span aria-label="Selected colour" style="display:block;width:64px;height:64px;flex:0 0 64px;border-radius:12px;background:' + hex + ';border:1px solid var(--border-strong)"></span><div style="flex:1;min-width:150px"><strong style="display:block">Selected colour</strong><p style="margin:5px 0;color:var(--text)"><strong>HEX:</strong> <span id="colorPickerHex">' + hex + '</span></p><p style="margin:5px 0;color:var(--text)"><strong>RGB:</strong> <span id="colorPickerRgb">' + rgb + '</span></p><p class="workspace-intro" style="font-size:12px;margin:4px 0 0">Pixel position: ' + (x + 1) + ', ' + (y + 1) + '</p></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="secondary" type="button" id="copyColorHex">Copy HEX</button><button class="secondary" type="button" id="copyColorRgb">Copy RGB</button></div></div>';
-      colorPickerMessage.textContent = "Colour selected. Copy its HEX or RGB code.";
+    colorPickerPreview.addEventListener("pointermove",e=>{
+      const image=e.target.closest("#colorPickerImage");if(!image||!colorPickerImage)return;const rect=image.getBoundingClientRect();const x=Math.max(0,Math.min(colorPickerImage.naturalWidth-1,Math.floor((e.clientX-rect.left)*colorPickerImage.naturalWidth/rect.width))),y=Math.max(0,Math.min(colorPickerImage.naturalHeight-1,Math.floor((e.clientY-rect.top)*colorPickerImage.naturalHeight/rect.height)));cpDrawMagnifier(x,y);
     });
-
-    colorPickerResult.addEventListener("click", async (event) => {
-      const button = event.target.closest("button"); if (!button) return;
-      const value = button.id === "copyColorHex" ? document.getElementById("colorPickerHex")?.textContent : button.id === "copyColorRgb" ? document.getElementById("colorPickerRgb")?.textContent : null;
-      if (!value) return;
-      try { await navigator.clipboard.writeText(value); colorPickerMessage.textContent = value + " copied to clipboard."; }
-      catch (error) { colorPickerMessage.textContent = "Copy was blocked by your browser. Please select and copy the code manually."; }
+    colorPickerPreview.addEventListener("click",e=>{
+      if(e.target.id==="cpZoomIn"||e.target.id==="cpZoomOut"||e.target.id==="cpZoomReset"){e.stopPropagation();colorPickerZoom=e.target.id==="cpZoomReset"?1:Math.max(1,Math.min(4,colorPickerZoom+(e.target.id==="cpZoomIn"?.25:-.25)));const im=document.getElementById("colorPickerImage");if(im)im.style.transform="scale("+colorPickerZoom+")";return;}
     });
-
-    window.addEventListener("beforeunload", () => { if (colorPickerObjectUrl) URL.revokeObjectURL(colorPickerObjectUrl); });
+    colorPickerResult.addEventListener("click",e=>{
+      const copy=e.target.closest(".cp-copy-value");if(copy){const v=cpValues()[Number(copy.dataset.copy)];if(v)cpCopy(v);return;}
+      const history=e.target.closest(".cp-history");if(history){const v=colorPickerHistory[Number(history.dataset.history)];if(v){colorPickerLast=v;cpShowColor(v.r,v.g,v.b,v.x,v.y,false);cpRenderHistory();}return;}
+    });
+    const cpMakePalette = count => {
+      if(!colorPickerImage)return;colorPickerMessage.textContent="Creating colour palette…";
+      const c=document.createElement("canvas"),scale=Math.min(1,120/colorPickerImage.naturalWidth,120/colorPickerImage.naturalHeight);c.width=Math.max(1,Math.round(colorPickerImage.naturalWidth*scale));c.height=Math.max(1,Math.round(colorPickerImage.naturalHeight*scale));
+      const ctx=c.getContext("2d",{willReadFrequently:true});ctx.drawImage(colorPickerImage,0,0,c.width,c.height);const data=ctx.getImageData(0,0,c.width,c.height).data,bins=new Map();
+      for(let i=0;i<data.length;i+=4){if(data[i+3]<128)continue;const r=data[i]>>3,g=data[i+1]>>3,b=data[i+2]>>3,key=(r<<10)|(g<<5)|b;let q=bins.get(key);if(!q){q={r:0,g:0,b:0,n:0};bins.set(key,q);}q.r+=data[i];q.g+=data[i+1];q.b+=data[i+2];q.n++;}
+      colorPickerPaletteItems=[...bins.values()].sort((a,b)=>b.n-a.n).slice(0,count).map(q=>({r:Math.round(q.r/q.n),g:Math.round(q.g/q.n),b:Math.round(q.b/q.n)}));
+      colorPickerPaletteItems=colorPickerPaletteItems.map(v=>({...v,hex:cpHex(v.r,v.g,v.b)}));
+      colorPickerPalette.innerHTML='<div style="padding:15px;border:1px solid var(--border-strong);border-radius:14px;background:var(--panel)"><div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap"><strong>🌈 Automatic colour palette</strong><span class="workspace-intro">Approximate dominant colours</span></div><div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0">'+colorPickerPaletteItems.map((v,i)=>'<button type="button" class="cp-palette-swatch" data-palette="'+i+'" title="'+v.hex+'" style="width:58px;height:58px;border-radius:10px;background:'+v.hex+';border:2px solid var(--border-strong)"></button>').join("")+'</div><div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="secondary" id="cpDownloadPng">Download palette PNG</button><button type="button" class="secondary" id="cpDownloadTxt">Download palette TXT</button></div></div>';
+      colorPickerMessage.textContent="Palette created. Click a swatch to inspect its colour.";
+    };
+    colorPickerPalette.addEventListener("click",e=>{
+      const countButton=e.target.closest("[data-palette-count]");if(countButton){cpMakePalette(Number(countButton.dataset.paletteCount));return;}
+      const swatch=e.target.closest(".cp-palette-swatch");if(swatch){const v=colorPickerPaletteItems[Number(swatch.dataset.palette)];if(v)cpShowColor(v.r,v.g,v.b,0,0);return;}
+      if(e.target.id==="cpDownloadTxt"){const text=colorPickerPaletteItems.map(v=>v.hex+"  RGB("+v.r+", "+v.g+", "+v.b+")").join("\n");const url=URL.createObjectURL(new Blob([text],{type:"text/plain"}));const a=document.createElement("a");a.href=url;a.download="trivexaai-color-palette.txt";a.click();URL.revokeObjectURL(url);return;}
+      if(e.target.id==="cpDownloadPng"){const c=document.createElement("canvas");c.width=900;c.height=180;const ctx=c.getContext("2d");ctx.fillStyle="#ffffff";ctx.fillRect(0,0,c.width,c.height);const gap=12,w=(c.width-gap*(colorPickerPaletteItems.length+1))/colorPickerPaletteItems.length;colorPickerPaletteItems.forEach((v,i)=>{const x=gap+i*(w+gap);ctx.fillStyle=v.hex;ctx.fillRect(x,12,w,110);ctx.fillStyle="#17131f";ctx.font="bold 22px Arial";ctx.fillText(v.hex,x,158);});c.toBlob(blob=>{if(!blob)return;const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="trivexaai-color-palette.png";a.click();URL.revokeObjectURL(url);},"image/png");}
+    });
+    colorPickerDrop.insertAdjacentHTML("afterend", '<div id="colorPickerPaletteControls" style="display:none;margin-top:12px;gap:8px;flex-wrap:wrap"><strong style="width:100%">Choose palette size</strong><button type="button" class="secondary" data-palette-count="5">5 colours</button><button type="button" class="secondary" data-palette-count="8">8 colours</button><button type="button" class="secondary" data-palette-count="10">10 colours</button></div>');
+    const cpPaletteControls=document.getElementById("colorPickerPaletteControls");
+    colorPickerFile.addEventListener("change",()=>{cpPaletteControls.style.display=colorPickerImage?"flex":"none";});
+    colorPickerDrop.addEventListener("drop",()=>{setTimeout(()=>{cpPaletteControls.style.display=colorPickerImage?"flex":"none";},0);});
+    cpPaletteControls.addEventListener("click",e=>{const b=e.target.closest("[data-palette-count]");if(b)cpMakePalette(Number(b.dataset.paletteCount));});
+    window.addEventListener("beforeunload",()=>{if(colorPickerObjectUrl)URL.revokeObjectURL(colorPickerObjectUrl);});
 
     // FREE IMAGE ENHANCER
     const enhancerFile=document.getElementById("enhancerFile"), enhancerPreview=document.getElementById("enhancerPreview");
