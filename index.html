@@ -2598,6 +2598,18 @@
         <p class="workspace-intro" style="font-size:12px">Adjust slider to balance smaller file weight against visual fidelity.</p>
       </div>
 
+      <div class="field-group" style="margin-top:18px">
+        <label for="compressorResize">Resize dimensions</label>
+        <select id="compressorResize" style="width:100%">
+          <option value="100">Original dimensions (100%)</option>
+          <option value="75">75% — Slightly smaller</option>
+          <option value="50" selected>50% — Half width and height</option>
+          <option value="25">25% — Small dimensions</option>
+        </select>
+        <p class="workspace-intro" style="font-size:12px">This changes the actual pixel dimensions. At 50%, width and height are halved, so total megapixels become one quarter.</p>
+        <p id="compressorDimensions" class="workspace-intro" style="font-size:12px">Output dimensions will appear after you choose an image.</p>
+      </div>
+
       <button class="primary" id="compressorButton" type="button" disabled style="margin-top:16px">🗜️ Compress Image</button>
       <div id="compressorResult" style="margin-top:16px"></div>
       <div id="compressorMessage" role="status" aria-live="polite"></div>
@@ -5043,6 +5055,8 @@
     // FREE IMAGE COMPRESSOR
     const compressorFile = document.getElementById("compressorFile");
     const compressorQuality = document.getElementById("compressorQuality");
+    const compressorResize = document.getElementById("compressorResize");
+    const compressorDimensions = document.getElementById("compressorDimensions");
     const compressorQualityValue = document.getElementById("compressorQualityValue");
     const compressorButton = document.getElementById("compressorButton");
     const compressorPreview = document.getElementById("compressorPreview");
@@ -5052,6 +5066,19 @@
     let compressorOriginalFile = null;
     let compressorObjectUrl = null;
     let compressorOutputUrl = null;
+
+    const updateCompressorDimensions = () => {
+      if (!compressorImage) {
+        compressorDimensions.textContent = "Output dimensions will appear after you choose an image.";
+        return;
+      }
+      const scale = Number(compressorResize.value) / 100;
+      const width = Math.max(1, Math.round(compressorImage.naturalWidth * scale));
+      const height = Math.max(1, Math.round(compressorImage.naturalHeight * scale));
+      compressorDimensions.textContent = `Output dimensions: ${width} × ${height} pixels`;
+    };
+
+    compressorResize.addEventListener("change", updateCompressorDimensions);
 
     compressorQuality.addEventListener("input", () => {
       compressorQualityValue.textContent = compressorQuality.value + "%";
@@ -5083,6 +5110,7 @@
       const img = new Image();
       img.onload = () => {
         compressorImage = img;
+        updateCompressorDimensions();
         compressorPreview.innerHTML = `<img src="${compressorObjectUrl}" alt="Original image preview" style="max-width:100%;max-height:360px;border-radius:14px;object-fit:contain"><p class="workspace-intro">Original size: ${(file.size / 1024).toFixed(1)} KB</p>`;
         compressorButton.disabled = false;
         compressorMessage.textContent = "Image ready. Choose a quality level, then click Compress Image.";
@@ -5101,13 +5129,14 @@
       compressorResult.innerHTML = "";
       try {
         const canvas = document.createElement("canvas");
-        canvas.width = compressorImage.naturalWidth;
-        canvas.height = compressorImage.naturalHeight;
+        const resizeScale = Number(compressorResize.value) / 100;
+        canvas.width = Math.max(1, Math.round(compressorImage.naturalWidth * resizeScale));
+        canvas.height = Math.max(1, Math.round(compressorImage.naturalHeight * resizeScale));
         const ctx = canvas.getContext("2d");
         if (!ctx) throw new Error("Your browser could not start image processing.");
         ctx.fillStyle = "#ffffff";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(compressorImage, 0, 0);
+        ctx.drawImage(compressorImage, 0, 0, canvas.width, canvas.height);
         const quality = Number(compressorQuality.value) / 100;
         const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/jpeg", quality));
         if (!blob) throw new Error("The compressed image could not be exported.");
@@ -5123,7 +5152,7 @@
         link.className = "download-cta";
         link.style.display = "flex";
         link.style.marginTop = "10px";
-        compressorResult.innerHTML = `<p><strong>Original:</strong> ${originalKB.toFixed(1)} KB</p><p><strong>Compressed:</strong> ${outputKB.toFixed(1)} KB</p><p><strong>Size reduced:</strong> ${saved.toFixed(1)}%</p>`;
+        compressorResult.innerHTML = `<p><strong>Output dimensions:</strong> ${canvas.width} × ${canvas.height} pixels</p><p><strong>Original:</strong> ${originalKB.toFixed(1)} KB</p><p><strong>Compressed:</strong> ${outputKB.toFixed(1)} KB</p><p><strong>Size reduced:</strong> ${saved.toFixed(1)}%</p>`;
         compressorResult.appendChild(link);
         compressorMessage.textContent = "Done! If the file is not smaller, lower the quality slider and try again.";
         void saveRecentResult({ kind: "image", tool: "Free Image Compressor", title: `Compressed image (${saved.toFixed(1)}% smaller)`, blob, filename: "TrivexaAI-compressed.jpg" });
