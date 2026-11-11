@@ -4802,9 +4802,9 @@
     const cpDrawMagnifier = (x,y) => {
       const lens=document.getElementById("colorPickerLens"); if(!lens||!colorPickerImage)return;
       const c=lens.querySelector("canvas"),ctx=c.getContext("2d");ctx.imageSmoothingEnabled=false;
-      const sx=Math.max(0,Math.min(colorPickerImage.naturalWidth-13,x-6)),sy=Math.max(0,Math.min(colorPickerImage.naturalHeight-13,y-6));
-      ctx.clearRect(0,0,117,117);ctx.drawImage(colorPickerImage,sx,sy,13,13,0,0,117,117);
-      ctx.strokeStyle="#ffffff";ctx.lineWidth=2;ctx.strokeRect(54,54,9,9);lens.style.display="block";
+      const sx=Math.max(0,Math.min(colorPickerImage.naturalWidth-23,x-11)),sy=Math.max(0,Math.min(colorPickerImage.naturalHeight-23,y-11));
+      ctx.clearRect(0,0,117,117);ctx.drawImage(colorPickerImage,sx,sy,23,23,0,0,117,117);
+      ctx.strokeStyle="#ffffff";ctx.lineWidth=2;ctx.strokeRect(53,53,11,11);lens.style.display="block";
     };
     const cpLoadFile = file => {
       colorPickerImage=null;colorPickerResult.replaceChildren();colorPickerPalette.replaceChildren();colorPickerPreview.replaceChildren();colorPickerHistory=[];colorPickerLast=null;colorPickerZoom=1;
