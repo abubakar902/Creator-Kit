@@ -4920,6 +4920,7 @@
     function openEnhancerCrop(){
       if(!enhancerImage)return;
       enhancerStartActions.style.display="none";enhancerEditPanel.style.display="none";enhancerSavePanel.style.display="none";enhancerDownloadPanel.style.display="none";
+      enhancerPreview.style.display="none";
       enhancerCropPanel.style.display="block";cropStart=null;cropRect=null;
       const maxW=760,maxH=420;
       cropRenderScale=Math.min(1,maxW/enhancerImage.naturalWidth,maxH/enhancerImage.naturalHeight);
@@ -4930,7 +4931,7 @@
     }
     document.getElementById("enhancerOpenCrop").addEventListener("click",openEnhancerCrop);
     document.getElementById("enhancerCancelCrop").addEventListener("click",()=>{
-      cropStart=null;enhancerCropPanel.style.display="none";enhancerStartActions.style.setProperty("display","inline-flex","important");enhancerMessage.textContent="Crop cancelled.";
+      cropStart=null;enhancerCropPanel.style.display="none";enhancerPreview.style.display="block";enhancerStartActions.style.setProperty("display","inline-flex","important");enhancerMessage.textContent="Crop cancelled.";
     });
     document.getElementById("enhancerClearCrop").addEventListener("click",()=>{
       cropStart=null;cropRect=null;drawCropSelection();enhancerMessage.textContent="Selection cleared. Drag again to choose a new crop area.";
@@ -4979,7 +4980,7 @@
       cropped.onload=()=>{
         if(enhancerObjectUrl&&enhancerObjectUrl!==enhancerOriginalObjectUrl)URL.revokeObjectURL(enhancerObjectUrl);enhancerObjectUrl=nextUrl;enhancerImage=cropped;
         enhancerPreview.innerHTML='<img alt="Cropped image preview" style="display:block;width:auto;height:auto;max-width:100%;max-height:420px;margin:auto;border-radius:14px;object-fit:contain;transform-origin:center">';
-        enhancerPreview.querySelector("img").src=nextUrl;enhancerCropPanel.style.display="none";enhancerStartActions.style.setProperty("display","inline-flex","important");
+        enhancerPreview.querySelector("img").src=nextUrl;enhancerCropPanel.style.display="none";enhancerPreview.style.display="block";enhancerStartActions.style.setProperty("display","inline-flex","important");
         enhancerSavedBlob=null;enhancerDownloadPanel.style.display="none";resetEnhancer();
         enhancerMessage.textContent="Crop applied successfully. You can now edit the cropped image or crop again.";
       };
