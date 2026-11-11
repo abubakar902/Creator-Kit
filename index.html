@@ -2173,6 +2173,9 @@
   </style>
 <style id="photoTextEditorStyles">
 .pt-upload-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:18px 0}.pt-upload{display:inline-flex;align-items:center;gap:9px;padding:12px 17px;border-radius:12px;background:linear-gradient(110deg,#a78bfa,#e879f9);color:#180d2a;font-weight:850;cursor:pointer}.pt-upload input{display:none}.pt-note,.pt-muted,.pt-stage-foot{color:var(--muted);font-size:12px}.pt-layout{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(290px,.85fr);gap:18px;align-items:start}.pt-stage-wrap{min-width:0;position:sticky;top:16px}.pt-stage{min-height:360px;display:flex;align-items:center;justify-content:center;overflow:hidden;border:1px solid var(--border);border-radius:18px;background:repeating-conic-gradient(#241b37 0% 25%,#171126 0% 50%) 50%/22px 22px;padding:10px}.pt-stage canvas{display:none;max-width:100%;max-height:72vh;object-fit:contain;touch-action:none;cursor:move;border-radius:8px}.pt-empty{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;padding:45px 12px}.pt-empty span{font-size:48px}.pt-empty strong{color:var(--text)}.pt-empty small{color:var(--muted)}.pt-stage-foot{display:flex;justify-content:space-between;gap:10px;margin-top:9px;flex-wrap:wrap}.pt-controls{display:grid;gap:12px;min-width:0}.pt-panel{padding:15px;border:1px solid var(--border);border-radius:15px;background:linear-gradient(145deg,rgba(35,25,57,.96),rgba(17,13,29,.96));display:grid;gap:10px}.pt-panel>strong,.pt-panel-head strong{font-size:14px;color:var(--text)}.pt-panel-head{display:flex;align-items:center;justify-content:space-between;gap:8px}.pt-panel textarea,.pt-panel select{width:100%;border:1px solid var(--border);border-radius:10px;background:#100b20;color:var(--text);padding:10px;font:inherit}.pt-panel textarea{resize:vertical;min-height:74px}.pt-label{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:var(--muted);margin-bottom:5px}.pt-label b{color:#e9d5ff;font-weight:700}.pt-panel input[type=range]{width:100%;accent-color:#c084fc}.pt-panel input[type=color]{width:100%;height:38px;border:1px solid var(--border);border-radius:9px;background:#100b20;padding:3px}.pt-two{display:grid;grid-template-columns:1fr 1fr;gap:12px}.pt-button-group,.pt-row,.pt-presets,.pt-palettes{display:flex;gap:6px;flex-wrap:wrap}.pt-toggle,.pt-small-btn,.pt-presets button,.pt-palettes button,.pt-secondary{border:1px solid var(--border);border-radius:9px;background:#211832;color:#e9ddfa;padding:8px 10px;font-size:12px;font-weight:700;cursor:pointer}.pt-toggle.active{background:#593b82;border-color:#c4b5fd;color:white}.pt-small-btn{background:#39245c}.pt-danger{color:#ffb4c2}.pt-layer-list{display:grid;gap:6px}.pt-layer-item{display:flex;align-items:center;gap:8px;width:100%;text-align:left;border:1px solid var(--border);border-radius:9px;background:#130e22;color:var(--text);padding:8px 10px;cursor:pointer}.pt-layer-item.active{border-color:#c4b5fd;background:#33234e}.pt-layer-item span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}.pt-counter{display:flex;justify-content:space-between;color:var(--muted);font-size:11px}.pt-check{display:flex;align-items:center;gap:8px;color:#ddd1ef;font-size:12px}.pt-check input{accent-color:#c084fc}.pt-presets-title{display:flex;flex-direction:column;gap:2px;color:#f3e8ff;font-size:13px;font-weight:800}.pt-presets-title small{font-size:11px;font-weight:500;color:var(--muted)}.pt-presets button{flex:1;min-width:calc(50% - 6px);min-height:42px;background:linear-gradient(145deg,#35234f,#211832);border-color:#60427f}.pt-presets button:active{transform:scale(.98)}.pt-palettes button{flex:1;position:relative;padding-top:20px}.pt-palettes button:before{content:"";position:absolute;top:6px;left:calc(50% - 12px);width:24px;height:8px;border-radius:99px;background:var(--swatch)}.pt-actions{display:grid;grid-template-columns:1fr 1.4fr;gap:8px}.pt-primary,.pt-secondary{padding:12px;border-radius:11px;font-weight:850;cursor:pointer}.pt-primary{border:0;background:linear-gradient(100deg,#a78bfa,#e879f9);color:#170d28}.pt-primary:disabled{opacity:.45;cursor:not-allowed}.pt-secondary{background:#241a37}.pt-status{margin:0;color:var(--muted);font-size:12px;min-height:20px}@media(max-width:760px){.pt-layout{grid-template-columns:1fr}.pt-stage-wrap{position:static}.pt-stage{min-height:240px}.pt-stage canvas{max-height:55vh}}@media(max-width:420px){.pt-two{gap:8px}.pt-panel{padding:12px}.pt-actions{grid-template-columns:1fr}}
+
+/* Photo Text Editor collapsible control groups */
+.pt-accordion{display:block;padding:0;overflow:hidden}.pt-accordion-summary{list-style:none;display:flex;align-items:center;gap:11px;min-height:54px;padding:13px 15px;cursor:pointer;color:var(--text);font-size:13px;font-weight:850;user-select:none}.pt-accordion-summary::-webkit-details-marker{display:none}.pt-accordion-summary:hover{background:rgba(155,108,255,.09)}.pt-accordion-icon{width:30px;height:30px;display:grid;place-items:center;flex:0 0 30px;border-radius:9px;background:rgba(155,108,255,.16);font-size:15px}.pt-accordion-summary>span:nth-child(2){flex:1}.pt-accordion-chevron{color:#c4b5fd;font-size:19px;transition:transform .2s ease}.pt-accordion[open]>.pt-accordion-summary{border-bottom:1px solid var(--border);background:rgba(155,108,255,.07)}.pt-accordion[open]>.pt-accordion-summary .pt-accordion-chevron{transform:rotate(180deg)}.pt-accordion-body{display:grid;gap:10px;padding:14px}.pt-accordion-body>.pt-panel{margin:0}.pt-accordion:focus-within{border-color:#8b5cf6}
 </style>
 </head>
 <body>
@@ -2638,17 +2641,17 @@
           <div class="pt-stage-foot"><span id="ptCanvasInfo">No photo selected</span><span>Tip: drag text directly on the photo</span></div>
         </div>
         <div class="pt-controls">
-          <div class="pt-panel">
+          <details class="pt-panel pt-accordion" open><summary class="pt-accordion-summary"><span class="pt-accordion-icon">🗂️</span><span>Text Layers</span><span class="pt-accordion-chevron">⌄</span></summary><div class="pt-accordion-body">
             <div class="pt-panel-head"><strong>Text layers</strong><button type="button" class="pt-small-btn" id="ptAddText">＋ Add text</button></div>
             <div id="ptLayerList" class="pt-layer-list"><p class="pt-muted">Upload a photo to add text.</p></div>
             <div class="pt-row"><button type="button" class="pt-small-btn" id="ptDuplicate">Duplicate</button><button type="button" class="pt-small-btn pt-danger" id="ptDelete">Delete</button></div>
-          </div>
-          <div class="pt-panel">
+          </div></details>
+          <details class="pt-panel pt-accordion" open><summary class="pt-accordion-summary"><span class="pt-accordion-icon">✍️</span><span>Text Content</span><span class="pt-accordion-chevron">⌄</span></summary><div class="pt-accordion-body">
             <strong>Text content</strong>
             <textarea id="ptText" rows="3" maxlength="300" placeholder="Type your text here..."></textarea>
             <div class="pt-counter"><span id="ptTextCount">0 / 300</span><span>Line breaks supported</span></div>
-          </div>
-          <div class="pt-panel">
+          </div></details>
+          <details class="pt-panel pt-accordion"><summary class="pt-accordion-summary"><span class="pt-accordion-icon">🔠</span><span>Typography</span><span class="pt-accordion-chevron">⌄</span></summary><div class="pt-accordion-body">
             <strong>Typography</strong>
             <label class="pt-label">Font family</label>
             <select id="ptFont"><option value="Arial">Modern Sans</option><option value="Georgia">Elegant Serif</option><option value="Impact">Impact Bold</option><option value="Trebuchet MS">Trebuchet</option><option value="Courier New">Monospace</option><option value="Verdana">Verdana</option><option value="Palatino Linotype">Classic</option></select>
@@ -2657,40 +2660,25 @@
               <div><label class="pt-label">Letter spacing <b id="ptSpacingValue">0</b></label><input id="ptSpacing" type="range" min="-5" max="20" value="0"></div>
             </div>
             <div class="pt-button-group"><button type="button" data-pt-toggle="bold" class="pt-toggle">B Bold</button><button type="button" data-pt-toggle="italic" class="pt-toggle">I Italic</button><button type="button" data-pt-align="left" class="pt-toggle">Left</button><button type="button" data-pt-align="center" class="pt-toggle active">Center</button><button type="button" data-pt-align="right" class="pt-toggle">Right</button></div>
-          </div>
-          <div class="pt-panel">
-            <strong>Colours & effects</strong>
-            <div class="pt-two">
-              <div><label class="pt-label">Text colour</label><input id="ptColor" type="color" value="#ffffff"></div>
-              <div><label class="pt-label">Second gradient colour</label><input id="ptColor2" type="color" value="#f0abfc"></div>
-            </div>
-            <label class="pt-check"><input id="ptGradient" type="checkbox"> Use two-colour gradient</label>
-            <div class="pt-two">
-              <div><label class="pt-label">Outline colour</label><input id="ptStrokeColor" type="color" value="#24133f"></div>
-              <div><label class="pt-label">Outline width <b id="ptStrokeValue">0</b></label><input id="ptStroke" type="range" min="0" max="18" value="0"></div>
-            </div>
-            <div class="pt-two">
-              <div><label class="pt-label">Shadow strength <b id="ptShadowValue">35</b></label><input id="ptShadow" type="range" min="0" max="100" value="35"></div>
-              <div><label class="pt-label">Opacity <b id="ptOpacityValue">100%</b></label><input id="ptOpacity" type="range" min="10" max="100" value="100"></div>
-            </div>
-            <label class="pt-check"><input id="ptHighlight" type="checkbox"> Add text background</label>
-            <div class="pt-two">
-              <div><label class="pt-label">Background colour</label><input id="ptBgColor" type="color" value="#6d28d9"></div>
-              <div><label class="pt-label">Background opacity <b id="ptBgOpacityValue">75%</b></label><input id="ptBgOpacity" type="range" min="10" max="100" value="75"></div>
-            </div>
-          </div>
-          <div class="pt-panel">
+          </div></details>
+
+          <details class="pt-panel pt-accordion"><summary class="pt-accordion-summary"><span class="pt-accordion-icon">🎨</span><span>Text Colours</span><span class="pt-accordion-chevron">⌄</span></summary><div class="pt-accordion-body"><div class="pt-two"><div><label class="pt-label">Text colour</label><input id="ptColor" type="color" value="#ffffff"></div><div><label class="pt-label">Second gradient colour</label><input id="ptColor2" type="color" value="#f0abfc"></div></div><label class="pt-check"><input id="ptGradient" type="checkbox"> Use two-colour gradient</label></div></details>
+          <details class="pt-panel pt-accordion"><summary class="pt-accordion-summary"><span class="pt-accordion-icon">🖊️</span><span>Text Outline</span><span class="pt-accordion-chevron">⌄</span></summary><div class="pt-accordion-body"><div class="pt-two"><div><label class="pt-label">Outline colour</label><input id="ptStrokeColor" type="color" value="#24133f"></div><div><label class="pt-label">Outline width <b id="ptStrokeValue">0</b></label><input id="ptStroke" type="range" min="0" max="18" value="0"></div></div></div></details>
+          <details class="pt-panel pt-accordion"><summary class="pt-accordion-summary"><span class="pt-accordion-icon">🌑</span><span>Shadow</span><span class="pt-accordion-chevron">⌄</span></summary><div class="pt-accordion-body"><div class="pt-two"><div><label class="pt-label">Shadow strength <b id="ptShadowValue">35</b></label><input id="ptShadow" type="range" min="0" max="100" value="35"></div><div><label class="pt-label">Text opacity <b id="ptOpacityValue">100%</b></label><input id="ptOpacity" type="range" min="10" max="100" value="100"></div></div></div></details>
+          <details class="pt-panel pt-accordion"><summary class="pt-accordion-summary"><span class="pt-accordion-icon">🟪</span><span>Highlight / Background</span><span class="pt-accordion-chevron">⌄</span></summary><div class="pt-accordion-body"><label class="pt-check"><input id="ptHighlight" type="checkbox"> Add text background</label><div class="pt-two"><div><label class="pt-label">Background colour</label><input id="ptBgColor" type="color" value="#6d28d9"></div><div><label class="pt-label">Background opacity <b id="ptBgOpacityValue">75%</b></label><input id="ptBgOpacity" type="range" min="10" max="100" value="75"></div></div></div></details>
+          <details class="pt-panel pt-accordion"><summary class="pt-accordion-summary"><span class="pt-accordion-icon">📐</span><span>Position & Rotation</span><span class="pt-accordion-chevron">⌄</span></summary><div class="pt-accordion-body">
             <strong>Position & rotation</strong>
             <div class="pt-two">
               <div><label class="pt-label">Horizontal <b id="ptXValue">50%</b></label><input id="ptX" type="range" min="0" max="100" value="50"></div>
               <div><label class="pt-label">Vertical <b id="ptYValue">50%</b></label><input id="ptY" type="range" min="0" max="100" value="50"></div>
             </div>
             <label class="pt-label">Rotation <b id="ptRotationValue">0°</b></label><input id="ptRotation" type="range" min="-180" max="180" value="0">
-            <div class="pt-presets-title">✨ Full ready-made styles <small>One tap applies the complete text design</small></div>
+            
+          </div></details>
+<details class="pt-panel pt-accordion"><summary class="pt-accordion-summary"><span class="pt-accordion-icon">✨</span><span>Ready-made Styles & Palettes</span><span class="pt-accordion-chevron">⌄</span></summary><div class="pt-accordion-body"><div class="pt-presets-title">✨ Full ready-made styles <small>One tap applies the complete text design</small></div>
             <div class="pt-presets"><button type="button" data-pt-preset="headline">🔥 Bold Headline</button><button type="button" data-pt-preset="neon">💜 Neon Glow</button><button type="button" data-pt-preset="gold">👑 Luxury Gold</button><button type="button" data-pt-preset="quote">💬 Quote Card</button></div>
-            <div class="pt-palettes"><button type="button" data-pt-palette="#ffffff|#f0abfc|#24133f" style="--swatch:#f0abfc">Purple</button><button type="button" data-pt-palette="#ffffff|#fbbf24|#111827" style="--swatch:#fbbf24">Sunset</button><button type="button" data-pt-palette="#ffffff|#67e8f9|#164e63" style="--swatch:#67e8f9">Ocean</button><button type="button" data-pt-palette="#ffffff|#86efac|#14532d" style="--swatch:#86efac">Nature</button></div>
-          </div>
-          <div class="pt-actions"><button type="button" id="ptReset" class="pt-secondary">Reset design</button><button type="button" id="ptDownload" class="pt-primary" disabled>⬇ Download PNG</button></div>
+            <div class="pt-palettes"><button type="button" data-pt-palette="#ffffff|#f0abfc|#24133f" style="--swatch:#f0abfc">Purple</button><button type="button" data-pt-palette="#ffffff|#fbbf24|#111827" style="--swatch:#fbbf24">Sunset</button><button type="button" data-pt-palette="#ffffff|#67e8f9|#164e63" style="--swatch:#67e8f9">Ocean</button><button type="button" data-pt-palette="#ffffff|#86efac|#14532d" style="--swatch:#86efac">Nature</button></div></div></details>
+                    <div class="pt-actions"><button type="button" id="ptReset" class="pt-secondary">Reset design</button><button type="button" id="ptDownload" class="pt-primary" disabled>⬇ Download PNG</button></div>
           <p class="pt-status" id="ptStatus" role="status" aria-live="polite">Choose a photo to begin.</p>
         </div>
       </div>
