@@ -454,6 +454,11 @@
       font-size: 12px; font-weight: 750; cursor: pointer; transition: var(--transition);
     }
     .hub-action:hover { background: rgba(155,108,255,.2); transform: translateY(-2px); border-color: var(--purple-light); }
+    .hub-category-filters { display:flex; flex-wrap:wrap; gap:8px; margin:0 0 16px; }
+    .hub-category-filter { display:inline-flex; align-items:center; justify-content:center; min-height:36px; padding:8px 13px; border:1px solid var(--border); border-radius:var(--radius-pill); background:rgba(255,255,255,.035); color:var(--muted); font:inherit; font-size:12px; font-weight:750; cursor:pointer; transition:all .18s ease; }
+    .hub-category-filter:hover { color:var(--text); border-color:var(--purple); background:rgba(155,108,255,.12); transform:translateY(-1px); }
+    .hub-category-filter.active { color:#fff; border-color:rgba(155,108,255,.72); background:linear-gradient(135deg,rgba(155,108,255,.28),rgba(232,121,249,.16)); box-shadow:0 0 0 2px rgba(155,108,255,.08); }
+    .hub-category-filter:focus-visible { outline:2px solid var(--purple); outline-offset:3px; }
     .hub-section { margin: 0 0 22px; padding: clamp(17px, 3vw, 24px); border: 1px solid var(--border);
       border-radius: var(--radius-lg); background: rgba(25,17,45,.78); }
     .hub-section-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px; }
@@ -2347,6 +2352,12 @@
       </section>
       <section class="hub-section">
         <div class="hub-section-heading"><div><h3>🚀 Explore All Tools</h3><p>Quick access to every available tool</p></div><button class="hub-action" type="button" data-switch-tab="search">Full directory →</button></div>
+        <div class="hub-category-filters" id="hubCategoryFilters" role="group" aria-label="Filter tools by category">
+          <button class="hub-category-filter active" type="button" data-hub-category="all" aria-pressed="true">✨ All Tools</button>
+          <button class="hub-category-filter" type="button" data-hub-category="category-creator" aria-pressed="false">✍️ Creator</button>
+          <button class="hub-category-filter" type="button" data-hub-category="category-image" aria-pressed="false">🎨 AI Image</button>
+          <button class="hub-category-filter" type="button" data-hub-category="category-media" aria-pressed="false">🎬 Media</button>
+        </div>
         <div class="hub-tool-grid" id="hubAllToolsGrid"></div>
       </section>
     </div>
@@ -3854,10 +3865,25 @@
         container.appendChild(shortcut);
       });
     }
+    let activeHubCategory = "all";
     function renderCreatorHub() {
       renderHubShortcuts("hubRecentGrid", recentlyOpenedToolIds, "hubRecentEmpty", "Your recently opened tools will appear here.", 4);
-      renderHubShortcuts("hubAllToolsGrid", allToolCards.map(card => card.dataset.tool), "hubAllToolsEmpty", "No tools are available right now.");
+      const visibleToolIds = allToolCards
+        .filter(card => activeHubCategory === "all" || card.closest(".category-block")?.id === activeHubCategory)
+        .map(card => card.dataset.tool);
+      renderHubShortcuts("hubAllToolsGrid", visibleToolIds, "hubAllToolsEmpty", "No tools are available in this category.");
+      document.querySelectorAll("#hubCategoryFilters [data-hub-category]").forEach(button => {
+        const isActive = button.dataset.hubCategory === activeHubCategory;
+        button.classList.toggle("active", isActive);
+        button.setAttribute("aria-pressed", String(isActive));
+      });
     }
+    document.getElementById("hubCategoryFilters")?.addEventListener("click", event => {
+      const button = event.target.closest("[data-hub-category]");
+      if (!button) return;
+      activeHubCategory = button.dataset.hubCategory || "all";
+      renderCreatorHub();
+    });
     renderCreatorHub();
 
     const toolSearchAliases = {
