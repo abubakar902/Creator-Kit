@@ -2620,7 +2620,7 @@
         <p class="workspace-intro" style="font-size:12px">PNG, JPG or WEBP up to 8 MB.</p>
       </div>
       <div id="enhancerPreview" style="margin-top:16px"></div>
-      <div id="enhancerStartActions" style="display:none!important;grid-template-columns:repeat(2,minmax(0,116px))!important;justify-content:center!important;align-items:center!important;gap:12px!important;width:max-content!important;max-width:100%!important;margin:18px auto 0!important;padding:10px 14px!important;border:1px solid #49336d!important;border-radius:14px!important;background:rgba(26,18,48,.82)!important;box-sizing:border-box!important">
+      <div id="enhancerStartActions" style="display:none!important;grid-auto-flow:column!important;grid-template-columns:116px 116px!important;grid-template-rows:38px!important;justify-content:center!important;align-items:center!important;gap:8px!important;width:fit-content!important;max-width:100%!important;margin:18px auto 0!important;padding:5px!important;border:1px solid #49336d!important;border-radius:12px!important;background:rgba(26,18,48,.82)!important;box-sizing:border-box!important">
         <button class="primary" id="enhancerOpenEdit" type="button" style="display:inline-flex!important;flex:0 0 116px!important;width:116px!important;min-width:116px!important;max-width:116px!important;height:38px!important;min-height:38px!important;padding:8px 10px!important;font-size:13px!important;white-space:nowrap!important;justify-content:center!important;align-items:center!important">✏️ Edit</button>
         <button class="secondary" id="enhancerOpenCrop" type="button" style="display:inline-flex!important;flex:0 0 116px!important;width:116px!important;min-width:116px!important;max-width:116px!important;height:38px!important;min-height:38px!important;padding:8px 10px!important;font-size:13px!important;white-space:nowrap!important;justify-content:center!important;align-items:center!important">✂️ Crop</button>
       </div>
@@ -4887,7 +4887,7 @@
         if(img.naturalWidth*img.naturalHeight>24000000){enhancerMessage.textContent="This image is too large to edit safely. Please choose an image under 24 megapixels.";enhancerFile.value="";return;}
         enhancerImage=img;
         enhancerPreview.innerHTML='<img alt="Image preview" style="display:block;width:auto;height:auto;max-width:100%;max-height:420px;margin:auto;border-radius:14px;object-fit:contain;transform-origin:center">';
-        enhancerPreview.querySelector("img").src=enhancerObjectUrl;resetEnhancer();enhancerStartActions.style.setProperty("display","grid","important");
+        enhancerPreview.querySelector("img").src=enhancerObjectUrl;resetEnhancer();enhancerStartActions.style.setProperty("display","inline-grid","important");
         enhancerMessage.textContent="Image ready. Choose Edit or Crop.";
       };
       img.onerror=()=>{enhancerMessage.textContent="The image could not be opened. Please try another file.";enhancerFile.value="";};img.src=enhancerObjectUrl;
@@ -4930,7 +4930,7 @@
     }
     document.getElementById("enhancerOpenCrop").addEventListener("click",openEnhancerCrop);
     document.getElementById("enhancerCancelCrop").addEventListener("click",()=>{
-      cropStart=null;enhancerCropPanel.style.display="none";enhancerStartActions.style.setProperty("display","grid","important");enhancerMessage.textContent="Crop cancelled.";
+      cropStart=null;enhancerCropPanel.style.display="none";enhancerStartActions.style.setProperty("display","inline-grid","important");enhancerMessage.textContent="Crop cancelled.";
     });
     document.getElementById("enhancerClearCrop").addEventListener("click",()=>{
       cropStart=null;cropRect=null;drawCropSelection();enhancerMessage.textContent="Selection cleared. Drag again to choose a new crop area.";
@@ -4979,7 +4979,7 @@
       cropped.onload=()=>{
         if(enhancerObjectUrl&&enhancerObjectUrl!==enhancerOriginalObjectUrl)URL.revokeObjectURL(enhancerObjectUrl);enhancerObjectUrl=nextUrl;enhancerImage=cropped;
         enhancerPreview.innerHTML='<img alt="Cropped image preview" style="display:block;width:auto;height:auto;max-width:100%;max-height:420px;margin:auto;border-radius:14px;object-fit:contain;transform-origin:center">';
-        enhancerPreview.querySelector("img").src=nextUrl;enhancerCropPanel.style.display="none";enhancerStartActions.style.setProperty("display","grid","important");
+        enhancerPreview.querySelector("img").src=nextUrl;enhancerCropPanel.style.display="none";enhancerStartActions.style.setProperty("display","inline-grid","important");
         enhancerSavedBlob=null;enhancerDownloadPanel.style.display="none";resetEnhancer();
         enhancerMessage.textContent="Crop applied successfully. You can now edit the cropped image or crop again.";
       };
