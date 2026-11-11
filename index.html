@@ -2565,8 +2565,8 @@
       </div>
 
       <div class="field-group" style="margin-top:14px;padding:12px 14px;border:1px solid var(--border-strong);border-radius:12px;background:rgba(155,108,255,0.08)">
-        <strong style="display:block;margin-bottom:5px;color:var(--purple-light)">💡 If an output-size error appears</strong>
-        <p class="workspace-intro" style="font-size:12px;margin:0">Open Image Compressor → choose your image → set Resize Dimensions to 50% → click Compress Image. Then upload the compressed image here and try 2× again. Remember: reducing image quality alone does not reduce its pixel dimensions.</p>
+        <strong style="display:block;margin-bottom:5px;color:var(--purple-light)">⚡ Higher-resolution processing</strong>
+        <p class="workspace-intro" style="font-size:12px;margin:0">2× mode can now process images up to 48 megapixels. Large images use more computer memory and may take longer. For smoother processing, close other heavy tabs or apps. 4× mode keeps a lower limit to help prevent browser crashes.</p>
       </div>
       <div id="upscalePreview" style="margin-top:16px"></div>
       <button class="primary" id="upscaleButton" type="button" disabled>✨ Enlarge Image — Free</button>
@@ -4841,11 +4841,11 @@
         const width = img.naturalWidth * factor;
         const height = img.naturalHeight * factor;
         const outputPixels = width * height;
-        const maxOutputPixels = factor === 2 ? 24000000 : 16000000;
+        const maxOutputPixels = factor === 2 ? 48000000 : 16000000;
         if (outputPixels > maxOutputPixels) {
           const outputMP = (outputPixels / 1000000).toFixed(1);
           const limitMP = (maxOutputPixels / 1000000).toFixed(0);
-          throw new Error(`${factor}× output would be ${outputMP} megapixels, above this browser-safe limit of ${limitMP} MP. Open Image Compressor, set Resize Dimensions to 50%, compress the image, then upload it here again.`);
+          throw new Error(`${factor}× output would be ${outputMP} megapixels, above the ${limitMP} MP limit for this mode. Choose a smaller image or switch to 2× mode.`);
         }
         const canvas = document.createElement("canvas");
         canvas.width = width; canvas.height = height;
