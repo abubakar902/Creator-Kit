@@ -2354,6 +2354,10 @@
         <div class="hub-section-heading"><div><h3>↻ Recently Opened</h3><p>Jump back into the tools you used last</p></div></div>
         <div class="hub-tool-grid" id="hubRecentGrid"></div><div class="hub-empty" id="hubRecentEmpty">Your recently opened tools will appear here.</div>
       </section>
+      <section class="hub-section hub-recommended-section">
+        <div class="hub-section-heading"><div><h3>✨ Recommended for You</h3><p id="hubRecommendedHint">Suggestions based on the tools you open</p></div></div>
+        <div class="hub-tool-grid" id="hubRecommendedGrid"></div>
+      </section>
       <section class="hub-section">
         <div class="hub-section-heading"><div><h3>🚀 Explore All Tools</h3><p>Quick access to every available tool</p></div><button class="hub-action" type="button" data-switch-tab="search">Full directory →</button></div>
         <div class="hub-category-filters" id="hubCategoryFilters" role="group" aria-label="Filter tools by category">
@@ -3883,6 +3887,21 @@
     let activeHubCategory = "all";
     function renderCreatorHub() {
       renderHubShortcuts("hubRecentGrid", recentlyOpenedToolIds, "hubRecentEmpty", "Your recently opened tools will appear here.", 4);
+      const latestOpenedId = recentlyOpenedToolIds[0];
+      const latestOpenedCard = allToolCards.find(card => card.dataset.tool === latestOpenedId);
+      const latestCategory = latestOpenedCard?.closest(".category-block")?.id;
+      const recentSet = new Set(recentlyOpenedToolIds);
+      let recommendedIds = latestCategory
+        ? allToolCards.filter(card => card.closest(".category-block")?.id === latestCategory && !recentSet.has(card.dataset.tool)).map(card => card.dataset.tool)
+        : [];
+      const popularIds = ["titles", "thumbnail", "logo"].filter(id => !recentSet.has(id));
+      const remainingIds = allToolCards.map(card => card.dataset.tool).filter(id => !recentSet.has(id));
+      recommendedIds = [...new Set([...recommendedIds, ...popularIds, ...remainingIds])].slice(0, 3);
+      renderHubShortcuts("hubRecommendedGrid", recommendedIds, "hubRecommendedEmpty", "Open a tool to get personalized suggestions.", 3);
+      const recommendationHint = document.getElementById("hubRecommendedHint");
+      if (recommendationHint) recommendationHint.textContent = latestCategory
+        ? "Because you recently used a tool in the same category"
+        : "Popular picks to help you get started";
       const visibleToolIds = allToolCards
         .filter(card => activeHubCategory === "all" || card.closest(".category-block")?.id === activeHubCategory)
         .map(card => card.dataset.tool);
