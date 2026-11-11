@@ -2565,8 +2565,8 @@
       </div>
 
       <div class="field-group" style="margin-top:14px;padding:12px 14px;border:1px solid var(--border-strong);border-radius:12px;background:rgba(155,108,255,0.08)">
-        <strong style="display:block;margin-bottom:5px;color:var(--purple-light)">⚡ Higher-resolution processing</strong>
-        <p class="workspace-intro" style="font-size:12px;margin:0">2× mode can now process images up to 48 megapixels. Large images use more computer memory and may take longer. For smoother processing, close other heavy tabs or apps. 4× mode keeps a lower limit to help prevent browser crashes.</p>
+        <strong style="display:block;margin-bottom:5px;color:var(--purple-light)">🛡️ Safe processing limits</strong>
+        <p class="workspace-intro" style="font-size:12px;margin:0">This tool uses your browser, so it has strict limits to help prevent slowdowns and crashes: 2× supports up to 8 MP output; 4× supports up to 4 MP output. Very large images are stopped before processing starts.</p>
       </div>
       <div id="upscalePreview" style="margin-top:16px"></div>
       <button class="primary" id="upscaleButton" type="button" disabled>✨ Enlarge Image — Free</button>
@@ -4841,20 +4841,23 @@
         const width = img.naturalWidth * factor;
         const height = img.naturalHeight * factor;
         const outputPixels = width * height;
-        const maxOutputPixels = factor === 2 ? 48000000 : 16000000;
+        const maxOutputPixels = factor === 2 ? 8000000 : 4000000;
         if (outputPixels > maxOutputPixels) {
           const outputMP = (outputPixels / 1000000).toFixed(1);
           const limitMP = (maxOutputPixels / 1000000).toFixed(0);
-          throw new Error(`${factor}× output would be ${outputMP} megapixels, above the ${limitMP} MP limit for this mode. Choose a smaller image or switch to 2× mode.`);
+          throw new Error(`${factor}× would create a ${outputMP} MP image. This mode is limited to ${limitMP} MP to protect your browser. Choose a smaller image or use a lower upscale factor.`);
         }
         const canvas = document.createElement("canvas");
-        canvas.width = width; canvas.height = height;
+        canvas.width = width;
+        canvas.height = height;
         const ctx = canvas.getContext("2d");
         if (!ctx) throw new Error("Your browser could not start image processing.");
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = "high";
         ctx.drawImage(img, 0, 0, width, height);
         const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/png"));
+        canvas.width = 0;
+        canvas.height = 0;
         if (!blob) throw new Error("Could not create the enlarged image.");
         upscaleResultUrl = URL.createObjectURL(blob);
         upscaleResult.innerHTML = `<h3>Image enlarged successfully!</h3><p>${width} × ${height} pixels</p><img src="${upscaleResultUrl}" alt="Enlarged image" style="max-width:100%;max-height:500px;border-radius:14px;object-fit:contain"><p><a class="download-cta" href="${upscaleResultUrl}" download="TrivexaAI-upscaled-${factor}x.png">Download Enlarged Image</a></p>`;
