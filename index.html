@@ -435,6 +435,43 @@
     }
     .showcase-dots span:first-child { margin-left: 0; }
 
+    /* CREATOR HUB — one place for quick access to every tool */
+    .creator-hub-panel { margin: 0 0 34px; }
+    .hub-welcome {
+      position: relative; overflow: hidden; padding: clamp(22px, 4vw, 34px);
+      border: 1px solid var(--border-strong); border-radius: var(--radius-lg);
+      background: radial-gradient(circle at 90% 0%, rgba(232,121,249,.18), transparent 42%),
+        linear-gradient(135deg, #24183f, #150e29 78%);
+      box-shadow: var(--shadow-card); margin-bottom: 22px;
+    }
+    .hub-welcome h2 { margin: 5px 0 7px; font-size: clamp(25px, 3.4vw, 36px); letter-spacing: -.8px; }
+    .hub-welcome p { margin: 0; max-width: 650px; color: var(--text-secondary); font-size: 13.5px; }
+    .hub-quick-actions { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 18px; }
+    .hub-action {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 10px 15px; min-height: 42px; border: 1px solid var(--border-strong);
+      border-radius: 12px; color: var(--text); background: rgba(255,255,255,.055);
+      font-size: 12px; font-weight: 750; cursor: pointer; transition: var(--transition);
+    }
+    .hub-action:hover { background: rgba(155,108,255,.2); transform: translateY(-2px); border-color: var(--purple-light); }
+    .hub-section { margin: 0 0 22px; padding: clamp(17px, 3vw, 24px); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); background: rgba(25,17,45,.78); }
+    .hub-section-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px; }
+    .hub-section-heading h3 { margin:0; font-size:17px; font-weight:800; }
+    .hub-section-heading p { margin:3px 0 0; color:var(--muted); font-size:11.5px; }
+    .hub-tool-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; }
+    .hub-tool-shortcut { display:flex; align-items:center; gap:10px; min-width:0; padding:12px;
+      text-align:left; color:var(--text); border:1px solid var(--border); border-radius:13px;
+      background:rgba(255,255,255,.035); cursor:pointer; transition:var(--transition); }
+    .hub-tool-shortcut:hover { border-color:var(--purple-light); background:rgba(155,108,255,.13); transform:translateY(-2px); }
+    .hub-tool-shortcut .emoji { flex:0 0 auto; display:grid; place-items:center; width:35px; height:35px;
+      border-radius:10px; background:rgba(155,108,255,.16); font-size:19px; }
+    .hub-tool-shortcut strong { display:block; font-size:11.5px; line-height:1.35; }
+    .hub-tool-shortcut small { display:block; margin-top:3px; color:var(--muted); font-size:10px; }
+    .hub-empty { padding:18px; border:1px dashed var(--border-strong); border-radius:12px; color:var(--muted); text-align:center; font-size:12px; }
+    @media (max-width: 760px) { .hub-tool-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+    @media (max-width: 390px) { .hub-tool-grid { grid-template-columns:1fr; } }
+
     /* DASHBOARD TABS */
     .dashboard-tabs-container {
       margin: 20px 0 34px;
@@ -2259,7 +2296,10 @@
     <!-- DASHBOARD NAVIGATION TABS (SEARCH / FAVOURITES / HISTORY) -->
     <div class="dashboard-tabs-container" id="workspaceTabs">
       <nav class="tabs-nav-bar" role="tablist" aria-label="Workspace Views">
-        <button type="button" class="tab-btn active" id="tabNavSearch" role="tab" aria-selected="true" aria-controls="panelSearch">
+        <button type="button" class="tab-btn active" id="tabNavHub" role="tab" aria-selected="true" aria-controls="panelHub">
+          <span class="tab-icon">✨</span><span>Creator Hub</span><span class="tab-badge">Home</span>
+        </button>
+        <button type="button" class="tab-btn" id="tabNavSearch" role="tab" aria-selected="false" aria-controls="panelSearch">
           <span class="tab-icon">🔍</span>
           <span>Search Tools</span>
           <span class="tab-badge" id="tabBadgeSearch">15</span>
@@ -2290,8 +2330,34 @@
       <div class="recently-opened-grid" id="recentlyOpenedGrid" aria-live="polite"></div>
     </section>
 
+    <!-- CREATOR HUB: central access to tools, favourites and recent tools -->
+    <div class="tab-panel active creator-hub-panel" id="panelHub" role="tabpanel" aria-labelledby="tabNavHub">
+      <section class="hub-welcome">
+        <div class="section-kicker">YOUR CREATOR WORKSPACE</div>
+        <h2>✨ Welcome to TrivexaAI Creator Hub</h2>
+        <p>All your creator tools, favourite shortcuts and recently opened tools — together in one simple workspace.</p>
+        <div class="hub-quick-actions">
+          <button class="hub-action" type="button" data-switch-tab="search">🔎 Browse all tools</button>
+          <button class="hub-action" type="button" data-switch-tab="favourites">⭐ My favourites</button>
+          <button class="hub-action" type="button" data-switch-tab="history">🕘 Recent results</button>
+        </div>
+      </section>
+      <section class="hub-section">
+        <div class="hub-section-heading"><div><h3>⭐ Your Favourite Tools</h3><p>Your saved shortcuts on this device</p></div><span class="tab-badge" id="hubFavouriteCount">0</span></div>
+        <div class="hub-tool-grid" id="hubFavouriteGrid"></div><div class="hub-empty" id="hubFavouriteEmpty">Tap the star on any tool to save it here.</div>
+      </section>
+      <section class="hub-section">
+        <div class="hub-section-heading"><div><h3>↻ Recently Opened</h3><p>Jump back into the tools you used last</p></div></div>
+        <div class="hub-tool-grid" id="hubRecentGrid"></div><div class="hub-empty" id="hubRecentEmpty">Your recently opened tools will appear here.</div>
+      </section>
+      <section class="hub-section">
+        <div class="hub-section-heading"><div><h3>🚀 Explore All Tools</h3><p>Quick access to every available tool</p></div><button class="hub-action" type="button" data-switch-tab="search">Full directory →</button></div>
+        <div class="hub-tool-grid" id="hubAllToolsGrid"></div>
+      </section>
+    </div>
+
     <!-- TAB PANEL 1: SEARCH & BROWSE TOOLS -->
-    <div class="tab-panel active" id="panelSearch" role="tabpanel" aria-labelledby="tabNavSearch">
+    <div class="tab-panel" id="panelSearch" role="tabpanel" aria-labelledby="tabNavSearch">
       <!-- Search Card -->
       <section class="tool-explorer" id="tools" aria-labelledby="tools-title">
         <div class="tools-heading">
@@ -3105,6 +3171,8 @@
     }
 
     // TAB SWITCHING MANAGEMENT
+    const tabNavHub = document.getElementById("tabNavHub");
+    const panelHub = document.getElementById("panelHub");
     const tabNavSearch = document.getElementById("tabNavSearch");
     const tabNavFavourites = document.getElementById("tabNavFavourites");
     const tabNavHistory = document.getElementById("tabNavHistory");
@@ -3113,10 +3181,14 @@
     const panelHistory = document.getElementById("panelHistory");
 
     function switchDashboardTab(tabId) {
+      const isHub = tabId === "hub";
       const isSearch = tabId === "search";
       const isFavourites = tabId === "favourites";
       const isHistory = tabId === "history";
 
+      tabNavHub?.classList.toggle("active", isHub);
+      tabNavHub?.setAttribute("aria-selected", String(isHub));
+      panelHub?.classList.toggle("active", isHub);
       tabNavSearch?.classList.toggle("active", isSearch);
       tabNavSearch?.setAttribute("aria-selected", String(isSearch));
       tabNavFavourites?.classList.toggle("active", isFavourites);
@@ -3132,6 +3204,7 @@
       if (isHistory) renderRecentResults();
     }
 
+    tabNavHub?.addEventListener("click", () => switchDashboardTab("hub"));
     tabNavSearch?.addEventListener("click", () => switchDashboardTab("search"));
     tabNavFavourites?.addEventListener("click", () => switchDashboardTab("favourites"));
     tabNavHistory?.addEventListener("click", () => switchDashboardTab("history"));
@@ -3693,6 +3766,7 @@
       persistFavouriteTools();
       updateFavouriteButtons();
       renderFavouriteTools();
+      renderCreatorHub?.();
     }
 
     updateFavouriteButtons();
@@ -3760,14 +3834,59 @@
       recentlyOpenedToolIds = [toolId, ...recentlyOpenedToolIds.filter(id => id !== toolId)].slice(0, 4);
       persistRecentlyOpenedTools();
       renderRecentlyOpenedTools();
+      renderCreatorHub?.();
     }
 
     clearRecentlyOpenedButton?.addEventListener("click", () => {
       recentlyOpenedToolIds = [];
       persistRecentlyOpenedTools();
       renderRecentlyOpenedTools();
+      renderCreatorHub?.();
     });
     renderRecentlyOpenedTools();
+
+    // CREATOR HUB SHORTCUTS: mirror existing tools without altering their original cards.
+    function renderHubShortcuts(containerId, ids, emptyId, emptyMessage, limit = 99) {
+      const container = document.getElementById(containerId);
+      const empty = document.getElementById(emptyId);
+      if (!container) return;
+      container.replaceChildren();
+      const validIds = ids.filter(id => allToolCards.some(card => card.dataset.tool === id)).slice(0, limit);
+      if (empty) { empty.hidden = validIds.length > 0; empty.textContent = emptyMessage; }
+      validIds.forEach(id => {
+        const source = allToolCards.find(card => card.dataset.tool === id);
+        if (!source) return;
+        const shortcut = document.createElement("button");
+        shortcut.type = "button";
+        shortcut.className = "hub-tool-shortcut";
+        const icon = document.createElement("span");
+        icon.className = "emoji";
+        icon.textContent = source.querySelector(".emoji")?.textContent || "✦";
+        const copy = document.createElement("span");
+        const title = document.createElement("strong");
+        title.textContent = source.querySelector("strong")?.textContent || id;
+        const hint = document.createElement("small");
+        hint.textContent = "Open tool →";
+        copy.append(title, hint);
+        shortcut.append(icon, copy);
+        shortcut.addEventListener("click", () => {
+          switchDashboardTab("search");
+          toolSearchInput.value = "";
+          filterToolDirectory();
+          source.scrollIntoView({ behavior: "smooth", block: "center" });
+          source.click();
+        });
+        container.appendChild(shortcut);
+      });
+    }
+    function renderCreatorHub() {
+      renderHubShortcuts("hubFavouriteGrid", favouriteToolIds, "hubFavouriteEmpty", "Tap the star on any tool to save it here.");
+      renderHubShortcuts("hubRecentGrid", recentlyOpenedToolIds, "hubRecentEmpty", "Your recently opened tools will appear here.", 4);
+      renderHubShortcuts("hubAllToolsGrid", allToolCards.map(card => card.dataset.tool), "hubAllToolsEmpty", "No tools are available right now.");
+      const count = document.getElementById("hubFavouriteCount");
+      if (count) count.textContent = String(favouriteToolIds.length);
+    }
+    renderCreatorHub();
 
     const toolSearchAliases = {
       titles: ["title", "titles", "youtube title", "video title", "headline", "title maker", "clickable title", "yt title", "youtube ke title", "video ka title", "title banana"],
