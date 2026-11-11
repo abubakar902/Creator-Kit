@@ -2419,9 +2419,9 @@
             <span class="tool-cta-label">Open Tool →</span>
           </button>
           <button class="tool" data-tool="upscaler" id="upscalerTool" type="button">
-            <span class="emoji">✨</span>
-            <strong>Image Upscaler</strong>
-            <small>Enlarge images smoothly in your browser with 2× or 4× output.</small>
+            <span class="emoji">🎨</span>
+            <strong>Image Color Picker</strong>
+            <small>Pick any colour from an image and copy its HEX or RGB code.</small>
             <span class="tool-cta-label">Open Tool →</span>
           </button>
         </section>
@@ -2539,39 +2539,24 @@
       <div id="bgRemoveResult" style="margin-top:20px"></div>
     </section>
 
-    <!-- 3. Image Upscaler Workspace -->
+    <!-- 3. Image Color Picker Workspace -->
     <section class="workspace" id="upscalerWorkspace" style="display:none">
       <div class="workspace-header-bar">
         <div class="workspace-title-wrap">
-          <span class="workspace-badge">Photo Enhancement</span>
-          <h2>✨ Lightweight Image Upscaler — HD Size</h2>
-          <p class="workspace-intro">Upload a low-resolution image to enlarge it with bicubic smoothing directly in your browser. Generates ultra-large output instantly without fees.</p>
+          <span class="workspace-badge">Image & Design Utility</span>
+          <h2>🎨 Free Image Color Picker</h2>
+          <p class="workspace-intro">Upload an image and click any spot to pick its exact colour. Copy the HEX or RGB code instantly. Your image stays on your device.</p>
         </div>
         <button type="button" class="workspace-close-btn" data-close-workspace aria-label="Close workspace">✕</button>
       </div>
-
-      <div class="row">
-        <div class="field-group">
-          <label for="upscaleFile">Choose an image</label>
-          <input id="upscaleFile" type="file" accept="image/png,image/jpeg,image/webp">
-        </div>
-        <div class="field-group">
-          <label for="upscaleFactor">Upscale factor</label>
-          <select id="upscaleFactor">
-            <option value="2">2× — Recommended (crisp & fast)</option>
-            <option value="4">4× — Ultra Large (uses more memory)</option>
-          </select>
-        </div>
+      <div class="field-group">
+        <label for="colorPickerFile">Choose an image</label>
+        <input id="colorPickerFile" type="file" accept="image/png,image/jpeg,image/webp">
+        <p class="workspace-intro" style="font-size:12px">PNG, JPG or WebP · Maximum file size 10 MB.</p>
       </div>
-
-      <div class="field-group" style="margin-top:14px;padding:12px 14px;border:1px solid var(--border-strong);border-radius:12px;background:rgba(155,108,255,0.08)">
-        <strong style="display:block;margin-bottom:5px;color:var(--purple-light)">🛡️ Safe processing limits</strong>
-        <p class="workspace-intro" style="font-size:12px;margin:0">This tool uses your browser, so it has strict limits to help prevent slowdowns and crashes: 2× supports up to 8 MP output; 4× supports up to 4 MP output. Very large images are stopped before processing starts.</p>
-      </div>
-      <div id="upscalePreview" style="margin-top:16px"></div>
-      <button class="primary" id="upscaleButton" type="button" disabled>✨ Enlarge Image — Free</button>
-      <div id="upscaleMessage" role="status" aria-live="polite"></div>
-      <div id="upscaleResult" style="margin-top:20px"></div>
+      <div id="colorPickerPreview" style="margin-top:16px"></div>
+      <div id="colorPickerResult" style="margin-top:16px"></div>
+      <div id="colorPickerMessage" role="status" aria-live="polite"></div>
     </section>
 
     <!-- 4. Image Compressor Workspace -->
@@ -2976,7 +2961,7 @@
         <li><a href="image-background-remover.html">AI Background Remover</a><span>Remove the background from a photo and download a transparent PNG using TrivexaAI's browser-based background remover.</span></li>
         <li><a href="image-compressor.html">Free Image Compressor</a><span>Compress an image and export a smaller JPG with TrivexaAI's free browser-based image compressor.</span></li>
         <li><a href="image-enhancer.html">Free Image Enhancer</a><span>Adjust image brightness, contrast and colours with TrivexaAI's free image enhancer and live preview.</span></li>
-        <li><a href="image-upscaler.html">Image Upscaler</a><span>Enlarge an image by 2x or 4x in your browser with TrivexaAI's lightweight image upscaler.</span></li>
+        <li><a href="image-color-picker.html">Image Color Picker</a><span>Pick colours from any image and copy accurate HEX and RGB colour codes with TrivexaAI.</span></li>
         <li><a href="ai-voice-generator-text-to-speech.html">AI Voice Generator</a><span>Convert written text into spoken audio with TrivexaAI's voice generator. Choose an available voice and download an MP3.</span></li>
         <li><a href="video-downloader.html">Video Downloader</a><span>Check available download options for supported public YouTube, TikTok and Instagram links with TrivexaAI.</span></li>
       </ul>
@@ -3709,7 +3694,7 @@
       "background-remover": ["background remover", "remove background", "transparent background", "cutout", "background eraser", "photo cutout", "bg remover", "background hatana", "photo background"],
       "image-compressor": ["compress image", "image compressor", "photo compressor", "reduce image size", "smaller image", "compress jpg", "photo size kam", "image size reduce"],
       "image-enhancer": ["enhance image", "image enhancer", "photo enhancer", "improve photo", "brightness", "contrast", "saturation", "photo editor", "tasveer behtar", "photo clear"],
-      upscaler: ["upscale", "upscaler", "image upscaler", "enlarge image", "increase resolution", "image resize", "2x", "4x", "photo enlarge", "image bari", "resolution barhana"],
+      upscaler: ["color picker", "colour picker", "image color picker", "image colour picker", "pick color", "pick colour", "hex color", "hex code", "rgb code", "color from image", "colour from photo", "rang code", "color code"],
       voice: ["voice", "voice generator", "ai voice", "text to speech", "tts", "speech generator", "voiceover", "voice over", "mp3 voice", "spoken audio", "text bolna", "awaz", "awaaz", "voiceover banana"],
       downloader: ["download", "downloader", "video download", "download video", "youtube downloader", "tiktok downloader", "instagram downloader", "save video", "video saver", "video utarna", "video save karna"]
     };
@@ -4786,92 +4771,61 @@
       }
     });
 
-    // LIGHTWEIGHT IMAGE UPSCALER
-    const upscaleFile = document.getElementById("upscaleFile");
-    const upscaleFactor = document.getElementById("upscaleFactor");
-    const upscaleButton = document.getElementById("upscaleButton");
-    const upscalePreview = document.getElementById("upscalePreview");
-    const upscaleMessage = document.getElementById("upscaleMessage");
-    const upscaleResult = document.getElementById("upscaleResult");
-    let upscaleSelectedFile = null;
-    let upscaleResultUrl = null;
-    let upscalePreviewUrl = null;
+    // LIGHTWEIGHT IMAGE COLOR PICKER
+    const colorPickerFile = document.getElementById("colorPickerFile");
+    const colorPickerPreview = document.getElementById("colorPickerPreview");
+    const colorPickerResult = document.getElementById("colorPickerResult");
+    const colorPickerMessage = document.getElementById("colorPickerMessage");
+    let colorPickerImage = null;
+    let colorPickerObjectUrl = null;
 
-    upscaleFile.addEventListener("change", () => {
-      upscaleSelectedFile = upscaleFile.files && upscaleFile.files[0];
-      upscaleButton.disabled = !upscaleSelectedFile;
-      upscaleMessage.textContent = "";
-      upscalePreview.replaceChildren();
-      upscaleResult.innerHTML = "";
-      if (upscaleResultUrl) URL.revokeObjectURL(upscaleResultUrl);
-      if (upscalePreviewUrl) URL.revokeObjectURL(upscalePreviewUrl);
-      upscaleResultUrl = null;
-      upscalePreviewUrl = null;
-      if (!upscaleSelectedFile) { upscalePreview.innerHTML = ""; return; }
-      if (!["image/png", "image/jpeg", "image/webp"].includes(upscaleSelectedFile.type)) {
-        upscaleMessage.textContent = "Please choose a PNG, JPG or WEBP image.";
-        upscaleButton.disabled = true; return;
-      }
-      if (upscaleSelectedFile.size > 8 * 1024 * 1024) {
-        upscaleMessage.textContent = "Please choose an image smaller than 8 MB.";
-        upscaleButton.disabled = true; return;
-      }
-      upscalePreviewUrl = URL.createObjectURL(upscaleSelectedFile);
-      upscalePreview.innerHTML = `<img src="${upscalePreviewUrl}" alt="Selected image preview" style="max-width:100%;max-height:300px;border-radius:14px;object-fit:contain">`;
+    colorPickerFile.addEventListener("change", () => {
+      const file = colorPickerFile.files && colorPickerFile.files[0];
+      colorPickerImage = null;
+      colorPickerPreview.replaceChildren();
+      colorPickerResult.replaceChildren();
+      colorPickerMessage.textContent = "";
+      if (colorPickerObjectUrl) URL.revokeObjectURL(colorPickerObjectUrl);
+      colorPickerObjectUrl = null;
+      if (!file) return;
+      if (!["image/png", "image/jpeg", "image/webp"].includes(file.type)) { colorPickerMessage.textContent = "Please choose a PNG, JPG or WebP image."; colorPickerFile.value = ""; return; }
+      if (file.size > 10 * 1024 * 1024) { colorPickerMessage.textContent = "Please choose an image smaller than 10 MB."; colorPickerFile.value = ""; return; }
+      colorPickerObjectUrl = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => {
+        colorPickerImage = img;
+        colorPickerPreview.innerHTML = '<p class="workspace-intro">Click anywhere on the image to pick a colour.</p><img id="colorPickerImage" src="' + colorPickerObjectUrl + '" alt="Image for colour picking" style="display:block;max-width:100%;max-height:460px;object-fit:contain;border-radius:14px;border:1px solid var(--border-strong);cursor:crosshair">';
+        colorPickerMessage.textContent = "Image ready · " + img.naturalWidth + " × " + img.naturalHeight + " pixels";
+      };
+      img.onerror = () => { colorPickerMessage.textContent = "Could not open this image. Please choose another file."; if (colorPickerObjectUrl) URL.revokeObjectURL(colorPickerObjectUrl); colorPickerObjectUrl = null; };
+      img.src = colorPickerObjectUrl;
     });
 
-    upscaleButton.addEventListener("click", async () => {
-      if (!upscaleSelectedFile) return;
-      upscaleButton.disabled = true;
-      upscaleButton.textContent = "Processing...";
-      upscaleMessage.textContent = "Enlarging your image. This lightweight tool uses browser resizing, not a heavy AI model.";
-      upscaleResult.innerHTML = "";
-      if (upscaleResultUrl) URL.revokeObjectURL(upscaleResultUrl);
-      upscaleResultUrl = null;
-      let temporarySourceUrl = null;
-      try {
-        temporarySourceUrl = URL.createObjectURL(upscaleSelectedFile);
-        const img = await new Promise((resolve, reject) => {
-          const image = new Image();
-          image.onload = () => resolve(image);
-          image.onerror = () => reject(new Error("Could not open this image. Please try another file."));
-          image.src = temporarySourceUrl;
-        });
-        const factor = Number(upscaleFactor.value) === 4 ? 4 : 2;
-        const width = img.naturalWidth * factor;
-        const height = img.naturalHeight * factor;
-        const outputPixels = width * height;
-        const maxOutputPixels = factor === 2 ? 8000000 : 4000000;
-        if (outputPixels > maxOutputPixels) {
-          const outputMP = (outputPixels / 1000000).toFixed(1);
-          const limitMP = (maxOutputPixels / 1000000).toFixed(0);
-          throw new Error(`${factor}× would create a ${outputMP} MP image. This mode is limited to ${limitMP} MP to protect your browser. Choose a smaller image or use a lower upscale factor.`);
-        }
-        const canvas = document.createElement("canvas");
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext("2d");
-        if (!ctx) throw new Error("Your browser could not start image processing.");
-        ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = "high";
-        ctx.drawImage(img, 0, 0, width, height);
-        const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/png"));
-        canvas.width = 0;
-        canvas.height = 0;
-        if (!blob) throw new Error("Could not create the enlarged image.");
-        upscaleResultUrl = URL.createObjectURL(blob);
-        upscaleResult.innerHTML = `<h3>Image enlarged successfully!</h3><p>${width} × ${height} pixels</p><img src="${upscaleResultUrl}" alt="Enlarged image" style="max-width:100%;max-height:500px;border-radius:14px;object-fit:contain"><p><a class="download-cta" href="${upscaleResultUrl}" download="TrivexaAI-upscaled-${factor}x.png">Download Enlarged Image</a></p>`;
-        upscaleMessage.textContent = `Done! Your image was enlarged by ${factor}×. This is a lightweight resize, not AI detail restoration.`;
-        void saveRecentResult({ kind: "image", tool: "Image Upscaler", title: `Upscaled image (${factor}×)`, blob, filename: `TrivexaAI-upscaled-${factor}x.png` });
-      } catch (error) {
-        console.error("Upscaler error:", error);
-        upscaleMessage.textContent = error.message || "Image processing failed. Please try another image.";
-      } finally {
-        if (temporarySourceUrl) URL.revokeObjectURL(temporarySourceUrl);
-        upscaleButton.disabled = !upscaleSelectedFile;
-        upscaleButton.textContent = "✨ Enlarge Image — Free";
-      }
+    colorPickerPreview.addEventListener("click", (event) => {
+      if (!colorPickerImage || event.target.id !== "colorPickerImage") return;
+      const rect = event.target.getBoundingClientRect();
+      const x = Math.max(0, Math.min(colorPickerImage.naturalWidth - 1, Math.floor((event.clientX - rect.left) * colorPickerImage.naturalWidth / rect.width)));
+      const y = Math.max(0, Math.min(colorPickerImage.naturalHeight - 1, Math.floor((event.clientY - rect.top) * colorPickerImage.naturalHeight / rect.height)));
+      const sampleCanvas = document.createElement("canvas"); sampleCanvas.width = 1; sampleCanvas.height = 1;
+      const sampleContext = sampleCanvas.getContext("2d", { willReadFrequently: true });
+      if (!sampleContext) { colorPickerMessage.textContent = "Your browser could not read this colour."; return; }
+      sampleContext.drawImage(colorPickerImage, x, y, 1, 1, 0, 0, 1, 1);
+      const pixel = sampleContext.getImageData(0, 0, 1, 1).data;
+      const hex = "#" + [pixel[0], pixel[1], pixel[2]].map(value => value.toString(16).padStart(2, "0")).join("").toUpperCase();
+      const rgb = "rgb(" + pixel[0] + ", " + pixel[1] + ", " + pixel[2] + ")";
+      colorPickerResult.innerHTML = '<div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:16px;border:1px solid var(--border-strong);border-radius:14px;background:var(--panel)"><span aria-label="Selected colour" style="display:block;width:64px;height:64px;flex:0 0 64px;border-radius:12px;background:' + hex + ';border:1px solid var(--border-strong)"></span><div style="flex:1;min-width:150px"><strong style="display:block">Selected colour</strong><p style="margin:5px 0;color:var(--text)"><strong>HEX:</strong> <span id="colorPickerHex">' + hex + '</span></p><p style="margin:5px 0;color:var(--text)"><strong>RGB:</strong> <span id="colorPickerRgb">' + rgb + '</span></p><p class="workspace-intro" style="font-size:12px;margin:4px 0 0">Pixel position: ' + (x + 1) + ', ' + (y + 1) + '</p></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="secondary" type="button" id="copyColorHex">Copy HEX</button><button class="secondary" type="button" id="copyColorRgb">Copy RGB</button></div></div>';
+      colorPickerMessage.textContent = "Colour selected. Copy its HEX or RGB code.";
     });
+
+    colorPickerResult.addEventListener("click", async (event) => {
+      const button = event.target.closest("button"); if (!button) return;
+      const value = button.id === "copyColorHex" ? document.getElementById("colorPickerHex")?.textContent : button.id === "copyColorRgb" ? document.getElementById("colorPickerRgb")?.textContent : null;
+      if (!value) return;
+      try { await navigator.clipboard.writeText(value); colorPickerMessage.textContent = value + " copied to clipboard."; }
+      catch (error) { colorPickerMessage.textContent = "Copy was blocked by your browser. Please select and copy the code manually."; }
+    });
+
+    window.addEventListener("beforeunload", () => { if (colorPickerObjectUrl) URL.revokeObjectURL(colorPickerObjectUrl); });
 
     // FREE IMAGE ENHANCER
     const enhancerFile=document.getElementById("enhancerFile"), enhancerPreview=document.getElementById("enhancerPreview");
