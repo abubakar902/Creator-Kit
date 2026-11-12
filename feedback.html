@@ -50,15 +50,70 @@
           <select id="feedbackType" required>
             <option value="">Choose an option</option>
             <option value="General review">General review</option>
-            <option value="Report a problem">Report a problem</option>
+            <option value="Report a problem">Report a problem / Bug report</option>
             <option value="Suggest a new tool">Suggest a new tool</option>
             <option value="Feature improvement">Feature improvement</option>
           </select>
         </div>
+        <div class="field" id="toolField" hidden>
+          <label for="feedbackTool">Which TrivexaAI tool has the problem? <span class="required">*</span></label>
+          <select id="feedbackTool">
+            <option value="">Select the affected tool</option>
+            <option value="titles">YouTube Title Generator</option>
+            <option value="caption">Social Media Caption Generator</option>
+            <option value="hashtags">Hashtag Generator</option>
+            <option value="description">YouTube Description Generator</option>
+            <option value="hooks">Video Hook Generator</option>
+            <option value="script">Shorts Script Generator</option>
+            <option value="image">AI Image Generator</option>
+            <option value="logo">AI Logo Generator</option>
+            <option value="thumbnail">AI Thumbnail Generator</option>
+            <option value="background-remover">AI Background Remover</option>
+            <option value="image-compressor">Image Compressor</option>
+            <option value="photo-text">Photo Text Editor</option>
+            <option value="image-enhancer">Image Enhancer</option>
+            <option value="upscaler">Image Upscaler</option>
+            <option value="voice">AI Voice Generator</option>
+            <option value="downloader">Video Downloader</option>
+          </select>
+          <div class="hint">Choose the exact tool so we can find and fix the issue faster.</div>
+        </div>
+        <div class="field" id="issueField" hidden>
+          <label for="issueType">What kind of problem are you facing? <span class="required">*</span></label>
+          <select id="issueType">
+            <option value="">Choose the problem type</option>
+            <option>Tool is not working</option>
+            <option>Error message appeared</option>
+            <option>Wrong or unexpected result</option>
+            <option>Slow performance</option>
+            <option>Image, video or file upload/download issue</option>
+            <option>Design or display problem</option>
+            <option>Other problem</option>
+          </select>
+        </div>
         <div class="field">
-          <label for="feedbackMessage">Your feedback <span class="required">*</span></label>
-          <textarea id="feedbackMessage" minlength="5" maxlength="2000" required placeholder="Tell us what you liked, what went wrong, or what we should build next..."></textarea>
-          <div class="counter"><span id="charCount">0</span> / 2000</div>
+          <label for="feedbackMessage" id="messageLabel">Your feedback <span class="required">*</span></label>
+          <textarea id="feedbackMessage" minlength="5" maxlength="1200" required placeholder="Tell us what you liked, what went wrong, or what we should build next..."></textarea>
+          <div class="counter"><span id="charCount">0</span> / 2000 characters total</div>
+        </div>
+        <div id="problemDetails" hidden>
+          <div class="field">
+            <label for="expectedBehavior">What did you expect to happen? <span class="hint">(optional)</span></label>
+            <textarea id="expectedBehavior" maxlength="450" placeholder="Example: I expected the image to download as a PNG."></textarea>
+          </div>
+          <div class="field">
+            <label for="stepsToReproduce">Steps to reproduce the problem <span class="hint">(optional)</span></label>
+            <textarea id="stepsToReproduce" maxlength="550" placeholder="1. Open the tool&#10;2. Upload an image&#10;3. Click Generate&#10;4. The error appears"></textarea>
+          </div>
+          <div class="field">
+            <label for="deviceType">Which device are you using? <span class="hint">(optional)</span></label>
+            <select id="deviceType">
+              <option value="">Not specified</option>
+              <option>Mobile</option>
+              <option>Desktop / Laptop</option>
+              <option>Tablet</option>
+            </select>
+          </div>
         </div>
         <div class="hp" aria-hidden="true"><label for="website">Leave this field empty</label><input id="website" name="website" type="text" tabindex="-1" autocomplete="off"></div>
         <button class="submit" id="submitFeedback" type="submit">Send Feedback&nbsp; ↗</button>
@@ -78,6 +133,16 @@
     const charCount = document.getElementById("charCount");
     const statusBox = document.getElementById("formStatus");
     const submitButton = document.getElementById("submitFeedback");
+    const typeSelect = document.getElementById("feedbackType");
+    const toolField = document.getElementById("toolField");
+    const toolSelect = document.getElementById("feedbackTool");
+    const issueField = document.getElementById("issueField");
+    const issueSelect = document.getElementById("issueType");
+    const problemDetails = document.getElementById("problemDetails");
+    const expectedBehavior = document.getElementById("expectedBehavior");
+    const stepsToReproduce = document.getElementById("stepsToReproduce");
+    const deviceType = document.getElementById("deviceType");
+    const messageLabel = document.getElementById("messageLabel");
     let selectedRating = 0;
     const ratingWords = ["","Very poor","Could be better","It was okay","Really good","Excellent!"];
     function chooseRating(value){
@@ -87,10 +152,50 @@
         star.classList.toggle("active",active);
         star.setAttribute("aria-checked",String(Number(star.dataset.rating)===value));
       });
-      ratingLabel.textContent = ratingWords[value];
+      ratingLabel.textContent = ratingWords[value] || "Select a star rating";
     }
     stars.forEach(star=>star.addEventListener("click",()=>chooseRating(Number(star.dataset.rating))));
-    message.addEventListener("input",()=>{charCount.textContent=message.value.length;});
+    function isBugReport(){return typeSelect.value==="Report a problem";}
+    function updateFeedbackFields(){
+      const bug=isBugReport();
+      const improvement=typeSelect.value==="Feature improvement";
+      toolField.hidden=!(bug||improvement);
+      issueField.hidden=!bug;
+      problemDetails.hidden=!bug;
+      toolSelect.required=bug;
+      issueSelect.required=bug;
+      message.maxLength=bug?1000:2000;
+      messageLabel.innerHTML=bug?'Describe what went wrong <span class="required">*</span>':'Your feedback <span class="required">*</span>';
+      message.placeholder=bug?"What happened? Include the error message if you saw one.":"Tell us what you liked or what we should build next...";
+      updateCount();
+    }
+    function buildReportMessage(){
+      if(!isBugReport())return message.value.trim();
+      return [
+        "BUG REPORT",
+        "Affected tool: "+(toolSelect.selectedOptions[0]?.textContent||"Not selected"),
+        "Problem type: "+issueSelect.value,
+        "What happened: "+message.value.trim(),
+        expectedBehavior.value.trim()?"Expected result: "+expectedBehavior.value.trim():"",
+        stepsToReproduce.value.trim()?"Steps to reproduce: "+stepsToReproduce.value.trim():"",
+        deviceType.value?"Device: "+deviceType.value:"",
+        "Browser: "+(navigator.userAgent||"Not available")
+      ].filter(Boolean).join("\n");
+    }
+    function updateCount(){
+      const total=buildReportMessage().length;
+      charCount.textContent=total;
+      charCount.parentElement.style.color=total>2000?"#ff9aa9":"";
+    }
+    [message,expectedBehavior,stepsToReproduce].forEach(el=>el.addEventListener("input",updateCount));
+    typeSelect.addEventListener("change",updateFeedbackFields);
+    const params=new URLSearchParams(window.location.search);
+    const requestedTool=params.get("tool");
+    if(requestedTool){
+      const match=[...toolSelect.options].find(o=>o.value===requestedTool||o.textContent.toLowerCase()===requestedTool.toLowerCase());
+      if(match){toolSelect.value=match.value;typeSelect.value="Report a problem";}
+    }
+    updateFeedbackFields();
     function showStatus(text,type){
       statusBox.textContent=text;
       statusBox.className="status show "+type;
@@ -100,22 +205,26 @@
       statusBox.className="status";
       if(!selectedRating){showStatus("Please choose a star rating first.","error");return;}
       if(!form.reportValidity())return;
+      const reportMessage=buildReportMessage();
+      if(reportMessage.length>2000){showStatus("Your report is too long. Please shorten the details so the total stays under 2,000 characters.","error");return;}
       if(GOOGLE_SHEETS_ENDPOINT.includes("PASTE_YOUR_")){
         showStatus("The feedback page is ready. The owner still needs to connect the Google Sheet before submissions can be received.","error");return;
       }
       submitButton.disabled=true;
       submitButton.textContent="Sending...";
+      const selectedTool=toolSelect.value?toolSelect.selectedOptions[0].textContent:"";
+      const pageInfo=[selectedTool,document.referrer||"TrivexaAI feedback page"].filter(Boolean).join(" | ");
       const payload=new URLSearchParams({
         rating:String(selectedRating),
-        type:document.getElementById("feedbackType").value,
-        message:message.value.trim(),
-        page:document.referrer||"TrivexaAI feedback page",
+        type:typeSelect.value,
+        message:reportMessage,
+        page:pageInfo,
         website:document.getElementById("website").value
       });
       try{
         await fetch(GOOGLE_SHEETS_ENDPOINT,{method:"POST",mode:"no-cors",body:payload});
         showStatus("Thank you! Your feedback has been sent. We appreciate your help.","success");
-        form.reset();chooseRating(0);charCount.textContent="0";
+        form.reset();chooseRating(0);charCount.textContent="0";updateFeedbackFields();
       }catch(error){
         showStatus("We couldn't send your feedback. Please check your connection and try again.","error");
       }finally{
