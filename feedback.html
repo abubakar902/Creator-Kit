@@ -96,25 +96,6 @@
           <textarea id="feedbackMessage" minlength="5" maxlength="1200" required placeholder="Tell us what you liked, what went wrong, or what we should build next..."></textarea>
           <div class="counter"><span id="charCount">0</span> / 2000 characters total</div>
         </div>
-        <div id="problemDetails" hidden>
-          <div class="field">
-            <label for="expectedBehavior">What did you expect to happen? <span class="hint">(optional)</span></label>
-            <textarea id="expectedBehavior" maxlength="450" placeholder="Example: I expected the image to download as a PNG."></textarea>
-          </div>
-          <div class="field">
-            <label for="stepsToReproduce">Steps to reproduce the problem <span class="hint">(optional)</span></label>
-            <textarea id="stepsToReproduce" maxlength="550" placeholder="1. Open the tool&#10;2. Upload an image&#10;3. Click Generate&#10;4. The error appears"></textarea>
-          </div>
-          <div class="field">
-            <label for="deviceType">Which device are you using? <span class="hint">(optional)</span></label>
-            <select id="deviceType">
-              <option value="">Not specified</option>
-              <option>Mobile</option>
-              <option>Desktop / Laptop</option>
-              <option>Tablet</option>
-            </select>
-          </div>
-        </div>
         <div class="hp" aria-hidden="true"><label for="website">Leave this field empty</label><input id="website" name="website" type="text" tabindex="-1" autocomplete="off"></div>
         <button class="submit" id="submitFeedback" type="submit">Send Feedback&nbsp; ↗</button>
         <div class="status" id="formStatus" role="status" aria-live="polite"></div>
@@ -138,10 +119,6 @@
     const toolSelect = document.getElementById("feedbackTool");
     const issueField = document.getElementById("issueField");
     const issueSelect = document.getElementById("issueType");
-    const problemDetails = document.getElementById("problemDetails");
-    const expectedBehavior = document.getElementById("expectedBehavior");
-    const stepsToReproduce = document.getElementById("stepsToReproduce");
-    const deviceType = document.getElementById("deviceType");
     const messageLabel = document.getElementById("messageLabel");
     let selectedRating = 0;
     const ratingWords = ["","Very poor","Could be better","It was okay","Really good","Excellent!"];
@@ -161,12 +138,11 @@
       const improvement=typeSelect.value==="Feature improvement";
       toolField.hidden=!(bug||improvement);
       issueField.hidden=!bug;
-      problemDetails.hidden=!bug;
       toolSelect.required=bug;
       issueSelect.required=bug;
       message.maxLength=bug?1000:2000;
       messageLabel.innerHTML=bug?'Describe what went wrong <span class="required">*</span>':'Your feedback <span class="required">*</span>';
-      message.placeholder=bug?"What happened? Include the error message if you saw one.":"Tell us what you liked or what we should build next...";
+      message.placeholder=bug?"Describe the problem. If an error appeared, copy its exact message here.":"Tell us what you liked or what we should build next...";
       updateCount();
     }
     function buildReportMessage(){
@@ -175,19 +151,15 @@
         "BUG REPORT",
         "Affected tool: "+(toolSelect.selectedOptions[0]?.textContent||"Not selected"),
         "Problem type: "+issueSelect.value,
-        "What happened: "+message.value.trim(),
-        expectedBehavior.value.trim()?"Expected result: "+expectedBehavior.value.trim():"",
-        stepsToReproduce.value.trim()?"Steps to reproduce: "+stepsToReproduce.value.trim():"",
-        deviceType.value?"Device: "+deviceType.value:"",
-        "Browser: "+(navigator.userAgent||"Not available")
-      ].filter(Boolean).join("\n");
+        "What happened: "+message.value.trim()
+      ].join("\n");
     }
     function updateCount(){
       const total=buildReportMessage().length;
       charCount.textContent=total;
       charCount.parentElement.style.color=total>2000?"#ff9aa9":"";
     }
-    [message,expectedBehavior,stepsToReproduce].forEach(el=>el.addEventListener("input",updateCount));
+    message.addEventListener("input",updateCount);
     typeSelect.addEventListener("change",updateFeedbackFields);
     const params=new URLSearchParams(window.location.search);
     const requestedTool=params.get("tool");
