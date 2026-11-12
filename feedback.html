@@ -121,6 +121,7 @@
     const issueSelect = document.getElementById("issueType");
     const messageLabel = document.getElementById("messageLabel");
     let selectedRating = 0;
+    let currentReportId = "";
     const ratingWords = ["","Very poor","Could be better","It was okay","Really good","Excellent!"];
     function chooseRating(value){
       selectedRating = value;
@@ -151,7 +152,8 @@
         "BUG REPORT",
         "Affected tool: "+(toolSelect.selectedOptions[0]?.textContent||"Not selected"),
         "Problem type: "+issueSelect.value,
-        "What happened: "+message.value.trim()
+        "What happened: "+message.value.trim(),
+        currentReportId?"Report reference: "+currentReportId:""
       ].join("\n");
     }
     function updateCount(){
@@ -177,6 +179,7 @@
       statusBox.className="status";
       if(!selectedRating){showStatus("Please choose a star rating first.","error");return;}
       if(!form.reportValidity())return;
+      currentReportId=isBugReport()?"TXAI-"+Date.now().toString(36).toUpperCase()+"-"+Math.random().toString(36).slice(2,6).toUpperCase():"";
       const reportMessage=buildReportMessage();
       if(reportMessage.length>2000){showStatus("Your report is too long. Please shorten the details so the total stays under 2,000 characters.","error");return;}
       if(GOOGLE_SHEETS_ENDPOINT.includes("PASTE_YOUR_")){
@@ -195,8 +198,8 @@
       });
       try{
         await fetch(GOOGLE_SHEETS_ENDPOINT,{method:"POST",mode:"no-cors",body:payload});
-        showStatus("Thank you! Your feedback has been sent. We appreciate your help.","success");
-        form.reset();chooseRating(0);charCount.textContent="0";updateFeedbackFields();
+        showStatus(currentReportId?"Thank you! Your bug report has been submitted. Reference ID: "+currentReportId+". Please keep it for future follow-up.":"Thank you! Your feedback has been sent. We appreciate your help.","success");
+        form.reset();chooseRating(0);currentReportId="";charCount.textContent="0";updateFeedbackFields();
       }catch(error){
         showStatus("We couldn't send your feedback. Please check your connection and try again.","error");
       }finally{
