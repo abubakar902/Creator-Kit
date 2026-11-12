@@ -196,12 +196,22 @@
         page:pageInfo,
         website:document.getElementById("website").value
       });
+      let requestTimedOut=false;
+      let timeoutId;
       try{
-        await fetch(GOOGLE_SHEETS_ENDPOINT,{method:"POST",mode:"no-cors",body:payload});
+        const request=fetch(GOOGLE_SHEETS_ENDPOINT,{method:"POST",mode:"no-cors",body:payload});
+        const timeout=new Promise((_,reject)=>{
+          timeoutId=setTimeout(()=>{
+            requestTimedOut=true;
+            reject(new Error("Feedback request timed out"));
+          },15000);
+        });
+        await Promise.race([request,timeout]);
         showStatus(currentReportId?"Request sent, but we can't verify that Google Sheets saved it. Check your sheet for Reference ID: "+currentReportId+". Keep this form open until you confirm the row appears.":"Request sent, but we can't verify that Google Sheets saved it. Please check your sheet before submitting again.","pending");
       }catch(error){
-        showStatus("We couldn't send your feedback. Please check your connection and try again.","error");
+        showStatus(requestTimedOut?"The request is taking too long. We couldn't confirm whether it was saved. Check Google Sheets before trying again.":"We couldn't send your feedback. Please check your connection and try again.","error");
       }finally{
+        if(timeoutId)clearTimeout(timeoutId);
         submitButton.disabled=false;
         submitButton.textContent="Send Feedback ↗";
       }
