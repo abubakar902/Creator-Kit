@@ -4707,10 +4707,6 @@
     const thumbnailResult = document.getElementById("thumbnailResult");
     let thumbnailOutputUrl = null;
 
-    const thumbnailMessage = document.getElementById("thumbnailMessage");
-    const thumbnailResult = document.getElementById("thumbnailResult");
-    let thumbnailOutputUrl = null;
-
     function loadImageForThumbnail(src) {
       return new Promise((resolve, reject) => {
         const img = new Image();
@@ -4762,16 +4758,7 @@
       ctx.drawImage(sourceImage, coverX, coverY, coverWidth, coverHeight);
       ctx.restore();
 
-      // Keep the generated scene visible across the whole frame. Add only a soft
-      // readability fade behind the headline instead of turning half the image black.
-      const gradient = isRight
-        ? ctx.createLinearGradient(canvas.width, 0, canvas.width - 560, 0)
-        : ctx.createLinearGradient(0, 0, 560, 0);
-      gradient.addColorStop(0, "rgba(4,3,12,0.24)");
-      gradient.addColorStop(0.68, "rgba(4,3,12,0.10)");
-      gradient.addColorStop(1, "rgba(4,3,12,0)");
-      ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      // No side blur or dark overlay: keep the generated image clear across the full frame.
 
       const maxWidth = 520;
       const maxLines = 3;
@@ -4855,7 +4842,7 @@
       }
 
       thumbnailIsGenerating = true;
-      updateThumbnailPromptCounter();
+      thumbnailGenerateButton.disabled = true;
       thumbnailGenerateButton.textContent = "Creating thumbnail...";
       thumbnailMessage.textContent = "Creating your thumbnail background. Please wait...";
       thumbnailResult.replaceChildren();
@@ -4917,8 +4904,8 @@
         }
       } finally {
         thumbnailIsGenerating = false;
+        thumbnailGenerateButton.disabled = false;
         thumbnailGenerateButton.textContent = "✨ Generate Thumbnail";
-        updateThumbnailPromptCounter();
       }
     });
 
