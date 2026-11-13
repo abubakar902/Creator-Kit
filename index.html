@@ -4839,7 +4839,7 @@
       return URL.createObjectURL(blob);
     }
 
-    function createThumbnailLayerEditor(backgroundUrl, headline, accent) {
+    function createThumbnailLayerEditor(backgroundUrl, headline, accent, initialPosition) {
       const shell = document.createElement("div");
       shell.className = "thumbnail-editor-shell";
       shell.innerHTML = `
@@ -4895,10 +4895,10 @@
         id: "headline",
         type: "text",
         text: headline,
-        x: 790,
-        y: 250,
-        width: 430,
-        fontSize: 82,
+        x: initialPosition === "left" ? 60 : (initialPosition === "top" || initialPosition === "bottom" ? 190 : 790),
+        y: initialPosition === "top" ? 55 : (initialPosition === "bottom" ? 500 : 250),
+        width: initialPosition === "top" || initialPosition === "bottom" ? 900 : 430,
+        fontSize: initialPosition === "top" || initialPosition === "bottom" ? 76 : 82,
         color: accent || "#ffffff",
         rotation: 0
       }];
@@ -5018,7 +5018,7 @@
         selectedId = layer.id;
         const rect = stage.getBoundingClientRect();
         dragState = { id:layer.id, startX:event.clientX, startY:event.clientY, x:layer.x, y:layer.y, width:rect.width, height:rect.height };
-        node.setPointerCapture(event.pointerId);
+        stage.setPointerCapture(event.pointerId);
         renderLayers(); syncControls();
         event.preventDefault();
       });
@@ -5170,7 +5170,7 @@
         const heading = document.createElement("h3");
         heading.textContent = "Your YouTube thumbnail background is ready (1280 × 720)";
         heading.style.marginTop = "0";
-        const editor = createThumbnailLayerEditor(generatedImageUrl, headline, accent);
+        const editor = createThumbnailLayerEditor(generatedImageUrl, headline, accent, position);
         thumbnailResult.append(heading, editor);
         thumbnailMessage.textContent = "✓ Background ready. Customize the headline and add movable layers in the editor.";
       } catch (error) {
