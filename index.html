@@ -2909,7 +2909,7 @@
         </div>
       </div>
 
-      <button type="button" class="secondary prompt-mode-toggle" id="logoPromptToggle" aria-expanded="false" aria-controls="logoPromptMode">✨ Use a Specific Prompt</button>
+      <button type="button" class="secondary prompt-mode-toggle" id="logoPromptToggle" aria-expanded="false" aria-controls="logoPromptMode">＋ Add Extra Details (Optional)</button>
 
       <button class="primary" id="logoGenerateButton" type="button">✨ Generate Logo</button>
       <div id="logoMessage" role="status" aria-live="polite"></div>
@@ -2938,7 +2938,8 @@
       <div id="thumbnailStandardOptions">
       <div class="field-group">
         <label for="thumbnailTopic">Video topic</label>
-        <textarea id="thumbnailTopic" maxlength="300" placeholder="e.g. Detailed breakdown of new AI models breaking performance records"></textarea>
+        <textarea id="thumbnailTopic" maxlength="300" placeholder="Example: Cricket match mein last over ka exciting moment"></textarea>
+        <p class="workspace-intro prompt-help">Apne video ka topic simple words mein likhein — English ya Roman Urdu dono theek hain.</p>
       </div>
 
       <div class="row">
@@ -2983,10 +2984,10 @@
       <div id="thumbnailPromptMode" class="prompt-mode-panel" hidden>
         <div class="field-group">
           <div class="prompt-section-heading">✍️ PROMPT</div>
-          <label for="thumbnailCustomPrompt">Describe the thumbnail background you want</label>
-          <textarea id="thumbnailCustomPrompt" placeholder="e.g. A dramatic cricket stadium at night, a fast bowler in action on the right, bright floodlights, energetic sports photography."></textarea>
+          <label for="thumbnailCustomPrompt">Extra details (optional)</label>
+          <textarea id="thumbnailCustomPrompt" placeholder="Example: Raat ka cricket stadium, bowler action mein, bright lights"></textarea>
           <p id="thumbnailPromptCounter" class="prompt-counter" aria-live="polite">0 / 650 characters</p>
-          <p class="workspace-intro prompt-help">Your headline is added separately with exact spelling. Describe the background, subject, lighting and mood. Do not include text in this prompt.</p>
+          <p class="workspace-intro prompt-help">Simple English ya Roman Urdu mein apna idea likhein. Lambi prompt likhne ki zaroorat nahi. Headline automatically alag se add hogi.</p>
         </div>
       </div>
 
@@ -4852,7 +4853,7 @@
       thumbnailPromptMode.hidden = !thumbnailUsesCustomPrompt;
       thumbnailStandardOptions.hidden = thumbnailUsesCustomPrompt;
       thumbnailPromptToggle.setAttribute("aria-expanded", String(thumbnailUsesCustomPrompt));
-      thumbnailPromptToggle.textContent = thumbnailUsesCustomPrompt ? "↩ Back to Standard Options" : "✨ Use a Specific Prompt";
+      thumbnailPromptToggle.textContent = thumbnailUsesCustomPrompt ? "↩ Back to Simple Options" : "＋ Add Extra Details (Optional)";
       updateThumbnailPromptCounter();
       thumbnailMessage.textContent = "";
     });
@@ -4888,11 +4889,31 @@
       }
 
       const subjectSide = position === "right" ? "left" : "right";
-      // Keep the image request short and plain. The exact headline is added later by the browser.
-      // Simple descriptive wording is easier for the image model to follow.
+      // Smart Prompt: convert common Roman Urdu creator words into visual English.
+      function makeThumbnailWordsVisualFriendly(value) {
+        const map = [
+          [/\\b(barish|baarish)\\b/gi, "rain"], [/\\b(andhera|raat)\\b/gi, "night"],
+          [/\\b(roshni)\\b/gi, "bright lights"], [/\\b(cricket)\\b/gi, "cricket"],
+          [/\\b(football|futbol)\\b/gi, "football"], [/\\b(khilari|player)\\b/gi, "player"],
+          [/\\b(batsman|batter)\\b/gi, "batter"], [/\\b(bowler)\\b/gi, "bowler"],
+          [/\\b(chakka|six)\\b/gi, "big cricket shot"], [/\\b(gaming|game|khel)\\b/gi, "gaming"],
+          [/\\b(mobile|phone)\\b/gi, "smartphone"], [/\\b(laptop|computer|pc)\\b/gi, "computer"],
+          [/\\b(technology|tech)\\b/gi, "technology"], [/\\b(khana|food)\\b/gi, "food"],
+          [/\\b(gaari|gari|car)\\b/gi, "car"], [/\\b(jahaz|plane)\\b/gi, "airplane"],
+          [/\\b(khala|space)\\b/gi, "outer space"], [/\\b(superhero|hero)\\b/gi, "superhero"],
+          [/\\b(tez|fast)\\b/gi, "fast action"], [/\\b(haath mein|holding)\\b/gi, "holding"]
+        ];
+        let text = String(value || "").replace(/[\\r\\n]+/g, " ").replace(/\\s+/g, " ").trim();
+        for (const [pattern, replacement] of map) text = text.replace(pattern, replacement);
+        return text;
+      }
+      const visualTopic = makeThumbnailWordsVisualFriendly(topic);
+      const visualSubject = makeThumbnailWordsVisualFriendly(subject);
+      const visualDetails = makeThumbnailWordsVisualFriendly(customThumbnailDirection);
+      // The AI creates the background only; TrivexaAI adds the exact headline afterwards.
       const thumbnailPrompt = thumbnailUsesCustomPrompt
-        ? `Make a 16:9 YouTube thumbnail background. Scene: ${customThumbnailDirection}. Show one clear subject on the ${subjectSide}. Keep the scene visible across the full image. Leave some natural space on the ${position} for the headline. Do not add words or letters.`
-        : `Make a 16:9 YouTube thumbnail about ${topic}. Style: ${style}. ${subject ? `Show ${subject} on the ${subjectSide}.` : `Show one clear subject about this topic on the ${subjectSide}.`} Keep the full scene visible across the image. Leave some natural space on the ${position} for the headline. Do not add words or letters.`;
+        ? "Create one clear 16:9 YouTube thumbnail scene: " + visualDetails + ". Show one main subject on the " + subjectSide + ". Use " + style + ". Keep the full scene visible. Leave open space on the " + position + " for the headline. No text, letters, split panels or collage."
+        : "Create one clear 16:9 YouTube thumbnail scene about " + visualTopic + ". Use " + style + ". " + (visualSubject ? "Main subject: " + visualSubject + ", on the " + subjectSide + ". " : "Show one clear subject on the " + subjectSide + ". ") + "Keep the full scene visible. Leave open space on the " + position + " for the headline. No text, letters, split panels or collage.";
 
       if (thumbnailPrompt.length > 1000) {
         thumbnailMessage.textContent = "Please shorten the background description slightly. The image service accepts up to 1000 characters.";
@@ -4952,7 +4973,14 @@
         void saveRecentBlobFromUrl({ tool: "AI Thumbnail Generator", title: headline, url: thumbnailOutputUrl, filename: "TrivexaAI-YouTube-Thumbnail-1280x720.png" });
       } catch (error) {
         console.error("Thumbnail generation error:", error);
-        thumbnailMessage.textContent = error.message || "Thumbnail generation failed. Please try again.";
+        const message = String(error?.message || "");
+        if (/3030|output has been flagged|flagged by/i.test(message)) {
+          thumbnailMessage.textContent = "This idea was blocked by the image service. Please try a simpler, different description. Your headline will still be added exactly as typed.";
+        } else if (/429|rate limit|too many requests/i.test(message)) {
+          thumbnailMessage.textContent = "The image service is busy right now. Please wait a minute, then try again.";
+        } else {
+          thumbnailMessage.textContent = error.message || "Thumbnail generation failed. Please try again.";
+        }
       } finally {
         thumbnailIsGenerating = false;
         thumbnailGenerateButton.textContent = "✨ Generate Thumbnail";
