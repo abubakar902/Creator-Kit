@@ -2446,7 +2446,7 @@
             <h3>Creator tools</h3>
             <p>Turn your ideas into ready-to-use content and viral scripts.</p>
           </div>
-          <span class="category-count">6 tools</span>
+          <span class="category-count">7 tools</span>
         </div>
         <section class="tools" aria-label="Creator tools">
           <button class="tool" data-tool="titles" type="button">
@@ -2484,7 +2484,13 @@
             <strong>Shorts Script Generator</strong>
             <small>Draft 30–45s short-form scripts with visual cues and strong hooks.</small>
             <span class="tool-cta-label">Open Tool →</span>
-          </button> 
+          </button>
+          <button class="tool" data-tool="ai-assistant" type="button">
+            <span class="emoji">🚀</span>
+            <strong>AI Creator Assistant</strong>
+            <small>Turn one video topic into titles, description, thumbnail text, captions and hashtags.</small>
+            <span class="tool-cta-label">Open Tool →</span>
+          </button>
         </section>
       </section>
 
@@ -3112,6 +3118,52 @@
       <div id="message" role="status" aria-live="polite"></div>
     </section>
 
+    <!-- AI CREATOR ASSISTANT WORKSPACE -->
+    <section class="workspace" id="aiAssistantWorkspace" style="display:none">
+      <div class="workspace-header-bar">
+        <div class="workspace-title-wrap">
+          <span class="workspace-badge">All-in-One Creator Suite</span>
+          <h2>🚀 AI Creator Assistant</h2>
+          <p class="workspace-intro">Enter your video idea once. Get a complete starter content pack for publishing and promotion.</p>
+        </div>
+        <button type="button" class="workspace-close-btn" data-close-workspace aria-label="Close workspace">✕</button>
+      </div>
+      <form id="aiAssistantForm">
+        <div class="field-group">
+          <label for="assistantTopic">Video topic or idea</label>
+          <input id="assistantTopic" maxlength="500" required placeholder="e.g. I tried surviving 24 hours in a jungle">
+        </div>
+        <div class="row">
+          <div class="field-group">
+            <label for="assistantPlatform">Main platform</label>
+            <select id="assistantPlatform">
+              <option>YouTube</option><option>YouTube Shorts</option><option>Instagram Reels</option><option>TikTok</option><option>Facebook</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label for="assistantTone">Content style</label>
+            <select id="assistantTone">
+              <option>Engaging and energetic</option><option>Funny and entertaining</option><option>Professional and informative</option><option>Curiosity-driven</option><option>Simple and friendly</option>
+            </select>
+          </div>
+        </div>
+        <div class="field-group">
+          <label for="assistantAudience">Target audience (optional)</label>
+          <input id="assistantAudience" maxlength="250" placeholder="e.g. Cricket fans, beginners, tech lovers">
+        </div>
+        <div class="generator-actions-row">
+          <button class="primary" id="assistantGenerateButton" type="submit">✨ Generate My Content Pack</button>
+          <button class="btn-reset-form" id="assistantClearButton" type="button">Clear</button>
+        </div>
+      </form>
+      <div class="result-head">
+        <div class="result-head-title"><h3>Your Content Pack</h3><span class="result-tag">5 outputs</span></div>
+        <div class="result-actions-group"><button class="secondary" id="assistantCopyButton" type="button" disabled>📋 Copy all</button></div>
+      </div>
+      <div id="assistantResult" class="result-empty" aria-live="polite">Your five content results will appear here after generation.</div>
+      <div id="assistantMessage" role="status" aria-live="polite"></div>
+    </section>
+
     <!-- SEO DIRECTORY SECTION -->
     <section id="all-tool-pages" aria-labelledby="all-tool-pages-title" style="margin:48px auto;padding:clamp(20px,3.5vw,30px);border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--panel);color:var(--muted)">
       <h2 id="all-tool-pages-title" style="color:var(--text);margin:0 0 8px;font-size:22px;font-weight:800">Explore all 16 free online tools</h2>
@@ -3550,6 +3602,7 @@
     const generateButton = document.getElementById("generateButton");
     const downloaderTool = document.getElementById("downloaderTool");
     const downloaderWorkspace = document.getElementById("downloaderWorkspace");
+    const aiAssistantWorkspace = document.getElementById("aiAssistantWorkspace");
     const generatorWorkspace = document.getElementById("generatorWorkspace");
     const downloaderForm = document.getElementById("downloaderForm");
     const downloadOptions = document.getElementById("downloadOptions");
@@ -3568,6 +3621,7 @@
     function hideAllToolWorkspaces() {
       downloaderWorkspace.style.display = "none";
       generatorWorkspace.style.display = "none";
+      aiAssistantWorkspace.style.display = "none";
       imageWorkspace.style.display = "none";
       backgroundRemoverWorkspace.style.display = "none";
       upscalerWorkspace.style.display = "none";
@@ -3596,7 +3650,8 @@
       "image-enhancer": "Make small adjustments first, then compare the preview with the original before saving.",
       "image-compressor": "Choose a format and quality that fit your use. Lower file size can reduce image detail, so preview before downloading.",
       voice: "Use clear text with punctuation and natural sentence breaks. Preview the audio before downloading it.",
-      downloader: "Paste a public video link and inspect the available formats. Only download content you have permission to use."
+      downloader: "Paste a public video link and inspect the available formats. Only download content you have permission to use.",
+      "ai-assistant": "Enter one video topic to create five connected content assets. Review names, facts and claims before publishing."
     };
     const toolWorkspaceByName = {
       titles: generatorWorkspace, caption: generatorWorkspace, hashtags: generatorWorkspace,
@@ -3605,7 +3660,8 @@
       "background-remover": backgroundRemoverWorkspace, upscaler: upscalerWorkspace,
       "photo-text": photoTextWorkspace, "image-enhancer": imageEnhancerWorkspace,
       "image-compressor": imageCompressorWorkspace, voice: voiceWorkspace,
-      downloader: downloaderWorkspace
+      downloader: downloaderWorkspace,
+      "ai-assistant": aiAssistantWorkspace
     };
     const toolQuickTip = document.createElement("aside");
     toolQuickTip.className = "tool-quick-tip";
@@ -3673,6 +3729,12 @@
         if (toolName === "downloader") {
           downloaderWorkspace.style.display = "block";
           downloaderWorkspace.scrollIntoView({ behavior: "smooth" });
+          return;
+        }
+
+        if (toolName === "ai-assistant") {
+          aiAssistantWorkspace.style.display = "block";
+          aiAssistantWorkspace.scrollIntoView({ behavior: "smooth" });
           return;
         }
 
@@ -4269,6 +4331,88 @@
       document.getElementById("topic").value = "";
       document.getElementById("details").value = "";
       document.getElementById("topic").focus();
+    });
+
+    // AI CREATOR ASSISTANT: one topic, five connected content outputs
+    const aiAssistantForm = document.getElementById("aiAssistantForm");
+    const assistantResult = document.getElementById("assistantResult");
+    const assistantMessage = document.getElementById("assistantMessage");
+    const assistantGenerateButton = document.getElementById("assistantGenerateButton");
+    const assistantCopyButton = document.getElementById("assistantCopyButton");
+    let assistantLatestText = "";
+
+    aiAssistantForm.addEventListener("submit", async event => {
+      event.preventDefault();
+      const topic = document.getElementById("assistantTopic").value.trim();
+      const platform = document.getElementById("assistantPlatform").value;
+      const tone = document.getElementById("assistantTone").value;
+      const audience = document.getElementById("assistantAudience").value.trim();
+
+      if (!topic) {
+        assistantMessage.textContent = "Please enter a video topic first.";
+        return;
+      }
+
+      const prompt = [
+        "You are TrivexaAI's professional content strategist.",
+        "Create one complete, practical content pack for the user's video.",
+        "Return exactly these five clearly labelled sections in this order:",
+        "1. YOUTUBE TITLES: Give 5 distinct, clickable but honest title options.",
+        "2. YOUTUBE DESCRIPTION: Write a ready-to-edit description with a strong opening, short summary and natural call to action. Do not invent links, facts or timestamps.",
+        "3. THUMBNAIL HEADLINE: Give 3 very short headline options, ideally 2 to 5 words each. Do not repeat a full title.",
+        "4. SOCIAL MEDIA CAPTIONS: Give 3 different captions suitable for the selected platform, with a natural call to action.",
+        "5. HASHTAGS: Give 12 relevant hashtags, mixing broad and niche tags. Avoid unrelated tags.",
+        "Use clear, natural English. Keep every section useful and easy to copy.",
+        "Never promise virality, views, ranking or guaranteed results. Do not invent facts about the video.",
+        "",
+        "VIDEO TOPIC: " + topic,
+        "MAIN PLATFORM: " + platform,
+        "CONTENT STYLE: " + tone,
+        audience ? "TARGET AUDIENCE: " + audience : ""
+      ].filter(Boolean).join("\n");
+
+      assistantGenerateButton.disabled = true;
+      assistantCopyButton.disabled = true;
+      assistantGenerateButton.textContent = "⏳ Creating your content pack...";
+      assistantResult.textContent = "TrivexaAI is preparing all five content assets...";
+      assistantResult.classList.remove("result-empty");
+      assistantMessage.textContent = "Please wait. This may take a little moment.";
+
+      try {
+        const answer = await askGemini(prompt);
+        assistantLatestText = answer;
+        assistantResult.textContent = answer;
+        assistantResult.classList.remove("result-empty");
+        assistantCopyButton.disabled = false;
+        assistantMessage.textContent = "✓ Your content pack is ready. Review it before publishing.";
+        void saveRecentResult({ kind: "text", tool: "AI Creator Assistant", title: topic, text: answer });
+      } catch (error) {
+        assistantLatestText = "";
+        assistantResult.textContent = "We couldn't generate your content pack this time.";
+        assistantMessage.textContent = (error.message || "AI request failed.") + " Please try again.";
+      } finally {
+        assistantGenerateButton.disabled = false;
+        assistantGenerateButton.textContent = "✨ Generate My Content Pack";
+      }
+    });
+
+    assistantCopyButton.addEventListener("click", async () => {
+      if (!assistantLatestText) return;
+      try {
+        await navigator.clipboard.writeText(assistantLatestText);
+        assistantMessage.textContent = "✓ All five content sections copied.";
+      } catch {
+        assistantMessage.textContent = "Copy isn't available here. Select the result text and copy it manually.";
+      }
+    });
+
+    document.getElementById("assistantClearButton").addEventListener("click", () => {
+      aiAssistantForm.reset();
+      assistantLatestText = "";
+      assistantResult.textContent = "Your five content results will appear here after generation.";
+      assistantResult.classList.add("result-empty");
+      assistantCopyButton.disabled = true;
+      assistantMessage.textContent = "";
     });
 
     // VIDEO DOWNLOADER INTEGRATION
