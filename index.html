@@ -2375,23 +2375,51 @@
     /* TRIVEXAAI STUDIO SIDEBAR PHASE 2 */
     .studio-sidebar {
       position: fixed;
-      z-index: 85;
-      top: 94px;
-      bottom: 18px;
-      left: max(14px, calc((100vw - 1480px) / 2));
-      width: 218px;
+      z-index: 95;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      width: 260px;
       display: flex;
       flex-direction: column;
-      gap: 18px;
-      padding: 18px 13px;
+      gap: 20px;
+      padding: 22px 16px 18px;
       overflow-y: auto;
-      border: 1px solid rgba(192,159,255,.22);
-      border-radius: 20px;
-      background: linear-gradient(165deg, rgba(27,18,49,.94), rgba(15,10,29,.96));
-      box-shadow: 0 18px 48px rgba(0,0,0,.30), inset 0 1px 0 rgba(255,255,255,.045);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
+      border: 0;
+      border-right: 1px solid rgba(192,159,255,.24);
+      border-radius: 0 22px 22px 0;
+      background: linear-gradient(165deg, rgba(30,19,55,.98), rgba(13,9,27,.99));
+      box-shadow: 12px 0 42px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.045);
+      backdrop-filter: blur(22px);
+      -webkit-backdrop-filter: blur(22px);
+      transition: width .28s ease, transform .28s ease;
     }
+    .studio-sidebar-toggle {
+      align-self: flex-end;
+      width: 38px;
+      height: 36px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(192,159,255,.28);
+      border-radius: 11px;
+      background: rgba(155,108,255,.14);
+      color: #fff;
+      font-size: 20px;
+      cursor: pointer;
+      transition: background .2s ease, transform .2s ease;
+    }
+    .studio-sidebar-toggle:hover { background: rgba(155,108,255,.28); transform: scale(1.04); }
+    .studio-nav-text { min-width:0; }
+    body.studio-sidebar-collapsed .studio-sidebar { width: 82px; padding-left: 13px; padding-right: 13px; }
+    body.studio-sidebar-collapsed .studio-sidebar-brand { justify-content:center; padding-left:0; padding-right:0; }
+    body.studio-sidebar-collapsed .studio-sidebar-brand > div,
+    body.studio-sidebar-collapsed .studio-sidebar-label,
+    body.studio-sidebar-collapsed .studio-sidebar-foot,
+    body.studio-sidebar-collapsed .studio-nav-text { display:none; }
+    body.studio-sidebar-collapsed .studio-nav-item { justify-content:center; padding-left:8px; padding-right:8px; }
+    body.studio-sidebar-collapsed .studio-nav-item .studio-nav-icon { width:auto; font-size:19px; }
+    body.studio-sidebar-collapsed .studio-sidebar-toggle { align-self:center; }
     .studio-sidebar-brand {
       display: flex;
       align-items: center;
@@ -2451,8 +2479,10 @@
     }
     .studio-mobile-nav { display:none; }
     @media (min-width: 1180px) {
-      main { width:min(1120px, calc(100% - 270px)); margin-left:max(250px, calc((100vw - 1480px) / 2 + 250px)); margin-right:auto; }
-      footer { margin-left:250px; }
+      main { width:min(1120px, calc(100% - 300px)); margin-left:290px; margin-right:auto; transition:width .28s ease, margin-left .28s ease; }
+      footer { margin-left:290px; transition:margin-left .28s ease; }
+      body.studio-sidebar-collapsed main { width:min(1240px, calc(100% - 122px)); margin-left:108px; }
+      body.studio-sidebar-collapsed footer { margin-left:108px; }
     }
     @media (max-width: 1179px) {
       .studio-sidebar { display:none; }
@@ -2524,16 +2554,17 @@
 
   <!-- TRIVEXAAI STUDIO SIDEBAR PHASE 2 -->
   <aside class="studio-sidebar" aria-label="Creator Studio navigation">
+    <button class="studio-sidebar-toggle" id="studioSidebarToggle" type="button" aria-label="Collapse sidebar" aria-expanded="true" title="Collapse sidebar">‹</button>
     <div class="studio-sidebar-brand">
-      <img src="trivexaai-icon.png" alt="" width="34" height="34">
+      <img src="trivexaai-icon.png" alt="" width="38" height="38">
       <div><strong>TrivexaAI Studio</strong><small>Your creative workspace</small></div>
     </div>
     <div class="studio-sidebar-label">Workspace</div>
     <nav class="studio-sidebar-nav" aria-label="Main workspace">
-      <button class="studio-nav-item active" type="button" data-switch-tab="hub" data-studio-tab="hub" aria-current="page"><span class="studio-nav-icon">✨</span>Creator Hub</button>
-      <button class="studio-nav-item" type="button" data-switch-tab="search" data-studio-tab="search"><span class="studio-nav-icon">🔍</span>Explore Tools</button>
-      <button class="studio-nav-item" type="button" data-switch-tab="favourites" data-studio-tab="favourites"><span class="studio-nav-icon">⭐</span>Favourites</button>
-      <button class="studio-nav-item" type="button" data-switch-tab="history" data-studio-tab="history"><span class="studio-nav-icon">🕘</span>Recent History</button>
+      <button class="studio-nav-item active" type="button" data-switch-tab="hub" data-studio-tab="hub" aria-current="page"><span class="studio-nav-icon">✨</span><span class="studio-nav-text">Creator Hub</span></button>
+      <button class="studio-nav-item" type="button" data-switch-tab="search" data-studio-tab="search"><span class="studio-nav-icon">🔍</span><span class="studio-nav-text">Explore Tools</span></button>
+      <button class="studio-nav-item" type="button" data-switch-tab="favourites" data-studio-tab="favourites"><span class="studio-nav-icon">⭐</span><span class="studio-nav-text">Favourites</span></button>
+      <button class="studio-nav-item" type="button" data-switch-tab="history" data-studio-tab="history"><span class="studio-nav-icon">🕘</span><span class="studio-nav-text">Recent History</span></button>
     </nav>
     <div class="studio-sidebar-foot">✨ Create more. Organize better.<br>All your tools in one studio.</div>
   </aside>
@@ -3582,6 +3613,16 @@
         document.getElementById("recentResultsSection")?.scrollIntoView({ behavior: "smooth", block: "start" });
       }
     }
+
+    // Expand/collapse the full-height Creator Studio sidebar.
+    const studioSidebarToggle = document.getElementById("studioSidebarToggle");
+    studioSidebarToggle?.addEventListener("click", () => {
+      const collapsed = document.body.classList.toggle("studio-sidebar-collapsed");
+      studioSidebarToggle.textContent = collapsed ? "›" : "‹";
+      studioSidebarToggle.setAttribute("aria-expanded", String(!collapsed));
+      studioSidebarToggle.setAttribute("aria-label", collapsed ? "Expand sidebar" : "Collapse sidebar");
+      studioSidebarToggle.title = collapsed ? "Expand sidebar" : "Collapse sidebar";
+    });
 
     tabNavHub?.addEventListener("click", () => switchDashboardTab("hub"));
     tabNavSearch?.addEventListener("click", () => switchDashboardTab("search"));
