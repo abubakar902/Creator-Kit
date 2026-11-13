@@ -4774,15 +4774,16 @@
       const isRight = position === "right";
       const subjectOnRight = !isRight;
 
-      // Fill the full 16:9 canvas with a softly blurred version, avoiding empty bars.
+      // Fill the full 16:9 canvas with a sharp, slightly darkened image.
+      // Keep the background detailed; the headline-side gradient provides text contrast.
       const coverScale = Math.max(canvas.width / sourceImage.naturalWidth, canvas.height / sourceImage.naturalHeight);
       const coverWidth = sourceImage.naturalWidth * coverScale;
       const coverHeight = sourceImage.naturalHeight * coverScale;
       const coverX = (canvas.width - coverWidth) / 2;
       const coverY = (canvas.height - coverHeight) / 2;
       ctx.save();
-      ctx.filter = "blur(26px) brightness(0.62)";
-      ctx.drawImage(sourceImage, coverX - 34, coverY - 34, coverWidth + 68, coverHeight + 68);
+      ctx.filter = "brightness(0.78)";
+      ctx.drawImage(sourceImage, coverX, coverY, coverWidth, coverHeight);
       ctx.restore();
 
       // Place the complete, sharp source image on the side opposite the headline.
