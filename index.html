@@ -3322,7 +3322,8 @@
         transaction.objectStore(RECENT_STORE_NAME).put(record);
         await recentTransactionDone(transaction);
         await trimRecentResults();
-        if (panelHub?.classList.contains("active")) await renderRecentResults();
+        // Always refresh the history after a successful save, even if another workspace view is open.
+        await renderRecentResults();
         if (recentResultsStatus) recentResultsStatus.textContent = "Latest result saved on this device.";
       } catch (error) {
         console.warn("Recent Results could not save this item:", error);
@@ -3492,7 +3493,9 @@
       }
     });
 
-    // Recent Results are loaded on demand when the History tab is opened.
+    // Load saved results immediately on page startup so history is never left showing
+    // the static empty-state message while local records already exist.
+    void renderRecentResults();
 
     const toolInfo = {
       titles: {
