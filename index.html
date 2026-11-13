@@ -2966,15 +2966,26 @@
         </div>
       </div>
 
-      <div class="field-group">
-        <label for="thumbnailAccent">Headline accent colour</label>
+      <div class="row">
+        <div class="field-group">
+          <label for="thumbnailPosition">Headline position</label>
+          <select id="thumbnailPosition">
+            <option value="right">Right Side</option>
+            <option value="left">Left Side</option>
+            <option value="top">Top</option>
+            <option value="bottom">Bottom</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label for="thumbnailAccent">Headline accent colour</label>
         <select id="thumbnailAccent">
           <option value="#ffffff">White</option>
           <option value="#ffe500">Electric Yellow</option>
           <option value="#67e8f9">Neon Cyan</option>
           <option value="#ff5b67">Vibrant Red</option>
           <option value="#a7f36b">Lime Green</option>
-        </select>
+          </select>
+        </div>
       </div>
 
       <button class="primary" id="thumbnailGenerateButton" type="button">✨ Generate Thumbnail</button>
@@ -4701,6 +4712,7 @@
     const thumbnailCharacterType = document.getElementById("thumbnailCharacterType");
     const thumbnailStyle = document.getElementById("thumbnailStyle");
     const thumbnailAccent = document.getElementById("thumbnailAccent");
+    const thumbnailPosition = document.getElementById("thumbnailPosition");
     let thumbnailIsGenerating = false;
     const thumbnailGenerateButton = document.getElementById("thumbnailGenerateButton");
     const thumbnailMessage = document.getElementById("thumbnailMessage");
@@ -4742,11 +4754,10 @@
       const ctx = canvas.getContext("2d");
       if (!ctx) throw new Error("Your browser could not start thumbnail processing.");
 
-      const isRight = position === "right";
-      const subjectOnRight = !isRight;
+      const isSide = position === "left" || position === "right";
+      const textAtTop = position === "top";
 
       // Fill the full 16:9 canvas with a sharp, slightly darkened image.
-      // Keep the background detailed; the headline-side gradient provides text contrast.
       const coverScale = Math.max(canvas.width / sourceImage.naturalWidth, canvas.height / sourceImage.naturalHeight);
       const coverWidth = sourceImage.naturalWidth * coverScale;
       const coverHeight = sourceImage.naturalHeight * coverScale;
@@ -4760,9 +4771,9 @@
 
       // No side blur or dark overlay: keep the generated image clear across the full frame.
 
-      const maxWidth = 520;
-      const maxLines = 3;
-      let fontSize = 86;
+      const maxWidth = isSide ? 520 : 1080;
+      const maxLines = isSide ? 3 : 2;
+      let fontSize = isSide ? 86 : 94;
       let lines = null;
       while (fontSize >= 42) {
         ctx.font = `900 ${fontSize}px Arial, sans-serif`;
@@ -4781,9 +4792,15 @@
 
       const lineHeight = Math.round(fontSize * 1.08);
       const textBlockHeight = lines.length * lineHeight;
-      const textX = isRight ? canvas.width - 82 - maxWidth : 82;
-      const firstY = Math.round((canvas.height - textBlockHeight) / 2 + fontSize * 0.88);
-      ctx.textAlign = "left";
+      const textX = isSide
+        ? (position === "right" ? canvas.width - 82 - maxWidth : 82)
+        : canvas.width / 2;
+      const firstY = position === "top"
+        ? Math.round(105 + fontSize * 0.88)
+        : position === "bottom"
+          ? Math.round(canvas.height - textBlockHeight - 95 + fontSize * 0.88)
+          : Math.round((canvas.height - textBlockHeight) / 2 + fontSize * 0.88);
+      ctx.textAlign = isSide ? "left" : "center";
       ctx.textBaseline = "alphabetic";
       ctx.lineJoin = "round";
       ctx.font = `900 ${fontSize}px Arial, sans-serif`;
@@ -4811,8 +4828,7 @@
       const instruction = thumbnailInstruction.value.trim();
       const characterType = thumbnailCharacterType.value;
       const style = thumbnailStyle.value;
-      // Keep the headline on the right and the main scene on the left.
-      const position = "right";
+      const position = thumbnailPosition.value;
       const accent = thumbnailAccent.value;
 
       if (!headline) {
@@ -4831,9 +4847,16 @@
         "Picture instruction: " + instruction + ". " +
         "Character type: " + characterType + ". " +
         "Visual style: " + style + ". " +
-        (characterType === "no character" ? "Do not include people or characters. " : "Show one clear main character on the left side. ") +
+        (characterType === "no character" ? "Do not include people or characters. " :
+          position === "left" ? "Show one clear main character on the right side. " :
+          position === "right" ? "Show one clear main character on the left side. " :
+          position === "top" ? "Show one clear main character in the lower half. " :
+          "Show one clear main character in the upper half. ") +
         "Make the requested scene obvious, detailed, bright and sharp. " +
-        "Keep the right side clear for a headline added later. " +
+        (position === "left" ? "Keep the left side clear for a headline added later. " :
+          position === "right" ? "Keep the right side clear for a headline added later. " :
+          position === "top" ? "Keep the top area clear for a headline added later. " :
+          "Keep the bottom area clear for a headline added later. ") +
         "Do not include any text, letters, numbers, logos, split screens, panels, collage or blur.";
 
       if (thumbnailPrompt.length > 1000) {
