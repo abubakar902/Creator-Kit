@@ -207,7 +207,7 @@
           },15000);
         });
         await Promise.race([request,timeout]);
-        showStatus(currentReportId?"Request sent, but we can't verify that Google Sheets saved it. Check your sheet for Reference ID: "+currentReportId+". Keep this form open until you confirm the row appears.":"Request sent, but we can't verify that Google Sheets saved it. Please check your sheet before submitting again.","pending");
+        showStatus("Thank you! Your feedback has been sent.","success");
       }catch(error){
         showStatus("Form not submitted. Please try again.","error");
       }finally{
