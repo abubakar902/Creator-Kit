@@ -2216,7 +2216,22 @@
       .category-block .tool { min-height: 174px; padding: 18px; }
     }
 
-  </style>
+  
+
+    /* Contextual quick tips shared by all tool workspaces */
+    .tool-quick-tip {
+      display: flex; align-items: flex-start; gap: 11px;
+      margin: 16px 0 20px; padding: 13px 16px;
+      border: 1px solid rgba(192, 159, 255, 0.28); border-radius: 13px;
+      background: linear-gradient(110deg, rgba(155,108,255,.12), rgba(232,121,249,.06));
+      color: var(--text-secondary); font-size: 13px; line-height: 1.55;
+    }
+    .tool-quick-tip-icon { flex: 0 0 auto; font-size: 17px; line-height: 1.4; }
+    .tool-quick-tip strong { display: block; margin-bottom: 2px; color: #e7d9ff; font-size: 12px; letter-spacing: .2px; }
+    .tool-quick-tip p { margin: 0; }
+    @media(max-width:600px) { .tool-quick-tip { margin: 12px 0 16px; padding: 11px 12px; font-size: 12px; } }
+
+</style>
 <style id="photoTextEditorStyles">
 .pt-upload-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:18px 0}.pt-upload{display:inline-flex;align-items:center;gap:9px;padding:12px 17px;border-radius:12px;background:linear-gradient(110deg,#a78bfa,#e879f9);color:#180d2a;font-weight:850;cursor:pointer}.pt-upload input{display:none}.pt-note,.pt-muted,.pt-stage-foot{color:var(--muted);font-size:12px}.pt-layout{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(290px,.85fr);gap:18px;align-items:start}.pt-stage-wrap{min-width:0;position:sticky;top:16px}.pt-stage{min-height:360px;display:flex;align-items:center;justify-content:center;overflow:hidden;border:1px solid var(--border);border-radius:18px;background:repeating-conic-gradient(#241b37 0% 25%,#171126 0% 50%) 50%/22px 22px;padding:10px}.pt-stage canvas{display:none;max-width:100%;max-height:72vh;object-fit:contain;touch-action:none;cursor:move;border-radius:8px}.pt-empty{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;padding:45px 12px}.pt-empty span{font-size:48px}.pt-empty strong{color:var(--text)}.pt-empty small{color:var(--muted)}.pt-stage-foot{display:flex;justify-content:space-between;gap:10px;margin-top:9px;flex-wrap:wrap}.pt-controls{display:grid;gap:12px;min-width:0}.pt-panel{padding:15px;border:1px solid var(--border);border-radius:15px;background:linear-gradient(145deg,rgba(35,25,57,.96),rgba(17,13,29,.96));display:grid;gap:10px}.pt-panel>strong,.pt-panel-head strong{font-size:14px;color:var(--text)}.pt-panel-head{display:flex;align-items:center;justify-content:space-between;gap:8px}.pt-panel textarea,.pt-panel select{width:100%;border:1px solid var(--border);border-radius:10px;background:#100b20;color:var(--text);padding:10px;font:inherit}.pt-panel textarea{resize:vertical;min-height:74px}.pt-label{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:var(--muted);margin-bottom:5px}.pt-label b{color:#e9d5ff;font-weight:700}.pt-panel input[type=range]{width:100%;accent-color:#c084fc}.pt-panel input[type=color]{width:100%;height:38px;border:1px solid var(--border);border-radius:9px;background:#100b20;padding:3px}.pt-two{display:grid;grid-template-columns:1fr 1fr;gap:12px}.pt-button-group,.pt-row,.pt-presets,.pt-palettes{display:flex;gap:6px;flex-wrap:wrap}.pt-toggle,.pt-small-btn,.pt-presets button,.pt-palettes button,.pt-secondary{border:1px solid var(--border);border-radius:9px;background:#211832;color:#e9ddfa;padding:8px 10px;font-size:12px;font-weight:700;cursor:pointer}.pt-toggle.active{background:#593b82;border-color:#c4b5fd;color:white}.pt-small-btn{background:#39245c}.pt-danger{color:#ffb4c2}.pt-layer-list{display:grid;gap:6px}.pt-layer-item{display:flex;align-items:center;gap:8px;width:100%;text-align:left;border:1px solid var(--border);border-radius:9px;background:#130e22;color:var(--text);padding:8px 10px;cursor:pointer}.pt-layer-item.active{border-color:#c4b5fd;background:#33234e}.pt-layer-item span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}.pt-counter{display:flex;justify-content:space-between;color:var(--muted);font-size:11px}.pt-check{display:flex;align-items:center;gap:8px;color:#ddd1ef;font-size:12px}.pt-check input{accent-color:#c084fc}.pt-presets-title{display:flex;flex-direction:column;gap:2px;color:#f3e8ff;font-size:13px;font-weight:800}.pt-presets-title small{font-size:11px;font-weight:500;color:var(--muted)}.pt-presets button{flex:1;min-width:calc(50% - 6px);min-height:42px;background:linear-gradient(145deg,#35234f,#211832);border-color:#60427f}.pt-presets button:active{transform:scale(.98)}.pt-palettes button{flex:1;position:relative;padding-top:20px}.pt-palettes button:before{content:"";position:absolute;top:6px;left:calc(50% - 12px);width:24px;height:8px;border-radius:99px;background:var(--swatch)}.pt-actions{display:grid;grid-template-columns:1fr 1.4fr;gap:8px}.pt-primary,.pt-secondary{padding:12px;border-radius:11px;font-weight:850;cursor:pointer}.pt-primary{border:0;background:linear-gradient(100deg,#a78bfa,#e879f9);color:#170d28}.pt-primary:disabled{opacity:.45;cursor:not-allowed}.pt-secondary{background:#241a37}.pt-status{margin:0;color:var(--muted);font-size:12px;min-height:20px}@media(max-width:760px){.pt-layout{grid-template-columns:1fr}.pt-stage-wrap{position:static}.pt-stage{min-height:240px}.pt-stage canvas{max-height:55vh}}@media(max-width:420px){.pt-two{gap:8px}.pt-panel{padding:12px}.pt-actions{grid-template-columns:1fr}}
 
@@ -3549,6 +3564,47 @@
       thumbnailWorkspace.style.display = "none";
     }
 
+    // Contextual quick tips: short, practical guidance for every TrivexaAI tool.
+    const toolQuickTips = {
+      titles: "Add a clear topic and audience. Try a few title options and choose the one that best matches your video.",
+      caption: "Mention the platform and the feeling you want. A little context helps create a more natural caption.",
+      hashtags: "Use a focused topic or niche. A small set of relevant hashtags is usually more useful than unrelated tags.",
+      description: "Enter your video topic and key points. Check names, links and facts before publishing the description.",
+      hooks: "Describe the audience and video subject. Pick an opening line that creates curiosity without misleading viewers.",
+      script: "Include the topic, target length and key message. Read the script aloud and adjust any wording that feels unnatural.",
+      image: "Describe the subject, setting, lighting and style. Specific details usually produce a closer match to your idea.",
+      logo: "Keep the brand name spelling exact and describe a simple symbol and colour direction for a cleaner logo.",
+      thumbnail: "Keep the headline short and easy to read. Describe the background separately from the exact headline text.",
+      "background-remover": "Upload a clear image with the subject visible. Review fine edges such as hair before downloading.",
+      upscaler: "Start with the original image at the best quality available. Choose a scale that stays within the displayed size limit.",
+      "photo-text": "Add your text in short layers. Adjust font, spacing and contrast so the words remain readable on the photo.",
+      "image-enhancer": "Make small adjustments first, then compare the preview with the original before saving.",
+      "image-compressor": "Choose a format and quality that fit your use. Lower file size can reduce image detail, so preview before downloading.",
+      voice: "Use clear text with punctuation and natural sentence breaks. Preview the audio before downloading it.",
+      downloader: "Paste a public video link and inspect the available formats. Only download content you have permission to use."
+    };
+    const toolWorkspaceByName = {
+      titles: generatorWorkspace, caption: generatorWorkspace, hashtags: generatorWorkspace,
+      description: generatorWorkspace, hooks: generatorWorkspace, script: generatorWorkspace,
+      image: imageWorkspace, logo: logoWorkspace, thumbnail: thumbnailWorkspace,
+      "background-remover": backgroundRemoverWorkspace, upscaler: upscalerWorkspace,
+      "photo-text": photoTextWorkspace, "image-enhancer": imageEnhancerWorkspace,
+      "image-compressor": imageCompressorWorkspace, voice: voiceWorkspace,
+      downloader: downloaderWorkspace
+    };
+    const toolQuickTip = document.createElement("aside");
+    toolQuickTip.className = "tool-quick-tip";
+    toolQuickTip.setAttribute("role", "note");
+    toolQuickTip.innerHTML = '<span class="tool-quick-tip-icon" aria-hidden="true">💡</span><div><strong>Quick tip</strong><p></p></div>';
+    function showToolQuickTip(toolName) {
+      const workspace = toolWorkspaceByName[toolName];
+      const tip = toolQuickTips[toolName];
+      if (!workspace || !tip) return;
+      toolQuickTip.querySelector("p").textContent = tip;
+      const header = workspace.querySelector(".workspace-header-bar");
+      if (header) header.insertAdjacentElement("afterend", toolQuickTip);
+    }
+
     // Workspace Close buttons
     document.querySelectorAll("[data-close-workspace]").forEach(btn => {
       btn.addEventListener("click", () => {
@@ -3572,6 +3628,7 @@
 
         // Record only a genuine tool opening, never a click that closes an already-open tool.
         rememberOpenedTool(toolName);
+        showToolQuickTip(toolName);
 
         document.querySelectorAll(".tool[data-tool]").forEach(item => {
           item.classList.toggle("active", item === button);
