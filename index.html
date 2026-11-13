@@ -5056,7 +5056,7 @@
               ctx.textAlign="center"; ctx.textBaseline="middle";
               ctx.lineJoin="round"; ctx.lineWidth=Math.max(5,layer.fontSize*.1);
               ctx.strokeStyle="rgba(0,0,0,.9)"; ctx.fillStyle=layer.color;
-              const words=layer.text.trim().split(/\\s+/).filter(Boolean);
+              const words=layer.text.trim().split(/\s+/).filter(Boolean);
               const lines=[]; let line="";
               for (const word of words) {
                 const test=line ? line+" "+word : word;
