@@ -2371,179 +2371,6 @@
       *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
     }
 
-  
-    /* TRIVEXAAI STUDIO SIDEBAR PHASE 2 */
-    .studio-sidebar {
-      position: fixed;
-      z-index: 95;
-      top: 0;
-      bottom: 0;
-      left: 0;
-      width: 260px;
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      padding: 22px 16px 18px;
-      overflow-y: auto;
-      border: 0;
-      border-right: 1px solid rgba(192,159,255,.24);
-      border-radius: 0 22px 22px 0;
-      background: linear-gradient(165deg, rgba(30,19,55,.98), rgba(13,9,27,.99));
-      box-shadow: 12px 0 42px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.045);
-      backdrop-filter: blur(22px);
-      -webkit-backdrop-filter: blur(22px);
-      transition: width .28s ease, transform .28s ease;
-    }
-    .studio-sidebar-toggle {
-      position: fixed;
-      z-index: 220;
-      top: 108px;
-      left: 238px;
-      width: 42px;
-      height: 44px;
-      display: inline-flex !important;
-      align-items: center;
-      justify-content: center;
-      border: 1px solid rgba(220,196,255,.55);
-      border-radius: 0 13px 13px 0;
-      background: linear-gradient(145deg, #9b6cff, #6f42c4);
-      color: #fff !important;
-      font-size: 27px;
-      font-weight: 900;
-      line-height: 1;
-      cursor: pointer;
-      box-shadow: 5px 5px 22px rgba(0,0,0,.35);
-      transition: left .28s ease, background .2s ease, transform .2s ease;
-    }
-    body.studio-sidebar-collapsed .studio-sidebar-toggle { left: 60px; }
-    .studio-sidebar-toggle:hover { background: linear-gradient(145deg, #b78cff, #8757dc); transform: translateX(2px); }
-    @media (max-width: 1179px) { .studio-sidebar-toggle { display:none !important; } }
-    .studio-sidebar-toggle:hover { background: rgba(155,108,255,.28); transform: scale(1.04); }
-    .studio-nav-text { min-width:0; }
-    body.studio-sidebar-collapsed .studio-sidebar { width: 82px; padding-left: 13px; padding-right: 13px; }
-    body.studio-sidebar-collapsed .studio-sidebar-brand { justify-content:center; padding-left:0; padding-right:0; }
-    body.studio-sidebar-collapsed .studio-sidebar-brand > div,
-    body.studio-sidebar-collapsed .studio-sidebar-label,
-    body.studio-sidebar-collapsed .studio-sidebar-foot,
-    body.studio-sidebar-collapsed .studio-nav-text { display:none; }
-    body.studio-sidebar-collapsed .studio-nav-item { justify-content:center; padding-left:8px; padding-right:8px; }
-    body.studio-sidebar-collapsed .studio-nav-item .studio-nav-icon { width:auto; font-size:19px; }
-    body.studio-sidebar-collapsed .studio-sidebar-toggle { align-self:center; }
-    .studio-sidebar-brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 2px 7px 15px;
-      border-bottom: 1px solid rgba(192,159,255,.16);
-    }
-    .studio-sidebar-brand img { width: 34px; height: 34px; border-radius: 10px; }
-    .studio-sidebar-brand strong { display:block; font-size:13px; letter-spacing:.2px; }
-    .studio-sidebar-brand small { display:block; margin-top:1px; color:var(--muted); font-size:10px; }
-    .studio-sidebar-label {
-      padding: 0 9px;
-      color: #9f8dbd;
-      font-size: 9px;
-      font-weight: 850;
-      letter-spacing: 1.3px;
-      text-transform: uppercase;
-    }
-    .studio-sidebar-nav { display:grid; gap:6px; }
-    .studio-nav-item {
-      width:100%;
-      display:flex;
-      align-items:center;
-      gap:11px;
-      min-height:43px;
-      padding:10px 11px;
-      border:1px solid transparent;
-      border-radius:12px;
-      background:transparent;
-      color:#c7badc;
-      text-align:left;
-      font-size:12px;
-      font-weight:700;
-      cursor:pointer;
-      transition:background .2s ease, border-color .2s ease, color .2s ease, transform .2s ease;
-    }
-    .studio-nav-item .studio-nav-icon { width:20px; text-align:center; font-size:16px; }
-    .studio-nav-item:hover {
-      color:#fff;
-      background:rgba(155,108,255,.11);
-      border-color:rgba(155,108,255,.20);
-      transform:translateX(2px);
-    }
-    .studio-nav-item.active {
-      color:#fff;
-      border-color:rgba(192,159,255,.38);
-      background:linear-gradient(110deg, rgba(126,83,226,.30), rgba(196,91,220,.13));
-      box-shadow:inset 3px 0 0 #b78cff, 0 7px 20px rgba(85,55,150,.14);
-    }
-    .studio-sidebar-foot {
-      margin-top:auto;
-      padding:12px 10px 2px;
-      border-top:1px solid rgba(192,159,255,.14);
-      color:#9f91b5;
-      font-size:10px;
-      line-height:1.55;
-    }
-    .studio-mobile-nav { display:none; }
-    @media (min-width: 1180px) {
-      main {
-        box-sizing: border-box;
-        width: calc(100vw - 320px) !important;
-        max-width: none !important;
-        margin-left: 290px;
-        margin-right: 30px;
-        transition: width .28s ease, margin-left .28s ease;
-      }
-      footer { margin-left:290px; transition:margin-left .28s ease; }
-      body.studio-sidebar-collapsed main {
-        width: calc(100vw - 140px) !important;
-        margin-left: 108px;
-        margin-right: 32px;
-      }
-      body.studio-sidebar-collapsed footer { margin-left:108px; }
-    }
-    @media (max-width: 1179px) {
-      .studio-sidebar { display:none; }
-      .studio-mobile-nav {
-        position:sticky;
-        top:76px;
-        z-index:90;
-        display:flex;
-        gap:6px;
-        width:min(100% - 24px, 900px);
-        margin:10px auto 0;
-        padding:7px;
-        overflow-x:auto;
-        border:1px solid rgba(192,159,255,.20);
-        border-radius:14px;
-        background:rgba(20,13,39,.92);
-        box-shadow:0 8px 24px rgba(0,0,0,.22);
-        backdrop-filter:blur(16px);
-        -webkit-backdrop-filter:blur(16px);
-        scrollbar-width:none;
-      }
-      .studio-mobile-nav::-webkit-scrollbar { display:none; }
-      .studio-mobile-nav .studio-nav-item {
-        flex:1 0 auto;
-        width:auto;
-        min-height:38px;
-        justify-content:center;
-        padding:8px 12px;
-        white-space:nowrap;
-        font-size:11px;
-      }
-      .studio-mobile-nav .studio-nav-icon { width:auto; }
-    }
-    @media (max-width: 520px) {
-      .studio-mobile-nav { width:calc(100% - 16px); margin-top:7px; top:70px; }
-      .studio-mobile-nav .studio-nav-item { padding:8px 10px; }
-    }
-    @media (prefers-reduced-motion: reduce) {
-      .studio-nav-item { transition:none; }
-    }
-
   </style>
 <style id="photoTextEditorStyles">
 .pt-upload-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:18px 0}.pt-upload{display:inline-flex;align-items:center;gap:9px;padding:12px 17px;border-radius:12px;background:linear-gradient(110deg,#a78bfa,#e879f9);color:#180d2a;font-weight:850;cursor:pointer}.pt-upload input{display:none}.pt-note,.pt-muted,.pt-stage-foot{color:var(--muted);font-size:12px}.pt-layout{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(290px,.85fr);gap:18px;align-items:start}.pt-stage-wrap{min-width:0;position:sticky;top:16px}.pt-stage{min-height:360px;display:flex;align-items:center;justify-content:center;overflow:hidden;border:1px solid var(--border);border-radius:18px;background:repeating-conic-gradient(#241b37 0% 25%,#171126 0% 50%) 50%/22px 22px;padding:10px}.pt-stage canvas{display:none;max-width:100%;max-height:72vh;object-fit:contain;touch-action:none;cursor:move;border-radius:8px}.pt-empty{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;padding:45px 12px}.pt-empty span{font-size:48px}.pt-empty strong{color:var(--text)}.pt-empty small{color:var(--muted)}.pt-stage-foot{display:flex;justify-content:space-between;gap:10px;margin-top:9px;flex-wrap:wrap}.pt-controls{display:grid;gap:12px;min-width:0}.pt-panel{padding:15px;border:1px solid var(--border);border-radius:15px;background:linear-gradient(145deg,rgba(35,25,57,.96),rgba(17,13,29,.96));display:grid;gap:10px}.pt-panel>strong,.pt-panel-head strong{font-size:14px;color:var(--text)}.pt-panel-head{display:flex;align-items:center;justify-content:space-between;gap:8px}.pt-panel textarea,.pt-panel select{width:100%;border:1px solid var(--border);border-radius:10px;background:#100b20;color:var(--text);padding:10px;font:inherit}.pt-panel textarea{resize:vertical;min-height:74px}.pt-label{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:var(--muted);margin-bottom:5px}.pt-label b{color:#e9d5ff;font-weight:700}.pt-panel input[type=range]{width:100%;accent-color:#c084fc}.pt-panel input[type=color]{width:100%;height:38px;border:1px solid var(--border);border-radius:9px;background:#100b20;padding:3px}.pt-two{display:grid;grid-template-columns:1fr 1fr;gap:12px}.pt-button-group,.pt-row,.pt-presets,.pt-palettes{display:flex;gap:6px;flex-wrap:wrap}.pt-toggle,.pt-small-btn,.pt-presets button,.pt-palettes button,.pt-secondary{border:1px solid var(--border);border-radius:9px;background:#211832;color:#e9ddfa;padding:8px 10px;font-size:12px;font-weight:700;cursor:pointer}.pt-toggle.active{background:#593b82;border-color:#c4b5fd;color:white}.pt-small-btn{background:#39245c}.pt-danger{color:#ffb4c2}.pt-layer-list{display:grid;gap:6px}.pt-layer-item{display:flex;align-items:center;gap:8px;width:100%;text-align:left;border:1px solid var(--border);border-radius:9px;background:#130e22;color:var(--text);padding:8px 10px;cursor:pointer}.pt-layer-item.active{border-color:#c4b5fd;background:#33234e}.pt-layer-item span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}.pt-counter{display:flex;justify-content:space-between;color:var(--muted);font-size:11px}.pt-check{display:flex;align-items:center;gap:8px;color:#ddd1ef;font-size:12px}.pt-check input{accent-color:#c084fc}.pt-presets-title{display:flex;flex-direction:column;gap:2px;color:#f3e8ff;font-size:13px;font-weight:800}.pt-presets-title small{font-size:11px;font-weight:500;color:var(--muted)}.pt-presets button{flex:1;min-width:calc(50% - 6px);min-height:42px;background:linear-gradient(145deg,#35234f,#211832);border-color:#60427f}.pt-presets button:active{transform:scale(.98)}.pt-palettes button{flex:1;position:relative;padding-top:20px}.pt-palettes button:before{content:"";position:absolute;top:6px;left:calc(50% - 12px);width:24px;height:8px;border-radius:99px;background:var(--swatch)}.pt-actions{display:grid;grid-template-columns:1fr 1.4fr;gap:8px}.pt-primary,.pt-secondary{padding:12px;border-radius:11px;font-weight:850;cursor:pointer}.pt-primary{border:0;background:linear-gradient(100deg,#a78bfa,#e879f9);color:#170d28}.pt-primary:disabled{opacity:.45;cursor:not-allowed}.pt-secondary{background:#241a37}.pt-status{margin:0;color:var(--muted);font-size:12px;min-height:20px}@media(max-width:760px){.pt-layout{grid-template-columns:1fr}.pt-stage-wrap{position:static}.pt-stage{min-height:240px}.pt-stage canvas{max-height:55vh}}@media(max-width:420px){.pt-two{gap:8px}.pt-panel{padding:12px}.pt-actions{grid-template-columns:1fr}}
@@ -2570,30 +2397,6 @@
       </div>
     </div>
   </header>
-
-
-  <!-- TRIVEXAAI STUDIO SIDEBAR PHASE 2 -->
-  <aside class="studio-sidebar" aria-label="Creator Studio navigation">
-    <button class="studio-sidebar-toggle" id="studioSidebarToggle" type="button" aria-label="Collapse sidebar" aria-expanded="true" title="Collapse sidebar">‹</button>
-    <div class="studio-sidebar-brand">
-      <img src="trivexaai-icon.png" alt="" width="38" height="38">
-      <div><strong>TrivexaAI Studio</strong><small>Your creative workspace</small></div>
-    </div>
-    <div class="studio-sidebar-label">Workspace</div>
-    <nav class="studio-sidebar-nav" aria-label="Main workspace">
-      <button class="studio-nav-item active" type="button" data-switch-tab="hub" data-studio-tab="hub" aria-current="page"><span class="studio-nav-icon">✨</span><span class="studio-nav-text">Creator Hub</span></button>
-      <button class="studio-nav-item" type="button" data-switch-tab="search" data-studio-tab="search"><span class="studio-nav-icon">🔍</span><span class="studio-nav-text">Explore Tools</span></button>
-      <button class="studio-nav-item" type="button" data-switch-tab="favourites" data-studio-tab="favourites"><span class="studio-nav-icon">⭐</span><span class="studio-nav-text">Favourites</span></button>
-      <button class="studio-nav-item" type="button" data-switch-tab="history" data-studio-tab="history"><span class="studio-nav-icon">🕘</span><span class="studio-nav-text">Recent History</span></button>
-    </nav>
-    <div class="studio-sidebar-foot">✨ Create more. Organize better.<br>All your tools in one studio.</div>
-  </aside>
-  <nav class="studio-mobile-nav" aria-label="Creator Studio quick navigation">
-    <button class="studio-nav-item active" type="button" data-switch-tab="hub" data-studio-tab="hub" aria-current="page"><span class="studio-nav-icon">✨</span>Home</button>
-    <button class="studio-nav-item" type="button" data-switch-tab="search" data-studio-tab="search"><span class="studio-nav-icon">🔍</span>Tools</button>
-    <button class="studio-nav-item" type="button" data-switch-tab="favourites" data-studio-tab="favourites"><span class="studio-nav-icon">⭐</span>Saved</button>
-    <button class="studio-nav-item" type="button" data-switch-tab="history" data-studio-tab="history"><span class="studio-nav-icon">🕘</span>Recent</button>
-  </nav>
 
   <main>
     <!-- HERO SECTION -->
@@ -3618,31 +3421,12 @@
 
       panelSearch?.classList.toggle("active", isSearch);
       panelFavourites?.classList.toggle("active", isFavourites);
-      // Keep the desktop and compact mobile studio navigation synchronized.
-      document.querySelectorAll("[data-studio-tab]").forEach(item => {
-        const active = item.getAttribute("data-studio-tab") === tabId ||
-          (tabId === "history" && item.getAttribute("data-studio-tab") === "hub");
-        item.classList.toggle("active", active);
-        if (active) item.setAttribute("aria-current", "page");
-        else item.removeAttribute("aria-current");
-      });
-
       // History is displayed inside Creator Hub and loaded when requested.
       if (tabId === "history") {
         renderRecentResults();
         document.getElementById("recentResultsSection")?.scrollIntoView({ behavior: "smooth", block: "start" });
       }
     }
-
-    // Expand/collapse the full-height Creator Studio sidebar.
-    const studioSidebarToggle = document.getElementById("studioSidebarToggle");
-    studioSidebarToggle?.addEventListener("click", () => {
-      const collapsed = document.body.classList.toggle("studio-sidebar-collapsed");
-      studioSidebarToggle.textContent = collapsed ? "›" : "‹";
-      studioSidebarToggle.setAttribute("aria-expanded", String(!collapsed));
-      studioSidebarToggle.setAttribute("aria-label", collapsed ? "Expand sidebar" : "Collapse sidebar");
-      studioSidebarToggle.title = collapsed ? "Expand sidebar" : "Collapse sidebar";
-    });
 
     tabNavHub?.addEventListener("click", () => switchDashboardTab("hub"));
     tabNavSearch?.addEventListener("click", () => switchDashboardTab("search"));
