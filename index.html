@@ -4786,17 +4786,17 @@
       // Align the generated frame from the top so faces and heads are less likely to be cropped.
       const coverY = 0;
       ctx.save();
-      ctx.filter = "brightness(0.82)";
+      ctx.filter = "brightness(0.92)";
       ctx.drawImage(sourceImage, coverX, coverY, coverWidth, coverHeight);
       ctx.restore();
 
-      // Draw the generated scene only once. Re-drawing a contained copy here created
-      // an unwanted split-screen / duplicated-subject effect in the final thumbnail.
+      // Keep the generated scene visible across the whole frame. Add only a soft
+      // readability fade behind the headline instead of turning half the image black.
       const gradient = isRight
-        ? ctx.createLinearGradient(canvas.width, 0, canvas.width - 760, 0)
-        : ctx.createLinearGradient(0, 0, 760, 0);
-      gradient.addColorStop(0, "rgba(4,3,12,0.82)");
-      gradient.addColorStop(0.72, "rgba(4,3,12,0.48)");
+        ? ctx.createLinearGradient(canvas.width, 0, canvas.width - 560, 0)
+        : ctx.createLinearGradient(0, 0, 560, 0);
+      gradient.addColorStop(0, "rgba(4,3,12,0.24)");
+      gradient.addColorStop(0.68, "rgba(4,3,12,0.10)");
       gradient.addColorStop(1, "rgba(4,3,12,0)");
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -4892,16 +4892,16 @@
         ? [
             `Create one cohesive, professional 16:9 YouTube thumbnail scene: ${customThumbnailDirection}.`,
             `Use one main subject on the ${subjectSide} side, framed medium-wide with the full head visible and space above.`,
-            `Keep the ${position} side simple, darker and uncluttered for a headline overlay.`,
-            "Full-bleed cinematic composition. One scene only: no split screen, collage, panels, borders, duplicated subjects or separate picture areas.",
+            `Keep recognizable scene details visible across the entire frame, while leaving some natural visual breathing room on the ${position} side for the headline. Do not make that side empty, solid black or heavily darkened.`,
+            "One continuous full-bleed cinematic scene with visible environment across the full width. No split screen, collage, panels, borders, duplicated subjects or separate picture areas.",
             "Do not generate any text, letters, logos or watermarks. The exact headline will be added afterward."
           ].join(" ")
         : [
             `Create one cohesive, professional 16:9 YouTube thumbnail about: ${topic}. Visual style: ${style}.`,
             subject ? `Main subject: ${subject}. Place it on the ${subjectSide} side.` : `Show one clear topic-related main subject on the ${subjectSide} side.`,
             "Use a medium-wide camera view with the full head visible, space above the head, and a clear recognizable subject.",
-            `Keep the ${position} side simple, darker and uncluttered for a headline overlay.`,
-            "Full-bleed cinematic composition. One scene only: no split screen, collage, panels, borders, duplicated subjects or separate picture areas.",
+            `Keep recognizable scene details visible across the entire frame, while leaving some natural visual breathing room on the ${position} side for the headline. Do not make that side empty, solid black or heavily darkened.`,
+            "One continuous full-bleed cinematic scene with visible environment across the full width. No split screen, collage, panels, borders, duplicated subjects or separate picture areas.",
             "Do not generate any text, letters, logos or watermarks. The exact headline will be added afterward."
           ].join(" ");
 
