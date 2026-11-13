@@ -4847,8 +4847,11 @@
         <p class="thumbnail-editor-note">Drag any layer on the preview. Add text, stickers or your own image, then adjust size, colour and rotation. Select a layer to edit it.</p>
         <div class="thumbnail-editor-toolbar">
           <button type="button" class="secondary" data-add-text>＋ Add Text</button>
-          <button type="button" class="secondary" data-add-sticker>✨ Add Sticker</button>
+          <button type="button" class="secondary" data-add-sticker>✨ Choose Sticker</button>
           <button type="button" class="secondary" data-upload-image>🖼️ Add Image / PNG</button>
+          <div data-sticker-picker hidden style="flex-basis:100%;display:none;flex-wrap:wrap;gap:8px;padding:12px;border:1px solid var(--border-strong);border-radius:12px;background:rgba(8,4,18,.72)">
+            
+          </div>
           <button type="button" class="secondary" data-delete-layer>🗑️ Delete Selected</button>
           <input type="file" accept="image/*" data-image-file hidden>
         </div>
@@ -4958,7 +4961,27 @@
       }
 
       shell.querySelector("[data-add-text]").addEventListener("click", () => addTextLayer("Your text", "#ffffff"));
-      shell.querySelector("[data-add-sticker]").addEventListener("click", () => addTextLayer("🔥", "#ffe500"));
+      const stickerPicker = shell.querySelector("[data-sticker-picker]");
+      const stickerOptions = ["🔥","💥","⚡","💀","👑","🎯","🏆","💎","🚀","❤️","😈","😱","😂","🤯","☠️","🛡️","⚔️","🎮","🐉","⭐","✨","💯","🔴","🟡","🟢","🔵","🟣","❗","❓","➤"];
+      stickerOptions.forEach(sticker => {
+        const option = document.createElement("button");
+        option.type = "button";
+        option.className = "secondary";
+        option.textContent = sticker;
+        option.style.cssText = "min-width:48px;min-height:46px;font-size:25px;padding:5px";
+        option.setAttribute("aria-label", "Add sticker " + sticker);
+        option.addEventListener("click", () => {
+          addTextLayer(sticker, "#ffe500");
+          stickerPicker.hidden = true;
+          stickerPicker.style.display = "none";
+        });
+        stickerPicker.append(option);
+      });
+      shell.querySelector("[data-add-sticker]").addEventListener("click", () => {
+        const opening = stickerPicker.hidden;
+        stickerPicker.hidden = !opening;
+        stickerPicker.style.display = opening ? "flex" : "none";
+      });
       shell.querySelector("[data-upload-image]").addEventListener("click", () => fileInput.click());
       fileInput.addEventListener("change", () => {
         const file = fileInput.files && fileInput.files[0];
