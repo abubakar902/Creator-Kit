@@ -2935,63 +2935,47 @@
         <input id="thumbnailHeadline" maxlength="70" placeholder="e.g. THIS CHANGES EVERYTHING!">
       </div>
 
-      <div id="thumbnailStandardOptions">
       <div class="field-group">
-        <label for="thumbnailTopic">Video topic</label>
-        <textarea id="thumbnailTopic" maxlength="300" placeholder="Example: Cricket match mein last over ka exciting moment"></textarea>
-        <p class="workspace-intro prompt-help">Apne video ka topic simple words mein likhein — English ya Roman Urdu dono theek hain.</p>
+        <label for="thumbnailInstruction">Instruction (English)</label>
+        <textarea id="thumbnailInstruction" maxlength="400" placeholder="Example: A gamer building a beautiful house in a colorful game world"></textarea>
+        <p class="workspace-intro prompt-help">Write what should appear in the picture. Use short, simple English instructions.</p>
       </div>
 
       <div class="row">
         <div class="field-group">
-          <label for="thumbnailStyle">Visual style</label>
+          <label for="thumbnailCharacterType">Character Type</label>
+          <select id="thumbnailCharacterType">
+            <option value="no character">No character</option>
+            <option value="anime-style character">Anime</option>
+            <option value="realistic human character">Realistic Person</option>
+            <option value="cartoon character">Cartoon</option>
+            <option value="superhero character">Superhero</option>
+            <option value="3D game character">3D Game Character</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label for="thumbnailStyle">Visual Style</label>
           <select id="thumbnailStyle">
             <option value="high-energy YouTube creator style">High-Energy Creator</option>
             <option value="cinematic dramatic style">Cinematic Dramatic</option>
-            <option value="gaming thumbnail style">Gaming & Esports</option>
+            <option value="gaming thumbnail style">Gaming &amp; Esports</option>
             <option value="sports broadcast thumbnail style">Sports Action</option>
             <option value="clean technology explainer style">Tech Explainer</option>
             <option value="bright tutorial and educational style">Bright Tutorial</option>
           </select>
         </div>
-        <div class="field-group">
-          <label for="thumbnailPosition">Headline alignment</label>
-          <select id="thumbnailPosition">
-            <option value="left">Left side</option>
-            <option value="right">Right side</option>
-          </select>
-        </div>
       </div>
 
-      <div class="row">
-        <div class="field-group">
-          <label for="thumbnailAccent">Headline accent colour</label>
-          <select id="thumbnailAccent">
-            <option value="#ffffff">White</option>
-            <option value="#ffe500">Electric Yellow</option>
-            <option value="#67e8f9">Neon Cyan</option>
-            <option value="#ff5b67">Vibrant Red</option>
-            <option value="#a7f36b">Lime Green</option>
-          </select>
-        </div>
-        <div class="field-group">
-          <label for="thumbnailSubject">Main subject (optional)</label>
-          <input id="thumbnailSubject" maxlength="120" placeholder="e.g. shocked tech reviewer holding glowing device">
-        </div>
+      <div class="field-group">
+        <label for="thumbnailAccent">Headline accent colour</label>
+        <select id="thumbnailAccent">
+          <option value="#ffffff">White</option>
+          <option value="#ffe500">Electric Yellow</option>
+          <option value="#67e8f9">Neon Cyan</option>
+          <option value="#ff5b67">Vibrant Red</option>
+          <option value="#a7f36b">Lime Green</option>
+        </select>
       </div>
-      </div>
-
-      <div id="thumbnailPromptMode" class="prompt-mode-panel" hidden>
-        <div class="field-group">
-          <div class="prompt-section-heading">✍️ PROMPT</div>
-          <label for="thumbnailCustomPrompt">Extra details (optional)</label>
-          <textarea id="thumbnailCustomPrompt" placeholder="Example: Raat ka cricket stadium, bowler action mein, bright lights"></textarea>
-          <p id="thumbnailPromptCounter" class="prompt-counter" aria-live="polite">0 / 650 characters</p>
-          <p class="workspace-intro prompt-help">Simple English ya Roman Urdu mein apna idea likhein. Lambi prompt likhne ki zaroorat nahi. Headline automatically alag se add hogi.</p>
-        </div>
-      </div>
-
-      <button type="button" class="secondary prompt-mode-toggle" id="thumbnailPromptToggle" aria-expanded="false" aria-controls="thumbnailPromptMode">✨ Use a Specific Prompt</button>
 
       <button class="primary" id="thumbnailGenerateButton" type="button">✨ Generate Thumbnail</button>
       <div id="thumbnailMessage" role="status" aria-live="polite"></div>
@@ -4713,29 +4697,16 @@
 
     // AI THUMBNAIL GENERATOR
     const thumbnailHeadline = document.getElementById("thumbnailHeadline");
-    const thumbnailTopic = document.getElementById("thumbnailTopic");
+    const thumbnailInstruction = document.getElementById("thumbnailInstruction");
+    const thumbnailCharacterType = document.getElementById("thumbnailCharacterType");
     const thumbnailStyle = document.getElementById("thumbnailStyle");
-    const thumbnailPosition = document.getElementById("thumbnailPosition");
     const thumbnailAccent = document.getElementById("thumbnailAccent");
-    const thumbnailSubject = document.getElementById("thumbnailSubject");
-    const thumbnailPromptToggle = document.getElementById("thumbnailPromptToggle");
-    const thumbnailPromptMode = document.getElementById("thumbnailPromptMode");
-    const thumbnailStandardOptions = document.getElementById("thumbnailStandardOptions");
-    const thumbnailCustomPrompt = document.getElementById("thumbnailCustomPrompt");
-    const thumbnailPromptCounter = document.getElementById("thumbnailPromptCounter");
-    const thumbnailPromptLimit = 650;
-    let thumbnailUsesCustomPrompt = false;
     let thumbnailIsGenerating = false;
     const thumbnailGenerateButton = document.getElementById("thumbnailGenerateButton");
-    function updateThumbnailPromptCounter() {
-      const count = thumbnailCustomPrompt.value.length;
-      const overLimit = count > thumbnailPromptLimit;
-      thumbnailPromptCounter.textContent = `${count} / ${thumbnailPromptLimit} characters`;
-      thumbnailPromptCounter.classList.toggle("over-limit", overLimit);
-      thumbnailGenerateButton.disabled = thumbnailIsGenerating || (thumbnailUsesCustomPrompt && overLimit);
-    }
-    thumbnailCustomPrompt.addEventListener("input", updateThumbnailPromptCounter);
-    updateThumbnailPromptCounter();
+    const thumbnailMessage = document.getElementById("thumbnailMessage");
+    const thumbnailResult = document.getElementById("thumbnailResult");
+    let thumbnailOutputUrl = null;
+
     const thumbnailMessage = document.getElementById("thumbnailMessage");
     const thumbnailResult = document.getElementById("thumbnailResult");
     let thumbnailOutputUrl = null;
@@ -4848,97 +4819,38 @@
       return URL.createObjectURL(blob);
     }
 
-    thumbnailPromptToggle?.addEventListener("click", () => {
-      thumbnailUsesCustomPrompt = !thumbnailUsesCustomPrompt;
-      thumbnailPromptMode.hidden = !thumbnailUsesCustomPrompt;
-      thumbnailStandardOptions.hidden = thumbnailUsesCustomPrompt;
-      thumbnailPromptToggle.setAttribute("aria-expanded", String(thumbnailUsesCustomPrompt));
-      thumbnailPromptToggle.textContent = thumbnailUsesCustomPrompt ? "↩ Back to Simple Options" : "＋ Add Extra Details (Optional)";
-      updateThumbnailPromptCounter();
-      thumbnailMessage.textContent = "";
-    });
-
     thumbnailGenerateButton?.addEventListener("click", async () => {
       const headline = thumbnailHeadline.value.trim();
-      const topic = thumbnailTopic.value.trim();
+      const instruction = thumbnailInstruction.value.trim();
+      const characterType = thumbnailCharacterType.value;
       const style = thumbnailStyle.value;
-      const position = thumbnailPosition.value;
+      // Keep the headline on the right and the main scene on the left.
+      const position = "right";
       const accent = thumbnailAccent.value;
-      const subject = thumbnailSubject.value.trim();
-      const customThumbnailDirection = thumbnailCustomPrompt.value.trim();
 
-      if (thumbnailUsesCustomPrompt && customThumbnailDirection.length > thumbnailPromptLimit) {
-        thumbnailMessage.textContent = "Please keep your thumbnail prompt within 650 characters.";
-        thumbnailCustomPrompt.focus();
-        return;
-      }
       if (!headline) {
         thumbnailMessage.textContent = "Please enter the exact thumbnail headline.";
         thumbnailHeadline.focus();
         return;
       }
-      if (thumbnailUsesCustomPrompt && !customThumbnailDirection) {
-        thumbnailMessage.textContent = "Please describe the thumbnail background in the prompt box.";
-        thumbnailCustomPrompt.focus();
-        return;
-      }
-      if (!thumbnailUsesCustomPrompt && !topic) {
-        thumbnailMessage.textContent = "Please describe what your video is about.";
-        thumbnailTopic.focus();
+      if (!instruction) {
+        thumbnailMessage.textContent = "Please write a short English instruction for the picture.";
+        thumbnailInstruction.focus();
         return;
       }
 
-      const subjectSide = position === "right" ? "left" : "right";
-      // Convert common Roman Urdu into a few simple visual keywords.
-      // Keep the image-model instruction fixed and in plain English.
-      function makeThumbnailWordsVisualFriendly(value) {
-        const map = [
-          [/\b(barish|baarish)\b/gi, "rain"],
-          [/\b(andhera|raat)\b/gi, "night"],
-          [/\b(roshni)\b/gi, "bright lights"],
-          [/\b(cricket)\b/gi, "cricket"],
-          [/\b(football|futbol)\b/gi, "football"],
-          [/\b(khilari|player)\b/gi, "player"],
-          [/\b(batsman|batter)\b/gi, "batter"],
-          [/\b(bowler)\b/gi, "bowler"],
-          [/\b(chakka|six)\b/gi, "big cricket shot"],
-          [/\b(gaming|game|khel)\b/gi, "video game"],
-          [/\b(mobile|phone)\b/gi, "smartphone"],
-          [/\b(laptop|computer|pc)\b/gi, "computer"],
-          [/\b(technology|tech)\b/gi, "technology"],
-          [/\b(khana|food)\b/gi, "food"],
-          [/\b(gaari|gari|car)\b/gi, "car"],
-          [/\b(jahaz|plane)\b/gi, "airplane"],
-          [/\b(khala|space)\b/gi, "outer space"],
-          [/\b(superhero|hero)\b/gi, "superhero"],
-          [/\b(tez|fast)\b/gi, "action"],
-          [/\b(haath mein|holding)\b/gi, "holding"],
-          [/\b(ghar|house)\b/gi, "house"],
-          [/\b(bnaya|banaya|build|built)\b/gi, "building"],
-          [/\b(anime)\b/gi, "anime style"],
-          [/\b(character|kirdar)\b/gi, "character"],
-          [/\b(dost|friend)\b/gi, "person"]
-        ];
-        let text = String(value || "").toLowerCase().replace(/[\r\n]+/g, " ").replace(/[.,!?;:]+/g, " ").replace(/\s+/g, " ").trim();
-        for (const [pattern, replacement] of map) text = text.replace(pattern, replacement);
-        // Remove common Roman Urdu filler words so only useful scene keywords remain.
-        text = text.replace(/\b(maine|main|ma|mein|ne|ka|ki|ke|ko|par|apna|apni|aaj|ye|woh|aur|se|mera|meri|mere|hai|tha|thi|ho|gaya|gayi|karo|kar|raha|rahi|rha|rhi)\b/gi, " ");
-        return text.replace(/\s+/g, " ").trim().slice(0, 180);
-      }
-      const visualTopic = makeThumbnailWordsVisualFriendly(topic);
-      const visualSubject = makeThumbnailWordsVisualFriendly(subject);
-      const visualDetails = makeThumbnailWordsVisualFriendly(customThumbnailDirection);
-      // The AI creates the background only; TrivexaAI adds the exact headline afterwards.
-      const safeTopic = visualTopic || visualSubject || "colorful dramatic scene";
-      const safeDetails = visualDetails || safeTopic;
-      const thumbnailPrompt = "Create a single realistic 16:9 YouTube thumbnail background. Scene: " +
-        (thumbnailUsesCustomPrompt ? safeDetails : safeTopic) +
-        ". Style: " + style + ". Show one clear main subject on the " + subjectSide +
-        ". Keep the scene bright, simple and easy to understand. Leave clear empty space on the " +
-        position + " for a headline that will be added later. Do not draw any words, letters, numbers, logos, borders, split screens or collages.";
+      // One clear scene only. The exact headline is added later by the website.
+      const thumbnailPrompt = "Create one single 16:9 YouTube thumbnail background. " +
+        "Picture instruction: " + instruction + ". " +
+        "Character type: " + characterType + ". " +
+        "Visual style: " + style + ". " +
+        (characterType === "no character" ? "Do not include people or characters. " : "Show one clear main character on the left side. ") +
+        "Make the requested scene obvious, detailed, bright and sharp. " +
+        "Keep the right side clear for a headline added later. " +
+        "Do not include any text, letters, numbers, logos, split screens, panels, collage or blur.";
 
       if (thumbnailPrompt.length > 1000) {
-        thumbnailMessage.textContent = "Please shorten the background description slightly. The image service accepts up to 1000 characters.";
+        thumbnailMessage.textContent = "Please shorten the English instruction.";
         return;
       }
 
