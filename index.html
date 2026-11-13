@@ -4889,31 +4889,53 @@
       }
 
       const subjectSide = position === "right" ? "left" : "right";
-      // Smart Prompt: convert common Roman Urdu creator words into visual English.
+      // Convert common Roman Urdu into a few simple visual keywords.
+      // Keep the image-model instruction fixed and in plain English.
       function makeThumbnailWordsVisualFriendly(value) {
         const map = [
-          [/\\b(barish|baarish)\\b/gi, "rain"], [/\\b(andhera|raat)\\b/gi, "night"],
-          [/\\b(roshni)\\b/gi, "bright lights"], [/\\b(cricket)\\b/gi, "cricket"],
-          [/\\b(football|futbol)\\b/gi, "football"], [/\\b(khilari|player)\\b/gi, "player"],
-          [/\\b(batsman|batter)\\b/gi, "batter"], [/\\b(bowler)\\b/gi, "bowler"],
-          [/\\b(chakka|six)\\b/gi, "big cricket shot"], [/\\b(gaming|game|khel)\\b/gi, "gaming"],
-          [/\\b(mobile|phone)\\b/gi, "smartphone"], [/\\b(laptop|computer|pc)\\b/gi, "computer"],
-          [/\\b(technology|tech)\\b/gi, "technology"], [/\\b(khana|food)\\b/gi, "food"],
-          [/\\b(gaari|gari|car)\\b/gi, "car"], [/\\b(jahaz|plane)\\b/gi, "airplane"],
-          [/\\b(khala|space)\\b/gi, "outer space"], [/\\b(superhero|hero)\\b/gi, "superhero"],
-          [/\\b(tez|fast)\\b/gi, "fast action"], [/\\b(haath mein|holding)\\b/gi, "holding"]
+          [/\b(barish|baarish)\b/gi, "rain"],
+          [/\b(andhera|raat)\b/gi, "night"],
+          [/\b(roshni)\b/gi, "bright lights"],
+          [/\b(cricket)\b/gi, "cricket"],
+          [/\b(football|futbol)\b/gi, "football"],
+          [/\b(khilari|player)\b/gi, "player"],
+          [/\b(batsman|batter)\b/gi, "batter"],
+          [/\b(bowler)\b/gi, "bowler"],
+          [/\b(chakka|six)\b/gi, "big cricket shot"],
+          [/\b(gaming|game|khel)\b/gi, "video game"],
+          [/\b(mobile|phone)\b/gi, "smartphone"],
+          [/\b(laptop|computer|pc)\b/gi, "computer"],
+          [/\b(technology|tech)\b/gi, "technology"],
+          [/\b(khana|food)\b/gi, "food"],
+          [/\b(gaari|gari|car)\b/gi, "car"],
+          [/\b(jahaz|plane)\b/gi, "airplane"],
+          [/\b(khala|space)\b/gi, "outer space"],
+          [/\b(superhero|hero)\b/gi, "superhero"],
+          [/\b(tez|fast)\b/gi, "action"],
+          [/\b(haath mein|holding)\b/gi, "holding"],
+          [/\b(ghar|house)\b/gi, "house"],
+          [/\b(bnaya|banaya|build|built)\b/gi, "building"],
+          [/\b(anime)\b/gi, "anime style"],
+          [/\b(character|kirdar)\b/gi, "character"],
+          [/\b(dost|friend)\b/gi, "person"]
         ];
-        let text = String(value || "").replace(/[\\r\\n]+/g, " ").replace(/\\s+/g, " ").trim();
+        let text = String(value || "").toLowerCase().replace(/[\r\n]+/g, " ").replace(/[.,!?;:]+/g, " ").replace(/\s+/g, " ").trim();
         for (const [pattern, replacement] of map) text = text.replace(pattern, replacement);
-        return text;
+        // Remove common Roman Urdu filler words so only useful scene keywords remain.
+        text = text.replace(/\b(maine|main|ma|mein|ne|ka|ki|ke|ko|par|apna|apni|aaj|ye|woh|aur|se|mera|meri|mere|hai|tha|thi|ho|gaya|gayi|karo|kar|raha|rahi|rha|rhi)\b/gi, " ");
+        return text.replace(/\s+/g, " ").trim().slice(0, 180);
       }
       const visualTopic = makeThumbnailWordsVisualFriendly(topic);
       const visualSubject = makeThumbnailWordsVisualFriendly(subject);
       const visualDetails = makeThumbnailWordsVisualFriendly(customThumbnailDirection);
       // The AI creates the background only; TrivexaAI adds the exact headline afterwards.
-      const thumbnailPrompt = thumbnailUsesCustomPrompt
-        ? "Create one clear 16:9 YouTube thumbnail scene: " + visualDetails + ". Show one main subject on the " + subjectSide + ". Use " + style + ". Keep the full scene visible. Leave open space on the " + position + " for the headline. No text, letters, split panels or collage."
-        : "Create one clear 16:9 YouTube thumbnail scene about " + visualTopic + ". Use " + style + ". " + (visualSubject ? "Main subject: " + visualSubject + ", on the " + subjectSide + ". " : "Show one clear subject on the " + subjectSide + ". ") + "Keep the full scene visible. Leave open space on the " + position + " for the headline. No text, letters, split panels or collage.";
+      const safeTopic = visualTopic || visualSubject || "colorful dramatic scene";
+      const safeDetails = visualDetails || safeTopic;
+      const thumbnailPrompt = "Create a single realistic 16:9 YouTube thumbnail background. Scene: " +
+        (thumbnailUsesCustomPrompt ? safeDetails : safeTopic) +
+        ". Style: " + style + ". Show one clear main subject on the " + subjectSide +
+        ". Keep the scene bright, simple and easy to understand. Leave clear empty space on the " +
+        position + " for a headline that will be added later. Do not draw any words, letters, numbers, logos, borders, split screens or collages.";
 
       if (thumbnailPrompt.length > 1000) {
         thumbnailMessage.textContent = "Please shorten the background description slightly. The image service accepts up to 1000 characters.";
