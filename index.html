@@ -4783,20 +4783,15 @@
       const coverWidth = sourceImage.naturalWidth * coverScale;
       const coverHeight = sourceImage.naturalHeight * coverScale;
       const coverX = (canvas.width - coverWidth) / 2;
-      const coverY = (canvas.height - coverHeight) / 2;
+      // Align the generated frame from the top so faces and heads are less likely to be cropped.
+      const coverY = 0;
       ctx.save();
-      ctx.filter = "brightness(0.78)";
+      ctx.filter = "brightness(0.82)";
       ctx.drawImage(sourceImage, coverX, coverY, coverWidth, coverHeight);
       ctx.restore();
 
-      // Place the complete, sharp source image on the side opposite the headline.
-      // "contain" keeps the top of a person's head and the full original frame visible.
-      const containScale = Math.min(canvas.width / sourceImage.naturalWidth, canvas.height / sourceImage.naturalHeight);
-      const drawWidth = sourceImage.naturalWidth * containScale;
-      const drawHeight = sourceImage.naturalHeight * containScale;
-      const drawX = subjectOnRight ? canvas.width - drawWidth : 0;
-      const drawY = (canvas.height - drawHeight) / 2;
-      ctx.drawImage(sourceImage, drawX, drawY, drawWidth, drawHeight);
+      // Draw the generated scene only once. Re-drawing a contained copy here created
+      // an unwanted split-screen / duplicated-subject effect in the final thumbnail.
       const gradient = isRight
         ? ctx.createLinearGradient(canvas.width, 0, canvas.width - 760, 0)
         : ctx.createLinearGradient(0, 0, 760, 0);
@@ -4895,17 +4890,19 @@
       const subjectSide = position === "right" ? "left" : "right";
       const thumbnailPrompt = thumbnailUsesCustomPrompt
         ? [
-            `16:9 thumbnail background: ${customThumbnailDirection}.`,
-            "Medium-wide view. If a person appears, show the entire head and hair with clear space above; never crop the head or face.",
-            `Place the subject on the ${subjectSide}; keep the ${position} side clear for the headline.`,
-            "Cinematic vivid lighting. No text, letters, logos or watermarks; TrivexaAI adds the exact headline."
+            `Create one cohesive, professional 16:9 YouTube thumbnail scene: ${customThumbnailDirection}.`,
+            `Use one main subject on the ${subjectSide} side, framed medium-wide with the full head visible and space above.`,
+            `Keep the ${position} side simple, darker and uncluttered for a headline overlay.`,
+            "Full-bleed cinematic composition. One scene only: no split screen, collage, panels, borders, duplicated subjects or separate picture areas.",
+            "Do not generate any text, letters, logos or watermarks. The exact headline will be added afterward."
           ].join(" ")
         : [
-            `16:9 thumbnail about: ${topic}. Style: ${style}.`,
-            subject ? `Subject: ${subject}, on the ${subjectSide}.` : `Topic-related subject on the ${subjectSide}.`,
-            "Medium-wide view. If a person appears, show the entire head and hair with clear space above; never crop the head or face.",
-            `Keep the ${position} side clear for the headline.`,
-            "Cinematic vivid lighting. No text, letters, logos or watermarks; TrivexaAI adds the exact headline."
+            `Create one cohesive, professional 16:9 YouTube thumbnail about: ${topic}. Visual style: ${style}.`,
+            subject ? `Main subject: ${subject}. Place it on the ${subjectSide} side.` : `Show one clear topic-related main subject on the ${subjectSide} side.`,
+            "Use a medium-wide camera view with the full head visible, space above the head, and a clear recognizable subject.",
+            `Keep the ${position} side simple, darker and uncluttered for a headline overlay.`,
+            "Full-bleed cinematic composition. One scene only: no split screen, collage, panels, borders, duplicated subjects or separate picture areas.",
+            "Do not generate any text, letters, logos or watermarks. The exact headline will be added afterward."
           ].join(" ");
 
       if (thumbnailPrompt.length > 1000) {
