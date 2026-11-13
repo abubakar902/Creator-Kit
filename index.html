@@ -3118,6 +3118,35 @@
       <div id="message" role="status" aria-live="polite"></div>
     </section>
 
+    <style>
+      #aiAssistantWorkspace .assistant-output-card {
+        background: var(--panel, #1a1230);
+        border: 1px solid var(--border, #392951);
+        border-radius: 16px;
+        padding: 18px;
+        margin-top: 14px;
+        min-width: 0;
+      }
+      #aiAssistantWorkspace .assistant-output-header {
+        display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px;
+      }
+      #aiAssistantWorkspace .assistant-output-header h4 { margin:0; font-size:1.05rem; color:var(--text,#f7f2ff); }
+      #aiAssistantWorkspace .assistant-copy-one {
+        border:1px solid var(--border,#392951); background:var(--panel2,#21183a); color:var(--text,#f7f2ff);
+        border-radius:9px; padding:7px 12px; cursor:pointer; font:inherit; font-size:.85rem;
+      }
+      #aiAssistantWorkspace .assistant-copy-one:hover { border-color:var(--purple,#9b6cff); }
+      #aiAssistantWorkspace .assistant-output-list { margin:0; padding-left:24px; display:grid; gap:10px; }
+      #aiAssistantWorkspace .assistant-output-list li { padding:10px 12px; border-radius:10px; background:var(--panel2,#21183a); line-height:1.55; }
+      #aiAssistantWorkspace .assistant-output-description { margin:0; line-height:1.75; white-space:pre-wrap; }
+      #aiAssistantWorkspace .assistant-hashtag-list { display:flex; flex-wrap:wrap; gap:8px; }
+      #aiAssistantWorkspace .assistant-hashtag { border:1px solid var(--border,#392951); background:var(--panel2,#21183a); color:var(--purple,#c5a8ff); border-radius:999px; padding:7px 11px; font-size:.9rem; }
+      @media (max-width:600px) {
+        #aiAssistantWorkspace .assistant-output-card { padding:14px; }
+        #aiAssistantWorkspace .assistant-output-header h4 { font-size:.98rem; }
+      }
+    </style>
+
     <!-- AI CREATOR ASSISTANT WORKSPACE -->
     <section class="workspace" id="aiAssistantWorkspace" style="display:none">
       <div class="workspace-header-bar">
@@ -4355,21 +4384,23 @@
 
       const prompt = [
         "You are TrivexaAI's professional content strategist.",
-        "Create one complete, practical content pack for the user's video.",
-        "Return exactly these five clearly labelled sections in this order:",
-        "1. YOUTUBE TITLES: Give 5 distinct, clickable but honest title options.",
-        "2. YOUTUBE DESCRIPTION: Write a ready-to-edit description with a strong opening, short summary and natural call to action. Do not invent links, facts or timestamps.",
-        "3. THUMBNAIL HEADLINE: Give 3 very short headline options, ideally 2 to 5 words each. Do not repeat a full title.",
-        "4. SOCIAL MEDIA CAPTIONS: Give 3 different captions suitable for the selected platform, with a natural call to action.",
-        "5. HASHTAGS: Give 12 relevant hashtags, mixing broad and niche tags. Avoid unrelated tags.",
-        "Use clear, natural English. Keep every section useful and easy to copy.",
-        "Never promise virality, views, ranking or guaranteed results. Do not invent facts about the video.",
+        "Create a complete, polished content pack for this video idea.",
+        "CRITICAL: Return ONLY valid JSON. No markdown fences, no intro, no conclusion, no numbered prose.",
+        "Use exactly this JSON structure:",
+        '{"titles":["title 1","title 2","title 3","title 4","title 5"],"description":"full ready-to-edit description","thumbnail_headlines":["short option 1","short option 2","short option 3"],"captions":["caption 1","caption 2","caption 3"],"hashtags":["#tag1","#tag2"]}',
+        "All five keys are mandatory. Arrays must contain plain strings, not objects.",
+        "Titles: 5 distinct, clickable but honest options.",
+        "Description: strong opening, concise summary and natural call to action. Do not invent links, facts or timestamps.",
+        "Thumbnail headlines: 3 very short options, 2 to 5 words each. Avoid repeating full titles.",
+        "Captions: 3 different captions suited to the chosen platform, with natural calls to action.",
+        "Hashtags: exactly 12 relevant hashtags, mix broad and niche, no unrelated tags.",
+        "Use clear natural English. Never promise virality, views or ranking. Never invent facts.",
         "",
         "VIDEO TOPIC: " + topic,
         "MAIN PLATFORM: " + platform,
         "CONTENT STYLE: " + tone,
         audience ? "TARGET AUDIENCE: " + audience : ""
-      ].filter(Boolean).join("\n");
+      ].filter(Boolean).join("\\n");
 
       assistantGenerateButton.disabled = true;
       assistantCopyButton.disabled = true;
@@ -4380,12 +4411,94 @@
 
       try {
         const answer = await askGemini(prompt);
-        assistantLatestText = answer;
-        assistantResult.textContent = answer;
+        let pack;
+        try {
+          const cleanJson = answer.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
+          pack = JSON.parse(cleanJson);
+        } catch {
+          throw new Error("The AI returned an invalid content layout. Please generate again.");
+        }
+
+        const sections = [
+          { key: "titles", title: "YouTube Titles", icon: "🎯", count: 5, numbered: true },
+          { key: "description", title: "YouTube Description", icon: "📝", count: 1, numbered: false },
+          { key: "thumbnail_headlines", title: "Thumbnail Headlines", icon: "🖼️", count: 3, numbered: true },
+          { key: "captions", title: "Social Media Captions", icon: "📱", count: 3, numbered: true },
+          { key: "hashtags", title: "Hashtags", icon: "#️⃣", count: 12, numbered: false }
+        ];
+
+        const normalised = {};
+        sections.forEach(section => {
+          const value = pack[section.key];
+          const items = Array.isArray(value) ? value : (typeof value === "string" ? [value] : []);
+          if (items.length < section.count || items.some(item => typeof item !== "string" || !item.trim())) {
+            throw new Error("The AI missed part of the content pack. Please generate again.");
+          }
+          normalised[section.key] = items.slice(0, section.count).map(item => item.trim());
+        });
+
+        assistantResult.replaceChildren();
         assistantResult.classList.remove("result-empty");
+        assistantLatestText = sections.map(section =>
+          section.title.toUpperCase() + "\\n" + normalised[section.key].map((item, index) =>
+            section.numbered ? (index + 1) + ". " + item : item
+          ).join("\\n\\n")
+        ).join("\\n\\n");
+
+        sections.forEach(section => {
+          const card = document.createElement("section");
+          card.className = "assistant-output-card";
+          const header = document.createElement("div");
+          header.className = "assistant-output-header";
+          const heading = document.createElement("h4");
+          heading.textContent = section.icon + " " + section.title;
+          const copyButton = document.createElement("button");
+          copyButton.type = "button";
+          copyButton.className = "assistant-copy-one";
+          copyButton.textContent = "Copy";
+          copyButton.addEventListener("click", async () => {
+            const textToCopy = normalised[section.key].join(section.key === "hashtags" ? " " : "\\n\\n");
+            try {
+              await navigator.clipboard.writeText(textToCopy);
+              assistantMessage.textContent = "✓ " + section.title + " copied.";
+            } catch {
+              assistantMessage.textContent = "Copy isn't available here. Select the text and copy it manually.";
+            }
+          });
+          header.append(heading, copyButton);
+          card.appendChild(header);
+
+          if (section.key === "description") {
+            const paragraph = document.createElement("p");
+            paragraph.className = "assistant-output-description";
+            paragraph.textContent = normalised.description[0];
+            card.appendChild(paragraph);
+          } else if (section.key === "hashtags") {
+            const tags = document.createElement("div");
+            tags.className = "assistant-hashtag-list";
+            normalised.hashtags.forEach(tag => {
+              const chip = document.createElement("span");
+              chip.className = "assistant-hashtag";
+              chip.textContent = tag.startsWith("#") ? tag : "#" + tag;
+              tags.appendChild(chip);
+            });
+            card.appendChild(tags);
+          } else {
+            const list = document.createElement("ol");
+            list.className = "assistant-output-list";
+            normalised[section.key].forEach(item => {
+              const li = document.createElement("li");
+              li.textContent = item;
+              list.appendChild(li);
+            });
+            card.appendChild(list);
+          }
+          assistantResult.appendChild(card);
+        });
+
         assistantCopyButton.disabled = false;
-        assistantMessage.textContent = "✓ Your content pack is ready. Review it before publishing.";
-        void saveRecentResult({ kind: "text", tool: "AI Creator Assistant", title: topic, text: answer });
+        assistantMessage.textContent = "✓ Your content pack is ready. Each section has its own Copy button.";
+        void saveRecentResult({ kind: "text", tool: "AI Creator Assistant", title: topic, text: assistantLatestText });
       } catch (error) {
         assistantLatestText = "";
         assistantResult.textContent = "We couldn't generate your content pack this time.";
