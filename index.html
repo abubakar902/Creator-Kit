@@ -5026,8 +5026,12 @@
         if (!dragState) return;
         const layer = layers.find(item => item.id === dragState.id);
         if (!layer) return;
-        layer.x = Math.max(0, Math.min(1280-layer.width, dragState.x + (event.clientX-dragState.startX) * 1280/dragState.width));
-        layer.y = Math.max(0, Math.min(720-(layer.height || 90), dragState.y + (event.clientY-dragState.startY) * 720/dragState.height));
+        // Allow free placement and overlap. Keep a small part of the layer reachable
+        // so it can always be selected and dragged back onto the canvas.
+        const nextX = dragState.x + (event.clientX-dragState.startX) * 1280/dragState.width;
+        const nextY = dragState.y + (event.clientY-dragState.startY) * 720/dragState.height;
+        layer.x = Math.max(-layer.width + 48, Math.min(1280 - 48, nextX));
+        layer.y = Math.max(-(layer.height || 90) + 32, Math.min(720 - 32, nextY));
         renderLayers();
       });
       stage.addEventListener("pointerup", () => { dragState=null; });
