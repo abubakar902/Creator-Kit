@@ -2131,6 +2131,14 @@
     .thumbnail-studio-group-body[hidden] { display:none !important; }
     .thumbnail-studio-group-body > .field-group { margin:0 0 10px; }
     .thumbnail-studio-group-body > .field-group:last-child { margin-bottom:0; }
+    .thumbnail-bg-removal-studio { display:grid; gap:9px; min-width:0; }
+    .thumbnail-bg-removal-studio > button { width:100%; min-height:40px; white-space:normal; }
+    .thumbnail-bg-library { margin-top:8px; padding:10px; border:1px solid var(--border); border-radius:12px; background:rgba(255,255,255,.025); }
+    .thumbnail-bg-library > strong { display:block; font-size:12px; color:#e9ddff; }
+    .thumbnail-bg-library-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px; margin:9px 0; }
+    .thumbnail-bg-library-grid button { min-width:0; min-height:38px; padding:7px 5px; font-size:11px; }
+    .thumbnail-bg-library [data-bg-custom-upload], .thumbnail-bg-library [data-bg-restore-generated] { width:100%; margin-top:7px; font-size:11px; }
+    .thumbnail-bg-removal-studio [data-bg-removal-status] { min-height:34px; overflow-wrap:anywhere; }
     .thumbnail-studio-group[data-advanced-only] { }
     .thumbnail-editor-shell:not(.thumbnail-studio-advanced) [data-advanced-only] { display:none !important; }
     .thumbnail-studio-tools .thumbnail-studio-group-body > * { max-width:100%; }
@@ -5835,6 +5843,33 @@
       const imageGroup = makeStudioGroup(toolsRail, "Add Image", "🖼️", [uploadButton, imageFileControl], { open: false });
       const backgroundGroup = makeStudioGroup(toolsRail, "Background Studio", "🎨", [backgroundStudio], { open: false, advanced: true });
       imageGroup.after(backgroundGroup);
+
+      // Major 7: one Advanced-only group for AI cutouts and background library.
+      const backgroundRemovalStudio = document.createElement("div");
+      backgroundRemovalStudio.className = "thumbnail-bg-removal-studio";
+      backgroundRemovalStudio.innerHTML = [
+        '<p class="thumbnail-editor-note">Add Image se character ya object select karein. AI us image ka background remove karega.</p>',
+        '<button type="button" class="primary" data-remove-image-background>✂️ Remove Background with AI</button>',
+        '<button type="button" class="secondary" data-restore-original-image disabled>↶ Restore Original Image</button>',
+        '<p class="thumbnail-editor-note" data-bg-removal-status>Select an image layer first. Processing happens in your browser.</p>',
+        '<div class="thumbnail-bg-library"><strong>Background Library</strong><p class="thumbnail-editor-note">Choose a theme for your 1280 × 720 thumbnail.</p>',
+          '<div class="thumbnail-bg-library-grid">',
+            '<button type="button" class="secondary" data-bg-library="gaming">🎮 Gaming</button>',
+            '<button type="button" class="secondary" data-bg-library="cricket">🏏 Cricket</button>',
+            '<button type="button" class="secondary" data-bg-library="sports">🏆 Sports</button>',
+            '<button type="button" class="secondary" data-bg-library="tech">💻 Tech</button>',
+            '<button type="button" class="secondary" data-bg-library="horror">👻 Horror</button>',
+            '<button type="button" class="secondary" data-bg-library="nature">🌿 Nature</button>',
+            '<button type="button" class="secondary" data-bg-library="gradient">🌈 Gradient</button>',
+          '</div>',
+          '<button type="button" class="secondary" data-bg-custom-upload>＋ Upload Custom Background</button>',
+          '<input type="file" accept="image/png,image/jpeg,image/webp" data-bg-custom-file hidden>',
+          '<button type="button" class="secondary" data-bg-restore-generated>↶ Restore Original Generated Background</button>',
+        '</div>'
+      ].join("");
+      const backgroundRemovalGroup = makeStudioGroup(toolsRail, "Background Removal & Library", "✂️", [backgroundRemovalStudio], { open: false, advanced: true });
+      backgroundGroup.after(backgroundRemovalGroup);
+
       const shapeGroup = makeStudioGroup(toolsRail, "Shapes", "⬡", [addShapeButton, shapePanel], { open: false });
       const moreGroup = makeStudioGroup(toolsRail, "More Tools", "⚙️", [duplicateButton, undoButton, redoButton], { open: false, advanced: true });
       actionBar.remove();
@@ -5912,7 +5947,8 @@
       const fileInput = shell.querySelector("[data-image-file]");
       const stickerPicker = shell.querySelector("[data-sticker-picker]");
       const shapePicker = shell.querySelector("[data-shape-picker]");
-      background.src = backgroundUrl;
+      let activeBackgroundUrl = backgroundUrl;
+      background.src = activeBackgroundUrl;
       const brushCanvas = document.createElement("canvas");
       brushCanvas.className = "thumbnail-bg-paint-canvas";
       brushCanvas.width = 1280;
@@ -6048,7 +6084,7 @@
       let historyIndex = -1;
 
       const selectedLayer = () => layers.find(layer => layer.id === selectedId);
-      const snapshot = () => JSON.stringify({ layers, selectedId, backgroundSettings, brushStrokes });
+      const snapshot = () => JSON.stringify({ layers, selectedId, backgroundSettings, brushStrokes, activeBackgroundUrl });
       function saveHistory() {
         const state = snapshot();
         if (history[historyIndex] === state) return;
@@ -6066,6 +6102,8 @@
         selectedId = state.selectedId;
         backgroundSettings = state.backgroundSettings || { brightness:100, contrast:100, saturation:100, blur:0 };
         brushStrokes = state.brushStrokes || [];
+        activeBackgroundUrl = state.activeBackgroundUrl || backgroundUrl;
+        background.src = activeBackgroundUrl;
         redrawBrushStrokes();
         applyBackgroundSettings();
         renderLayers();
@@ -6189,6 +6227,7 @@
         alignControl.value = layer.align || "center";
         opacityControl.value = layer.opacity == null ? 100 : layer.opacity;
         lineSpacingControl.value = layer.lineSpacing || 108;
+        syncBackgroundRemovalControls();
       }
       function addTextLayer(text, color, fontSize) {
         layerCounter++;
@@ -6333,6 +6372,125 @@
         reader.readAsDataURL(file);
         fileInput.value = "";
       });
+
+      const removeBackgroundButton = backgroundRemovalStudio.querySelector("[data-remove-image-background]");
+      const restoreOriginalButton = backgroundRemovalStudio.querySelector("[data-restore-original-image]");
+      const removalStatus = backgroundRemovalStudio.querySelector("[data-bg-removal-status]");
+      const customBackgroundInput = backgroundRemovalStudio.querySelector("[data-bg-custom-file]");
+      const dataUrlToFile = async (dataUrl, name) => {
+        const response = await fetch(dataUrl);
+        const blob = await response.blob();
+        return new File([blob], name, { type: blob.type || "image/png" });
+      };
+      const blobToDataUrl = blob => new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result));
+        reader.onerror = () => reject(new Error("Could not prepare the transparent PNG."));
+        reader.readAsDataURL(blob);
+      });
+      const syncBackgroundRemovalControls = () => {
+        const layer = selectedLayer();
+        const hasImage = !!layer && layer.type === "image";
+        removeBackgroundButton.disabled = !hasImage;
+        restoreOriginalButton.disabled = !hasImage || !layer.originalSrc;
+        if (!hasImage) removalStatus.textContent = "Select an image layer on the canvas or in Layers first.";
+        else if (layer.originalSrc) removalStatus.textContent = "Background removed. Restore the original image if needed.";
+        else removalStatus.textContent = "Image selected. Ready to remove its background.";
+      };
+      removeBackgroundButton.addEventListener("click", async () => {
+        const layer = selectedLayer();
+        if (!layer || layer.type !== "image") { removalStatus.textContent = "Please select an uploaded image layer first."; return; }
+        removeBackgroundButton.disabled = true;
+        removeBackgroundButton.textContent = "Loading AI model...";
+        removalStatus.textContent = "The AI model may download the first time. Speed depends on your device and internet.";
+        try {
+          const sourceFile = await dataUrlToFile(layer.src, "TrivexaAI-image.png");
+          const { removeBackground } = await import("https://esm.sh/@bg0/browser");
+          removeBackgroundButton.textContent = "Removing background...";
+          const output = await removeBackground(sourceFile, {
+            quality: "quality",
+            onProgress: ({ progress, message: progressMessage }) => {
+              if (progressMessage) removalStatus.textContent = progressMessage;
+              else if (typeof progress === "number") removalStatus.textContent = "AI processing: " + Math.round(progress * 100) + "%";
+            }
+          });
+          layer.originalSrc = layer.originalSrc || layer.src;
+          layer.src = await blobToDataUrl(output.blob);
+          layer.backgroundRemoved = true;
+          saveHistory(); renderLayers(); syncControls();
+          removalStatus.textContent = "Background removed! Transparent PNG ready. Move or resize the cutout on your thumbnail.";
+          message.textContent = "AI background removed. The transparent result is included in PNG export.";
+        } catch (error) {
+          console.error("Thumbnail background removal error:", error);
+          removalStatus.textContent = error && error.message ? error.message : "Background removal failed. Try a smaller image or another browser.";
+        } finally {
+          removeBackgroundButton.textContent = "✂️ Remove Background with AI";
+          syncBackgroundRemovalControls();
+        }
+      });
+      restoreOriginalButton.addEventListener("click", () => {
+        const layer = selectedLayer();
+        if (!layer || layer.type !== "image" || !layer.originalSrc) return;
+        layer.src = layer.originalSrc;
+        delete layer.originalSrc; delete layer.backgroundRemoved;
+        saveHistory(); renderLayers(); syncControls(); syncBackgroundRemovalControls();
+        removalStatus.textContent = "Original image restored.";
+      });
+      backgroundRemovalStudio.querySelector("[data-bg-custom-upload]").addEventListener("click", () => customBackgroundInput.click());
+      customBackgroundInput.addEventListener("change", () => {
+        const file = customBackgroundInput.files && customBackgroundInput.files[0];
+        if (!file) return;
+        if (!["image/png", "image/jpeg", "image/webp"].includes(file.type)) { removalStatus.textContent = "Please choose a PNG, JPG or WEBP background."; customBackgroundInput.value = ""; return; }
+        if (file.size > 12 * 1024 * 1024) { removalStatus.textContent = "Please choose a background smaller than 12 MB."; customBackgroundInput.value = ""; return; }
+        const reader = new FileReader();
+        reader.onload = () => {
+          activeBackgroundUrl = String(reader.result); background.src = activeBackgroundUrl;
+          backgroundSettings = { brightness:100, contrast:100, saturation:100, blur:0 };
+          applyBackgroundSettings(); saveHistory();
+          removalStatus.textContent = "Custom background applied. Your existing text and image layers are unchanged.";
+          message.textContent = "Custom background applied to the thumbnail.";
+        };
+        reader.onerror = () => { removalStatus.textContent = "Could not read that background image."; };
+        reader.readAsDataURL(file); customBackgroundInput.value = "";
+      });
+      const makeThemeBackground = theme => {
+        const palettes = {
+          gaming:["#09051d","#35106c","#e11d78"], cricket:["#062b25","#087f5b","#b4e36b"],
+          sports:["#101b36","#1456a0","#f97316"], tech:["#071a2b","#075985","#22d3ee"],
+          horror:["#090609","#3b0a19","#8f102b"], nature:["#062d28","#176b48","#b4c96b"],
+          gradient:["#25105b","#8b3dbd","#ed72bd"]
+        };
+        const colors = palettes[theme] || palettes.gradient;
+        const canvas = document.createElement("canvas"); canvas.width = 1280; canvas.height = 720;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) throw new Error("Could not create the background.");
+        const gradient = ctx.createLinearGradient(0, 0, 1280, 720);
+        gradient.addColorStop(0, colors[0]); gradient.addColorStop(.55, colors[1]); gradient.addColorStop(1, colors[2]);
+        ctx.fillStyle = gradient; ctx.fillRect(0, 0, 1280, 720);
+        const glow = ctx.createRadialGradient(950, 150, 10, 950, 150, 560);
+        glow.addColorStop(0, colors[2] + "aa"); glow.addColorStop(1, colors[2] + "00");
+        ctx.fillStyle = glow; ctx.fillRect(0, 0, 1280, 720);
+        ctx.globalAlpha = .16; ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 2;
+        for (let x = -720; x < 1500; x += 90) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x + 720, 720); ctx.stroke(); }
+        ctx.globalAlpha = 1;
+        return canvas.toDataURL("image/png");
+      };
+      backgroundRemovalStudio.querySelectorAll("[data-bg-library]").forEach(button => button.addEventListener("click", () => {
+        try {
+          activeBackgroundUrl = makeThemeBackground(button.dataset.bgLibrary); background.src = activeBackgroundUrl;
+          backgroundSettings = { brightness:100, contrast:100, saturation:100, blur:0 };
+          applyBackgroundSettings(); saveHistory();
+          removalStatus.textContent = button.textContent.trim() + " theme applied. Add your character or object on top.";
+          message.textContent = "Background Library theme applied.";
+        } catch (error) { removalStatus.textContent = error.message || "Could not create this background."; }
+      }));
+      backgroundRemovalStudio.querySelector("[data-bg-restore-generated]").addEventListener("click", () => {
+        activeBackgroundUrl = backgroundUrl; background.src = activeBackgroundUrl;
+        backgroundSettings = { brightness:100, contrast:100, saturation:100, blur:0 };
+        applyBackgroundSettings(); saveHistory();
+        removalStatus.textContent = "Original generated background restored.";
+      });
+
       shell.querySelector("[data-delete-layer]").addEventListener("click", () => {
         if (!selectedId) return;
         layers = layers.filter(layer => layer.id !== selectedId);
@@ -6446,7 +6604,7 @@
           canvas.width = 1280; canvas.height = 720;
           const ctx = canvas.getContext("2d");
           if (!ctx) throw new Error("Your browser could not export the thumbnail.");
-          const bg = await loadImageForThumbnail(backgroundUrl);
+          const bg = await loadImageForThumbnail(activeBackgroundUrl);
           // Match the editor canvas and bake all background adjustments into the PNG.
           ctx.save();
           ctx.filter = "brightness(" + backgroundSettings.brightness + "%) contrast(" + backgroundSettings.contrast + "%) saturate(" + backgroundSettings.saturation + "%) blur(" + backgroundSettings.blur + "px)";
