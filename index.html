@@ -5552,7 +5552,6 @@
           '<div class="thumbnail-editor-toolbar thumbnail-editor-order">',
             '<button type="button" class="secondary" data-delete-layer>🗑️ Delete Selected Layer</button>',
           '</div>',
-          '<div class="thumbnail-editor-edit-heading"><strong>③ Edit Selected Text / Sticker</strong><span>Canvas par kisi text ko select karein, phir neeche uska text aur style badlein. Naya text add karne ke liye upar wala button use karein.</span></div>',
           '<div class="thumbnail-editor-controls">',
             '<div class="field-group thumbnail-control-wide"><label>Selected text — yahan likhein ya change karein</label><textarea rows="2" data-layer-text placeholder="Pehle canvas par text select karein, ya upar Add New Text dabayein"></textarea></div>',
             '<div class="field-group"><label>Text colour</label><input type="color" value="#ffffff" data-layer-color style="width:100%;min-height:44px"></div>',
@@ -6209,8 +6208,19 @@
       }
 
       // Short, focused prompt: keep the complete request below the image service limit.
+      const characterDirection = characterType === "anime-style character"
+        ? "Show one clearly recognizable 2D Japanese anime character, hand-drawn anime line art, expressive anime eyes, cel-shaded colours and polished anime illustration. "
+        : characterType === "superhero character"
+          ? "Show one original comic-book superhero, powerful heroic pose, distinctive full costume, dramatic cape or armor, clearly superhero-themed design; do not imitate any existing copyrighted hero. "
+          : characterType === "realistic human character"
+            ? "Show one photorealistic human with natural facial details and realistic proportions. "
+            : characterType === "cartoon character"
+              ? "Show one polished 3D cartoon character with expressive features and appealing proportions. "
+              : characterType === "3D game character"
+                ? "Show one detailed 3D video-game character with realistic game-rendered materials. "
+                : "";
       const thumbnailPrompt = "Create a premium, cinematic 16:9 YouTube thumbnail. Scene: " + instruction + ". " +
-        "Style: " + style + ". Subject: " + characterType + ". " +
+        "Style: " + style + ". " + characterDirection +
         (characterType === "no character" ? "No people. " :
           position === "left" ? "Put one large expressive character on the RIGHT, face fully visible. " :
           position === "right" ? "Put one large expressive character on the LEFT, face fully visible. " :
