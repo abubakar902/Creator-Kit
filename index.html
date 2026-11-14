@@ -3528,9 +3528,11 @@
     .thumbnail-shape-options button { min-height:34px; padding:5px 7px; font-size:11px; }
     .thumbnail-sticker-close { display:block; width:100%; min-height:30px; margin-top:7px; }
     .thumbnail-editor-layers { display:flex; flex-direction:column; flex-wrap:nowrap; gap:7px; max-height:260px; }
-    .thumbnail-editor-layers .thumbnail-layer-chip { width:100%; text-align:left; cursor:grab; }
+    .thumbnail-editor-layers .thumbnail-layer-row { display:flex; align-items:center; gap:5px; width:100%; padding:4px; border:1px solid rgba(155,108,255,.2); border-radius:10px; background:rgba(255,255,255,.025); }
+    .thumbnail-editor-layers .thumbnail-layer-chip { flex:1; min-width:0; text-align:left; cursor:grab; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
     .thumbnail-editor-layers .thumbnail-layer-chip:active { cursor:grabbing; }
-    .thumbnail-editor-layers .thumbnail-layer-chip.is-dragging { opacity:.4; }
+    .thumbnail-editor-layers .thumbnail-layer-row.is-dragging { opacity:.4; }
+    .thumbnail-layer-mini { min-width:30px; min-height:30px; padding:3px 6px; font-size:12px; }
     @media(max-width:680px) {
       .thumbnail-sticker-dock .thumbnail-sticker-picker { grid-template-columns:1fr; }
     }
@@ -5533,7 +5535,7 @@
             '<div class="field-group"><label>Object opacity</label><input type="range" min="0" max="100" value="100" data-layer-opacity style="width:100%"></div>',
             '<div class="field-group"><label>Line spacing</label><input type="range" min="80" max="180" value="108" data-layer-line-spacing style="width:100%"></div>',
             '<div class="field-group"><label>Text style</label><div class="thumbnail-type-toggles"><label><input type="checkbox" data-layer-bold checked> Bold</label><label><input type="checkbox" data-layer-italic> Italic</label></div></div>',
-            '<div class="field-group"><label>Text effect</label><select data-layer-effect><option value="shadow">Soft shadow</option><option value="strong">Strong shadow</option><option value="glow">Purple glow</option><option value="none">No effect</option></select></div>',
+            '<div class="field-group"><label>Text effect</label><select data-layer-effect><option value="shadow">Soft shadow</option><option value="strong">Strong shadow</option><option value="glow">Purple glow</option><option value="neon-cyan">Neon cyan</option><option value="neon-pink">Neon pink</option><option value="fire">Fire glow</option><option value="3d">3D depth</option><option value="long">Long shadow</option><option value="none">No effect</option></select></div>',
             '<div class="field-group"><label>Outline colour</label><input type="color" value="#12091f" data-layer-outline-color style="width:100%;min-height:40px"></div>',
             '<div class="field-group"><label>Text size</label><input type="range" min="18" max="220" value="84" data-layer-size style="width:100%"></div>',
             '<div class="field-group"><label>Layer width</label><input type="range" min="80" max="1200" value="430" data-layer-width style="width:100%"></div>',
@@ -5681,6 +5683,7 @@
           const node = document.createElement("div");
           node.className = "thumbnail-editor-layer" + (layer.id === selectedId ? " selected" : "");
           node.dataset.layerId = layer.id;
+          node.style.display = layer.visible === false ? "none" : "";
           node.style.left = (layer.x / 1280 * 100) + "%";
           node.style.top = (layer.y / 720 * 100) + "%";
           node.style.width = (layer.width / 1280 * 100) + "%";
@@ -5713,26 +5716,28 @@
             node.style.lineHeight = String((layer.lineSpacing || 108) / 100);
             node.style.webkitTextStroke = Math.max(0, Number(layer.outline || 0) * stageWidth / 1280) + "px " + (layer.outlineColor || "#12091f");
             node.style.paintOrder = "stroke fill";
-            const effects = { shadow:"2px 3px 7px rgba(0,0,0,.9)", strong:"4px 5px 12px rgba(0,0,0,1)", glow:"0 0 8px #b78cff, 0 0 18px #8b5cf6", none:"none" };
+            const effects = { shadow:"2px 3px 7px rgba(0,0,0,.9)", strong:"4px 5px 12px rgba(0,0,0,1)", glow:"0 0 8px #b78cff, 0 0 18px #8b5cf6", "neon-cyan":"0 0 4px #fff, 0 0 10px #22d3ee, 0 0 24px #06b6d4", "neon-pink":"0 0 4px #fff, 0 0 10px #f0abfc, 0 0 24px #d946ef", fire:"0 0 5px #fff7ed, 0 0 12px #fb923c, 0 0 25px #dc2626", "3d":"2px 2px 0 #24123f, 4px 4px 0 #160b2b, 6px 7px 8px rgba(0,0,0,.65)", long:"5px 5px 0 rgba(0,0,0,.28), 9px 9px 0 rgba(0,0,0,.18), 13px 13px 12px rgba(0,0,0,.25)", none:"none" };
             node.style.textShadow = effects[layer.effect || "shadow"];
           }
           stage.append(node);
           const chip = document.createElement("button");
-          chip.type = "button";
-          chip.draggable = true;
-          chip.dataset.layerOrderId = layer.id;
+          const row = document.createElement("div");
+          row.className = "thumbnail-layer-row"; row.draggable = true;
+          const chip = document.createElement("button"); chip.type = "button";
           chip.className = "secondary thumbnail-layer-chip" + (layer.id === selectedId ? " active" : "");
-          chip.textContent = (layer.type === "image" ? "🖼️ " : "T ") + (layer.type === "image" ? "Image " + (index + 1) : (layer.text || "Text").slice(0, 20));
-          chip.title = "Drag to change layer order";
+          chip.textContent = (layer.type === "image" ? "🖼️ " : layer.type === "shape" ? "⬡ " : "T ") + (layer.name || (layer.type === "image" ? "Image " + (index + 1) : layer.type === "shape" ? layer.shape + " shape" : (layer.text || "Text").slice(0, 20)));
+          chip.title = "Select layer";
           chip.addEventListener("click", () => { selectedId = layer.id; renderLayers(); syncControls(); });
-          chip.addEventListener("dragstart", event => {
-            event.dataTransfer.setData("text/plain", layer.id);
-            event.dataTransfer.effectAllowed = "move";
-            chip.classList.add("is-dragging");
-          });
-          chip.addEventListener("dragend", () => chip.classList.remove("is-dragging"));
-          chip.addEventListener("dragover", event => { event.preventDefault(); event.dataTransfer.dropEffect = "move"; });
-          chip.addEventListener("drop", event => {
+          const miniButton = (label, title, action) => { const b=document.createElement("button"); b.type="button"; b.className="secondary thumbnail-layer-mini"; b.textContent=label; b.title=title; b.setAttribute("aria-label",title); b.addEventListener("click", action); return b; };
+          row.append(chip,
+            miniButton(layer.visible === false ? "◉" : "◌", layer.visible === false ? "Show layer" : "Hide layer", () => { layer.visible = layer.visible === false; saveHistory(); renderLayers(); syncControls(); }),
+            miniButton(layer.locked ? "🔒" : "🔓", layer.locked ? "Unlock layer" : "Lock layer", () => { layer.locked = !layer.locked; saveHistory(); renderLayers(); syncControls(); }),
+            miniButton("✎", "Rename layer", () => { const next=prompt("Layer name:", layer.name || (layer.type==="text" ? (layer.text || "Text").slice(0,24) : layer.type==="shape" ? layer.shape+" shape" : "Image")); if(next && next.trim()){ layer.name=next.trim().slice(0,40); saveHistory(); renderLayers(); } })
+          );
+          row.addEventListener("dragstart", event => { event.dataTransfer.setData("text/plain", layer.id); event.dataTransfer.effectAllowed = "move"; row.classList.add("is-dragging"); });
+          row.addEventListener("dragend", () => row.classList.remove("is-dragging"));
+          row.addEventListener("dragover", event => { event.preventDefault(); event.dataTransfer.dropEffect = "move"; });
+          row.addEventListener("drop", event => {
             event.preventDefault();
             const draggedId = event.dataTransfer.getData("text/plain");
             const targetId = layer.id;
@@ -5748,7 +5753,7 @@
             renderLayers();
             syncControls();
           });
-          layerButtons.append(chip);
+          layerButtons.append(row);
         });
       }
       function syncControls() {
@@ -5787,6 +5792,7 @@
       function addTextLayer(text, color, fontSize) {
         layerCounter++;
         const layer = { id: "text-" + layerCounter, type: "text", text: text || "Your text", x: 330, y: 250 + (layerCounter % 4) * 55, width: 620, fontSize: fontSize || 64, color: color || "#ffffff", rotation: 0, font: "Impact", outline: 8, align: "center", opacity: 100, lineSpacing: 108 };
+        layer.name = "Text " + layerCounter; layer.visible = true; layer.locked = false;
         layers.push(layer); selectedId = layer.id; saveHistory(); renderLayers(); syncControls();
       }
       function addSticker(text, color, size) {
@@ -5794,7 +5800,7 @@
       }
       function addShape(shape) {
         layerCounter++;
-        const layer = { id:"shape-" + layerCounter, type:"shape", shape, x:480, y:210, width:190, height:190, fontSize:190, color:"#ffcc33", rotation:0, opacity:100 };
+        const layer = { id:"shape-" + layerCounter, type:"shape", shape, name:shape+" shape", visible:true, locked:false, x:480, y:210, width:190, height:190, fontSize:190, color:"#ffcc33", rotation:0, opacity:100 };
         layers.push(layer); selectedId = layer.id; saveHistory(); renderLayers(); syncControls();
         message.textContent = "Shape added. Drag it on the canvas; change its colour, size and rotation.";
         shapePicker.hidden = true;
@@ -5951,6 +5957,7 @@
         const layer = layers.find(item => item.id === node.dataset.layerId);
         if (!layer) return;
         selectedId = layer.id;
+        if (layer.locked) { renderLayers(); syncControls(); return; }
         const rect = stage.getBoundingClientRect();
         saveHistory();
         dragState = { id: layer.id, node, startX: event.clientX, startY: event.clientY, x: layer.x, y: layer.y, width: rect.width, height: rect.height };
@@ -5998,6 +6005,7 @@
           // Match the editor canvas: fit the complete background to 16:9 without cropping.
           ctx.drawImage(bg, 0, 0, 1280, 720);
           for (const layer of layers) {
+            if (layer.visible === false) continue;
             ctx.save();
             ctx.translate(layer.x + layer.width / 2, layer.y + (layer.height || layer.fontSize * 2) / 2);
             ctx.rotate((layer.rotation || 0) * Math.PI / 180);
@@ -6027,6 +6035,11 @@
               ctx.lineWidth = Math.max(0, Number(layer.outline || 0));
               ctx.strokeStyle = layer.outlineColor || "#12091f";
               if (layer.effect === "glow") { ctx.shadowColor = "#9b6cff"; ctx.shadowBlur = 18; }
+              else if (layer.effect === "neon-cyan") { ctx.shadowColor = "#22d3ee"; ctx.shadowBlur = 24; ctx.shadowOffsetX=0; ctx.shadowOffsetY=0; }
+              else if (layer.effect === "neon-pink") { ctx.shadowColor = "#e879f9"; ctx.shadowBlur = 24; ctx.shadowOffsetX=0; ctx.shadowOffsetY=0; }
+              else if (layer.effect === "fire") { ctx.shadowColor = "#f97316"; ctx.shadowBlur = 26; ctx.shadowOffsetX=0; ctx.shadowOffsetY=0; }
+              else if (layer.effect === "3d") { ctx.shadowColor = "#160b2b"; ctx.shadowBlur = 0; ctx.shadowOffsetX = 6; ctx.shadowOffsetY = 7; }
+              else if (layer.effect === "long") { ctx.shadowColor = "rgba(0,0,0,.55)"; ctx.shadowBlur = 2; ctx.shadowOffsetX = 13; ctx.shadowOffsetY = 13; }
               else if (layer.effect === "strong") { ctx.shadowColor = "rgba(0,0,0,1)"; ctx.shadowBlur = 12; ctx.shadowOffsetX = 4; ctx.shadowOffsetY = 5; }
               else if (layer.effect === "shadow") { ctx.shadowColor = "rgba(0,0,0,.9)"; ctx.shadowBlur = 7; ctx.shadowOffsetX = 2; ctx.shadowOffsetY = 3; }
               ctx.fillStyle = layer.color || "#ffffff";
