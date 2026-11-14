@@ -5980,23 +5980,20 @@
         return;
       }
 
-      // Generate a cinematic, professional thumbnail composition; the website adds exact headline text.
-      const thumbnailPrompt = "Create a premium, high-click-through-rate YouTube thumbnail background in a true wide 16:9 landscape composition. " +
-        "Scene idea: " + instruction + ". " +
-        "Main subject type: " + characterType + ". " +
-        "Visual direction: " + style + ", cinematic movie-poster lighting, strong subject separation, rich contrast, vivid but controlled colours, crisp details, dramatic depth, realistic shadows and a clean professional creator-thumbnail finish. " +
-        (characterType === "no character" ? "Do not include any people or characters. " :
-          position === "left" ? "Place one large, expressive main character on the RIGHT third, with the full face clearly visible and looking toward the viewer. " :
-          position === "right" ? "Place one large, expressive main character on the LEFT third, with the full face clearly visible and looking toward the viewer. " :
-          position === "top" ? "Place the main character in the LOWER half, fully visible. " :
-          "Place the main character in the UPPER half, fully visible. ") +
-        (characterType === "no character" ? "" : "Keep the complete head, face and important body parts inside a generous central safe area; do not let the subject touch the frame edges or get cropped. ") +
-        "Compose the scene with a clear foreground subject and a detailed atmospheric background that fills every corner. " +
-        (position === "left" ? "Reserve the LEFT 42 percent as a darker, visually quiet headline zone; keep the main subject out of this zone. " :
-          position === "right" ? "Reserve the RIGHT 42 percent as a darker, visually quiet headline zone; keep the main subject out of this zone. " :
-          position === "top" ? "Reserve the TOP 30 percent as a darker, visually quiet headline zone. " :
-          "Reserve the BOTTOM 30 percent as a darker, visually quiet headline zone. ") +
-        "Use a single seamless scene, edge-to-edge. No text, letters, numbers, logos, watermarks, borders, split screens, panels, collage, blank margins or blurred sidebars.";
+      // Short, focused prompt: keep the complete request below the image service limit.
+      const thumbnailPrompt = "Create a premium, cinematic 16:9 YouTube thumbnail. Scene: " + instruction + ". " +
+        "Style: " + style + ". Subject: " + characterType + ". " +
+        (characterType === "no character" ? "No people. " :
+          position === "left" ? "Put one large expressive character on the RIGHT, face fully visible. " :
+          position === "right" ? "Put one large expressive character on the LEFT, face fully visible. " :
+          position === "top" ? "Put the character in the LOWER half. " :
+          "Put the character in the UPPER half. ") +
+        (characterType === "no character" ? "" : "Keep the full head and body inside safe margins; do not crop the subject. ") +
+        (position === "left" ? "Keep the LEFT 42% dark and uncluttered for headline text. " :
+          position === "right" ? "Keep the RIGHT 42% dark and uncluttered for headline text. " :
+          position === "top" ? "Keep the TOP 30% clear for headline text. " :
+          "Keep the BOTTOM 30% clear for headline text. ") +
+        "Fill the whole frame with one detailed scene, dramatic light, vivid colours, strong contrast and sharp focus. No text, letters, numbers, logos, borders, collage or blur.";
 
       if (thumbnailPrompt.length > 1000) {
         thumbnailMessage.textContent = "Please shorten the English instruction.";
