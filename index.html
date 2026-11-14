@@ -6143,12 +6143,14 @@
             img.src = layer.src;
             img.alt = "Added image layer";
             if (layer.maskData) {
-              img.style.maskImage = 'url("' + layer.maskData + '")';
-              img.style.webkitMaskImage = 'url("' + layer.maskData + '")';
-              img.style.maskSize = "100% 100%";
+              const maskUrl = 'url("' + layer.maskData + '")';
+              img.style.maskImage = maskUrl;
+              img.style.webkitMaskImage = maskUrl;
+              img.style.maskMode = "alpha";
               img.style.webkitMaskSize = "100% 100%";
-              img.style.maskRepeat = "no-repeat";
+              img.style.maskSize = "100% 100%";
               img.style.webkitMaskRepeat = "no-repeat";
+              img.style.maskRepeat = "no-repeat";
             }
             node.append(img);
           } else if (layer.type === "shape") {
@@ -6446,13 +6448,14 @@
           const pixelCount = (probeImage.naturalWidth || probeImage.width) * (probeImage.naturalHeight || probeImage.height);
           if (sourceFile.size > 8 * 1024 * 1024) throw new Error("For smoother performance, use an image smaller than 8 MB.");
           if (pixelCount > 12000000) throw new Error("This image is above 12 megapixels. Please use a smaller image.");
-          const { removeBackground } = await import("https://esm.sh/@bg0/browser");
+          const { removeBackground } = await import("https://esm.sh/@bg0/browser@0.1.1?bundle");
           removeBackgroundButton.textContent = "Removing background...";
           const output = await removeBackground(sourceFile, {
+            model: "lite",
             quality: "quality",
-            onProgress: ({ progress, message: progressMessage }) => {
-              if (progressMessage) removalStatus.textContent = progressMessage;
-              else if (typeof progress === "number") removalStatus.textContent = "AI processing: " + Math.round(progress * 100) + "%";
+            onProgress: ({ stage, progress, message: progressMessage }) => {
+              const percent = typeof progress === "number" ? " " + Math.round(progress * 100) + "%" : "";
+              removalStatus.textContent = (progressMessage || stage || "AI processing") + percent;
             }
           });
           layer.originalSrc = layer.originalSrc || layer.src;
@@ -6571,6 +6574,15 @@
         renderLayers();
       };
       const beginMaskPaint = async event => {
+        const clickedLayerNode = event.target.closest && event.target.closest(".thumbnail-editor-layer");
+        if (clickedLayerNode && stage.contains(clickedLayerNode)) {
+          const clickedLayer = layers.find(item => item.id === clickedLayerNode.dataset.layerId);
+          if (clickedLayer && clickedLayer.type === "image" && clickedLayer.backgroundRemoved) {
+            selectedId = clickedLayer.id;
+            renderLayers();
+            syncControls();
+          }
+        }
         const layer = selectedLayer();
         if (!layer || layer.type !== "image" || !layer.backgroundRemoved || !stage.contains(event.target)) return;
         event.preventDefault(); event.stopImmediatePropagation();
