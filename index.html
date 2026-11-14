@@ -1914,6 +1914,38 @@
     .thumbnail-editor-note { color:var(--muted); font-size:12px; line-height:1.6; margin:8px 0; }
     @media(max-width:650px) { .thumbnail-editor-controls { grid-template-columns:1fr; } .thumbnail-editor-shell { padding:12px; } }
     
+    /* THUMBNAIL EDITOR PRO UPGRADE */
+    .thumbnail-editor-shell { width:100%; max-width:none; box-sizing:border-box; }
+    .thumbnail-editor-heading { display:flex; justify-content:space-between; align-items:flex-start; gap:14px; flex-wrap:wrap; }
+    .thumbnail-editor-kicker { color:#c4b5fd; font-size:10px; font-weight:900; letter-spacing:1.8px; }
+    .thumbnail-editor-format { padding:8px 12px; border:1px solid var(--border-strong); border-radius:999px; color:#e9ddff; font-size:11px; font-weight:800; white-space:nowrap; }
+    .thumbnail-editor-stage { max-width:100%; overflow:hidden; }
+    .thumbnail-editor-understage { display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; color:var(--muted); font-size:11px; margin:0 auto 14px; max-width:100%; }
+    .thumbnail-editor-panel { padding:15px; border:1px solid var(--border-strong); border-radius:14px; background:rgba(8,4,18,.42); }
+    .thumbnail-editor-panel-head { display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; }
+    .thumbnail-editor-order { margin:10px 0; }
+    .thumbnail-editor-controls { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .thumbnail-control-wide { grid-column:1/-1; }
+    .thumbnail-editor-layers { max-height:125px; overflow:auto; padding:3px 1px; }
+    .thumbnail-editor-layers button { max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .thumbnail-sticker-picker { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; padding:14px; margin:8px 0 14px; border:1px solid var(--border-strong); border-radius:14px; background:rgba(8,4,18,.72); }
+    .thumbnail-sticker-picker[hidden] { display:none; }
+    .thumbnail-sticker-group strong { display:block; color:#e9ddff; font-size:12px; margin-bottom:8px; }
+    .thumbnail-sticker-group > div { display:flex; flex-wrap:wrap; gap:6px; }
+    .thumbnail-sticker-group button { min-height:39px; padding:6px 9px; font-size:13px; }
+    .thumbnail-editor-toolbar button:disabled { opacity:.38; cursor:not-allowed; }
+    .thumbnail-editor-layer { max-width:none; }
+    .thumbnail-editor-layer img { height:auto; object-fit:contain; }
+    .thumbnail-editor-export { justify-content:center; }
+    .thumbnail-editor-export button { width:min(100%,520px); min-height:48px; }
+    @media(max-width:650px) {
+      .thumbnail-editor-controls { grid-template-columns:1fr; }
+      .thumbnail-control-wide { grid-column:auto; }
+      .thumbnail-sticker-picker { grid-template-columns:1fr; }
+      .thumbnail-editor-panel { padding:11px; }
+      .thumbnail-editor-understage { font-size:10px; }
+    }
+
     /* RESPONSIVE BREAKPOINTS */
     @media (max-width: 960px) {
       .hero {
@@ -5223,46 +5255,46 @@
     function createThumbnailLayerEditor(backgroundUrl, headline, accent, initialPosition) {
       const shell = document.createElement("div");
       shell.className = "thumbnail-editor-shell";
-      shell.innerHTML = `
-        <h3 style="margin:0 0 6px">🛠️ Thumbnail Editor</h3>
-        <p class="thumbnail-editor-note">Drag any layer on the preview. Add text, stickers or your own image, then adjust size, colour and rotation. Select a layer to edit it.</p>
-        <div class="thumbnail-editor-toolbar">
-          <button type="button" class="secondary" data-add-text>＋ Add Text</button>
-          <button type="button" class="secondary" data-add-sticker>✨ Choose Sticker</button>
-          <button type="button" class="secondary" data-upload-image>🖼️ Add Image / PNG</button>
-          <div data-sticker-picker hidden style="flex-basis:100%;display:none;flex-wrap:wrap;gap:8px;padding:12px;border:1px solid var(--border-strong);border-radius:12px;background:rgba(8,4,18,.72)">
-            
-          </div>
-          <button type="button" class="secondary" data-delete-layer>🗑️ Delete Selected</button>
-          <input type="file" accept="image/*" data-image-file hidden>
-        </div>
-        <div class="thumbnail-editor-stage">
-          <img class="thumbnail-editor-background" alt="Thumbnail background">
-        </div>
-        <div class="thumbnail-editor-layers" aria-label="Thumbnail layers"></div>
-        <div class="thumbnail-editor-controls">
-          <div class="field-group">
-            <label>Selected layer text</label>
-            <textarea rows="2" data-layer-text placeholder="Type your text or sticker"></textarea>
-          </div>
-          <div class="field-group">
-            <label>Text colour</label>
-            <input type="color" value="#ffffff" data-layer-color style="width:100%;min-height:44px">
-          </div>
-          <div class="field-group">
-            <label>Size</label>
-            <input type="range" min="20" max="180" value="84" data-layer-size style="width:100%">
-          </div>
-          <div class="field-group">
-            <label>Rotation</label>
-            <input type="range" min="-180" max="180" value="0" data-layer-rotation style="width:100%">
-          </div>
-        </div>
-        <div class="thumbnail-editor-toolbar">
-          <button type="button" class="primary" data-export-thumbnail>⬇️ Export Final Thumbnail PNG</button>
-        </div>
-        <p class="thumbnail-editor-note" data-editor-message>Tip: For independently movable characters/objects, add a transparent PNG. Items already inside the generated background cannot be separated perfectly automatically.</p>
-      `;
+      shell.innerHTML = [
+        '<div class="thumbnail-editor-heading"><div><span class="thumbnail-editor-kicker">TRIVEXAAI CREATOR STUDIO</span><h3 style="margin:5px 0 4px">🛠️ Thumbnail Editor Pro</h3><p class="thumbnail-editor-note">Har text, sticker aur PNG ko alag select karke freely move, resize, rotate aur layers mein arrange karo.</p></div><span class="thumbnail-editor-format">1280 × 720</span></div>',
+        '<div class="thumbnail-editor-toolbar">',
+          '<button type="button" class="secondary" data-add-text>＋ Add Text</button>',
+          '<button type="button" class="secondary" data-add-sticker>✨ Stickers</button>',
+          '<button type="button" class="secondary" data-upload-image>🖼️ Add PNG / Image</button>',
+          '<button type="button" class="secondary" data-duplicate>⧉ Duplicate</button>',
+          '<button type="button" class="secondary" data-undo>↶ Undo</button>',
+          '<button type="button" class="secondary" data-redo>↷ Redo</button>',
+          '<input type="file" accept="image/*" data-image-file hidden>',
+        '</div>',
+        '<div data-sticker-picker hidden class="thumbnail-sticker-picker">',
+          '<div class="thumbnail-sticker-group"><strong>Creator &amp; Subscribe</strong><div data-sticker-group="creator"></div></div>',
+          '<div class="thumbnail-sticker-group"><strong>Arrows &amp; Pointers</strong><div data-sticker-group="arrows"></div></div>',
+          '<div class="thumbnail-sticker-group"><strong>Reactions &amp; Effects</strong><div data-sticker-group="effects"></div></div>',
+          '<div class="thumbnail-sticker-group"><strong>Gaming &amp; Sports</strong><div data-sticker-group="gaming"></div></div>',
+        '</div>',
+        '<div class="thumbnail-editor-stage" aria-label="Thumbnail editing canvas"><img class="thumbnail-editor-background" alt="Thumbnail background"></div>',
+        '<div class="thumbnail-editor-understage"><span>✥ Select any object and drag it anywhere on the canvas</span><span>Objects can overlap</span></div>',
+        '<div class="thumbnail-editor-panel">',
+          '<div class="thumbnail-editor-panel-head"><strong>Layers</strong><span class="thumbnail-editor-note">Select a layer to edit it</span></div>',
+          '<div class="thumbnail-editor-layers" aria-label="Thumbnail layers"></div>',
+          '<div class="thumbnail-editor-toolbar thumbnail-editor-order">',
+            '<button type="button" class="secondary" data-front>⬆ Bring to Front</button>',
+            '<button type="button" class="secondary" data-back>⬇ Send to Back</button>',
+            '<button type="button" class="secondary" data-delete-layer>🗑️ Delete</button>',
+          '</div>',
+          '<div class="thumbnail-editor-controls">',
+            '<div class="field-group thumbnail-control-wide"><label>Text / Sticker content</label><textarea rows="2" data-layer-text placeholder="Select a text layer to edit"></textarea></div>',
+            '<div class="field-group"><label>Text colour</label><input type="color" value="#ffffff" data-layer-color style="width:100%;min-height:44px"></div>',
+            '<div class="field-group"><label>Font style</label><select data-layer-font><option value="Arial">Bold / Modern</option><option value="Impact">Impact</option><option value="Georgia">Georgia</option><option value="Trebuchet MS">Trebuchet</option><option value="Verdana">Verdana</option></select></div>',
+            '<div class="field-group"><label>Text size</label><input type="range" min="18" max="220" value="84" data-layer-size style="width:100%"></div>',
+            '<div class="field-group"><label>Layer width</label><input type="range" min="80" max="1200" value="430" data-layer-width style="width:100%"></div>',
+            '<div class="field-group"><label>Rotation</label><input type="range" min="-180" max="180" value="0" data-layer-rotation style="width:100%"></div>',
+            '<div class="field-group thumbnail-control-wide"><label>Text outline thickness</label><input type="range" min="0" max="24" value="8" data-layer-outline style="width:100%"></div>',
+          '</div>',
+        '</div>',
+        '<div class="thumbnail-editor-toolbar thumbnail-editor-export"><button type="button" class="primary" data-export-thumbnail>⬇️ Download Final Thumbnail PNG</button></div>',
+        '<p class="thumbnail-editor-note" data-editor-message>Tip: Transparent PNG characters and objects can be moved independently. Background ke andar pehle se merged objects ko alag nahi kiya ja sakta.</p>'
+      ].join("");
 
       const stage = shell.querySelector(".thumbnail-editor-stage");
       const background = shell.querySelector(".thumbnail-editor-background");
@@ -5270,27 +5302,54 @@
       const textControl = shell.querySelector("[data-layer-text]");
       const colorControl = shell.querySelector("[data-layer-color]");
       const sizeControl = shell.querySelector("[data-layer-size]");
+      const widthControl = shell.querySelector("[data-layer-width]");
       const rotationControl = shell.querySelector("[data-layer-rotation]");
+      const fontControl = shell.querySelector("[data-layer-font]");
+      const outlineControl = shell.querySelector("[data-layer-outline]");
       const message = shell.querySelector("[data-editor-message]");
       const fileInput = shell.querySelector("[data-image-file]");
+      const stickerPicker = shell.querySelector("[data-sticker-picker]");
       background.src = backgroundUrl;
 
       let layers = [{
-        id: "headline",
-        type: "text",
-        text: headline,
+        id: "headline", type: "text", text: headline,
         x: initialPosition === "left" ? 60 : (initialPosition === "top" || initialPosition === "bottom" ? 190 : 790),
         y: initialPosition === "top" ? 55 : (initialPosition === "bottom" ? 500 : 250),
         width: initialPosition === "top" || initialPosition === "bottom" ? 900 : 430,
         fontSize: initialPosition === "top" || initialPosition === "bottom" ? 76 : 82,
-        color: accent || "#ffffff",
-        rotation: 0
+        color: accent || "#ffffff", rotation: 0, font: "Impact", outline: 8
       }];
       let selectedId = "headline";
       let dragState = null;
       let layerCounter = 0;
+      let history = [];
+      let historyIndex = -1;
 
       const selectedLayer = () => layers.find(layer => layer.id === selectedId);
+      const snapshot = () => JSON.stringify({ layers, selectedId });
+      function saveHistory() {
+        const state = snapshot();
+        if (history[historyIndex] === state) return;
+        history = history.slice(0, historyIndex + 1);
+        history.push(state);
+        if (history.length > 60) history.shift();
+        historyIndex = history.length - 1;
+        updateHistoryButtons();
+      }
+      function restoreHistory(index) {
+        if (index < 0 || index >= history.length) return;
+        historyIndex = index;
+        const state = JSON.parse(history[historyIndex]);
+        layers = state.layers;
+        selectedId = state.selectedId;
+        renderLayers();
+        syncControls();
+        updateHistoryButtons();
+      }
+      function updateHistoryButtons() {
+        shell.querySelector("[data-undo]").disabled = historyIndex <= 0;
+        shell.querySelector("[data-redo]").disabled = historyIndex >= history.length - 1;
+      }
       function renderLayers() {
         stage.querySelectorAll(".thumbnail-editor-layer").forEach(node => node.remove());
         layerButtons.replaceChildren();
@@ -5302,7 +5361,8 @@
           node.style.left = (layer.x / 1280 * 100) + "%";
           node.style.top = (layer.y / 720 * 100) + "%";
           node.style.width = (layer.width / 1280 * 100) + "%";
-          node.style.transform = `rotate(${layer.rotation}deg)`;
+          node.style.zIndex = String(index + 1);
+          node.style.transform = "rotate(" + (layer.rotation || 0) + "deg)";
           if (layer.type === "image") {
             const img = document.createElement("img");
             img.src = layer.src;
@@ -5310,59 +5370,70 @@
             node.append(img);
           } else {
             node.textContent = layer.text;
+            node.style.fontFamily = '"' + (layer.font || "Arial") + '", sans-serif';
             node.style.fontSize = (layer.fontSize * stageWidth / 1280) + "px";
-            node.style.color = layer.color;
+            node.style.color = layer.color || "#ffffff";
+            node.style.webkitTextStroke = Math.max(0, Number(layer.outline || 0) * stageWidth / 1280) + "px #12091f";
+            node.style.paintOrder = "stroke fill";
             node.style.textShadow = "2px 3px 7px rgba(0,0,0,.9), -1px -1px 2px #000, 1px 1px 2px #000";
           }
           stage.append(node);
-
           const chip = document.createElement("button");
           chip.type = "button";
           chip.className = "secondary" + (layer.id === selectedId ? " active" : "");
-          chip.textContent = (layer.type === "image" ? "🖼️ " : "T ") + (layer.type === "image" ? "Image " + (index + 1) : (layer.text || "Text").slice(0,18));
+          chip.textContent = (layer.type === "image" ? "🖼️ " : "T ") + (layer.type === "image" ? "Image " + (index + 1) : (layer.text || "Text").slice(0, 20));
           chip.addEventListener("click", () => { selectedId = layer.id; renderLayers(); syncControls(); });
           layerButtons.append(chip);
         });
       }
       function syncControls() {
         const layer = selectedLayer();
-        const isImage = layer?.type === "image";
+        const isImage = layer && layer.type === "image";
         textControl.disabled = !layer || isImage;
         colorControl.disabled = !layer || isImage;
+        fontControl.disabled = !layer || isImage;
+        sizeControl.disabled = !layer || isImage;
+        outlineControl.disabled = !layer || isImage;
         if (!layer) return;
-        textControl.value = isImage ? "Image layer (use drag and size controls)" : layer.text;
+        textControl.value = isImage ? "Image layer (use width and rotation controls)" : layer.text;
         colorControl.value = layer.color || "#ffffff";
-        sizeControl.value = isImage ? Math.max(20, Math.min(180, layer.width / 5)) : layer.fontSize;
+        fontControl.value = layer.font || "Arial";
+        sizeControl.value = isImage ? 84 : layer.fontSize;
+        widthControl.value = Math.max(80, Math.min(1200, layer.width || 430));
         rotationControl.value = layer.rotation || 0;
+        outlineControl.value = layer.outline || 0;
       }
-      function addTextLayer(text, color) {
+      function addTextLayer(text, color, fontSize) {
         layerCounter++;
-        const layer = { id:"text-" + layerCounter, type:"text", text, x:330, y:260 + (layerCounter%3)*70, width:620, fontSize:64, color:color || "#ffffff", rotation:0 };
-        layers.push(layer); selectedId=layer.id; renderLayers(); syncControls();
+        const layer = { id: "text-" + layerCounter, type: "text", text: text || "Your text", x: 330, y: 250 + (layerCounter % 4) * 55, width: 620, fontSize: fontSize || 64, color: color || "#ffffff", rotation: 0, font: "Impact", outline: 8 };
+        layers.push(layer); selectedId = layer.id; saveHistory(); renderLayers(); syncControls();
+      }
+      function addSticker(text, color, size) {
+        addTextLayer(text, color || "#ffe500", size || 86);
       }
 
-      shell.querySelector("[data-add-text]").addEventListener("click", () => addTextLayer("Your text", "#ffffff"));
-      const stickerPicker = shell.querySelector("[data-sticker-picker]");
-      const stickerOptions = ["🔥","💥","⚡","💀","👑","🎯","🏆","💎","🚀","❤️","😈","😱","😂","🤯","☠️","🛡️","⚔️","🎮","🐉","⭐","✨","💯","🔴","🟡","🟢","🔵","🟣","❗","❓","➡️","⬅️","⬆️","⬇️","↗️","↘️","↙️","↖️","↪️","↩️","⤴️","⤵️","⤷","⤶","➥","➦","➶","➴","⤳","➜","➤","⏩","🔴 SUBSCRIBE","SUBSCRIBED ✓","🔔"];
-      stickerOptions.forEach(sticker => {
-        const option = document.createElement("button");
-        option.type = "button";
-        option.className = "secondary";
-        option.textContent = sticker;
-        option.style.cssText = "min-width:48px;min-height:46px;font-size:25px;padding:5px";
-        option.setAttribute("aria-label", "Add sticker " + sticker);
-        option.addEventListener("click", () => {
-          addTextLayer(sticker, "#ffe500");
-          stickerPicker.hidden = true;
-          stickerPicker.style.display = "none";
+      shell.querySelector("[data-add-text]").addEventListener("click", () => addTextLayer("Your text", "#ffffff", 64));
+      const stickerGroups = {
+        creator: ["🔴 SUBSCRIBE","SUBSCRIBED ✓","🔔","👍 LIKE","💬 COMMENT","↗ SHARE","FOLLOW ME","NEW VIDEO"],
+        arrows: ["➡️","⬅️","⬆️","⬇️","↗️","↘️","↙️","↖️","➜","➤","➥","➦","⤴️","⤵️","👇","👆"],
+        effects: ["🔥","💥","⚡","💀","👑","🎯","💎","🚀","❤️","😈","😱","😂","🤯","✨","💯","❗","❓"],
+        gaming: ["🏆","🎮","🐉","⚔️","🛡️","🥇","🏏","🏆","GOAT","W","VS","KO"]
+      };
+      Object.entries(stickerGroups).forEach(([group, options]) => {
+        const holder = stickerPicker.querySelector('[data-sticker-group="' + group + '"]');
+        options.forEach(sticker => {
+          const option = document.createElement("button");
+          option.type = "button";
+          option.className = "secondary";
+          option.textContent = sticker;
+          option.addEventListener("click", () => {
+            addSticker(sticker, group === "creator" ? "#ff3b55" : "#ffe500", group === "creator" ? 58 : 86);
+            stickerPicker.hidden = true;
+          });
+          holder.append(option);
         });
-        stickerPicker.append(option);
       });
-      shell.querySelector("[data-add-sticker]").addEventListener("click", () => {
-        const opening = stickerPicker.hidden;
-        stickerPicker.hidden = !opening;
-        stickerPicker.style.display = opening ? "flex" : "none";
-      });
+      shell.querySelector("[data-add-sticker]").addEventListener("click", () => { stickerPicker.hidden = !stickerPicker.hidden; });
       shell.querySelector("[data-upload-image]").addEventListener("click", () => fileInput.click());
       fileInput.addEventListener("change", () => {
         const file = fileInput.files && fileInput.files[0];
@@ -5376,9 +5447,9 @@
             layerCounter++;
             const width = Math.min(420, img.naturalWidth || 420);
             const height = width * (img.naturalHeight / img.naturalWidth);
-            const layer = { id:"image-" + layerCounter, type:"image", src:String(reader.result), x:430, y:190, width, height, rotation:0 };
-            layers.push(layer); selectedId=layer.id; renderLayers(); syncControls();
-            message.textContent = "Image added. Transparent PNGs work best for separate characters and objects.";
+            const layer = { id: "image-" + layerCounter, type: "image", src: String(reader.result), x: 430, y: 170, width, height, rotation: 0 };
+            layers.push(layer); selectedId = layer.id; saveHistory(); renderLayers(); syncControls();
+            message.textContent = "Image added. Drag it anywhere and use Layer Width to resize.";
           };
           img.src = String(reader.result);
         };
@@ -5388,31 +5459,67 @@
       shell.querySelector("[data-delete-layer]").addEventListener("click", () => {
         if (!selectedId) return;
         layers = layers.filter(layer => layer.id !== selectedId);
-        selectedId = layers.length ? layers[layers.length-1].id : null;
-        renderLayers(); syncControls();
+        selectedId = layers.length ? layers[layers.length - 1].id : null;
+        saveHistory(); renderLayers(); syncControls();
       });
-      textControl.addEventListener("input", () => {
-        const layer = selectedLayer();
-        if (layer && layer.type === "text") { layer.text=textControl.value; renderLayers(); }
-      });
-      colorControl.addEventListener("input", () => {
-        const layer = selectedLayer();
-        if (layer && layer.type === "text") { layer.color=colorControl.value; renderLayers(); }
-      });
-      sizeControl.addEventListener("input", () => {
+      shell.querySelector("[data-duplicate]").addEventListener("click", () => {
         const layer = selectedLayer();
         if (!layer) return;
-        if (layer.type === "image") {
-          const ratio = layer.height / layer.width;
-          layer.width = Number(sizeControl.value) * 5;
-          layer.height = layer.width * ratio;
-        } else layer.fontSize=Number(sizeControl.value);
+        const copy = JSON.parse(JSON.stringify(layer));
+        layerCounter++;
+        copy.id = "copy-" + layerCounter;
+        copy.x += 36; copy.y += 36;
+        layers.push(copy); selectedId = copy.id;
+        saveHistory(); renderLayers(); syncControls();
+      });
+      shell.querySelector("[data-front]").addEventListener("click", () => {
+        const i = layers.findIndex(layer => layer.id === selectedId);
+        if (i < 0 || i === layers.length - 1) return;
+        const item = layers.splice(i, 1)[0]; layers.push(item);
+        saveHistory(); renderLayers();
+      });
+      shell.querySelector("[data-back]").addEventListener("click", () => {
+        const i = layers.findIndex(layer => layer.id === selectedId);
+        if (i <= 0) return;
+        const item = layers.splice(i, 1)[0]; layers.unshift(item);
+        saveHistory(); renderLayers();
+      });
+      shell.querySelector("[data-undo]").addEventListener("click", () => restoreHistory(historyIndex - 1));
+      shell.querySelector("[data-redo]").addEventListener("click", () => restoreHistory(historyIndex + 1));
+
+      textControl.addEventListener("input", () => {
+        const layer = selectedLayer();
+        if (layer && layer.type === "text") { layer.text = textControl.value; renderLayers(); }
+      });
+      textControl.addEventListener("change", saveHistory);
+      colorControl.addEventListener("input", () => {
+        const layer = selectedLayer();
+        if (layer && layer.type === "text") { layer.color = colorControl.value; renderLayers(); }
+      });
+      colorControl.addEventListener("change", saveHistory);
+      fontControl.addEventListener("change", () => {
+        const layer = selectedLayer(); if (layer && layer.type === "text") { layer.font = fontControl.value; saveHistory(); renderLayers(); }
+      });
+      sizeControl.addEventListener("input", () => {
+        const layer = selectedLayer(); if (layer && layer.type === "text") { layer.fontSize = Number(sizeControl.value); renderLayers(); }
+      });
+      sizeControl.addEventListener("change", saveHistory);
+      widthControl.addEventListener("input", () => {
+        const layer = selectedLayer(); if (!layer) return;
+        const oldWidth = layer.width || 1;
+        layer.width = Number(widthControl.value);
+        if (layer.type === "image") layer.height = layer.height * layer.width / oldWidth;
         renderLayers();
       });
+      widthControl.addEventListener("change", saveHistory);
       rotationControl.addEventListener("input", () => {
-        const layer = selectedLayer();
-        if (layer) { layer.rotation=Number(rotationControl.value); renderLayers(); }
+        const layer = selectedLayer(); if (layer) { layer.rotation = Number(rotationControl.value); renderLayers(); }
       });
+      rotationControl.addEventListener("change", saveHistory);
+      outlineControl.addEventListener("input", () => {
+        const layer = selectedLayer(); if (layer && layer.type === "text") { layer.outline = Number(outlineControl.value); renderLayers(); }
+      });
+      outlineControl.addEventListener("change", saveHistory);
 
       stage.addEventListener("pointerdown", event => {
         const node = event.target.closest(".thumbnail-editor-layer");
@@ -5421,7 +5528,8 @@
         if (!layer) return;
         selectedId = layer.id;
         const rect = stage.getBoundingClientRect();
-        dragState = { id:layer.id, startX:event.clientX, startY:event.clientY, x:layer.x, y:layer.y, width:rect.width, height:rect.height };
+        saveHistory();
+        dragState = { id: layer.id, startX: event.clientX, startY: event.clientY, x: layer.x, y: layer.y, width: rect.width, height: rect.height };
         stage.setPointerCapture(event.pointerId);
         renderLayers(); syncControls();
         event.preventDefault();
@@ -5430,75 +5538,84 @@
         if (!dragState) return;
         const layer = layers.find(item => item.id === dragState.id);
         if (!layer) return;
-        // Allow free placement and overlap. Keep a small part of the layer reachable
-        // so it can always be selected and dragged back onto the canvas.
-        const nextX = dragState.x + (event.clientX-dragState.startX) * 1280/dragState.width;
-        const nextY = dragState.y + (event.clientY-dragState.startY) * 720/dragState.height;
-        layer.x = Math.max(-layer.width + 48, Math.min(1280 - 48, nextX));
-        layer.y = Math.max(-(layer.height || 90) + 32, Math.min(720 - 32, nextY));
+        const nextX = dragState.x + (event.clientX - dragState.startX) * 1280 / dragState.width;
+        const nextY = dragState.y + (event.clientY - dragState.startY) * 720 / dragState.height;
+        // No dotted guide or restrictive inner box: the layer can be moved freely.
+        // Keep a small handle visible so an off-edge layer can still be recovered.
+        layer.x = Math.max(-layer.width + 36, Math.min(1280 - 36, nextX));
+        layer.y = Math.max(-(layer.height || layer.fontSize * 2) + 28, Math.min(720 - 28, nextY));
         renderLayers();
       });
-      stage.addEventListener("pointerup", () => { dragState=null; });
-      stage.addEventListener("pointercancel", () => { dragState=null; });
+      stage.addEventListener("pointerup", () => { dragState = null; });
+      stage.addEventListener("pointercancel", () => { dragState = null; });
 
       shell.querySelector("[data-export-thumbnail]").addEventListener("click", async () => {
         const button = shell.querySelector("[data-export-thumbnail]");
         button.disabled = true;
-        message.textContent = "Preparing your final PNG...";
+        message.textContent = "Preparing your final 1280 × 720 PNG...";
         try {
           const canvas = document.createElement("canvas");
-          canvas.width=1280; canvas.height=720;
-          const ctx=canvas.getContext("2d");
+          canvas.width = 1280; canvas.height = 720;
+          const ctx = canvas.getContext("2d");
           if (!ctx) throw new Error("Your browser could not export the thumbnail.");
-          const bg=await loadImageForThumbnail(backgroundUrl);
-          const bgScale=Math.max(1280/bg.naturalWidth,720/bg.naturalHeight);
-          const bgWidth=bg.naturalWidth*bgScale;
-          const bgHeight=bg.naturalHeight*bgScale;
-          ctx.drawImage(bg,(1280-bgWidth)/2,0,bgWidth,bgHeight);
+          const bg = await loadImageForThumbnail(backgroundUrl);
+          const bgScale = Math.max(1280 / bg.naturalWidth, 720 / bg.naturalHeight);
+          const bgWidth = bg.naturalWidth * bgScale;
+          const bgHeight = bg.naturalHeight * bgScale;
+          ctx.drawImage(bg, (1280 - bgWidth) / 2, 0, bgWidth, bgHeight);
           for (const layer of layers) {
             ctx.save();
-            ctx.translate(layer.x+layer.width/2, layer.y+(layer.height || (layer.fontSize*2))/2);
-            ctx.rotate((layer.rotation||0)*Math.PI/180);
+            ctx.translate(layer.x + layer.width / 2, layer.y + (layer.height || layer.fontSize * 2) / 2);
+            ctx.rotate((layer.rotation || 0) * Math.PI / 180);
             if (layer.type === "image") {
-              const img=await loadImageForThumbnail(layer.src);
-              ctx.drawImage(img,-layer.width/2,-layer.height/2,layer.width,layer.height);
+              const img = await loadImageForThumbnail(layer.src);
+              ctx.drawImage(img, -layer.width / 2, -layer.height / 2, layer.width, layer.height);
             } else {
-              ctx.font=`900 ${layer.fontSize}px Arial, sans-serif`;
-              ctx.textAlign="center"; ctx.textBaseline="middle";
-              ctx.lineJoin="round"; ctx.lineWidth=Math.max(5,layer.fontSize*.1);
-              ctx.strokeStyle="rgba(0,0,0,.9)"; ctx.fillStyle=layer.color;
-              const words=layer.text.trim().split(/\s+/).filter(Boolean);
-              const lines=[]; let line="";
+              ctx.font = "900 " + layer.fontSize + "px " + (layer.font || "Arial") + ", sans-serif";
+              ctx.textAlign = "center"; ctx.textBaseline = "middle";
+              ctx.lineJoin = "round";
+              ctx.lineWidth = Math.max(0, Number(layer.outline || 0));
+              ctx.strokeStyle = "rgba(0,0,0,.95)";
+              ctx.fillStyle = layer.color || "#ffffff";
+              const words = String(layer.text || "").trim().split(/\s+/).filter(Boolean);
+              const lines = []; let line = "";
               for (const word of words) {
-                const test=line ? line+" "+word : word;
-                if (ctx.measureText(test).width <= layer.width || !line) line=test;
-                else { lines.push(line); line=word; }
+                const test = line ? line + " " + word : word;
+                if (ctx.measureText(test).width <= layer.width || !line) line = test;
+                else { lines.push(line); line = word; }
               }
               if (line) lines.push(line);
-              const lineHeight=layer.fontSize*1.08;
-              const startY=-(lines.length-1)*lineHeight/2;
-              lines.forEach((value,index) => { ctx.strokeText(value,0,startY+index*lineHeight,layer.width); ctx.fillText(value,0,startY+index*lineHeight,layer.width); });
+              const lineHeight = layer.fontSize * 1.08;
+              const startY = -(lines.length - 1) * lineHeight / 2;
+              lines.forEach((value, index) => {
+                if (layer.outline) ctx.strokeText(value, 0, startY + index * lineHeight, layer.width);
+                ctx.fillText(value, 0, startY + index * lineHeight, layer.width);
+              });
             }
             ctx.restore();
           }
-          const blob=await new Promise(resolve=>canvas.toBlob(resolve,"image/png"));
+          const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/png"));
           if (!blob) throw new Error("Could not create the PNG file.");
           if (thumbnailOutputUrl) URL.revokeObjectURL(thumbnailOutputUrl);
-          thumbnailOutputUrl=URL.createObjectURL(blob);
-          const oldDownload=shell.querySelector("[data-final-download]");
+          thumbnailOutputUrl = URL.createObjectURL(blob);
+          const oldDownload = shell.querySelector("[data-final-download]");
           if (oldDownload) oldDownload.remove();
-          const link=document.createElement("a");
-          link.href=thumbnailOutputUrl; link.download="TrivexaAI-YouTube-Thumbnail-1280x720.png";
-          link.className="download-cta"; link.textContent="Download Final Thumbnail PNG";
-          link.dataset.finalDownload="true"; link.style.cssText="display:inline-flex;text-decoration:none;margin-top:12px";
+          const link = document.createElement("a");
+          link.href = thumbnailOutputUrl;
+          link.download = "TrivexaAI-YouTube-Thumbnail-1280x720.png";
+          link.className = "download-cta";
+          link.textContent = "Download Final Thumbnail PNG";
+          link.dataset.finalDownload = "true";
+          link.style.cssText = "display:inline-flex;text-decoration:none;margin-top:12px";
           button.after(link);
-          void saveRecentBlobFromUrl({tool:"AI Thumbnail Generator",title:headline,url:thumbnailOutputUrl,filename:"TrivexaAI-YouTube-Thumbnail-1280x720.png"});
-          message.textContent="✓ Final thumbnail exported successfully.";
-        } catch(error) {
-          message.textContent=error.message || "Could not export the thumbnail.";
-        } finally { button.disabled=false; }
+          void saveRecentBlobFromUrl({ tool: "AI Thumbnail Generator", title: headline, url: thumbnailOutputUrl, filename: "TrivexaAI-YouTube-Thumbnail-1280x720.png" });
+          message.textContent = "✓ Final thumbnail exported successfully.";
+        } catch (error) {
+          message.textContent = error.message || "Could not export the thumbnail.";
+        } finally { button.disabled = false; }
       });
 
+      saveHistory();
       renderLayers();
       syncControls();
       return shell;
