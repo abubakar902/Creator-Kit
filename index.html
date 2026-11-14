@@ -6325,33 +6325,32 @@
         return;
       }
 
-      // Put the selected character style first so the image model treats it as a required subject.
+      // Compact character prompts prevent the 1000-character limit and avoid unnecessary moderation triggers.
       const characterDirection = characterType === "anime-style character"
-        ? "MANDATORY CHARACTER DESIGN: one unmistakable 2D JAPANESE ANIME character, not a real person and not 3D. Large expressive anime eyes, clean hand-drawn ink outlines, cel-shaded colours, detailed anime hair and polished manga/anime illustration. Preserve this exact anime art style. "
+        ? "2D Japanese anime illustration: expressive eyes, hand-drawn outlines, detailed anime hair and cel shading. "
         : characterType === "superhero character"
-          ? "MANDATORY CHARACTER DESIGN: one unmistakable ORIGINAL SUPERHERO in a full superhero suit, bold chest emblem, mask or distinctive hero face, muscular heroic silhouette, dynamic heroic pose, and a flowing cape or armored details. The result must visibly read as a comic-book superhero, not an ordinary person. Use an original design, not an existing copyrighted hero. "
+          ? "Original family-friendly comic-book hero: colourful full-body costume, clear chest emblem, cape and confident heroic pose. Fictional design only. "
           : characterType === "realistic human character"
-            ? "MANDATORY CHARACTER DESIGN: one photorealistic human with natural facial details and realistic proportions. "
+            ? "Photorealistic human with natural facial details and realistic proportions. "
             : characterType === "cartoon character"
-              ? "MANDATORY CHARACTER DESIGN: one polished 3D cartoon character with expressive features and appealing proportions. "
+              ? "Polished 3D cartoon character with expressive features. "
               : characterType === "3D game character"
-                ? "MANDATORY CHARACTER DESIGN: one detailed 3D video-game character with realistic game-rendered materials. "
+                ? "Detailed 3D video-game character with realistic materials. "
                 : "";
       const characterPlacement = characterType === "no character" ? "No people. " :
-        position === "left" ? "Place the complete character on the RIGHT side, face clearly visible. " :
-        position === "right" ? "Place the complete character on the LEFT side, face clearly visible. " :
-        position === "top" ? "Place the character in the LOWER half. " :
-        "Place the character in the UPPER half. ";
-      const thumbnailPrompt = characterDirection +
-        "Create a premium 16:9 YouTube thumbnail. Scene: " + instruction + ". " +
-        "Visual treatment: " + style + ", while keeping the selected character design unchanged. " +
+        position === "left" ? "Character on RIGHT, fully visible. " :
+        position === "right" ? "Character on LEFT, fully visible. " :
+        position === "top" ? "Character in LOWER half. " :
+        "Character in UPPER half. ";
+      const thumbnailPrompt = "Create a premium 16:9 YouTube thumbnail. " +
+        characterDirection +
+        "Scene: " + instruction + ". Style: " + style + ". " +
         characterPlacement +
-        (characterType === "no character" ? "" : "Keep the full head and body inside safe margins; do not crop the subject. ") +
-        (position === "left" ? "Keep the LEFT 42% dark and uncluttered for headline text. " :
-          position === "right" ? "Keep the RIGHT 42% dark and uncluttered for headline text. " :
-          position === "top" ? "Keep the TOP 30% clear for headline text. " :
-          "Keep the BOTTOM 30% clear for headline text. ") +
-        "Use one detailed scene, dramatic lighting, vivid colours, strong contrast and sharp focus. No text, letters, numbers, logos, borders, collage or blur.";
+        (position === "left" ? "Keep LEFT 42% clear for headline. " :
+          position === "right" ? "Keep RIGHT 42% clear for headline. " :
+          position === "top" ? "Keep TOP 30% clear for headline. " :
+          "Keep BOTTOM 30% clear for headline. ") +
+        "Bright detailed scene, dramatic light, vivid colours, sharp focus. No words, logos, borders or collage.";
 
       if (thumbnailPrompt.length > 1000) {
         thumbnailMessage.textContent = "Please shorten the English instruction.";
