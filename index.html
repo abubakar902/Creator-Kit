@@ -6325,31 +6325,33 @@
         return;
       }
 
-      // Short, focused prompt: keep the complete request below the image service limit.
+      // Put the selected character style first so the image model treats it as a required subject.
       const characterDirection = characterType === "anime-style character"
-        ? "Show one clearly recognizable 2D Japanese anime character, hand-drawn anime line art, expressive anime eyes, cel-shaded colours and polished anime illustration. "
+        ? "MANDATORY CHARACTER DESIGN: one unmistakable 2D JAPANESE ANIME character, not a real person and not 3D. Large expressive anime eyes, clean hand-drawn ink outlines, cel-shaded colours, detailed anime hair and polished manga/anime illustration. Preserve this exact anime art style. "
         : characterType === "superhero character"
-          ? "Show one original comic-book superhero, powerful heroic pose, distinctive full costume, dramatic cape or armor, clearly superhero-themed design; do not imitate any existing copyrighted hero. "
+          ? "MANDATORY CHARACTER DESIGN: one unmistakable ORIGINAL SUPERHERO in a full superhero suit, bold chest emblem, mask or distinctive hero face, muscular heroic silhouette, dynamic heroic pose, and a flowing cape or armored details. The result must visibly read as a comic-book superhero, not an ordinary person. Use an original design, not an existing copyrighted hero. "
           : characterType === "realistic human character"
-            ? "Show one photorealistic human with natural facial details and realistic proportions. "
+            ? "MANDATORY CHARACTER DESIGN: one photorealistic human with natural facial details and realistic proportions. "
             : characterType === "cartoon character"
-              ? "Show one polished 3D cartoon character with expressive features and appealing proportions. "
+              ? "MANDATORY CHARACTER DESIGN: one polished 3D cartoon character with expressive features and appealing proportions. "
               : characterType === "3D game character"
-                ? "Show one detailed 3D video-game character with realistic game-rendered materials. "
+                ? "MANDATORY CHARACTER DESIGN: one detailed 3D video-game character with realistic game-rendered materials. "
                 : "";
-      const thumbnailPrompt = "Create a premium, cinematic 16:9 YouTube thumbnail. Scene: " + instruction + ". " +
-        "Style: " + style + ". " + characterDirection +
-        (characterType === "no character" ? "No people. " :
-          position === "left" ? "Put one large expressive character on the RIGHT, face fully visible. " :
-          position === "right" ? "Put one large expressive character on the LEFT, face fully visible. " :
-          position === "top" ? "Put the character in the LOWER half. " :
-          "Put the character in the UPPER half. ") +
+      const characterPlacement = characterType === "no character" ? "No people. " :
+        position === "left" ? "Place the complete character on the RIGHT side, face clearly visible. " :
+        position === "right" ? "Place the complete character on the LEFT side, face clearly visible. " :
+        position === "top" ? "Place the character in the LOWER half. " :
+        "Place the character in the UPPER half. ";
+      const thumbnailPrompt = characterDirection +
+        "Create a premium 16:9 YouTube thumbnail. Scene: " + instruction + ". " +
+        "Visual treatment: " + style + ", while keeping the selected character design unchanged. " +
+        characterPlacement +
         (characterType === "no character" ? "" : "Keep the full head and body inside safe margins; do not crop the subject. ") +
         (position === "left" ? "Keep the LEFT 42% dark and uncluttered for headline text. " :
           position === "right" ? "Keep the RIGHT 42% dark and uncluttered for headline text. " :
           position === "top" ? "Keep the TOP 30% clear for headline text. " :
           "Keep the BOTTOM 30% clear for headline text. ") +
-        "Fill the whole frame with one detailed scene, dramatic light, vivid colours, strong contrast and sharp focus. No text, letters, numbers, logos, borders, collage or blur.";
+        "Use one detailed scene, dramatic lighting, vivid colours, strong contrast and sharp focus. No text, letters, numbers, logos, borders, collage or blur.";
 
       if (thumbnailPrompt.length > 1000) {
         thumbnailMessage.textContent = "Please shorten the English instruction.";
