@@ -3505,26 +3505,30 @@
       .thumbnail-studio-canvas { position:static; }
     }
 
-    /* STICKER POPUP ANCHORED TO ITS BUTTON + DRAGGABLE LAYER STACK */
-    .thumbnail-sticker-dock { position:relative; min-width:0; z-index:20; }
-    .thumbnail-sticker-dock > [data-add-sticker] { position:relative; z-index:2; }
-    .thumbnail-sticker-dock .thumbnail-sticker-picker {
-      position:absolute; top:calc(100% + 8px); left:0; z-index:50;
-      display:grid; grid-template-columns:1fr 1fr;
-      width:min(390px, calc(100vw - 36px));
-      max-height:min(430px, 65vh); overflow:auto; margin:0;
-      box-shadow:0 18px 48px rgba(0,0,0,.55);
+    /* RIGHT-SIDE STICKER LIBRARY BOX */
+    .thumbnail-sticker-box {
+      margin:0 0 16px; padding:12px; border:1px solid var(--border-strong);
+      border-radius:14px; background:rgba(18,12,34,.94);
+      box-shadow:0 12px 30px rgba(0,0,0,.24);
     }
-    .thumbnail-studio-tools .thumbnail-editor-toolbar .thumbnail-sticker-dock { display:block; }
-    .thumbnail-sticker-dock .thumbnail-sticker-picker[hidden] { display:none; }
+    .thumbnail-sticker-box[hidden] { display:none; }
+    .thumbnail-sticker-box-head { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; }
+    .thumbnail-sticker-box-head strong { color:#f2eaff; font-size:13px; }
+    .thumbnail-sticker-box-head button { min-height:30px; padding:4px 9px; }
+    .thumbnail-sticker-box .thumbnail-sticker-picker {
+      position:static; display:grid; grid-template-columns:1fr 1fr;
+      width:100%; max-height:min(390px, 55vh); overflow:auto; margin:0;
+      box-shadow:none; padding:0; border:0; background:transparent;
+    }
+    .thumbnail-sticker-box .thumbnail-sticker-picker[hidden] { display:none; }
+    .thumbnail-sticker-box .thumbnail-sticker-group { min-width:0; }
     .thumbnail-editor-layers { display:flex; flex-direction:column; flex-wrap:nowrap; gap:7px; max-height:260px; }
     .thumbnail-editor-layers .thumbnail-layer-chip { width:100%; text-align:left; cursor:grab; }
     .thumbnail-editor-layers .thumbnail-layer-chip:active { cursor:grabbing; }
     .thumbnail-editor-layers .thumbnail-layer-chip.is-dragging { opacity:.4; }
     @media(max-width:680px) {
-      .thumbnail-sticker-dock .thumbnail-sticker-picker {
-        left:0; width:min(340px, calc(100vw - 30px)); grid-template-columns:1fr;
-      }
+      .thumbnail-sticker-box { padding:10px; }
+      .thumbnail-sticker-box .thumbnail-sticker-picker { grid-template-columns:1fr; max-height:360px; }
     }
 </style>
 
@@ -5556,10 +5560,6 @@
       toolsRail.className = "thumbnail-studio-tools";
       toolsRail.innerHTML = '<div class="thumbnail-studio-section-title">① ADD TO THUMBNAIL</div>';
       const stickerButton = actionBar.querySelector("[data-add-sticker]");
-      const stickerDock = document.createElement("div");
-      stickerDock.className = "thumbnail-sticker-dock";
-      stickerButton.parentNode.insertBefore(stickerDock, stickerButton);
-      stickerDock.append(stickerButton, stickerPanel);
       toolsRail.append(addTextBar, actionBar);
 
       const canvasArea = document.createElement("main");
@@ -5570,7 +5570,12 @@
       const inspectorRail = document.createElement("aside");
       inspectorRail.className = "thumbnail-studio-inspector";
       inspectorRail.innerHTML = '<div class="thumbnail-studio-section-title">② EDIT & ORGANIZE</div>';
-      inspectorRail.append(inspector);
+      const stickerBox = document.createElement("section");
+      stickerBox.className = "thumbnail-sticker-box";
+      stickerBox.innerHTML = '<div class="thumbnail-sticker-box-head"><strong>✨ Stickers Library</strong><button type="button" class="secondary" data-close-stickers aria-label="Close stickers">✕</button></div>';
+      stickerBox.hidden = true;
+      stickerBox.append(stickerPanel);
+      inspectorRail.append(stickerBox, inspector);
 
       workspace.append(toolsRail, canvasArea, inspectorRail);
       const modeNote = document.createElement("p");
@@ -5773,7 +5778,16 @@
           holder.append(option);
         });
       });
-      shell.querySelector("[data-add-sticker]").addEventListener("click", () => { stickerPicker.hidden = !stickerPicker.hidden; });
+      const stickerBoxElement = shell.querySelector(".thumbnail-sticker-box");
+      shell.querySelector("[data-add-sticker]").addEventListener("click", () => {
+        stickerBoxElement.hidden = !stickerBoxElement.hidden;
+        stickerPicker.hidden = !stickerBoxElement.hidden;
+        if (!stickerBoxElement.hidden) stickerBoxElement.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      });
+      shell.querySelector("[data-close-stickers]").addEventListener("click", () => {
+        stickerBoxElement.hidden = true;
+        stickerPicker.hidden = true;
+      });
       shell.querySelector("[data-upload-image]").addEventListener("click", () => fileInput.click());
       fileInput.addEventListener("change", () => {
         const file = fileInput.files && fileInput.files[0];
