@@ -5664,7 +5664,7 @@
       // The layer manager is an advanced workspace feature; basic editing remains available on canvas.
       const panelHead = inspector.querySelector(".thumbnail-editor-panel-head");
       const layerDeleteBar = inspector.querySelector(".thumbnail-editor-order");
-      const layerGroup = makeStudioGroup(inspector, "Layers & Organization", "▤", [panelHead, layerButtons, layerDeleteBar], { open: true, advanced: true });
+      const layerGroup = makeStudioGroup(inspector, "Layers & Organization", "▤", [panelHead, inspector.querySelector(".thumbnail-editor-layers"), layerDeleteBar], { open: true, advanced: true });
       const editHeading = inspector.querySelector(".thumbnail-editor-edit-heading");
       const controlsGrid = inspector.querySelector(".thumbnail-editor-controls");
       const field = selector => controlsGrid.querySelector(selector);
