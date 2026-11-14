@@ -1903,7 +1903,7 @@
     .thumbnail-editor-toolbar { display:flex; flex-wrap:wrap; gap:9px; margin:14px 0; }
     .thumbnail-editor-toolbar button, .thumbnail-editor-controls button { min-height:40px; }
     .thumbnail-editor-stage { position:relative; width:100%; max-width:850px; aspect-ratio:16/9; margin:14px auto; overflow:hidden; border:2px solid var(--border-strong); border-radius:12px; background:#090611; touch-action:none; user-select:none; }
-    .thumbnail-editor-stage > img.thumbnail-editor-background { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:top center; pointer-events:none; }
+    .thumbnail-editor-stage > img.thumbnail-editor-background { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:center center; pointer-events:none; }
     .thumbnail-editor-layer { position:absolute; display:flex; align-items:center; justify-content:center; text-align:center; white-space:pre-wrap; overflow-wrap:anywhere; font-weight:950; line-height:1.02; cursor:grab; touch-action:none; user-select:none; transform-origin:center center; padding:3px; }
     .thumbnail-editor-layer.selected { outline:2px dashed #c4b5fd; outline-offset:2px; }
     .thumbnail-editor-layer img { display:block; width:100%; height:auto; pointer-events:none; }
@@ -5899,7 +5899,7 @@
           const bgScale = Math.max(1280 / bg.naturalWidth, 720 / bg.naturalHeight);
           const bgWidth = bg.naturalWidth * bgScale;
           const bgHeight = bg.naturalHeight * bgScale;
-          ctx.drawImage(bg, (1280 - bgWidth) / 2, 0, bgWidth, bgHeight);
+          ctx.drawImage(bg, (1280 - bgWidth) / 2, (720 - bgHeight) / 2, bgWidth, bgHeight);
           for (const layer of layers) {
             ctx.save();
             ctx.translate(layer.x + layer.width / 2, layer.y + (layer.height || layer.fontSize * 2) / 2);
