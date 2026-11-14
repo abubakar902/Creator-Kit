@@ -5412,22 +5412,11 @@
       const isSide = position === "left" || position === "right";
       const textAtTop = position === "top";
 
-      // Fill the canvas behind the subject, then fit the complete source image inside.
-      // This keeps the head/top of the subject visible even when the image is not 16:9.
-      const coverScale = Math.max(canvas.width / sourceImage.naturalWidth, canvas.height / sourceImage.naturalHeight);
-      const coverWidth = sourceImage.naturalWidth * coverScale;
-      const coverHeight = sourceImage.naturalHeight * coverScale;
-      ctx.save();
-      ctx.filter = "blur(28px) brightness(0.42) saturate(1.08)";
-      ctx.drawImage(sourceImage, (canvas.width - coverWidth) / 2, (canvas.height - coverHeight) / 2, coverWidth, coverHeight);
-      ctx.restore();
-
-      const fitScale = Math.min(canvas.width / sourceImage.naturalWidth, canvas.height / sourceImage.naturalHeight);
-      const fitWidth = sourceImage.naturalWidth * fitScale;
-      const fitHeight = sourceImage.naturalHeight * fitScale;
+      // Use the complete image edge-to-edge with no blur, crop, or softened side areas.
+      // The source artwork itself is resized to the exact 16:9 thumbnail canvas.
       ctx.save();
       ctx.filter = "brightness(0.98) contrast(1.06) saturate(1.12)";
-      ctx.drawImage(sourceImage, (canvas.width - fitWidth) / 2, (canvas.height - fitHeight) / 2, fitWidth, fitHeight);
+      ctx.drawImage(sourceImage, 0, 0, canvas.width, canvas.height);
       ctx.restore();
 
       // A subtle dark-to-transparent text-side shade improves headline readability.
