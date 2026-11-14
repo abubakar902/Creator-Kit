@@ -5522,6 +5522,9 @@
             '<div class="field-group thumbnail-control-wide"><label>Selected text — yahan likhein ya change karein</label><textarea rows="2" data-layer-text placeholder="Pehle canvas par text select karein, ya upar Add New Text dabayein"></textarea></div>',
             '<div class="field-group"><label>Text colour</label><input type="color" value="#ffffff" data-layer-color style="width:100%;min-height:44px"></div>',
             '<div class="field-group"><label>Font style</label><select data-layer-font><option value="Arial">Bold / Modern</option><option value="Impact">Impact</option><option value="Georgia">Georgia</option><option value="Trebuchet MS">Trebuchet</option><option value="Verdana">Verdana</option></select></div>',
+            '<div class="field-group"><label>Text alignment</label><select data-layer-align><option value="center">Center</option><option value="left">Left</option><option value="right">Right</option></select></div>',
+            '<div class="field-group"><label>Text opacity</label><input type="range" min="10" max="100" value="100" data-layer-opacity style="width:100%"></div>',
+            '<div class="field-group"><label>Line spacing</label><input type="range" min="80" max="180" value="108" data-layer-line-spacing style="width:100%"></div>',
             '<div class="field-group"><label>Text style</label><div class="thumbnail-type-toggles"><label><input type="checkbox" data-layer-bold checked> Bold</label><label><input type="checkbox" data-layer-italic> Italic</label></div></div>',
             '<div class="field-group"><label>Text effect</label><select data-layer-effect><option value="shadow">Soft shadow</option><option value="strong">Strong shadow</option><option value="glow">Purple glow</option><option value="none">No effect</option></select></div>',
             '<div class="field-group"><label>Outline colour</label><input type="color" value="#12091f" data-layer-outline-color style="width:100%;min-height:40px"></div>',
@@ -5611,6 +5614,9 @@
       const italicControl = shell.querySelector("[data-layer-italic]");
       const effectControl = shell.querySelector("[data-layer-effect]");
       const outlineColorControl = shell.querySelector("[data-layer-outline-color]");
+      const alignControl = shell.querySelector("[data-layer-align]");
+      const opacityControl = shell.querySelector("[data-layer-opacity]");
+      const lineSpacingControl = shell.querySelector("[data-layer-line-spacing]");
       const message = shell.querySelector("[data-editor-message]");
       const fileInput = shell.querySelector("[data-image-file]");
       const stickerPicker = shell.querySelector("[data-sticker-picker]");
@@ -5622,7 +5628,8 @@
         y: initialPosition === "top" ? 55 : (initialPosition === "bottom" ? 500 : 250),
         width: initialPosition === "top" || initialPosition === "bottom" ? 900 : 430,
         fontSize: initialPosition === "top" || initialPosition === "bottom" ? 76 : 82,
-        color: accent || "#ffffff", rotation: 0, font: "Impact", outline: 8
+        color: accent || "#ffffff", rotation: 0, font: "Impact", outline: 8,
+        align: "center", opacity: 100, lineSpacing: 108
       }];
       let selectedId = "headline";
       let dragState = null;
@@ -5681,6 +5688,10 @@
             node.style.fontStyle = layer.italic ? "italic" : "normal";
             node.style.fontSize = (layer.fontSize * stageWidth / 1280) + "px";
             node.style.color = layer.color || "#ffffff";
+            node.style.textAlign = layer.align || "center";
+            node.style.justifyContent = layer.align === "left" ? "flex-start" : layer.align === "right" ? "flex-end" : "center";
+            node.style.opacity = String((layer.opacity == null ? 100 : layer.opacity) / 100);
+            node.style.lineHeight = String((layer.lineSpacing || 108) / 100);
             node.style.webkitTextStroke = Math.max(0, Number(layer.outline || 0) * stageWidth / 1280) + "px " + (layer.outlineColor || "#12091f");
             node.style.paintOrder = "stroke fill";
             const effects = { shadow:"2px 3px 7px rgba(0,0,0,.9)", strong:"4px 5px 12px rgba(0,0,0,1)", glow:"0 0 8px #b78cff, 0 0 18px #8b5cf6", none:"none" };
@@ -5733,6 +5744,9 @@
         italicControl.disabled = !layer || isImage;
         effectControl.disabled = !layer || isImage;
         outlineColorControl.disabled = !layer || isImage;
+        alignControl.disabled = !layer || isImage;
+        opacityControl.disabled = !layer || isImage;
+        lineSpacingControl.disabled = !layer || isImage;
         if (!layer) return;
         textControl.value = isImage ? "Image layer (use width and rotation controls)" : layer.text;
         colorControl.value = layer.color || "#ffffff";
@@ -5745,10 +5759,13 @@
         italicControl.checked = !!layer.italic;
         effectControl.value = layer.effect || "shadow";
         outlineColorControl.value = layer.outlineColor || "#12091f";
+        alignControl.value = layer.align || "center";
+        opacityControl.value = layer.opacity == null ? 100 : layer.opacity;
+        lineSpacingControl.value = layer.lineSpacing || 108;
       }
       function addTextLayer(text, color, fontSize) {
         layerCounter++;
-        const layer = { id: "text-" + layerCounter, type: "text", text: text || "Your text", x: 330, y: 250 + (layerCounter % 4) * 55, width: 620, fontSize: fontSize || 64, color: color || "#ffffff", rotation: 0, font: "Impact", outline: 8 };
+        const layer = { id: "text-" + layerCounter, type: "text", text: text || "Your text", x: 330, y: 250 + (layerCounter % 4) * 55, width: 620, fontSize: fontSize || 64, color: color || "#ffffff", rotation: 0, font: "Impact", outline: 8, align: "center", opacity: 100, lineSpacing: 108 };
         layers.push(layer); selectedId = layer.id; saveHistory(); renderLayers(); syncControls();
       }
       function addSticker(text, color, size) {
@@ -5884,6 +5901,11 @@
       effectControl.addEventListener("change", () => { const layer = selectedLayer(); if (layer && layer.type === "text") { layer.effect = effectControl.value; saveHistory(); renderLayers(); } });
       outlineColorControl.addEventListener("input", () => { const layer = selectedLayer(); if (layer && layer.type === "text") { layer.outlineColor = outlineColorControl.value; renderLayers(); } });
       outlineColorControl.addEventListener("change", saveHistory);
+      alignControl.addEventListener("change", () => { const layer = selectedLayer(); if (layer && layer.type === "text") { layer.align = alignControl.value; saveHistory(); renderLayers(); } });
+      opacityControl.addEventListener("input", () => { const layer = selectedLayer(); if (layer && layer.type === "text") { layer.opacity = Number(opacityControl.value); renderLayers(); } });
+      opacityControl.addEventListener("change", saveHistory);
+      lineSpacingControl.addEventListener("input", () => { const layer = selectedLayer(); if (layer && layer.type === "text") { layer.lineSpacing = Number(lineSpacingControl.value); renderLayers(); } });
+      lineSpacingControl.addEventListener("change", saveHistory);
 
       stage.addEventListener("pointerdown", event => {
         const node = event.target.closest(".thumbnail-editor-layer");
@@ -5946,7 +5968,8 @@
               ctx.drawImage(img, -layer.width / 2, -layer.height / 2, layer.width, layer.height);
             } else {
               ctx.font = (layer.italic ? "italic " : "") + (layer.bold === false ? "500 " : "900 ") + layer.fontSize + "px " + (layer.font || "Arial") + ", sans-serif";
-              ctx.textAlign = "center"; ctx.textBaseline = "middle";
+              ctx.textAlign = layer.align || "center"; ctx.textBaseline = "middle";
+              ctx.globalAlpha = (layer.opacity == null ? 100 : layer.opacity) / 100;
               ctx.lineJoin = "round";
               ctx.lineWidth = Math.max(0, Number(layer.outline || 0));
               ctx.strokeStyle = layer.outlineColor || "#12091f";
@@ -5962,11 +5985,12 @@
                 else { lines.push(line); line = word; }
               }
               if (line) lines.push(line);
-              const lineHeight = layer.fontSize * 1.08;
+              const lineHeight = layer.fontSize * (layer.lineSpacing || 108) / 100;
               const startY = -(lines.length - 1) * lineHeight / 2;
+              const textX = layer.align === "left" ? -layer.width / 2 : layer.align === "right" ? layer.width / 2 : 0;
               lines.forEach((value, index) => {
-                if (layer.outline) ctx.strokeText(value, 0, startY + index * lineHeight, layer.width);
-                ctx.fillText(value, 0, startY + index * lineHeight, layer.width);
+                if (layer.outline) ctx.strokeText(value, textX, startY + index * lineHeight, layer.width);
+                ctx.fillText(value, textX, startY + index * lineHeight, layer.width);
               });
             }
             ctx.restore();
