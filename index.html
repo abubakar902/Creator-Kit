@@ -3505,30 +3505,38 @@
       .thumbnail-studio-canvas { position:static; }
     }
 
-    /* RIGHT-SIDE STICKER LIBRARY BOX */
-    .thumbnail-sticker-box {
-      margin:0 0 16px; padding:12px; border:1px solid var(--border-strong);
-      border-radius:14px; background:rgba(18,12,34,.94);
-      box-shadow:0 12px 30px rgba(0,0,0,.24);
+    /* SMALL STICKER POPUP BESIDE THE STICKERS TOOL */
+    .thumbnail-sticker-dock { position:relative; width:100%; }
+    .thumbnail-sticker-dock .thumbnail-sticker-picker {
+      position:absolute; z-index:100; left:calc(100% + 10px); top:0;
+      display:grid; grid-template-columns:1fr 1fr; gap:9px;
+      width:260px; max-width:min(260px, 42vw);
+      max-height:min(330px, 62vh); overflow:auto;
+      margin:0; padding:12px; border:1px solid var(--border-strong);
+      border-radius:13px; background:rgba(18,12,34,.98);
+      box-shadow:0 14px 34px rgba(0,0,0,.42);
     }
-    .thumbnail-sticker-box[hidden] { display:none; }
-    .thumbnail-sticker-box-head { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; }
-    .thumbnail-sticker-box-head strong { color:#f2eaff; font-size:13px; }
-    .thumbnail-sticker-box-head button { min-height:30px; padding:4px 9px; }
-    .thumbnail-sticker-box .thumbnail-sticker-picker {
-      position:static; display:grid; grid-template-columns:1fr 1fr;
-      width:100%; max-height:min(390px, 55vh); overflow:auto; margin:0;
-      box-shadow:none; padding:0; border:0; background:transparent;
+    .thumbnail-sticker-dock .thumbnail-sticker-picker[hidden] { display:none; }
+    .thumbnail-sticker-dock .thumbnail-sticker-group strong { font-size:11px; }
+    .thumbnail-sticker-dock .thumbnail-sticker-group > div { gap:5px; }
+    .thumbnail-sticker-dock .thumbnail-sticker-group button { min-height:34px; padding:5px 7px; }
+    .thumbnail-sticker-close {
+      display:none; position:absolute; z-index:101; top:5px; right:5px;
+      min-width:27px; min-height:27px; padding:2px 6px; border-radius:8px;
     }
-    .thumbnail-sticker-box .thumbnail-sticker-picker[hidden] { display:none; }
-    .thumbnail-sticker-box .thumbnail-sticker-group { min-width:0; }
+    .thumbnail-sticker-dock.is-open .thumbnail-sticker-close { display:block; }
+    @media(max-width:820px) {
+      .thumbnail-sticker-dock .thumbnail-sticker-picker {
+        left:0; top:calc(100% + 7px); width:min(260px, calc(100vw - 54px));
+        max-width:none; max-height:300px;
+      }
+    }
     .thumbnail-editor-layers { display:flex; flex-direction:column; flex-wrap:nowrap; gap:7px; max-height:260px; }
     .thumbnail-editor-layers .thumbnail-layer-chip { width:100%; text-align:left; cursor:grab; }
     .thumbnail-editor-layers .thumbnail-layer-chip:active { cursor:grabbing; }
     .thumbnail-editor-layers .thumbnail-layer-chip.is-dragging { opacity:.4; }
     @media(max-width:680px) {
-      .thumbnail-sticker-box { padding:10px; }
-      .thumbnail-sticker-box .thumbnail-sticker-picker { grid-template-columns:1fr; max-height:360px; }
+      .thumbnail-sticker-dock .thumbnail-sticker-picker { grid-template-columns:1fr; }
     }
 </style>
 
@@ -5560,6 +5568,10 @@
       toolsRail.className = "thumbnail-studio-tools";
       toolsRail.innerHTML = '<div class="thumbnail-studio-section-title">① ADD TO THUMBNAIL</div>';
       const stickerButton = actionBar.querySelector("[data-add-sticker]");
+      const stickerDock = document.createElement("div");
+      stickerDock.className = "thumbnail-sticker-dock";
+      stickerButton.replaceWith(stickerDock);
+      stickerDock.append(stickerButton, stickerPanel);
       toolsRail.append(addTextBar, actionBar);
 
       const canvasArea = document.createElement("main");
@@ -5570,12 +5582,7 @@
       const inspectorRail = document.createElement("aside");
       inspectorRail.className = "thumbnail-studio-inspector";
       inspectorRail.innerHTML = '<div class="thumbnail-studio-section-title">② EDIT & ORGANIZE</div>';
-      const stickerBox = document.createElement("section");
-      stickerBox.className = "thumbnail-sticker-box";
-      stickerBox.innerHTML = '<div class="thumbnail-sticker-box-head"><strong>✨ Stickers Library</strong><button type="button" class="secondary" data-close-stickers aria-label="Close stickers">✕</button></div>';
-      stickerBox.hidden = true;
-      stickerBox.append(stickerPanel);
-      inspectorRail.append(stickerBox, inspector);
+      inspectorRail.append(inspector);
 
       workspace.append(toolsRail, canvasArea, inspectorRail);
       const modeNote = document.createElement("p");
@@ -5778,15 +5785,21 @@
           holder.append(option);
         });
       });
-      const stickerBoxElement = shell.querySelector(".thumbnail-sticker-box");
-      shell.querySelector("[data-add-sticker]").addEventListener("click", () => {
-        stickerBoxElement.hidden = !stickerBoxElement.hidden;
-        stickerPicker.hidden = !stickerBoxElement.hidden;
-        if (!stickerBoxElement.hidden) stickerBoxElement.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      const stickerDockElement = shell.querySelector(".thumbnail-sticker-dock");
+      const closeStickerButton = document.createElement("button");
+      closeStickerButton.type = "button";
+      closeStickerButton.className = "secondary thumbnail-sticker-close";
+      closeStickerButton.textContent = "✕";
+      closeStickerButton.setAttribute("aria-label", "Close stickers");
+      stickerDockElement.append(closeStickerButton);
+      stickerButton.addEventListener("click", () => {
+        const opening = stickerPanel.hidden;
+        stickerPanel.hidden = !opening;
+        stickerDockElement.classList.toggle("is-open", opening);
       });
-      shell.querySelector("[data-close-stickers]").addEventListener("click", () => {
-        stickerBoxElement.hidden = true;
-        stickerPicker.hidden = true;
+      closeStickerButton.addEventListener("click", () => {
+        stickerPanel.hidden = true;
+        stickerDockElement.classList.remove("is-open");
       });
       shell.querySelector("[data-upload-image]").addEventListener("click", () => fileInput.click());
       fileInput.addEventListener("change", () => {
