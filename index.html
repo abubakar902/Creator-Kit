@@ -3659,6 +3659,67 @@
         overflow:visible !important;
       }
     }
+
+    /* THUMBNAIL STUDIO — ADVANCED MODE + FIXED CANVAS / INDEPENDENT SIDE RAILS */
+    .thumbnail-editor-overlay .thumbnail-editor-shell { max-width:1900px; }
+    @media(min-width:1051px) {
+      .thumbnail-editor-overlay {
+        overflow:hidden;
+        height:100dvh;
+        display:flex;
+        flex-direction:column;
+      }
+      .thumbnail-editor-overlay-topbar { flex:0 0 auto; }
+      .thumbnail-editor-overlay .thumbnail-editor-shell {
+        flex:1 1 auto;
+        min-height:0;
+        height:calc(100dvh - 66px);
+        display:flex;
+        flex-direction:column;
+        margin:8px auto 0;
+        padding:12px clamp(14px,1.4vw,24px);
+        overflow:hidden;
+      }
+      .thumbnail-studio-top { flex:0 0 auto; padding-bottom:9px; }
+      .thumbnail-studio-workspace {
+        flex:1 1 auto;
+        min-height:0;
+        height:100%;
+        grid-template-columns:minmax(280px,310px) minmax(0,1fr) minmax(340px,380px);
+        align-items:stretch;
+        gap:clamp(12px,1.2vw,20px);
+        margin-top:10px;
+        overflow:hidden;
+      }
+      .thumbnail-studio-tools,
+      .thumbnail-studio-inspector {
+        height:100%;
+        max-height:none;
+        min-height:0;
+        overflow-x:hidden !important;
+        overflow-y:auto !important;
+        overscroll-behavior:contain;
+        scrollbar-width:thin;
+        scrollbar-color:rgba(196,181,253,.45) rgba(255,255,255,.035);
+      }
+      .thumbnail-studio-canvas {
+        align-self:start;
+        position:sticky;
+        top:0;
+        min-width:0;
+        max-height:100%;
+        overflow:visible;
+      }
+      .thumbnail-studio-canvas .thumbnail-editor-stage {
+        max-height:calc(100dvh - 230px);
+      }
+    }
+    @media(max-width:1050px) {
+      .thumbnail-editor-overlay { overflow:auto; height:auto; display:block; }
+      .thumbnail-editor-overlay .thumbnail-editor-shell { height:auto; min-height:0; display:block; overflow:visible; }
+      .thumbnail-studio-workspace { height:auto; overflow:visible; }
+      .thumbnail-studio-tools, .thumbnail-studio-inspector { height:auto; max-height:none; overflow:visible !important; }
+    }
 </style>
 
     <!-- AI CREATOR ASSISTANT WORKSPACE -->
@@ -5769,10 +5830,11 @@
         '<div class="thumbnail-bg-paint"><strong>Selective Brush &amp; Eraser</strong><p class="thumbnail-editor-note">Paint only the area you want to shade. Use Eraser to restore it.</p><div class="thumbnail-bg-paint-tools"><button type="button" class="secondary active" data-bg-paint-mode="brush">🖌️ Free Brush</button><button type="button" class="secondary" data-bg-paint-mode="eraser">⌫ Eraser</button><button type="button" class="secondary" data-bg-paint-mode="rect">▭ Rectangle Shade</button><button type="button" class="secondary" data-bg-paint-mode="ellipse">◯ Ellipse Shade</button></div><p class="thumbnail-editor-note">Rectangle ya ellipse choose karke canvas par drag karein. Shade sirf shape ke andar lagega.</p><label>Brush colour <input type="color" data-bg-paint-color value="#160b2b"></label><label>Brush size <output data-bg-paint-size-value>70px</output><input type="range" min="10" max="240" value="70" data-bg-paint-size></label><label>Strength <output data-bg-paint-opacity-value>45%</output><input type="range" min="5" max="100" value="45" data-bg-paint-opacity></label><button type="button" class="secondary" data-bg-paint-clear>Clear brush strokes</button></div>',
         '<button type="button" class="secondary thumbnail-bg-reset" data-bg-reset>↺ Reset background</button>'
       ].join("");
-      const backgroundGroup = makeStudioGroup(toolsRail, "Background Studio", "🎨", [backgroundStudio], { open: false });
       const addTextGroup = makeStudioGroup(toolsRail, "Add Text", "T", [addTextBar], { open: true });
       const stickerGroup = makeStudioGroup(toolsRail, "Stickers", "✨", [stickerDock], { open: false });
       const imageGroup = makeStudioGroup(toolsRail, "Add Image", "🖼️", [uploadButton, imageFileControl], { open: false });
+      const backgroundGroup = makeStudioGroup(toolsRail, "Background Studio", "🎨", [backgroundStudio], { open: false, advanced: true });
+      imageGroup.after(backgroundGroup);
       const shapeGroup = makeStudioGroup(toolsRail, "Shapes", "⬡", [addShapeButton, shapePanel], { open: false });
       const moreGroup = makeStudioGroup(toolsRail, "More Tools", "⚙️", [duplicateButton, undoButton, redoButton], { open: false, advanced: true });
       actionBar.remove();
