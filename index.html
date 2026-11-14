@@ -3465,7 +3465,45 @@
         #aiAssistantWorkspace .assistant-output-card { padding:14px; }
         #aiAssistantWorkspace .assistant-output-header h4 { font-size:.98rem; }
       }
-    </style>
+    
+    /* THUMBNAIL STUDIO — KEEP THE CANVAS VISIBLE */
+    @media(min-width:821px) {
+      .thumbnail-editor-overlay .thumbnail-editor-shell { margin-top:6px; }
+      .thumbnail-studio-workspace {
+        align-items:start;
+        gap:10px;
+        margin-top:8px;
+      }
+      .thumbnail-studio-tools,
+      .thumbnail-studio-inspector {
+        position:sticky;
+        top:76px;
+        max-height:calc(100vh - 96px);
+        overflow-y:auto;
+        overscroll-behavior:contain;
+        scrollbar-width:thin;
+      }
+      .thumbnail-studio-canvas {
+        position:sticky;
+        top:76px;
+        align-self:start;
+        padding:9px;
+      }
+      .thumbnail-studio-canvas .thumbnail-editor-stage {
+        max-height:calc(100vh - 250px);
+      }
+      .thumbnail-studio-inspector .thumbnail-sticker-picker {
+        grid-template-columns:1fr;
+        margin:8px 0 12px;
+      }
+    }
+    @media(max-width:820px) {
+      .thumbnail-studio-workspace { grid-template-columns:minmax(0,1fr); }
+      .thumbnail-studio-tools,
+      .thumbnail-studio-inspector { position:static; max-height:none; overflow:visible; }
+      .thumbnail-studio-canvas { position:static; }
+    }
+</style>
 
     <!-- AI CREATOR ASSISTANT WORKSPACE -->
     <section class="workspace" id="aiAssistantWorkspace" style="display:none">
@@ -5488,7 +5526,7 @@
       const toolsRail = document.createElement("aside");
       toolsRail.className = "thumbnail-studio-tools";
       toolsRail.innerHTML = '<div class="thumbnail-studio-section-title">① ADD TO THUMBNAIL</div>';
-      toolsRail.append(addTextBar, actionBar, stickerPanel);
+      toolsRail.append(addTextBar, actionBar);
 
       const canvasArea = document.createElement("main");
       canvasArea.className = "thumbnail-studio-canvas";
@@ -5498,7 +5536,7 @@
       const inspectorRail = document.createElement("aside");
       inspectorRail.className = "thumbnail-studio-inspector";
       inspectorRail.innerHTML = '<div class="thumbnail-studio-section-title">② EDIT & ORGANIZE</div>';
-      inspectorRail.append(inspector);
+      inspectorRail.append(stickerPanel, inspector);
 
       workspace.append(toolsRail, canvasArea, inspectorRail);
       const modeNote = document.createElement("p");
