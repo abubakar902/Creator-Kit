@@ -5530,7 +5530,7 @@
             '<div class="field-group"><label>Text colour</label><input type="color" value="#ffffff" data-layer-color style="width:100%;min-height:44px"></div>',
             '<div class="field-group"><label>Font style</label><select data-layer-font><option value="Arial">Bold / Modern</option><option value="Impact">Impact</option><option value="Georgia">Georgia</option><option value="Trebuchet MS">Trebuchet</option><option value="Verdana">Verdana</option></select></div>',
             '<div class="field-group"><label>Text alignment</label><select data-layer-align><option value="center">Center</option><option value="left">Left</option><option value="right">Right</option></select></div>',
-            '<div class="field-group"><label>Text opacity</label><input type="range" min="10" max="100" value="100" data-layer-opacity style="width:100%"></div>',
+            '<div class="field-group"><label>Object opacity</label><input type="range" min="0" max="100" value="100" data-layer-opacity style="width:100%"></div>',
             '<div class="field-group"><label>Line spacing</label><input type="range" min="80" max="180" value="108" data-layer-line-spacing style="width:100%"></div>',
             '<div class="field-group"><label>Text style</label><div class="thumbnail-type-toggles"><label><input type="checkbox" data-layer-bold checked> Bold</label><label><input type="checkbox" data-layer-italic> Italic</label></div></div>',
             '<div class="field-group"><label>Text effect</label><select data-layer-effect><option value="shadow">Soft shadow</option><option value="strong">Strong shadow</option><option value="glow">Purple glow</option><option value="none">No effect</option></select></div>',
@@ -5538,7 +5538,7 @@
             '<div class="field-group"><label>Text size</label><input type="range" min="18" max="220" value="84" data-layer-size style="width:100%"></div>',
             '<div class="field-group"><label>Layer width</label><input type="range" min="80" max="1200" value="430" data-layer-width style="width:100%"></div>',
             '<div class="field-group"><label>Rotation</label><input type="range" min="-180" max="180" value="0" data-layer-rotation style="width:100%"></div>',
-            '<div class="field-group thumbnail-control-wide"><label>Text outline thickness</label><input type="range" min="0" max="24" value="8" data-layer-outline style="width:100%"></div>',
+            '<div class="field-group thumbnail-control-wide"><label>Outline thickness</label><input type="range" min="0" max="30" value="5" data-layer-outline style="width:100%"></div>',
           '</div>',
         '</div>',
         '<div class="thumbnail-editor-toolbar thumbnail-editor-export"><button type="button" class="primary" data-export-thumbnail>⬇️ Download Final Thumbnail PNG</button></div>',
@@ -5625,6 +5625,7 @@
       const alignControl = shell.querySelector("[data-layer-align]");
       const opacityControl = shell.querySelector("[data-layer-opacity]");
       const lineSpacingControl = shell.querySelector("[data-layer-line-spacing]");
+      const shapeOutlineHint = shell.querySelector("[data-layer-outline]");
       const message = shell.querySelector("[data-editor-message]");
       const fileInput = shell.querySelector("[data-image-file]");
       const stickerPicker = shell.querySelector("[data-sticker-picker]");
@@ -5694,6 +5695,9 @@
             node.textContent = ({ rectangle:"▰", circle:"●", triangle:"▲", star:"★", arrow:"➜" })[layer.shape] || "●";
             node.style.fontSize = (layer.fontSize * stageWidth / 1280) + "px";
             node.style.color = layer.color || "#ffcc33";
+            node.style.webkitTextStroke = Math.max(0, Number(layer.outline || 0) * stageWidth / 1280) + "px " + (layer.outlineColor || "#12091f");
+            node.style.paintOrder = "stroke fill";
+            node.style.opacity = String((layer.opacity == null ? 100 : layer.opacity) / 100);
             node.style.lineHeight = "1";
             node.style.textShadow = "0 3px 10px rgba(0,0,0,.45)";
           } else {
@@ -5755,13 +5759,13 @@
         colorControl.disabled = !layer || isImage;
         fontControl.disabled = !isText;
         sizeControl.disabled = !layer || isImage;
-        outlineControl.disabled = !isText;
+        outlineControl.disabled = !(isText || (layer && layer.type === "shape"));
         boldControl.disabled = !isText;
         italicControl.disabled = !isText;
         effectControl.disabled = !isText;
-        outlineColorControl.disabled = !isText;
+        outlineColorControl.disabled = !(isText || (layer && layer.type === "shape"));
         alignControl.disabled = !isText;
-        opacityControl.disabled = !isText;
+        opacityControl.disabled = !(isText || (layer && layer.type === "shape"));
         lineSpacingControl.disabled = !isText;
         if (!layer) return;
         textControl.value = isText ? layer.text : (isImage ? "Image layer (use width and rotation controls)" : "Shape layer (use colour, width and rotation)");
@@ -5771,6 +5775,7 @@
         widthControl.value = Math.max(80, Math.min(1200, layer.width || 430));
         rotationControl.value = layer.rotation || 0;
         outlineControl.value = layer.outline || 0;
+        outlineColorControl.value = layer.outlineColor || "#12091f";
         boldControl.checked = layer.bold !== false;
         italicControl.checked = !!layer.italic;
         effectControl.value = layer.effect || "shadow";
@@ -5903,7 +5908,7 @@
       textControl.addEventListener("change", saveHistory);
       colorControl.addEventListener("input", () => {
         const layer = selectedLayer();
-        if (layer && layer.type === "text") { layer.color = colorControl.value; renderLayers(); }
+        if (layer && (layer.type === "text" || layer.type === "shape")) { layer.color = colorControl.value; renderLayers(); }
       });
       colorControl.addEventListener("change", saveHistory);
       fontControl.addEventListener("change", () => {
@@ -5926,16 +5931,16 @@
       });
       rotationControl.addEventListener("change", saveHistory);
       outlineControl.addEventListener("input", () => {
-        const layer = selectedLayer(); if (layer && layer.type === "text") { layer.outline = Number(outlineControl.value); renderLayers(); }
+        const layer = selectedLayer(); if (layer && (layer.type === "text" || layer.type === "shape")) { layer.outline = Number(outlineControl.value); renderLayers(); }
       });
       outlineControl.addEventListener("change", saveHistory);
       boldControl.addEventListener("change", () => { const layer = selectedLayer(); if (layer && layer.type === "text") { layer.bold = boldControl.checked; saveHistory(); renderLayers(); } });
       italicControl.addEventListener("change", () => { const layer = selectedLayer(); if (layer && layer.type === "text") { layer.italic = italicControl.checked; saveHistory(); renderLayers(); } });
       effectControl.addEventListener("change", () => { const layer = selectedLayer(); if (layer && layer.type === "text") { layer.effect = effectControl.value; saveHistory(); renderLayers(); } });
-      outlineColorControl.addEventListener("input", () => { const layer = selectedLayer(); if (layer && layer.type === "text") { layer.outlineColor = outlineColorControl.value; renderLayers(); } });
+      outlineColorControl.addEventListener("input", () => { const layer = selectedLayer(); if (layer && (layer.type === "text" || layer.type === "shape")) { layer.outlineColor = outlineColorControl.value; renderLayers(); } });
       outlineColorControl.addEventListener("change", saveHistory);
       alignControl.addEventListener("change", () => { const layer = selectedLayer(); if (layer && layer.type === "text") { layer.align = alignControl.value; saveHistory(); renderLayers(); } });
-      opacityControl.addEventListener("input", () => { const layer = selectedLayer(); if (layer && layer.type === "text") { layer.opacity = Number(opacityControl.value); renderLayers(); } });
+      opacityControl.addEventListener("input", () => { const layer = selectedLayer(); if (layer && (layer.type === "text" || layer.type === "shape")) { layer.opacity = Number(opacityControl.value); renderLayers(); } });
       opacityControl.addEventListener("change", saveHistory);
       lineSpacingControl.addEventListener("input", () => { const layer = selectedLayer(); if (layer && layer.type === "text") { layer.lineSpacing = Number(lineSpacingControl.value); renderLayers(); } });
       lineSpacingControl.addEventListener("change", saveHistory);
@@ -6013,6 +6018,7 @@
                 ctx.moveTo(-w/2,-h/6);ctx.lineTo(w/6,-h/6);ctx.lineTo(w/6,-h/2);ctx.lineTo(w/2,0);ctx.lineTo(w/6,h/2);ctx.lineTo(w/6,h/6);ctx.lineTo(-w/2,h/6);ctx.closePath();
               } else { ctx.rect(-w/2,-h/2,w,h); }
               ctx.fill();
+              if (Number(layer.outline || 0) > 0) { ctx.lineWidth = Number(layer.outline) * 2; ctx.lineJoin = "round"; ctx.strokeStyle = layer.outlineColor || "#12091f"; ctx.stroke(); }
             } else {
               ctx.font = (layer.italic ? "italic " : "") + (layer.bold === false ? "500 " : "900 ") + layer.fontSize + "px " + (layer.font || "Arial") + ", sans-serif";
               ctx.textAlign = layer.align || "center"; ctx.textBaseline = "middle";
