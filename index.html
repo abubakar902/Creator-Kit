@@ -2086,6 +2086,30 @@
       .thumbnail-studio-canvas-title strong { font-size:12px; }
     }
 
+    /* STEP 2 REFINEMENT + STEP 3 TYPOGRAPHY STUDIO */
+    .thumbnail-editor-overlay-topbar { min-height:48px; padding-top:7px; padding-bottom:7px; }
+    .thumbnail-editor-overlay .thumbnail-editor-shell { margin-top:5px; }
+    .thumbnail-studio-top { padding-bottom:8px; }
+    .thumbnail-studio-workspace { margin-top:7px; gap:10px; }
+    .thumbnail-studio-canvas { padding:8px; }
+    .thumbnail-studio-canvas-title { margin-bottom:6px; }
+    .thumbnail-studio-canvas .thumbnail-editor-stage { margin-bottom:6px; }
+    .thumbnail-studio-canvas .thumbnail-editor-understage { margin-bottom:6px; }
+    .thumbnail-studio-mode-note { margin-top:5px; }
+    .thumbnail-type-toggles { display:flex; flex-wrap:wrap; gap:12px; align-items:center; min-height:40px; }
+    .thumbnail-type-toggles label { display:inline-flex; align-items:center; gap:6px; color:var(--text); font-size:12px; font-weight:700; }
+    .thumbnail-type-toggles input { width:16px; height:16px; accent-color:#a78bfa; }
+    .thumbnail-studio-inspector [data-layer-effect],
+    .thumbnail-studio-inspector [data-layer-font] { width:100%; min-height:42px; }
+    @media(min-width:1051px) {
+      .thumbnail-studio-canvas { margin-top:-2px; }
+      .thumbnail-studio-canvas .thumbnail-editor-stage { max-height:calc(100vh - 250px); }
+    }
+    @media(max-width:680px) {
+      .thumbnail-editor-overlay-topbar { min-height:42px; padding-top:6px; padding-bottom:6px; }
+      .thumbnail-studio-workspace { margin-top:6px; }
+    }
+
     /* RESPONSIVE BREAKPOINTS */
     @media (max-width: 960px) {
       .hero {
@@ -5428,6 +5452,9 @@
             '<div class="field-group thumbnail-control-wide"><label>Selected text — yahan likhein ya change karein</label><textarea rows="2" data-layer-text placeholder="Pehle canvas par text select karein, ya upar Add New Text dabayein"></textarea></div>',
             '<div class="field-group"><label>Text colour</label><input type="color" value="#ffffff" data-layer-color style="width:100%;min-height:44px"></div>',
             '<div class="field-group"><label>Font style</label><select data-layer-font><option value="Arial">Bold / Modern</option><option value="Impact">Impact</option><option value="Georgia">Georgia</option><option value="Trebuchet MS">Trebuchet</option><option value="Verdana">Verdana</option></select></div>',
+            '<div class="field-group"><label>Text style</label><div class="thumbnail-type-toggles"><label><input type="checkbox" data-layer-bold checked> Bold</label><label><input type="checkbox" data-layer-italic> Italic</label></div></div>',
+            '<div class="field-group"><label>Text effect</label><select data-layer-effect><option value="shadow">Soft shadow</option><option value="strong">Strong shadow</option><option value="glow">Purple glow</option><option value="none">No effect</option></select></div>',
+            '<div class="field-group"><label>Outline colour</label><input type="color" value="#12091f" data-layer-outline-color style="width:100%;min-height:40px"></div>',
             '<div class="field-group"><label>Text size</label><input type="range" min="18" max="220" value="84" data-layer-size style="width:100%"></div>',
             '<div class="field-group"><label>Layer width</label><input type="range" min="80" max="1200" value="430" data-layer-width style="width:100%"></div>',
             '<div class="field-group"><label>Rotation</label><input type="range" min="-180" max="180" value="0" data-layer-rotation style="width:100%"></div>',
@@ -5478,6 +5505,7 @@
       modeNote.className = "thumbnail-studio-mode-note";
       modeNote.textContent = "Simple mode keeps the main controls easy to find. Switch to Advanced for extra text settings.";
       shell.replaceChildren(studioTop, workspace, modeNote, editorMessage);
+      shell.classList.add("thumbnail-studio-step3");
 
       modeSwitch.querySelectorAll("[data-editor-mode]").forEach(button => {
         button.addEventListener("click", () => {
@@ -5504,6 +5532,10 @@
       const rotationControl = shell.querySelector("[data-layer-rotation]");
       const fontControl = shell.querySelector("[data-layer-font]");
       const outlineControl = shell.querySelector("[data-layer-outline]");
+      const boldControl = shell.querySelector("[data-layer-bold]");
+      const italicControl = shell.querySelector("[data-layer-italic]");
+      const effectControl = shell.querySelector("[data-layer-effect]");
+      const outlineColorControl = shell.querySelector("[data-layer-outline-color]");
       const message = shell.querySelector("[data-editor-message]");
       const fileInput = shell.querySelector("[data-image-file]");
       const stickerPicker = shell.querySelector("[data-sticker-picker]");
@@ -5569,11 +5601,14 @@
           } else {
             node.textContent = layer.text;
             node.style.fontFamily = '"' + (layer.font || "Arial") + '", sans-serif';
+            node.style.fontWeight = layer.bold === false ? "500" : "900";
+            node.style.fontStyle = layer.italic ? "italic" : "normal";
             node.style.fontSize = (layer.fontSize * stageWidth / 1280) + "px";
             node.style.color = layer.color || "#ffffff";
-            node.style.webkitTextStroke = Math.max(0, Number(layer.outline || 0) * stageWidth / 1280) + "px #12091f";
+            node.style.webkitTextStroke = Math.max(0, Number(layer.outline || 0) * stageWidth / 1280) + "px " + (layer.outlineColor || "#12091f");
             node.style.paintOrder = "stroke fill";
-            node.style.textShadow = "2px 3px 7px rgba(0,0,0,.9), -1px -1px 2px #000, 1px 1px 2px #000";
+            const effects = { shadow:"2px 3px 7px rgba(0,0,0,.9)", strong:"4px 5px 12px rgba(0,0,0,1)", glow:"0 0 8px #b78cff, 0 0 18px #8b5cf6", none:"none" };
+            node.style.textShadow = effects[layer.effect || "shadow"];
           }
           stage.append(node);
           const chip = document.createElement("button");
@@ -5592,6 +5627,10 @@
         fontControl.disabled = !layer || isImage;
         sizeControl.disabled = !layer || isImage;
         outlineControl.disabled = !layer || isImage;
+        boldControl.disabled = !layer || isImage;
+        italicControl.disabled = !layer || isImage;
+        effectControl.disabled = !layer || isImage;
+        outlineColorControl.disabled = !layer || isImage;
         if (!layer) return;
         textControl.value = isImage ? "Image layer (use width and rotation controls)" : layer.text;
         colorControl.value = layer.color || "#ffffff";
@@ -5600,6 +5639,10 @@
         widthControl.value = Math.max(80, Math.min(1200, layer.width || 430));
         rotationControl.value = layer.rotation || 0;
         outlineControl.value = layer.outline || 0;
+        boldControl.checked = layer.bold !== false;
+        italicControl.checked = !!layer.italic;
+        effectControl.value = layer.effect || "shadow";
+        outlineColorControl.value = layer.outlineColor || "#12091f";
       }
       function addTextLayer(text, color, fontSize) {
         layerCounter++;
@@ -5718,6 +5761,11 @@
         const layer = selectedLayer(); if (layer && layer.type === "text") { layer.outline = Number(outlineControl.value); renderLayers(); }
       });
       outlineControl.addEventListener("change", saveHistory);
+      boldControl.addEventListener("change", () => { const layer = selectedLayer(); if (layer && layer.type === "text") { layer.bold = boldControl.checked; saveHistory(); renderLayers(); } });
+      italicControl.addEventListener("change", () => { const layer = selectedLayer(); if (layer && layer.type === "text") { layer.italic = italicControl.checked; saveHistory(); renderLayers(); } });
+      effectControl.addEventListener("change", () => { const layer = selectedLayer(); if (layer && layer.type === "text") { layer.effect = effectControl.value; saveHistory(); renderLayers(); } });
+      outlineColorControl.addEventListener("input", () => { const layer = selectedLayer(); if (layer && layer.type === "text") { layer.outlineColor = outlineColorControl.value; renderLayers(); } });
+      outlineColorControl.addEventListener("change", saveHistory);
 
       stage.addEventListener("pointerdown", event => {
         const node = event.target.closest(".thumbnail-editor-layer");
@@ -5769,11 +5817,14 @@
               const img = await loadImageForThumbnail(layer.src);
               ctx.drawImage(img, -layer.width / 2, -layer.height / 2, layer.width, layer.height);
             } else {
-              ctx.font = "900 " + layer.fontSize + "px " + (layer.font || "Arial") + ", sans-serif";
+              ctx.font = (layer.italic ? "italic " : "") + (layer.bold === false ? "500 " : "900 ") + layer.fontSize + "px " + (layer.font || "Arial") + ", sans-serif";
               ctx.textAlign = "center"; ctx.textBaseline = "middle";
               ctx.lineJoin = "round";
               ctx.lineWidth = Math.max(0, Number(layer.outline || 0));
-              ctx.strokeStyle = "rgba(0,0,0,.95)";
+              ctx.strokeStyle = layer.outlineColor || "#12091f";
+              if (layer.effect === "glow") { ctx.shadowColor = "#9b6cff"; ctx.shadowBlur = 18; }
+              else if (layer.effect === "strong") { ctx.shadowColor = "rgba(0,0,0,1)"; ctx.shadowBlur = 12; ctx.shadowOffsetX = 4; ctx.shadowOffsetY = 5; }
+              else if (layer.effect === "shadow") { ctx.shadowColor = "rgba(0,0,0,.9)"; ctx.shadowBlur = 7; ctx.shadowOffsetX = 2; ctx.shadowOffsetY = 3; }
               ctx.fillStyle = layer.color || "#ffffff";
               const words = String(layer.text || "").trim().split(/\s+/).filter(Boolean);
               const lines = []; let line = "";
