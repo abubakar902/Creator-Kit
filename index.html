@@ -5862,9 +5862,10 @@
         selectedId = layer.id;
         const rect = stage.getBoundingClientRect();
         saveHistory();
-        dragState = { id: layer.id, startX: event.clientX, startY: event.clientY, x: layer.x, y: layer.y, width: rect.width, height: rect.height };
-        stage.setPointerCapture(event.pointerId);
-        renderLayers(); syncControls();
+        dragState = { id: layer.id, node, startX: event.clientX, startY: event.clientY, x: layer.x, y: layer.y, width: rect.width, height: rect.height };
+        try { stage.setPointerCapture(event.pointerId); } catch (_) {}
+        stage.querySelectorAll(".thumbnail-editor-layer").forEach(item => item.classList.toggle("selected", item.dataset.layerId === selectedId));
+        syncControls();
         event.preventDefault();
       });
       stage.addEventListener("pointermove", event => {
@@ -5873,14 +5874,25 @@
         if (!layer) return;
         const nextX = dragState.x + (event.clientX - dragState.startX) * 1280 / dragState.width;
         const nextY = dragState.y + (event.clientY - dragState.startY) * 720 / dragState.height;
-        // No dotted guide or restrictive inner box: the layer can be moved freely.
-        // Keep a small handle visible so an off-edge layer can still be recovered.
+        // Update the existing element while dragging; rebuilding the canvas here
+        // would interrupt pointer tracking and make text feel stuck.
         layer.x = Math.max(-layer.width + 36, Math.min(1280 - 36, nextX));
         layer.y = Math.max(-(layer.height || layer.fontSize * 2) + 28, Math.min(720 - 28, nextY));
-        renderLayers();
+        if (dragState.node && dragState.node.isConnected) {
+          dragState.node.style.left = (layer.x / 1280 * 100) + "%";
+          dragState.node.style.top = (layer.y / 720 * 100) + "%";
+        }
       });
-      stage.addEventListener("pointerup", () => { if (dragState) saveHistory(); dragState = null; });
-      stage.addEventListener("pointercancel", () => { dragState = null; });
+      const finishLayerDrag = () => {
+        if (!dragState) return;
+        dragState = null;
+        saveHistory();
+        renderLayers();
+        syncControls();
+      };
+      stage.addEventListener("pointerup", finishLayerDrag);
+      stage.addEventListener("pointercancel", finishLayerDrag);
+      stage.addEventListener("lostpointercapture", finishLayerDrag);
 
       shell.querySelector("[data-export-thumbnail]").addEventListener("click", async () => {
         const button = shell.querySelector("[data-export-thumbnail]");
