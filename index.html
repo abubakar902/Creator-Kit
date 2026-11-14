@@ -3312,8 +3312,8 @@
         <div class="field-group">
           <label for="thumbnailPosition">Headline position</label>
           <select id="thumbnailPosition">
+            <option value="left" selected>Left Side</option>
             <option value="right">Right Side</option>
-            <option value="left">Left Side</option>
             <option value="top">Top</option>
             <option value="bottom">Bottom</option>
           </select>
@@ -5411,28 +5411,32 @@
       const isSide = position === "left" || position === "right";
       const textAtTop = position === "top";
 
-      // Soft full-bleed backdrop plus the complete generated frame on top.
-      // This avoids cropping the character if the image service returns a non-16:9 image.
+      // Full-bleed 16:9 image: no blurred side bars or empty borders.
+      // The generation prompt keeps the subject inside the central safe area before this crop.
       const coverScale = Math.max(canvas.width / sourceImage.naturalWidth, canvas.height / sourceImage.naturalHeight);
       const coverWidth = sourceImage.naturalWidth * coverScale;
       const coverHeight = sourceImage.naturalHeight * coverScale;
       const coverX = (canvas.width - coverWidth) / 2;
       const coverY = (canvas.height - coverHeight) / 2;
       ctx.save();
-      ctx.filter = "blur(24px) brightness(0.48)";
+      ctx.filter = "brightness(0.98) contrast(1.06) saturate(1.12)";
       ctx.drawImage(sourceImage, coverX, coverY, coverWidth, coverHeight);
       ctx.restore();
-      const containScale = Math.min(canvas.width / sourceImage.naturalWidth, canvas.height / sourceImage.naturalHeight);
-      const containWidth = sourceImage.naturalWidth * containScale;
-      const containHeight = sourceImage.naturalHeight * containScale;
-      const containX = (canvas.width - containWidth) / 2;
-      const containY = (canvas.height - containHeight) / 2;
-      ctx.save();
-      ctx.filter = "brightness(0.96)";
-      ctx.drawImage(sourceImage, containX, containY, containWidth, containHeight);
-      ctx.restore();
 
-      // No side blur or dark overlay: keep the generated image clear across the full frame.
+      // A subtle dark-to-transparent text-side shade improves headline readability.
+      if (isSide) {
+        const shade = ctx.createLinearGradient(
+          position === "left" ? 0 : canvas.width, 0,
+          position === "left" ? 650 : canvas.width - 650, 0
+        );
+        shade.addColorStop(0, "rgba(3,5,12,0.72)");
+        shade.addColorStop(0.72, "rgba(3,5,12,0.28)");
+        shade.addColorStop(1, "rgba(3,5,12,0)");
+        ctx.fillStyle = shade;
+        ctx.fillRect(position === "left" ? 0 : canvas.width - 650, 0, 650, canvas.height);
+        ctx.fillStyle = "rgba(239,35,55,0.9)";
+        ctx.fillRect(position === "left" ? 58 : canvas.width - 66, 118, 8, 484);
+      }
 
       const maxWidth = isSide ? 520 : 1080;
       const maxLines = isSide ? 3 : 2;
@@ -5976,23 +5980,23 @@
         return;
       }
 
-      // One clear scene only. The exact headline is added later by the website.
-      const thumbnailPrompt = "Create one single 16:9 YouTube thumbnail background. " +
-        "Picture instruction: " + instruction + ". " +
-        "Character type: " + characterType + ". " +
-        "Visual style: " + style + ". " +
-        (characterType === "no character" ? "Do not include people or characters. " :
-          position === "left" ? "Show one clear main character in the upper-right area. " :
-          position === "right" ? "Show one clear main character in the upper-left area. " :
-          position === "top" ? "Show one clear main character in the lower half. " :
-          "Show one clear main character in the upper half. ") +
-        (characterType === "no character" ? "" : "Keep the entire character fully inside the frame with visible head and body, leave generous safe margins from every edge, and never crop or cut off the character. ") +
-        "Make the requested scene obvious, detailed, bright and sharp. " +
-        (position === "left" ? "Keep the left side clear for a headline added later. " :
-          position === "right" ? "Keep the right side clear for a headline added later. " :
-          position === "top" ? "Keep the top area clear for a headline added later. " :
-          "Keep the bottom area clear for a headline added later. ") +
-        "Do not include any text, letters, numbers, logos, split screens, panels, collage or blur.";
+      // Generate a cinematic, professional thumbnail composition; the website adds exact headline text.
+      const thumbnailPrompt = "Create a premium, high-click-through-rate YouTube thumbnail background in a true wide 16:9 landscape composition. " +
+        "Scene idea: " + instruction + ". " +
+        "Main subject type: " + characterType + ". " +
+        "Visual direction: " + style + ", cinematic movie-poster lighting, strong subject separation, rich contrast, vivid but controlled colours, crisp details, dramatic depth, realistic shadows and a clean professional creator-thumbnail finish. " +
+        (characterType === "no character" ? "Do not include any people or characters. " :
+          position === "left" ? "Place one large, expressive main character on the RIGHT third, with the full face clearly visible and looking toward the viewer. " :
+          position === "right" ? "Place one large, expressive main character on the LEFT third, with the full face clearly visible and looking toward the viewer. " :
+          position === "top" ? "Place the main character in the LOWER half, fully visible. " :
+          "Place the main character in the UPPER half, fully visible. ") +
+        (characterType === "no character" ? "" : "Keep the complete head, face and important body parts inside a generous central safe area; do not let the subject touch the frame edges or get cropped. ") +
+        "Compose the scene with a clear foreground subject and a detailed atmospheric background that fills every corner. " +
+        (position === "left" ? "Reserve the LEFT 42 percent as a darker, visually quiet headline zone; keep the main subject out of this zone. " :
+          position === "right" ? "Reserve the RIGHT 42 percent as a darker, visually quiet headline zone; keep the main subject out of this zone. " :
+          position === "top" ? "Reserve the TOP 30 percent as a darker, visually quiet headline zone. " :
+          "Reserve the BOTTOM 30 percent as a darker, visually quiet headline zone. ") +
+        "Use a single seamless scene, edge-to-edge. No text, letters, numbers, logos, watermarks, borders, split screens, panels, collage, blank margins or blurred sidebars.";
 
       if (thumbnailPrompt.length > 1000) {
         thumbnailMessage.textContent = "Please shorten the English instruction.";
