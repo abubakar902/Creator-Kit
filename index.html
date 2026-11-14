@@ -5851,6 +5851,11 @@
         '<p class="thumbnail-editor-note">Add Image se character ya object select karein. AI us image ka background remove karega.</p>',
         '<button type="button" class="primary" data-remove-image-background>✂️ Remove Background with AI</button>',
         '<button type="button" class="secondary" data-restore-original-image disabled>↶ Restore Original Image</button>',
+        '<div class="thumbnail-bg-mask-tools"><strong>Cutout Refinement</strong><p class="thumbnail-editor-note">Select an AI-cutout image, then paint on the image to erase or restore parts of the cutout.</p>',
+          '<div class="thumbnail-bg-library-grid"><button type="button" class="secondary active" data-mask-mode="erase">⌫ Erase</button><button type="button" class="secondary" data-mask-mode="restore">↶ Restore</button></div>',
+          '<label>Brush size <output data-mask-size-value>36px</output><input type="range" min="8" max="150" value="36" data-mask-size></label>',
+          '<label>Edge softness <output data-mask-softness-value>2px</output><input type="range" min="0" max="16" value="2" data-mask-softness></label>',
+          '<button type="button" class="secondary" data-mask-clear>Clear refinements</button></div>',
         '<p class="thumbnail-editor-note" data-bg-removal-status>Select an image layer first. Processing happens in your browser.</p>',
         '<div class="thumbnail-bg-library"><strong>Background Library</strong><p class="thumbnail-editor-note">Choose a theme for your 1280 × 720 thumbnail.</p>',
           '<div class="thumbnail-bg-library-grid">',
@@ -6133,6 +6138,14 @@
             const img = document.createElement("img");
             img.src = layer.src;
             img.alt = "Added image layer";
+            if (layer.maskData) {
+              img.style.maskImage = 'url("' + layer.maskData + '")';
+              img.style.webkitMaskImage = 'url("' + layer.maskData + '")';
+              img.style.maskSize = "100% 100%";
+              img.style.webkitMaskSize = "100% 100%";
+              img.style.maskRepeat = "no-repeat";
+              img.style.webkitMaskRepeat = "no-repeat";
+            }
             node.append(img);
           } else if (layer.type === "shape") {
             node.textContent = ({ rectangle:"▰", circle:"●", triangle:"▲", star:"★", arrow:"➜" })[layer.shape] || "●";
@@ -6228,6 +6241,7 @@
         opacityControl.value = layer.opacity == null ? 100 : layer.opacity;
         lineSpacingControl.value = layer.lineSpacing || 108;
         syncBackgroundRemovalControls();
+        syncMaskControls();
       }
       function addTextLayer(text, color, fontSize) {
         layerCounter++;
@@ -6377,6 +6391,25 @@
       const restoreOriginalButton = backgroundRemovalStudio.querySelector("[data-restore-original-image]");
       const removalStatus = backgroundRemovalStudio.querySelector("[data-bg-removal-status]");
       const customBackgroundInput = backgroundRemovalStudio.querySelector("[data-bg-custom-file]");
+      let maskMode = "erase";
+      const maskSizeInput = backgroundRemovalStudio.querySelector("[data-mask-size]");
+      const maskSoftnessInput = backgroundRemovalStudio.querySelector("[data-mask-softness]");
+      const maskModeButtons = backgroundRemovalStudio.querySelectorAll("[data-mask-mode]");
+      const syncMaskControls = () => {
+        const layer = selectedLayer();
+        const ready = !!layer && layer.type === "image" && !!layer.backgroundRemoved;
+        maskModeButtons.forEach(button => button.disabled = !ready);
+        maskSizeInput.disabled = !ready;
+        maskSoftnessInput.disabled = !ready;
+        backgroundRemovalStudio.querySelector("[data-mask-clear]").disabled = !ready || !layer.maskData;
+      };
+      maskModeButtons.forEach(button => button.addEventListener("click", () => {
+        maskMode = button.dataset.maskMode;
+        maskModeButtons.forEach(item => item.classList.toggle("active", item === button));
+        removalStatus.textContent = maskMode === "erase" ? "Erase mode: paint over the cutout area you want to hide." : "Restore mode: paint to bring back erased parts of the AI cutout.";
+      }));
+      maskSizeInput.addEventListener("input", () => backgroundRemovalStudio.querySelector("[data-mask-size-value]").textContent = maskSizeInput.value + "px");
+      maskSoftnessInput.addEventListener("input", () => backgroundRemovalStudio.querySelector("[data-mask-softness-value]").textContent = maskSoftnessInput.value + "px");
       const dataUrlToFile = async (dataUrl, name) => {
         const response = await fetch(dataUrl);
         const blob = await response.blob();
@@ -6417,7 +6450,8 @@
           layer.originalSrc = layer.originalSrc || layer.src;
           layer.src = await blobToDataUrl(output.blob);
           layer.backgroundRemoved = true;
-          saveHistory(); renderLayers(); syncControls();
+          layer.maskData = null;
+          saveHistory(); renderLayers(); syncControls(); syncMaskControls();
           removalStatus.textContent = "Background removed! Transparent PNG ready. Move or resize the cutout on your thumbnail.";
           message.textContent = "AI background removed. The transparent result is included in PNG export.";
         } catch (error) {
@@ -6432,8 +6466,8 @@
         const layer = selectedLayer();
         if (!layer || layer.type !== "image" || !layer.originalSrc) return;
         layer.src = layer.originalSrc;
-        delete layer.originalSrc; delete layer.backgroundRemoved;
-        saveHistory(); renderLayers(); syncControls(); syncBackgroundRemovalControls();
+        delete layer.originalSrc; delete layer.backgroundRemoved; delete layer.maskData;
+        saveHistory(); renderLayers(); syncControls(); syncBackgroundRemovalControls(); syncMaskControls();
         removalStatus.textContent = "Original image restored.";
       });
       backgroundRemovalStudio.querySelector("[data-bg-custom-upload]").addEventListener("click", () => customBackgroundInput.click());
@@ -6484,6 +6518,81 @@
           message.textContent = "Background Library theme applied.";
         } catch (error) { removalStatus.textContent = error.message || "Could not create this background."; }
       }));
+      backgroundRemovalStudio.querySelector("[data-mask-clear]").addEventListener("click", () => {
+        const layer = selectedLayer();
+        if (!layer || !layer.backgroundRemoved || !layer.maskData) return;
+        delete layer.maskData; saveHistory(); renderLayers(); syncMaskControls();
+        removalStatus.textContent = "Cutout refinements cleared.";
+      });
+      let activeMask = null;
+      const maskPoint = (event, layer, rect) => {
+        const stageX = (event.clientX - rect.left) / rect.width * 1280;
+        const stageY = (event.clientY - rect.top) / rect.height * 720;
+        const cx = layer.x + layer.width / 2, cy = layer.y + (layer.height || layer.width) / 2;
+        const angle = -(layer.rotation || 0) * Math.PI / 180;
+        const dx = stageX - cx, dy = stageY - cy;
+        const localX = dx * Math.cos(angle) - dy * Math.sin(angle) + layer.width / 2;
+        const localY = dx * Math.sin(angle) + dy * Math.cos(angle) + (layer.height || layer.width) / 2;
+        return { x: localX / layer.width * activeMask.canvas.width, y: localY / (layer.height || layer.width) * activeMask.canvas.height };
+      };
+      const paintMaskPoint = point => {
+        const layer = selectedLayer();
+        if (!activeMask || !layer) return;
+        const ctx = activeMask.ctx;
+        const scale = activeMask.canvas.width / Math.max(1, layer.width);
+        const size = Number(maskSizeInput.value) * scale;
+        ctx.save();
+        ctx.globalCompositeOperation = maskMode === "erase" ? "destination-out" : "source-over";
+        ctx.globalAlpha = 1;
+        ctx.filter = "blur(" + (Number(maskSoftnessInput.value) * scale) + "px)";
+        ctx.strokeStyle = "#ffffff"; ctx.fillStyle = "#ffffff";
+        ctx.lineWidth = size; ctx.lineCap = "round"; ctx.lineJoin = "round";
+        if (activeMask.last) {
+          ctx.beginPath(); ctx.moveTo(activeMask.last.x, activeMask.last.y); ctx.lineTo(point.x, point.y); ctx.stroke();
+        } else {
+          ctx.beginPath(); ctx.arc(point.x, point.y, size / 2, 0, Math.PI * 2); ctx.fill();
+        }
+        ctx.restore();
+        activeMask.last = point;
+        layer.maskData = activeMask.canvas.toDataURL("image/png");
+        renderLayers();
+      };
+      const beginMaskPaint = async event => {
+        const layer = selectedLayer();
+        if (!layer || layer.type !== "image" || !layer.backgroundRemoved || !stage.contains(event.target)) return;
+        event.preventDefault(); event.stopImmediatePropagation();
+        const img = await loadImageForThumbnail(layer.src);
+        const canvas = document.createElement("canvas");
+        canvas.width = img.naturalWidth || img.width; canvas.height = img.naturalHeight || img.height;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+        if (layer.maskData) {
+          const savedMask = await loadImageForThumbnail(layer.maskData);
+          ctx.drawImage(savedMask, 0, 0, canvas.width, canvas.height);
+        } else {
+          ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+        activeMask = { canvas, ctx, last:null, pointerId:event.pointerId };
+        stage.setPointerCapture(event.pointerId);
+        paintMaskPoint(maskPoint(event, layer, stage.getBoundingClientRect()));
+      };
+      const moveMaskPaint = event => {
+        if (!activeMask || activeMask.pointerId !== event.pointerId) return;
+        event.preventDefault(); event.stopImmediatePropagation();
+        const layer = selectedLayer(); if (!layer) return;
+        paintMaskPoint(maskPoint(event, layer, stage.getBoundingClientRect()));
+      };
+      const finishMaskPaint = event => {
+        if (!activeMask || activeMask.pointerId !== event.pointerId) return;
+        event.preventDefault(); event.stopImmediatePropagation();
+        activeMask = null; saveHistory(); renderLayers(); syncMaskControls();
+        removalStatus.textContent = maskMode === "erase" ? "Cutout area erased. Use Restore to bring it back." : "Erased cutout area restored.";
+      };
+      stage.addEventListener("pointerdown", beginMaskPaint, true);
+      stage.addEventListener("pointermove", moveMaskPaint, true);
+      stage.addEventListener("pointerup", finishMaskPaint, true);
+      stage.addEventListener("pointercancel", finishMaskPaint, true);
+
       backgroundRemovalStudio.querySelector("[data-bg-restore-generated]").addEventListener("click", () => {
         activeBackgroundUrl = backgroundUrl; background.src = activeBackgroundUrl;
         backgroundSettings = { brightness:100, contrast:100, saturation:100, blur:0 };
@@ -6619,7 +6728,18 @@
             if (layer.type === "image") {
               const img = await loadImageForThumbnail(layer.src);
               ctx.globalAlpha = (layer.opacity == null ? 100 : layer.opacity) / 100;
-              ctx.drawImage(img, -layer.width / 2, -layer.height / 2, layer.width, layer.height);
+              if (layer.maskData) {
+                const maskedCanvas = document.createElement("canvas");
+                maskedCanvas.width = img.naturalWidth || img.width; maskedCanvas.height = img.naturalHeight || img.height;
+                const maskedCtx = maskedCanvas.getContext("2d");
+                maskedCtx.drawImage(img, 0, 0, maskedCanvas.width, maskedCanvas.height);
+                const mask = await loadImageForThumbnail(layer.maskData);
+                maskedCtx.globalCompositeOperation = "destination-in";
+                maskedCtx.drawImage(mask, 0, 0, maskedCanvas.width, maskedCanvas.height);
+                ctx.drawImage(maskedCanvas, -layer.width / 2, -layer.height / 2, layer.width, layer.height);
+              } else {
+                ctx.drawImage(img, -layer.width / 2, -layer.height / 2, layer.width, layer.height);
+              }
             } else if (layer.type === "shape") {
               ctx.globalAlpha = (layer.opacity == null ? 100 : layer.opacity) / 100;
               ctx.fillStyle = layer.color || "#ffcc33";
