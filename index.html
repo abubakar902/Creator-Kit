@@ -6579,7 +6579,6 @@
           const clickedLayer = layers.find(item => item.id === clickedLayerNode.dataset.layerId);
           if (clickedLayer && clickedLayer.type === "image" && clickedLayer.backgroundRemoved) {
             selectedId = clickedLayer.id;
-            renderLayers();
             syncControls();
           }
         }
