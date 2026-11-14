@@ -3521,6 +3521,11 @@
     .thumbnail-sticker-picker.thumbnail-sticker-popup .thumbnail-sticker-group strong { font-size:11px; }
     .thumbnail-sticker-picker.thumbnail-sticker-popup .thumbnail-sticker-group > div { gap:5px; }
     .thumbnail-sticker-picker.thumbnail-sticker-popup .thumbnail-sticker-group button { min-height:34px; padding:5px 7px; }
+    .thumbnail-shape-picker { display:block; margin:8px 0 12px; padding:10px; }
+    .thumbnail-shape-picker[hidden] { display:none !important; }
+    .thumbnail-shape-title { display:block; margin-bottom:8px; font-size:11px; color:#e9ddff; }
+    .thumbnail-shape-options { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+    .thumbnail-shape-options button { min-height:34px; padding:5px 7px; font-size:11px; }
     .thumbnail-sticker-close { display:block; width:100%; min-height:30px; margin-top:7px; }
     .thumbnail-editor-layers { display:flex; flex-direction:column; flex-wrap:nowrap; gap:7px; max-height:260px; }
     .thumbnail-editor-layers .thumbnail-layer-chip { width:100%; text-align:left; cursor:grab; }
@@ -5498,6 +5503,7 @@
         '<div class="thumbnail-editor-toolbar">',
           '<button type="button" class="secondary" data-add-sticker>✨ Stickers</button>',
           '<button type="button" class="secondary" data-upload-image>🖼️ Add PNG / Image</button>',
+          '<button type="button" class="secondary" data-add-shape aria-expanded="false">⬡ Shapes</button>',
           '<button type="button" class="secondary" data-duplicate>⧉ Duplicate</button>',
           '<button type="button" class="secondary" data-undo>↶ Undo</button>',
           '<button type="button" class="secondary" data-redo>↷ Redo</button>',
@@ -5509,6 +5515,7 @@
           '<div class="thumbnail-sticker-group"><strong>Reactions &amp; Effects</strong><div data-sticker-group="effects"></div></div>',
           '<div class="thumbnail-sticker-group"><strong>Gaming &amp; Sports</strong><div data-sticker-group="gaming"></div></div>',
         '</div>',
+        '<div data-shape-picker hidden class="thumbnail-sticker-picker thumbnail-shape-picker"><strong class="thumbnail-shape-title">Choose a shape</strong><div class="thumbnail-shape-options"><button type="button" class="secondary" data-shape="rectangle">▰ Rectangle</button><button type="button" class="secondary" data-shape="circle">● Circle</button><button type="button" class="secondary" data-shape="triangle">▲ Triangle</button><button type="button" class="secondary" data-shape="star">★ Star</button><button type="button" class="secondary" data-shape="arrow">➜ Arrow</button></div></div>',
         '<div class="thumbnail-editor-stage" aria-label="Thumbnail editing canvas"><img class="thumbnail-editor-background" alt="Thumbnail background"></div>',
         '<div class="thumbnail-editor-understage"><span>✥ Select any object and drag it anywhere on the canvas</span><span>Objects can overlap</span></div>',
         '<div class="thumbnail-editor-panel">',
@@ -5543,6 +5550,7 @@
       const addTextBar = shell.querySelector(".thumbnail-editor-add-text");
       const actionBar = shell.querySelector(".thumbnail-editor-toolbar");
       const stickerPanel = shell.querySelector("[data-sticker-picker]");
+      const shapePanel = shell.querySelector("[data-shape-picker]");
       const stageElement = shell.querySelector(".thumbnail-editor-stage");
       const stageHint = shell.querySelector(".thumbnail-editor-understage");
       const inspector = shell.querySelector(".thumbnail-editor-panel");
@@ -5620,6 +5628,7 @@
       const message = shell.querySelector("[data-editor-message]");
       const fileInput = shell.querySelector("[data-image-file]");
       const stickerPicker = shell.querySelector("[data-sticker-picker]");
+      const shapePicker = shell.querySelector("[data-shape-picker]");
       background.src = backgroundUrl;
 
       let layers = [{
@@ -5681,6 +5690,12 @@
             img.src = layer.src;
             img.alt = "Added image layer";
             node.append(img);
+          } else if (layer.type === "shape") {
+            node.textContent = ({ rectangle:"▰", circle:"●", triangle:"▲", star:"★", arrow:"➜" })[layer.shape] || "●";
+            node.style.fontSize = (layer.fontSize * stageWidth / 1280) + "px";
+            node.style.color = layer.color || "#ffcc33";
+            node.style.lineHeight = "1";
+            node.style.textShadow = "0 3px 10px rgba(0,0,0,.45)";
           } else {
             node.textContent = layer.text;
             node.style.fontFamily = '"' + (layer.font || "Arial") + '", sans-serif';
@@ -5735,23 +5750,24 @@
       function syncControls() {
         const layer = selectedLayer();
         const isImage = layer && layer.type === "image";
-        textControl.disabled = !layer || isImage;
+        const isText = layer && layer.type === "text";
+        textControl.disabled = !isText;
         colorControl.disabled = !layer || isImage;
-        fontControl.disabled = !layer || isImage;
+        fontControl.disabled = !isText;
         sizeControl.disabled = !layer || isImage;
-        outlineControl.disabled = !layer || isImage;
-        boldControl.disabled = !layer || isImage;
-        italicControl.disabled = !layer || isImage;
-        effectControl.disabled = !layer || isImage;
-        outlineColorControl.disabled = !layer || isImage;
-        alignControl.disabled = !layer || isImage;
-        opacityControl.disabled = !layer || isImage;
-        lineSpacingControl.disabled = !layer || isImage;
+        outlineControl.disabled = !isText;
+        boldControl.disabled = !isText;
+        italicControl.disabled = !isText;
+        effectControl.disabled = !isText;
+        outlineColorControl.disabled = !isText;
+        alignControl.disabled = !isText;
+        opacityControl.disabled = !isText;
+        lineSpacingControl.disabled = !isText;
         if (!layer) return;
-        textControl.value = isImage ? "Image layer (use width and rotation controls)" : layer.text;
+        textControl.value = isText ? layer.text : (isImage ? "Image layer (use width and rotation controls)" : "Shape layer (use colour, width and rotation)");
         colorControl.value = layer.color || "#ffffff";
         fontControl.value = layer.font || "Arial";
-        sizeControl.value = isImage ? 84 : layer.fontSize;
+        sizeControl.value = isText || !isImage ? layer.fontSize : 84;
         widthControl.value = Math.max(80, Math.min(1200, layer.width || 430));
         rotationControl.value = layer.rotation || 0;
         outlineControl.value = layer.outline || 0;
@@ -5770,6 +5786,14 @@
       }
       function addSticker(text, color, size) {
         addTextLayer(text, color || "#ffe500", size || 86);
+      }
+      function addShape(shape) {
+        layerCounter++;
+        const layer = { id:"shape-" + layerCounter, type:"shape", shape, x:480, y:210, width:190, height:190, fontSize:190, color:"#ffcc33", rotation:0, opacity:100 };
+        layers.push(layer); selectedId = layer.id; saveHistory(); renderLayers(); syncControls();
+        message.textContent = "Shape added. Drag it on the canvas; change its colour, size and rotation.";
+        shapePicker.hidden = true;
+        shell.querySelector("[data-add-shape]").setAttribute("aria-expanded","false");
       }
 
       shell.querySelector("[data-add-text]").addEventListener("click", () => addTextLayer("Your text", "#ffffff", 64));
@@ -5822,6 +5846,15 @@
         event.stopPropagation();
         closeStickerPopup();
       });
+      const shapeButton = shell.querySelector("[data-add-shape]");
+      shapeButton.addEventListener("click", () => {
+        const opening = shapePicker.hidden;
+        shapePicker.hidden = !opening;
+        stickerPicker.hidden = true;
+        stickerButton.setAttribute("aria-expanded","false");
+        shapeButton.setAttribute("aria-expanded",String(opening));
+      });
+      shapePicker.querySelectorAll("[data-shape]").forEach(button => button.addEventListener("click", () => addShape(button.dataset.shape)));
       shell.querySelector("[data-upload-image]").addEventListener("click", () => fileInput.click());
       fileInput.addEventListener("change", () => {
         const file = fileInput.files && fileInput.files[0];
@@ -5965,7 +5998,21 @@
             ctx.rotate((layer.rotation || 0) * Math.PI / 180);
             if (layer.type === "image") {
               const img = await loadImageForThumbnail(layer.src);
+              ctx.globalAlpha = (layer.opacity == null ? 100 : layer.opacity) / 100;
               ctx.drawImage(img, -layer.width / 2, -layer.height / 2, layer.width, layer.height);
+            } else if (layer.type === "shape") {
+              ctx.globalAlpha = (layer.opacity == null ? 100 : layer.opacity) / 100;
+              ctx.fillStyle = layer.color || "#ffcc33";
+              const w = layer.width || 190, h = layer.height || 190;
+              ctx.beginPath();
+              if (layer.shape === "circle") ctx.ellipse(0, 0, w/2, h/2, 0, 0, Math.PI*2);
+              else if (layer.shape === "triangle") { ctx.moveTo(0,-h/2); ctx.lineTo(w/2,h/2); ctx.lineTo(-w/2,h/2); ctx.closePath(); }
+              else if (layer.shape === "star") {
+                for (let p=0;p<10;p++){const radius=p%2===0?Math.min(w,h)/2:Math.min(w,h)/4;const angle=-Math.PI/2+p*Math.PI/5;const x=Math.cos(angle)*radius,y=Math.sin(angle)*radius;p===0?ctx.moveTo(x,y):ctx.lineTo(x,y);} ctx.closePath();
+              } else if (layer.shape === "arrow") {
+                ctx.moveTo(-w/2,-h/6);ctx.lineTo(w/6,-h/6);ctx.lineTo(w/6,-h/2);ctx.lineTo(w/2,0);ctx.lineTo(w/6,h/2);ctx.lineTo(w/6,h/6);ctx.lineTo(-w/2,h/6);ctx.closePath();
+              } else { ctx.rect(-w/2,-h/2,w,h); }
+              ctx.fill();
             } else {
               ctx.font = (layer.italic ? "italic " : "") + (layer.bold === false ? "500 " : "900 ") + layer.fontSize + "px " + (layer.font || "Arial") + ", sans-serif";
               ctx.textAlign = layer.align || "center"; ctx.textBaseline = "middle";
