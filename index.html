@@ -5953,6 +5953,9 @@
       const stickerPicker = shell.querySelector("[data-sticker-picker]");
       const shapePicker = shell.querySelector("[data-shape-picker]");
       let activeBackgroundUrl = backgroundUrl;
+      const backgroundAssetCache = new Map([["generated", backgroundUrl]]);
+      let activeBackgroundKey = "generated";
+      let backgroundAssetCounter = 0;
       background.src = activeBackgroundUrl;
       const brushCanvas = document.createElement("canvas");
       brushCanvas.className = "thumbnail-bg-paint-canvas";
@@ -6089,7 +6092,7 @@
       let historyIndex = -1;
 
       const selectedLayer = () => layers.find(layer => layer.id === selectedId);
-      const snapshot = () => JSON.stringify({ layers, selectedId, backgroundSettings, brushStrokes, activeBackgroundUrl });
+      const snapshot = () => JSON.stringify({ layers, selectedId, backgroundSettings, brushStrokes, activeBackgroundKey });
       function saveHistory() {
         const state = snapshot();
         if (history[historyIndex] === state) return;
@@ -6107,7 +6110,8 @@
         selectedId = state.selectedId;
         backgroundSettings = state.backgroundSettings || { brightness:100, contrast:100, saturation:100, blur:0 };
         brushStrokes = state.brushStrokes || [];
-        activeBackgroundUrl = state.activeBackgroundUrl || backgroundUrl;
+        activeBackgroundKey = state.activeBackgroundKey || "generated";
+        activeBackgroundUrl = backgroundAssetCache.get(activeBackgroundKey) || backgroundUrl;
         background.src = activeBackgroundUrl;
         redrawBrushStrokes();
         applyBackgroundSettings();
@@ -6224,7 +6228,7 @@
         alignControl.disabled = !isText;
         opacityControl.disabled = !(isText || (layer && layer.type === "shape"));
         lineSpacingControl.disabled = !isText;
-        if (!layer) return;
+        if (!layer) { syncBackgroundRemovalControls(); syncMaskControls(); return; }
         textControl.value = isText ? layer.text : (isImage ? "Image layer (use width and rotation controls)" : "Shape layer (use colour, width and rotation)");
         colorControl.value = layer.color || "#ffffff";
         fontControl.value = layer.font || "Arial";
@@ -6478,7 +6482,10 @@
         if (file.size > 12 * 1024 * 1024) { removalStatus.textContent = "Please choose a background smaller than 12 MB."; customBackgroundInput.value = ""; return; }
         const reader = new FileReader();
         reader.onload = () => {
-          activeBackgroundUrl = String(reader.result); background.src = activeBackgroundUrl;
+          activeBackgroundUrl = String(reader.result);
+          activeBackgroundKey = "custom-" + (++backgroundAssetCounter);
+          backgroundAssetCache.set(activeBackgroundKey, activeBackgroundUrl);
+          background.src = activeBackgroundUrl;
           backgroundSettings = { brightness:100, contrast:100, saturation:100, blur:0 };
           applyBackgroundSettings(); saveHistory();
           removalStatus.textContent = "Custom background applied. Your existing text and image layers are unchanged.";
@@ -6511,7 +6518,9 @@
       };
       backgroundRemovalStudio.querySelectorAll("[data-bg-library]").forEach(button => button.addEventListener("click", () => {
         try {
-          activeBackgroundUrl = makeThemeBackground(button.dataset.bgLibrary); background.src = activeBackgroundUrl;
+          activeBackgroundKey = "theme-" + button.dataset.bgLibrary;
+          if (!backgroundAssetCache.has(activeBackgroundKey)) backgroundAssetCache.set(activeBackgroundKey, makeThemeBackground(button.dataset.bgLibrary));
+          activeBackgroundUrl = backgroundAssetCache.get(activeBackgroundKey); background.src = activeBackgroundUrl;
           backgroundSettings = { brightness:100, contrast:100, saturation:100, blur:0 };
           applyBackgroundSettings(); saveHistory();
           removalStatus.textContent = button.textContent.trim() + " theme applied. Add your character or object on top.";
@@ -6573,8 +6582,10 @@
           ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, canvas.width, canvas.height);
         }
         activeMask = { canvas, ctx, last:null, pointerId:event.pointerId };
+        const startPoint = maskPoint(event, layer, stage.getBoundingClientRect());
+        if (startPoint.x < 0 || startPoint.y < 0 || startPoint.x > canvas.width || startPoint.y > canvas.height) { activeMask = null; return; }
         stage.setPointerCapture(event.pointerId);
-        paintMaskPoint(maskPoint(event, layer, stage.getBoundingClientRect()));
+        paintMaskPoint(startPoint);
       };
       const moveMaskPaint = event => {
         if (!activeMask || activeMask.pointerId !== event.pointerId) return;
@@ -6594,7 +6605,7 @@
       stage.addEventListener("pointercancel", finishMaskPaint, true);
 
       backgroundRemovalStudio.querySelector("[data-bg-restore-generated]").addEventListener("click", () => {
-        activeBackgroundUrl = backgroundUrl; background.src = activeBackgroundUrl;
+        activeBackgroundKey = "generated"; activeBackgroundUrl = backgroundAssetCache.get(activeBackgroundKey) || backgroundUrl; background.src = activeBackgroundUrl;
         backgroundSettings = { brightness:100, contrast:100, saturation:100, blur:0 };
         applyBackgroundSettings(); saveHistory();
         removalStatus.textContent = "Original generated background restored.";
