@@ -5574,8 +5574,7 @@
       stickerButton.replaceWith(stickerDock);
       stickerDock.append(stickerButton);
       toolsRail.append(addTextBar, actionBar);
-      // Keep the popup outside the scrolling tools rail so it cannot be clipped.
-      shell.append(stickerPanel);
+      // Popup is appended after the workspace replaces the shell contents.
 
       const canvasArea = document.createElement("main");
       canvasArea.className = "thumbnail-studio-canvas";
@@ -5592,6 +5591,8 @@
       modeNote.className = "thumbnail-studio-mode-note";
       modeNote.textContent = "Simple mode keeps the main controls easy to find. Switch to Advanced for extra text settings.";
       shell.replaceChildren(studioTop, workspace, modeNote, editorMessage);
+      // Keep the popup outside the scrolling tools rail and attach it AFTER replaceChildren.
+      shell.append(stickerPanel);
       shell.classList.add("thumbnail-studio-step3");
 
       modeSwitch.querySelectorAll("[data-editor-mode]").forEach(button => {
