@@ -6372,7 +6372,7 @@
       }
 
       try {
-        const response = await workerFetch(WORKER_URL, {
+        let response = await workerFetch(WORKER_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ action: "generate_image", prompt: thumbnailPrompt })
