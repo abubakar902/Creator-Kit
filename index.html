@@ -1953,6 +1953,62 @@
       .thumbnail-editor-understage { font-size:10px; }
     }
 
+    /* THUMBNAIL STEP 1 — RESULT SCREEN & FULL-PAGE EDITOR VIEW */
+    .thumbnail-result-card {
+      width:100%; margin:18px 0 0; padding:clamp(14px,2.5vw,24px);
+      border:1px solid var(--border-strong); border-radius:20px;
+      background:linear-gradient(145deg,rgba(35,24,59,.96),rgba(17,11,32,.96));
+      box-shadow:var(--shadow-card); text-align:center;
+    }
+    .thumbnail-result-card h3 { margin:0 0 14px; font-size:clamp(18px,2.4vw,24px); }
+    .thumbnail-result-preview {
+      display:block; width:min(100%,1000px); max-height:62vh; aspect-ratio:16/9;
+      margin:0 auto; object-fit:contain; border:1px solid var(--border-strong);
+      border-radius:14px; background:#080511; box-shadow:0 16px 42px rgba(0,0,0,.42);
+    }
+    .thumbnail-result-actions {
+      display:flex; justify-content:center; align-items:stretch; flex-wrap:wrap;
+      gap:12px; margin:18px auto 0; width:min(100%,680px);
+    }
+    .thumbnail-result-actions > * {
+      flex:1 1 220px; min-height:52px; display:inline-flex; align-items:center;
+      justify-content:center; gap:9px; border-radius:13px; padding:12px 18px;
+      font-size:14px; font-weight:850; text-decoration:none; cursor:pointer;
+    }
+    .thumbnail-result-download {
+      color:#160d27; background:linear-gradient(100deg,#c4b5fd,#e879f9);
+      border:1px solid rgba(255,255,255,.34);
+    }
+    .thumbnail-result-edit {
+      color:var(--text); background:rgba(155,108,255,.16);
+      border:1px solid var(--border-strong);
+    }
+    .thumbnail-result-actions > *:hover { filter:brightness(1.1); transform:translateY(-1px); }
+    .thumbnail-editor-overlay {
+      position:fixed; inset:0; z-index:10000; overflow:auto;
+      padding:0 clamp(10px,2vw,28px) 24px;
+      background:radial-gradient(circle at 50% -15%,rgba(155,108,255,.22),transparent 42rem),#100b20;
+      overscroll-behavior:contain;
+    }
+    .thumbnail-editor-overlay-topbar {
+      position:sticky; top:0; z-index:5; display:flex; align-items:center;
+      justify-content:space-between; gap:12px; flex-wrap:wrap;
+      margin:0 calc(clamp(10px,2vw,28px) * -1); padding:12px clamp(14px,2.5vw,30px);
+      border-bottom:1px solid var(--border-strong);
+      background:rgba(16,11,32,.94); backdrop-filter:blur(18px);
+    }
+    .thumbnail-editor-overlay-topbar strong { font-size:14px; }
+    .thumbnail-editor-overlay-topbar button { min-height:40px; }
+    .thumbnail-editor-overlay .thumbnail-editor-shell {
+      width:100%; max-width:1480px; margin:14px auto 0;
+    }
+    @media(max-width:600px) {
+      .thumbnail-result-actions { display:grid; grid-template-columns:1fr; }
+      .thumbnail-result-actions > * { width:100%; }
+      .thumbnail-editor-overlay { padding:0 9px 18px; }
+      .thumbnail-editor-overlay-topbar { margin:0 -9px; }
+    }
+
     /* RESPONSIVE BREAKPOINTS */
     @media (max-width: 960px) {
       .hero {
@@ -5154,6 +5210,7 @@
     const thumbnailMessage = document.getElementById("thumbnailMessage");
     const thumbnailResult = document.getElementById("thumbnailResult");
     let thumbnailOutputUrl = null;
+    let thumbnailPreviewUrl = null;
 
     function loadImageForThumbnail(src) {
       return new Promise((resolve, reject) => {
@@ -5679,6 +5736,10 @@
         URL.revokeObjectURL(thumbnailOutputUrl);
         thumbnailOutputUrl = null;
       }
+      if (thumbnailPreviewUrl) {
+        URL.revokeObjectURL(thumbnailPreviewUrl);
+        thumbnailPreviewUrl = null;
+      }
 
       try {
         const response = await workerFetch(WORKER_URL, {
@@ -5702,13 +5763,72 @@
           ? generatedImage
           : `data:image/png;base64,${generatedImage}`;
 
-        thumbnailMessage.textContent = "Background ready. Open the editor to arrange your layers...";
-        const heading = document.createElement("h3");
-        heading.textContent = "Your YouTube thumbnail background is ready (1280 × 720)";
-        heading.style.marginTop = "0";
-        const editor = createThumbnailLayerEditor(generatedImageUrl, headline, accent, position);
-        thumbnailResult.append(heading, editor);
-        thumbnailMessage.textContent = "✓ Background ready. Customize the headline and add movable layers in the editor.";
+        thumbnailMessage.textContent = "Preparing your finished thumbnail preview...";
+        thumbnailPreviewUrl = await composeThumbnail(generatedImageUrl, headline, position, accent);
+
+        const resultCard = document.createElement("div");
+        resultCard.className = "thumbnail-result-card";
+        const resultHeading = document.createElement("h3");
+        resultHeading.textContent = "Your YouTube Thumbnail is Ready!";
+        const preview = document.createElement("img");
+        preview.className = "thumbnail-result-preview";
+        preview.src = thumbnailPreviewUrl;
+        preview.alt = "Your generated YouTube thumbnail preview";
+        preview.width = 1280;
+        preview.height = 720;
+
+        const actions = document.createElement("div");
+        actions.className = "thumbnail-result-actions";
+        const downloadButton = document.createElement("a");
+        downloadButton.className = "thumbnail-result-download";
+        downloadButton.href = thumbnailPreviewUrl;
+        downloadButton.download = "TrivexaAI-YouTube-Thumbnail-1280x720.png";
+        downloadButton.textContent = "⬇️ Download Thumbnail";
+        downloadButton.addEventListener("click", () => {
+          void saveRecentBlobFromUrl({
+            tool: "AI Thumbnail Generator",
+            title: headline,
+            url: thumbnailPreviewUrl,
+            filename: "TrivexaAI-YouTube-Thumbnail-1280x720.png"
+          });
+        });
+
+        const editButton = document.createElement("button");
+        editButton.type = "button";
+        editButton.className = "thumbnail-result-edit";
+        editButton.textContent = "✏️ Edit Thumbnail";
+        editButton.addEventListener("click", () => {
+          const overlay = document.createElement("div");
+          overlay.className = "thumbnail-editor-overlay";
+          overlay.setAttribute("role", "dialog");
+          overlay.setAttribute("aria-modal", "true");
+          overlay.setAttribute("aria-label", "Thumbnail Editor");
+          const previousBodyOverflow = document.body.style.overflow;
+          overlay.innerHTML = '<div class="thumbnail-editor-overlay-topbar"><button type="button" class="secondary" data-close-thumbnail-editor>← Back to Thumbnail</button><strong>TRIVEXAAI THUMBNAIL STUDIO</strong><span class="thumbnail-editor-note">Your original result stays safe</span></div>';
+          document.body.appendChild(overlay);
+          document.body.style.overflow = "hidden";
+
+          const closeEditor = () => {
+            overlay.remove();
+            document.body.style.overflow = previousBodyOverflow;
+            document.removeEventListener("keydown", handleEditorEscape);
+            editButton.focus();
+          };
+          const handleEditorEscape = event => {
+            if (event.key === "Escape") closeEditor();
+          };
+          overlay.querySelector("[data-close-thumbnail-editor]").addEventListener("click", closeEditor);
+          document.addEventListener("keydown", handleEditorEscape);
+
+          const editor = createThumbnailLayerEditor(generatedImageUrl, headline, accent, position);
+          overlay.appendChild(editor);
+          overlay.querySelector("[data-close-thumbnail-editor]").focus();
+        });
+
+        actions.append(downloadButton, editButton);
+        resultCard.append(resultHeading, preview, actions);
+        thumbnailResult.appendChild(resultCard);
+        thumbnailMessage.textContent = "✓ Thumbnail ready! Download it now or open the editor to customize it.";
       } catch (error) {
         console.error("Thumbnail generation error:", error);
         const message = String(error?.message || "");
