@@ -6442,6 +6442,10 @@
         removalStatus.textContent = "The AI model may download the first time. Speed depends on your device and internet.";
         try {
           const sourceFile = await dataUrlToFile(layer.src, "TrivexaAI-image.png");
+          const probeImage = await loadImageForThumbnail(layer.src);
+          const pixelCount = (probeImage.naturalWidth || probeImage.width) * (probeImage.naturalHeight || probeImage.height);
+          if (sourceFile.size > 8 * 1024 * 1024) throw new Error("For smoother performance, use an image smaller than 8 MB.");
+          if (pixelCount > 12000000) throw new Error("This image is above 12 megapixels. Please use a smaller image.");
           const { removeBackground } = await import("https://esm.sh/@bg0/browser");
           removeBackgroundButton.textContent = "Removing background...";
           const output = await removeBackground(sourceFile, {
