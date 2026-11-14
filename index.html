@@ -3506,22 +3506,23 @@
     }
 
     /* SMALL STICKER POPUP BESIDE THE STICKERS TOOL */
-    .thumbnail-sticker-dock { position:relative; width:100%; }
+    .thumbnail-studio-tools, .thumbnail-studio-tools .thumbnail-editor-toolbar { overflow:visible !important; }
+    .thumbnail-sticker-dock { position:relative; z-index:500; width:100%; overflow:visible; }
     .thumbnail-sticker-dock .thumbnail-sticker-picker {
-      position:absolute; z-index:100; left:calc(100% + 10px); top:0;
+      position:absolute; z-index:9999; left:calc(100% + 10px); top:0;
       display:grid; grid-template-columns:1fr 1fr; gap:9px;
       width:260px; max-width:min(260px, 42vw);
       max-height:min(330px, 62vh); overflow:auto;
       margin:0; padding:12px; border:1px solid var(--border-strong);
-      border-radius:13px; background:rgba(18,12,34,.98);
-      box-shadow:0 14px 34px rgba(0,0,0,.42);
+      border-radius:13px; background:rgba(18,12,34,.99);
+      box-shadow:0 14px 34px rgba(0,0,0,.55);
     }
-    .thumbnail-sticker-dock .thumbnail-sticker-picker[hidden] { display:none; }
+    .thumbnail-sticker-dock .thumbnail-sticker-picker[hidden] { display:none !important; }
     .thumbnail-sticker-dock .thumbnail-sticker-group strong { font-size:11px; }
     .thumbnail-sticker-dock .thumbnail-sticker-group > div { gap:5px; }
     .thumbnail-sticker-dock .thumbnail-sticker-group button { min-height:34px; padding:5px 7px; }
     .thumbnail-sticker-close {
-      display:none; position:absolute; z-index:101; top:5px; right:5px;
+      display:none; position:absolute; z-index:10000; top:5px; right:5px;
       min-width:27px; min-height:27px; padding:2px 6px; border-radius:8px;
     }
     .thumbnail-sticker-dock.is-open .thumbnail-sticker-close { display:block; }
@@ -5781,6 +5782,9 @@
           option.addEventListener("click", () => {
             addSticker(sticker, group === "creator" ? "#ff3b55" : "#ffe500", group === "creator" ? 58 : 86);
             stickerPicker.hidden = true;
+            stickerPicker.style.display = "none";
+            stickerButton.setAttribute("aria-expanded", "false");
+            stickerDockElement.classList.remove("is-open");
           });
           holder.append(option);
         });
@@ -5792,13 +5796,26 @@
       closeStickerButton.textContent = "✕";
       closeStickerButton.setAttribute("aria-label", "Close stickers");
       stickerDockElement.append(closeStickerButton);
-      stickerButton.addEventListener("click", () => {
-        const opening = stickerPanel.hidden;
+      // Toggle the popup using both the hidden attribute and inline display.
+      // Inline display prevents other editor CSS rules from accidentally masking it.
+      stickerPanel.hidden = true;
+      stickerPanel.style.display = "none";
+      stickerButton.setAttribute("aria-expanded", "false");
+      stickerButton.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        const opening = stickerPanel.hidden || stickerPanel.style.display === "none";
         stickerPanel.hidden = !opening;
+        stickerPanel.style.display = opening ? "grid" : "none";
+        stickerButton.setAttribute("aria-expanded", String(opening));
         stickerDockElement.classList.toggle("is-open", opening);
       });
-      closeStickerButton.addEventListener("click", () => {
+      closeStickerButton.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
         stickerPanel.hidden = true;
+        stickerPanel.style.display = "none";
+        stickerButton.setAttribute("aria-expanded", "false");
         stickerDockElement.classList.remove("is-open");
       });
       shell.querySelector("[data-upload-image]").addEventListener("click", () => fileInput.click());
