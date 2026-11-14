@@ -5766,6 +5766,7 @@
       const shapePicker = shell.querySelector("[data-shape-picker]");
       background.src = backgroundUrl;
       const backgroundFilterInputs = backgroundStudio.querySelectorAll("[data-bg-control]");
+      let backgroundSettings = { brightness:100, contrast:100, saturation:100, blur:0 };
       function applyBackgroundSettings() {
         background.style.filter = "brightness(" + backgroundSettings.brightness + "%) contrast(" + backgroundSettings.contrast + "%) saturate(" + backgroundSettings.saturation + "%) blur(" + backgroundSettings.blur + "px)";
         backgroundFilterInputs.forEach(input => {
@@ -5817,7 +5818,6 @@
       let layerCounter = 0;
       let history = [];
       let historyIndex = -1;
-      let backgroundSettings = { brightness:100, contrast:100, saturation:100, blur:0 };
 
       const selectedLayer = () => layers.find(layer => layer.id === selectedId);
       const snapshot = () => JSON.stringify({ layers, selectedId, backgroundSettings });
