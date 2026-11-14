@@ -6329,7 +6329,7 @@
       const characterDirection = characterType === "anime-style character"
         ? "2D Japanese anime illustration: expressive eyes, hand-drawn outlines, detailed anime hair and cel shading. "
         : characterType === "superhero character"
-          ? "Original family-friendly comic-book hero: colourful full-body costume, clear chest emblem, cape and confident heroic pose. Fictional design only. "
+          ? "Fictional masked adventurer wearing an original bright heroic costume, standing confidently. "
           : characterType === "realistic human character"
             ? "Photorealistic human with natural facial details and realistic proportions. "
             : characterType === "cartoon character"
@@ -6381,6 +6381,21 @@
         let data;
         try { data = await response.json(); }
         catch { throw new Error("The server returned an unreadable response. Please try again."); }
+
+        // If the image service blocks a superhero prompt, make one shorter, neutral retry.
+        const firstError = String(data.error || data.details || data.message || "");
+        if (!response.ok && characterType === "superhero character" && /3030|flagged|blocked|moderation/i.test(firstError)) {
+          thumbnailMessage.textContent = "Trying a simpler character description...";
+          const safeRetryPrompt = "Create a cinematic 16:9 YouTube thumbnail. Show a fictional masked adventurer in an original colourful heroic outfit, standing fully visible on the right side of a mysterious dark jungle. A pair of small glowing red eyes can be seen far away between the trees. Dramatic lighting, vivid colours, sharp focus. Keep the left side dark and clear for the headline. No words, logos or symbols. " +
+            "Scene details: " + instruction.slice(0, 180) + ".";
+          response = await workerFetch(WORKER_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "generate_image", prompt: safeRetryPrompt })
+          });
+          try { data = await response.json(); }
+          catch { throw new Error("The server returned an unreadable response. Please try again."); }
+        }
         if (!response.ok) {
           throw new Error(data.error || data.details || data.message || `Thumbnail generation failed (${response.status}).`);
         }
