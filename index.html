@@ -2103,7 +2103,8 @@
     .thumbnail-studio-inspector [data-layer-font] { width:100%; min-height:42px; }
     @media(min-width:1051px) {
       .thumbnail-studio-canvas { margin-top:-2px; }
-      .thumbnail-studio-canvas .thumbnail-editor-stage { max-height:calc(100vh - 250px); }
+      /* Keep the editing canvas at a true 16:9 ratio; never squeeze its height. */
+      .thumbnail-studio-canvas .thumbnail-editor-stage { height:auto; max-height:none; aspect-ratio:16/9; }
     }
     @media(max-width:680px) {
       .thumbnail-editor-overlay-topbar { min-height:42px; padding-top:6px; padding-bottom:6px; }
@@ -5411,16 +5412,22 @@
       const isSide = position === "left" || position === "right";
       const textAtTop = position === "top";
 
-      // Full-bleed 16:9 image: no blurred side bars or empty borders.
-      // The generation prompt keeps the subject inside the central safe area before this crop.
+      // Fill the canvas behind the subject, then fit the complete source image inside.
+      // This keeps the head/top of the subject visible even when the image is not 16:9.
       const coverScale = Math.max(canvas.width / sourceImage.naturalWidth, canvas.height / sourceImage.naturalHeight);
       const coverWidth = sourceImage.naturalWidth * coverScale;
       const coverHeight = sourceImage.naturalHeight * coverScale;
-      const coverX = (canvas.width - coverWidth) / 2;
-      const coverY = (canvas.height - coverHeight) / 2;
+      ctx.save();
+      ctx.filter = "blur(28px) brightness(0.42) saturate(1.08)";
+      ctx.drawImage(sourceImage, (canvas.width - coverWidth) / 2, (canvas.height - coverHeight) / 2, coverWidth, coverHeight);
+      ctx.restore();
+
+      const fitScale = Math.min(canvas.width / sourceImage.naturalWidth, canvas.height / sourceImage.naturalHeight);
+      const fitWidth = sourceImage.naturalWidth * fitScale;
+      const fitHeight = sourceImage.naturalHeight * fitScale;
       ctx.save();
       ctx.filter = "brightness(0.98) contrast(1.06) saturate(1.12)";
-      ctx.drawImage(sourceImage, coverX, coverY, coverWidth, coverHeight);
+      ctx.drawImage(sourceImage, (canvas.width - fitWidth) / 2, (canvas.height - fitHeight) / 2, fitWidth, fitHeight);
       ctx.restore();
 
       // A subtle dark-to-transparent text-side shade improves headline readability.
@@ -6093,7 +6100,7 @@
           overlay.querySelector("[data-close-thumbnail-editor]").addEventListener("click", closeEditor);
           document.addEventListener("keydown", handleEditorEscape);
 
-          const editor = createThumbnailLayerEditor(generatedImageUrl, headline, accent, position);
+          const editor = createThumbnailLayerEditor(thumbnailPreviewUrl, headline, accent, position);
           overlay.appendChild(editor);
           overlay.querySelector("[data-close-thumbnail-editor]").focus();
         });
