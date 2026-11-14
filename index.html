@@ -2111,6 +2111,32 @@
       .thumbnail-studio-workspace { margin-top:6px; }
     }
 
+
+    /* THUMBNAIL STUDIO — COLLAPSIBLE GROUPS + SIMPLE/ADVANCED VISIBILITY */
+    .thumbnail-studio-group { min-width:0; margin:0 0 9px; border:1px solid rgba(155,108,255,.24); border-radius:11px; background:rgba(255,255,255,.025); overflow:hidden; }
+    .thumbnail-studio-group-toggle { display:flex; align-items:center; justify-content:space-between; gap:10px; width:100%; min-height:42px; padding:9px 11px; border:0; color:#eee7ff; background:rgba(155,108,255,.075); text-align:left; font-size:12px; font-weight:800; cursor:pointer; }
+    .thumbnail-studio-group-toggle:hover { background:rgba(155,108,255,.15); }
+    .thumbnail-studio-group-toggle span:first-child { display:flex; align-items:center; gap:8px; min-width:0; }
+    .thumbnail-studio-group-chevron { color:#c4b5fd; transition:transform .18s ease; }
+    .thumbnail-studio-group.is-open .thumbnail-studio-group-chevron { transform:rotate(180deg); }
+    .thumbnail-studio-group-body { padding:10px; }
+    .thumbnail-studio-group-body[hidden] { display:none !important; }
+    .thumbnail-studio-group-body > .field-group { margin:0 0 10px; }
+    .thumbnail-studio-group-body > .field-group:last-child { margin-bottom:0; }
+    .thumbnail-studio-group[data-advanced-only] { }
+    .thumbnail-editor-shell:not(.thumbnail-studio-advanced) [data-advanced-only] { display:none !important; }
+    .thumbnail-studio-tools .thumbnail-studio-group-body > * { max-width:100%; }
+    .thumbnail-studio-tools .thumbnail-studio-group-body .thumbnail-editor-add-text { margin:0; }
+    .thumbnail-studio-tools .thumbnail-studio-group-body .thumbnail-editor-toolbar { margin:0; }
+    .thumbnail-studio-tools .thumbnail-studio-group-body .thumbnail-sticker-dock { margin:0; }
+    .thumbnail-studio-tools .thumbnail-studio-group-body .thumbnail-shape-picker { margin:0; }
+    .thumbnail-studio-inspector .thumbnail-studio-group-body .thumbnail-editor-controls { display:grid; grid-template-columns:1fr; gap:10px; margin:0; }
+    .thumbnail-studio-inspector .thumbnail-studio-group-body .thumbnail-editor-edit-heading { margin:0 0 9px; }
+    @media(max-width:680px) {
+      .thumbnail-studio-group-toggle { min-height:46px; }
+      .thumbnail-studio-inspector .thumbnail-studio-group-body .thumbnail-editor-controls { grid-template-columns:1fr; }
+    }
+
     /* RESPONSIVE BREAKPOINTS */
     @media (max-width: 960px) {
       .hero {
@@ -5595,6 +5621,82 @@
       shell.replaceChildren(studioTop, workspace, modeNote, editorMessage);
       shell.classList.add("thumbnail-studio-step3");
 
+      // Organize the studio into clear, collapsible groups without replacing controls or listeners.
+      const makeStudioGroup = (parent, title, icon, nodes, options = {}) => {
+        const group = document.createElement("section");
+        group.className = "thumbnail-studio-group";
+        if (options.advanced) group.setAttribute("data-advanced-only", "");
+        const toggle = document.createElement("button");
+        toggle.type = "button";
+        toggle.className = "thumbnail-studio-group-toggle";
+        toggle.setAttribute("aria-expanded", options.open ? "true" : "false");
+        toggle.innerHTML = '<span><span aria-hidden="true">' + icon + '</span>' + title + '</span><span class="thumbnail-studio-group-chevron" aria-hidden="true">⌄</span>';
+        const body = document.createElement("div");
+        body.className = "thumbnail-studio-group-body";
+        body.hidden = !options.open;
+        nodes.filter(Boolean).forEach(node => body.append(node));
+        if (options.open) group.classList.add("is-open");
+        toggle.addEventListener("click", () => {
+          const open = body.hidden;
+          body.hidden = !open;
+          group.classList.toggle("is-open", open);
+          toggle.setAttribute("aria-expanded", String(open));
+        });
+        group.append(toggle, body);
+        parent.append(group);
+        return group;
+      };
+
+      // Split the existing add toolbar into simple, understandable sections.
+      const uploadButton = actionBar.querySelector("[data-upload-image]");
+      const addShapeButton = actionBar.querySelector("[data-add-shape]");
+      const duplicateButton = actionBar.querySelector("[data-duplicate]");
+      const undoButton = actionBar.querySelector("[data-undo]");
+      const redoButton = actionBar.querySelector("[data-redo]");
+      const imageFileControl = actionBar.querySelector("[data-image-file]");
+      const addTextGroup = makeStudioGroup(toolsRail, "Add Text", "T", [addTextBar], { open: true });
+      const stickerGroup = makeStudioGroup(toolsRail, "Stickers", "✨", [stickerDock], { open: false });
+      const imageGroup = makeStudioGroup(toolsRail, "Add Image", "🖼️", [uploadButton, imageFileControl], { open: false });
+      const shapeGroup = makeStudioGroup(toolsRail, "Shapes", "⬡", [addShapeButton, shapePanel], { open: false });
+      const moreGroup = makeStudioGroup(toolsRail, "More Tools", "⚙️", [duplicateButton, undoButton, redoButton], { open: false, advanced: true });
+      actionBar.remove();
+
+      // The layer manager is an advanced workspace feature; basic editing remains available on canvas.
+      const panelHead = inspector.querySelector(".thumbnail-editor-panel-head");
+      const layerDeleteBar = inspector.querySelector(".thumbnail-editor-order");
+      const layerGroup = makeStudioGroup(inspector, "Layers & Organization", "▤", [panelHead, layerButtons, layerDeleteBar], { open: true, advanced: true });
+      const editHeading = inspector.querySelector(".thumbnail-editor-edit-heading");
+      const controlsGrid = inspector.querySelector(".thumbnail-editor-controls");
+      const field = selector => controlsGrid.querySelector(selector);
+      const basicFields = [
+        field("[data-layer-text]")?.closest(".field-group"),
+        field("[data-layer-color]")?.closest(".field-group"),
+        field("[data-layer-font]")?.closest(".field-group"),
+        field("[data-layer-size]")?.closest(".field-group"),
+        field("[data-layer-bold]")?.closest(".field-group")
+      ];
+      const typographyFields = [
+        field("[data-layer-align]")?.closest(".field-group"),
+        field("[data-layer-line-spacing]")?.closest(".field-group"),
+        field("[data-layer-italic]")?.closest(".field-group")
+      ];
+      const effectsFields = [
+        field("[data-layer-effect]")?.closest(".field-group"),
+        field("[data-layer-opacity]")?.closest(".field-group"),
+        field("[data-layer-outline]")?.closest(".field-group"),
+        field("[data-layer-outline-color]")?.closest(".field-group")
+      ];
+      const positionFields = [
+        field("[data-layer-width]")?.closest(".field-group"),
+        field("[data-layer-rotation]")?.closest(".field-group")
+      ];
+      const basicGroup = makeStudioGroup(inspector, "Basic Editing", "✏️", [editHeading, ...basicFields], { open: true });
+      makeStudioGroup(inspector, "Typography", "Aa", typographyFields, { open: false, advanced: true });
+      makeStudioGroup(inspector, "Colours & Outline", "🎨", [effectsFields[3], effectsFields[2]], { open: false, advanced: true });
+      makeStudioGroup(inspector, "Effects & Opacity", "✨", [effectsFields[0], effectsFields[1]], { open: false, advanced: true });
+      makeStudioGroup(inspector, "Position & Rotation", "↗️", positionFields, { open: false, advanced: true });
+      controlsGrid.remove();
+
       modeSwitch.querySelectorAll("[data-editor-mode]").forEach(button => {
         button.addEventListener("click", () => {
           const advanced = button.dataset.editorMode === "advanced";
@@ -5605,8 +5707,8 @@
             item.setAttribute("aria-pressed", String(active));
           });
           modeNote.textContent = advanced
-            ? "Advanced mode: extra text outline and detailed layer controls are available."
-            : "Simple mode keeps the main controls easy to find. Switch to Advanced for extra text settings.";
+            ? "Advanced Mode: all editing groups, layer organization and detailed controls are now available."
+            : "Simple Mode: only the essential controls are shown. Your design and settings stay saved when you switch modes.";
         });
       });
 
