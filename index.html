@@ -1904,6 +1904,14 @@
     .thumbnail-editor-toolbar button, .thumbnail-editor-controls button { min-height:40px; }
     .thumbnail-editor-stage { position:relative; width:100%; max-width:850px; aspect-ratio:16/9; margin:14px auto; overflow:hidden; border:2px solid var(--border-strong); border-radius:12px; background:#090611; touch-action:none; user-select:none; }
     .thumbnail-editor-stage > img.thumbnail-editor-background { position:absolute; inset:0; width:100%; height:100%; object-fit:fill; object-position:center center; pointer-events:none; }
+    .thumbnail-editor-stage > canvas.thumbnail-bg-paint-canvas { position:absolute; inset:0; width:100%; height:100%; z-index:1; pointer-events:none; touch-action:none; }
+    .thumbnail-editor-stage.bg-paint-active > canvas.thumbnail-bg-paint-canvas { pointer-events:auto; cursor:crosshair; }
+    .thumbnail-bg-paint { margin-top:14px; padding:12px; border:1px solid var(--border-strong); border-radius:12px; background:rgba(155,108,255,.07); }
+    .thumbnail-bg-paint-tools { display:flex; gap:8px; margin:9px 0; }
+    .thumbnail-bg-paint-tools button.active { border-color:#c4b5fd; background:rgba(155,108,255,.22); }
+    .thumbnail-bg-paint label { display:block; margin:9px 0; font-size:13px; }
+    .thumbnail-bg-paint input[type="range"] { display:block; width:100%; margin-top:5px; }
+    .thumbnail-bg-paint input[type="color"] { display:block; width:100%; height:34px; margin-top:5px; }
     .thumbnail-editor-layer { position:absolute; display:flex; align-items:center; justify-content:center; text-align:center; white-space:pre-wrap; overflow-wrap:anywhere; font-weight:950; line-height:1.02; cursor:grab; touch-action:none; user-select:none; transform-origin:center center; padding:3px; }
     .thumbnail-editor-layer.selected { outline:2px dashed #c4b5fd; outline-offset:2px; }
     .thumbnail-editor-layer img { display:block; width:100%; height:auto; pointer-events:none; }
@@ -5681,6 +5689,7 @@
         '<div class="thumbnail-bg-slider"><label for="thumbnail-bg-contrast">Contrast <output data-bg-value="contrast">100%</output></label><input id="thumbnail-bg-contrast" type="range" min="40" max="180" value="100" data-bg-control="contrast"></div>',
         '<div class="thumbnail-bg-slider"><label for="thumbnail-bg-saturation">Saturation <output data-bg-value="saturation">100%</output></label><input id="thumbnail-bg-saturation" type="range" min="0" max="200" value="100" data-bg-control="saturation"></div>',
         '<div class="thumbnail-bg-slider"><label for="thumbnail-bg-blur">Blur <output data-bg-value="blur">0px</output></label><input id="thumbnail-bg-blur" type="range" min="0" max="12" value="0" data-bg-control="blur"></div>',
+        '<div class="thumbnail-bg-paint"><strong>Selective Brush &amp; Eraser</strong><p class="thumbnail-editor-note">Paint only the area you want to shade. Use Eraser to restore it.</p><div class="thumbnail-bg-paint-tools"><button type="button" class="secondary active" data-bg-paint-mode="brush">🖌️ Brush</button><button type="button" class="secondary" data-bg-paint-mode="eraser">⌫ Eraser</button></div><label>Brush colour <input type="color" data-bg-paint-color value="#160b2b"></label><label>Brush size <output data-bg-paint-size-value>70px</output><input type="range" min="10" max="240" value="70" data-bg-paint-size></label><label>Strength <output data-bg-paint-opacity-value>45%</output><input type="range" min="5" max="100" value="45" data-bg-paint-opacity></label><button type="button" class="secondary" data-bg-paint-clear>Clear brush strokes</button></div>,
         '<button type="button" class="secondary thumbnail-bg-reset" data-bg-reset>↺ Reset background</button>'
       ].join("");
       const backgroundGroup = makeStudioGroup(toolsRail, "Background Studio", "🎨", [backgroundStudio], { open: false });
@@ -5765,6 +5774,74 @@
       const stickerPicker = shell.querySelector("[data-sticker-picker]");
       const shapePicker = shell.querySelector("[data-shape-picker]");
       background.src = backgroundUrl;
+      const brushCanvas = document.createElement("canvas");
+      brushCanvas.className = "thumbnail-bg-paint-canvas";
+      brushCanvas.width = 1280;
+      brushCanvas.height = 720;
+      stage.insertBefore(brushCanvas, stage.firstChild.nextSibling);
+      const brushCtx = brushCanvas.getContext("2d");
+      let brushStrokes = [];
+      let activeBrushStroke = null;
+      let brushMode = "brush";
+      const brushSizeInput = backgroundStudio.querySelector("[data-bg-paint-size]");
+      const brushOpacityInput = backgroundStudio.querySelector("[data-bg-paint-opacity]");
+      const brushColorInput = backgroundStudio.querySelector("[data-bg-paint-color]");
+      function redrawBrushStrokes() {
+        brushCtx.clearRect(0, 0, 1280, 720);
+        brushStrokes.forEach(stroke => {
+          if (!stroke.points.length) return;
+          brushCtx.save();
+          brushCtx.globalCompositeOperation = stroke.mode === "eraser" ? "destination-out" : "source-over";
+          brushCtx.globalAlpha = stroke.opacity;
+          brushCtx.strokeStyle = stroke.color;
+          brushCtx.lineWidth = stroke.size;
+          brushCtx.lineCap = "round";
+          brushCtx.lineJoin = "round";
+          brushCtx.beginPath();
+          stroke.points.forEach((point, index) => index ? brushCtx.lineTo(point.x, point.y) : brushCtx.moveTo(point.x, point.y));
+          if (stroke.points.length === 1) { brushCtx.lineTo(stroke.points[0].x + .1, stroke.points[0].y + .1); }
+          brushCtx.stroke();
+          brushCtx.restore();
+        });
+      }
+      function setBrushMode(mode) {
+        brushMode = mode;
+        stage.classList.toggle("bg-paint-active", true);
+        backgroundStudio.querySelectorAll("[data-bg-paint-mode]").forEach(button => button.classList.toggle("active", button.dataset.bgPaintMode === mode));
+        message.textContent = mode === "eraser" ? "Eraser active: paint over any stroke to remove it." : "Brush active: paint directly on the background.";
+      }
+      backgroundStudio.querySelectorAll("[data-bg-paint-mode]").forEach(button => button.addEventListener("click", () => setBrushMode(button.dataset.bgPaintMode)));
+      brushSizeInput.addEventListener("input", () => backgroundStudio.querySelector("[data-bg-paint-size-value]").textContent = brushSizeInput.value + "px");
+      brushOpacityInput.addEventListener("input", () => backgroundStudio.querySelector("[data-bg-paint-opacity-value]").textContent = brushOpacityInput.value + "%");
+      backgroundStudio.querySelector("[data-bg-paint-clear]").addEventListener("click", () => {
+        brushStrokes = [];
+        redrawBrushStrokes();
+        saveHistory();
+        message.textContent = "All selective brush strokes cleared.";
+      });
+      brushCanvas.addEventListener("pointerdown", event => {
+        if (!stage.classList.contains("bg-paint-active")) return;
+        event.preventDefault();
+        const rect = brushCanvas.getBoundingClientRect();
+        const point = { x:(event.clientX-rect.left)/rect.width*1280, y:(event.clientY-rect.top)/rect.height*720 };
+        activeBrushStroke = { mode:brushMode, color:brushColorInput.value, size:Number(brushSizeInput.value), opacity:brushMode === "eraser" ? 1 : Number(brushOpacityInput.value)/100, points:[point] };
+        brushStrokes.push(activeBrushStroke);
+        brushCanvas.setPointerCapture(event.pointerId);
+        redrawBrushStrokes();
+      });
+      brushCanvas.addEventListener("pointermove", event => {
+        if (!activeBrushStroke) return;
+        const rect = brushCanvas.getBoundingClientRect();
+        activeBrushStroke.points.push({ x:(event.clientX-rect.left)/rect.width*1280, y:(event.clientY-rect.top)/rect.height*720 });
+        redrawBrushStrokes();
+      });
+      const finishBrushStroke = () => {
+        if (!activeBrushStroke) return;
+        activeBrushStroke = null;
+        saveHistory();
+      };
+      brushCanvas.addEventListener("pointerup", finishBrushStroke);
+      brushCanvas.addEventListener("pointercancel", finishBrushStroke);
       const backgroundFilterInputs = backgroundStudio.querySelectorAll("[data-bg-control]");
       let backgroundSettings = { brightness:100, contrast:100, saturation:100, blur:0 };
       function applyBackgroundSettings() {
@@ -5820,7 +5897,7 @@
       let historyIndex = -1;
 
       const selectedLayer = () => layers.find(layer => layer.id === selectedId);
-      const snapshot = () => JSON.stringify({ layers, selectedId, backgroundSettings });
+      const snapshot = () => JSON.stringify({ layers, selectedId, backgroundSettings, brushStrokes });
       function saveHistory() {
         const state = snapshot();
         if (history[historyIndex] === state) return;
@@ -5837,6 +5914,8 @@
         layers = state.layers;
         selectedId = state.selectedId;
         backgroundSettings = state.backgroundSettings || { brightness:100, contrast:100, saturation:100, blur:0 };
+        brushStrokes = state.brushStrokes || [];
+        redrawBrushStrokes();
         applyBackgroundSettings();
         renderLayers();
         syncControls();
@@ -6222,6 +6301,7 @@
           ctx.filter = "brightness(" + backgroundSettings.brightness + "%) contrast(" + backgroundSettings.contrast + "%) saturate(" + backgroundSettings.saturation + "%) blur(" + backgroundSettings.blur + "px)";
           ctx.drawImage(bg, 0, 0, 1280, 720);
           ctx.restore();
+          ctx.drawImage(brushCanvas, 0, 0, 1280, 720);
           for (const layer of layers) {
             if (layer.visible === false) continue;
             ctx.save();
