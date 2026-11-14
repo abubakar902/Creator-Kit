@@ -2009,6 +2009,83 @@
       .thumbnail-editor-overlay-topbar { margin:0 -9px; }
     }
 
+    /* THUMBNAIL STEP 2 — FULL-SCREEN STUDIO WORKSPACE */
+    .thumbnail-editor-overlay .thumbnail-editor-shell {
+      max-width: 1760px; margin: 12px auto 0; padding: clamp(12px,1.5vw,22px);
+      border-radius: 18px; background: rgba(18,12,34,.62);
+    }
+    .thumbnail-studio-top {
+      display:flex; align-items:center; justify-content:space-between; gap:14px;
+      padding:0 2px 14px; border-bottom:1px solid var(--border);
+    }
+    .thumbnail-studio-top .thumbnail-editor-heading { flex:1; min-width:220px; }
+    .thumbnail-studio-top .thumbnail-editor-heading h3 { font-size:clamp(18px,2vw,25px); }
+    .thumbnail-studio-mode { display:flex; align-items:center; gap:7px; flex-wrap:wrap; }
+    .thumbnail-studio-mode span { color:var(--muted); font-size:11px; font-weight:700; margin-right:3px; }
+    .thumbnail-studio-mode button { min-height:36px; padding:7px 12px; font-size:12px; }
+    .thumbnail-studio-mode button.active { color:#160d29; border-color:#c4b5fd; background:linear-gradient(100deg,#c4b5fd,#e879f9); }
+    .thumbnail-studio-workspace {
+      display:grid; grid-template-columns:minmax(205px,245px) minmax(0,1fr) minmax(270px,320px);
+      gap:14px; align-items:start; margin-top:14px;
+    }
+    .thumbnail-studio-tools, .thumbnail-studio-inspector {
+      min-width:0; padding:12px; border:1px solid var(--border-strong);
+      border-radius:14px; background:rgba(8,4,18,.48);
+    }
+    .thumbnail-studio-section-title {
+      margin:0 0 11px; color:#d8c7ff; font-size:10px; font-weight:900; letter-spacing:1.2px;
+    }
+    .thumbnail-studio-tools .thumbnail-editor-add-text {
+      display:flex; flex-direction:column; align-items:stretch; gap:9px;
+      margin:0 0 10px; padding:11px;
+    }
+    .thumbnail-studio-tools .thumbnail-editor-add-text > div { gap:4px; }
+    .thumbnail-studio-tools .thumbnail-editor-add-text span { font-size:11px; }
+    .thumbnail-studio-tools .thumbnail-editor-add-text button { width:100%; min-height:42px; }
+    .thumbnail-studio-tools .thumbnail-editor-toolbar {
+      display:grid; grid-template-columns:1fr; gap:7px; margin:0;
+    }
+    .thumbnail-studio-tools .thumbnail-editor-toolbar button { width:100%; min-height:40px; text-align:left; }
+    .thumbnail-studio-tools .thumbnail-sticker-picker { grid-template-columns:1fr; padding:10px; }
+    .thumbnail-studio-canvas { min-width:0; padding:12px; border:1px solid var(--border-strong); border-radius:14px; background:rgba(5,3,13,.5); }
+    .thumbnail-studio-canvas-title { display:flex; align-items:center; justify-content:space-between; gap:8px; margin:0 0 10px; }
+    .thumbnail-studio-canvas-title strong { color:#f2eaff; font-size:13px; }
+    .thumbnail-studio-canvas-title span { color:var(--muted); font-size:10px; }
+    .thumbnail-studio-canvas .thumbnail-editor-stage { width:100%; max-width:none; margin:0 auto 9px; }
+    .thumbnail-studio-canvas .thumbnail-editor-understage { margin:0 0 12px; }
+    .thumbnail-studio-canvas .thumbnail-editor-export { margin:10px 0 0; }
+    .thumbnail-studio-canvas .thumbnail-editor-export button { width:100%; min-height:46px; }
+    .thumbnail-studio-inspector .thumbnail-editor-panel {
+      padding:0; border:0; background:transparent;
+    }
+    .thumbnail-studio-inspector .thumbnail-editor-panel-head { align-items:flex-start; }
+    .thumbnail-studio-inspector .thumbnail-editor-edit-heading { margin:14px 0 9px; }
+    .thumbnail-studio-inspector .thumbnail-editor-controls { grid-template-columns:1fr; gap:10px; }
+    .thumbnail-studio-inspector .thumbnail-control-wide { grid-column:auto; }
+    .thumbnail-studio-inspector .thumbnail-editor-order { display:grid; grid-template-columns:1fr; }
+    .thumbnail-studio-mode-note { margin:10px 2px 0; color:var(--muted); font-size:11px; line-height:1.5; }
+    .thumbnail-editor-shell:not(.thumbnail-studio-advanced) [data-layer-outline] { opacity:.55; }
+    .thumbnail-editor-shell:not(.thumbnail-studio-advanced) .thumbnail-editor-edit-heading span { font-size:11px; }
+    @media(max-width:1050px) {
+      .thumbnail-studio-workspace { grid-template-columns:190px minmax(0,1fr); }
+      .thumbnail-studio-inspector { grid-column:1/-1; }
+      .thumbnail-studio-inspector .thumbnail-editor-controls { grid-template-columns:repeat(2,minmax(0,1fr)); }
+      .thumbnail-studio-inspector .thumbnail-control-wide { grid-column:1/-1; }
+    }
+    @media(max-width:680px) {
+      .thumbnail-editor-overlay .thumbnail-editor-shell { padding:10px; }
+      .thumbnail-studio-top { align-items:flex-start; flex-direction:column; }
+      .thumbnail-studio-workspace { grid-template-columns:minmax(0,1fr); gap:10px; }
+      .thumbnail-studio-canvas { grid-row:1; padding:8px; }
+      .thumbnail-studio-tools { grid-row:2; }
+      .thumbnail-studio-inspector { grid-row:3; grid-column:auto; }
+      .thumbnail-studio-tools .thumbnail-editor-toolbar { grid-template-columns:repeat(2,minmax(0,1fr)); }
+      .thumbnail-studio-tools .thumbnail-editor-toolbar button { text-align:center; padding:8px 5px; font-size:11px; }
+      .thumbnail-studio-inspector .thumbnail-editor-controls { grid-template-columns:1fr; }
+      .thumbnail-studio-inspector .thumbnail-control-wide { grid-column:auto; }
+      .thumbnail-studio-canvas-title strong { font-size:12px; }
+    }
+
     /* RESPONSIVE BREAKPOINTS */
     @media (max-width: 960px) {
       .hero {
@@ -5360,6 +5437,62 @@
         '<div class="thumbnail-editor-toolbar thumbnail-editor-export"><button type="button" class="primary" data-export-thumbnail>⬇️ Download Final Thumbnail PNG</button></div>',
         '<p class="thumbnail-editor-note" data-editor-message>Tip: Transparent PNG characters and objects can be moved independently. Background ke andar pehle se merged objects ko alag nahi kiya ja sakta.</p>'
       ].join("");
+
+      // STEP 2: arrange the existing editor controls into a full studio workspace.
+      const heading = shell.querySelector(".thumbnail-editor-heading");
+      const addTextBar = shell.querySelector(".thumbnail-editor-add-text");
+      const actionBar = shell.querySelector(".thumbnail-editor-toolbar");
+      const stickerPanel = shell.querySelector("[data-sticker-picker]");
+      const stageElement = shell.querySelector(".thumbnail-editor-stage");
+      const stageHint = shell.querySelector(".thumbnail-editor-understage");
+      const inspector = shell.querySelector(".thumbnail-editor-panel");
+      const exportBar = shell.querySelector(".thumbnail-editor-export");
+      const editorMessage = shell.querySelector("[data-editor-message]");
+
+      const studioTop = document.createElement("div");
+      studioTop.className = "thumbnail-studio-top";
+      const modeSwitch = document.createElement("div");
+      modeSwitch.className = "thumbnail-studio-mode";
+      modeSwitch.innerHTML = '<span>Editor mode</span><button type="button" class="secondary active" data-editor-mode="simple" aria-pressed="true">Simple</button><button type="button" class="secondary" data-editor-mode="advanced" aria-pressed="false">Advanced</button>';
+      studioTop.append(heading, modeSwitch);
+
+      const workspace = document.createElement("div");
+      workspace.className = "thumbnail-studio-workspace";
+      const toolsRail = document.createElement("aside");
+      toolsRail.className = "thumbnail-studio-tools";
+      toolsRail.innerHTML = '<div class="thumbnail-studio-section-title">① ADD TO THUMBNAIL</div>';
+      toolsRail.append(addTextBar, actionBar, stickerPanel);
+
+      const canvasArea = document.createElement("main");
+      canvasArea.className = "thumbnail-studio-canvas";
+      canvasArea.innerHTML = '<div class="thumbnail-studio-canvas-title"><strong>Thumbnail Canvas</strong><span>1280 × 720 · 16:9</span></div>';
+      canvasArea.append(stageElement, stageHint, exportBar);
+
+      const inspectorRail = document.createElement("aside");
+      inspectorRail.className = "thumbnail-studio-inspector";
+      inspectorRail.innerHTML = '<div class="thumbnail-studio-section-title">② EDIT & ORGANIZE</div>';
+      inspectorRail.append(inspector);
+
+      workspace.append(toolsRail, canvasArea, inspectorRail);
+      const modeNote = document.createElement("p");
+      modeNote.className = "thumbnail-studio-mode-note";
+      modeNote.textContent = "Simple mode keeps the main controls easy to find. Switch to Advanced for extra text settings.";
+      shell.replaceChildren(studioTop, workspace, modeNote, editorMessage);
+
+      modeSwitch.querySelectorAll("[data-editor-mode]").forEach(button => {
+        button.addEventListener("click", () => {
+          const advanced = button.dataset.editorMode === "advanced";
+          shell.classList.toggle("thumbnail-studio-advanced", advanced);
+          modeSwitch.querySelectorAll("[data-editor-mode]").forEach(item => {
+            const active = item === button;
+            item.classList.toggle("active", active);
+            item.setAttribute("aria-pressed", String(active));
+          });
+          modeNote.textContent = advanced
+            ? "Advanced mode: extra text outline and detailed layer controls are available."
+            : "Simple mode keeps the main controls easy to find. Switch to Advanced for extra text settings.";
+        });
+      });
 
       const stage = shell.querySelector(".thumbnail-editor-stage");
       const background = shell.querySelector(".thumbnail-editor-background");
