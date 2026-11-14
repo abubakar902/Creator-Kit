@@ -5546,7 +5546,7 @@
         layer.y = Math.max(-(layer.height || layer.fontSize * 2) + 28, Math.min(720 - 28, nextY));
         renderLayers();
       });
-      stage.addEventListener("pointerup", () => { dragState = null; });
+      stage.addEventListener("pointerup", () => { if (dragState) saveHistory(); dragState = null; });
       stage.addEventListener("pointercancel", () => { dragState = null; });
 
       shell.querySelector("[data-export-thumbnail]").addEventListener("click", async () => {
