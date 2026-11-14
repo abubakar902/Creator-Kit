@@ -6382,27 +6382,48 @@
         try { data = await response.json(); }
         catch { throw new Error("The server returned an unreadable response. Please try again."); }
 
-        // If the image service blocks a superhero prompt, make one shorter, neutral retry.
+        let generatedImage = getImagePayload(data);
         const firstError = String(data.error || data.details || data.message || "");
-        if (!response.ok && characterType === "superhero character" && /3030|flagged|blocked|moderation/i.test(firstError)) {
-          thumbnailMessage.textContent = "Trying a simpler character description...";
-          const safeRetryPrompt = "Create a cinematic 16:9 YouTube thumbnail. Show a fictional masked adventurer in an original colourful heroic outfit, standing fully visible on the right side of a mysterious dark jungle. A pair of small glowing red eyes can be seen far away between the trees. Dramatic lighting, vivid colours, sharp focus. Keep the left side dark and clear for the headline. No words, logos or symbols. " +
-            "Scene details: " + instruction.slice(0, 180) + ".";
+        // Retry once for every character type if the service blocks the prompt or returns no image.
+        if (!response.ok || !generatedImage || typeof generatedImage !== "string") {
+          thumbnailMessage.textContent = "Adjusting the prompt and trying once more...";
+          const retryCharacter = characterType === "anime-style character"
+            ? "a clearly recognizable 2D anime character with expressive eyes, detailed anime hair and clean cel shading"
+            : characterType === "realistic human character"
+              ? "a photorealistic human with natural facial features and realistic anatomy"
+              : characterType === "cartoon character"
+                ? "a polished, colourful 3D cartoon character with expressive features"
+                : characterType === "superhero character"
+                  ? "an original fictional masked hero in a bright, unique costume, with no logos"
+                  : characterType === "3D game character"
+                    ? "a detailed 3D video-game character with realistic materials and clear full-body proportions"
+                    : "no character or people";
+          const retryPlacement = characterType === "no character" ? "Show the scene only. " :
+            position === "left" ? "Place the character fully visible on the RIGHT. " :
+            position === "right" ? "Place the character fully visible on the LEFT. " :
+            position === "top" ? "Place the character in the LOWER half. " :
+            "Place the character in the UPPER half. ";
+          const retryHeadlineSpace = position === "left" ? "Leave the LEFT side clear for headline text. " :
+            position === "right" ? "Leave the RIGHT side clear for headline text. " :
+            position === "top" ? "Leave the TOP area clear for headline text. " :
+            "Leave the BOTTOM area clear for headline text. ";
+          const safeRetryPrompt = "Create a clear 16:9 YouTube thumbnail. Show " + retryCharacter +
+            ". Scene: " + instruction.slice(0, 160) + ". " + retryPlacement + retryHeadlineSpace +
+            "Use " + style + " with strong lighting, clear subject separation and vivid colours. No text, logos or collage.";
           response = await workerFetch(WORKER_URL, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ action: "generate_image", prompt: safeRetryPrompt })
           });
           try { data = await response.json(); }
-          catch { throw new Error("The server returned an unreadable response. Please try again."); }
+          catch { throw new Error("The image service returned an unreadable retry response. Please try again."); }
+          generatedImage = getImagePayload(data);
         }
         if (!response.ok) {
-          throw new Error(data.error || data.details || data.message || `Thumbnail generation failed (${response.status}).`);
+          throw new Error(data.error || data.details || data.message || firstError || `Thumbnail generation failed (${response.status}).`);
         }
-
-        const generatedImage = getImagePayload(data);
         if (!generatedImage || typeof generatedImage !== "string") {
-          throw new Error(data.error || "The image service returned no picture. Please try again.");
+          throw new Error(data.error || data.details || data.message || "The image service returned no picture after retry. Please try again.");
         }
         const generatedImageUrl = generatedImage.startsWith("data:")
           ? generatedImage
