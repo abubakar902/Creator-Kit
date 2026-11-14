@@ -3582,6 +3582,83 @@
     @media(max-width:680px) {
       .thumbnail-sticker-dock .thumbnail-sticker-picker { grid-template-columns:1fr; }
     }
+
+    /* THUMBNAIL STUDIO — BACKGROUND SIDEBAR CONTAINMENT FIX */
+    .thumbnail-studio-workspace { min-width:0; }
+    .thumbnail-studio-tools {
+      box-sizing:border-box;
+      min-width:0;
+      min-height:0;
+      overflow-x:hidden !important;
+      overflow-y:auto !important;
+      overscroll-behavior:contain;
+      scrollbar-width:thin;
+      scrollbar-color:rgba(196,181,253,.45) rgba(255,255,255,.035);
+    }
+    .thumbnail-studio-tools > *,
+    .thumbnail-studio-tools .thumbnail-studio-group,
+    .thumbnail-studio-tools .thumbnail-studio-group-body,
+    .thumbnail-studio-tools .thumbnail-background-studio,
+    .thumbnail-studio-tools .thumbnail-bg-paint {
+      box-sizing:border-box;
+      min-width:0;
+      max-width:100%;
+    }
+    .thumbnail-studio-tools .thumbnail-studio-group { width:100%; }
+    .thumbnail-studio-tools .thumbnail-studio-group-body { overflow:hidden; }
+    .thumbnail-studio-tools .thumbnail-background-studio { display:grid; width:100%; gap:9px; }
+    .thumbnail-studio-tools .thumbnail-bg-slider { min-width:0; width:100%; }
+    .thumbnail-studio-tools .thumbnail-bg-slider input[type="range"],
+    .thumbnail-studio-tools .thumbnail-bg-paint input[type="range"],
+    .thumbnail-studio-tools .thumbnail-bg-paint input[type="color"] {
+      display:block;
+      width:100%;
+      max-width:100%;
+      box-sizing:border-box;
+    }
+    .thumbnail-studio-tools .thumbnail-bg-paint {
+      width:100%;
+      margin-top:2px;
+      padding:11px;
+      overflow:hidden;
+    }
+    .thumbnail-studio-tools .thumbnail-bg-paint-tools {
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:7px;
+      width:100%;
+    }
+    .thumbnail-studio-tools .thumbnail-bg-paint-tools button {
+      min-width:0;
+      min-height:43px;
+      padding:7px 5px;
+      white-space:normal;
+    }
+    .thumbnail-studio-tools .thumbnail-bg-paint label {
+      display:block;
+      min-width:0;
+      width:100%;
+      margin:10px 0;
+      overflow-wrap:anywhere;
+    }
+    .thumbnail-studio-tools [data-bg-paint-clear],
+    .thumbnail-studio-tools .thumbnail-bg-reset { width:100%; min-width:0; }
+    @media(min-width:821px) {
+      .thumbnail-studio-tools {
+        position:sticky;
+        top:64px;
+        height:auto;
+        max-height:calc(100vh - 78px);
+      }
+    }
+    @media(max-width:820px) {
+      .thumbnail-studio-tools {
+        position:static;
+        height:auto;
+        max-height:none;
+        overflow:visible !important;
+      }
+    }
 </style>
 
     <!-- AI CREATOR ASSISTANT WORKSPACE -->
