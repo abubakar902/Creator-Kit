@@ -5766,7 +5766,7 @@
         '<div class="thumbnail-bg-slider"><label for="thumbnail-bg-contrast">Contrast <output data-bg-value="contrast">100%</output></label><input id="thumbnail-bg-contrast" type="range" min="40" max="180" value="100" data-bg-control="contrast"></div>',
         '<div class="thumbnail-bg-slider"><label for="thumbnail-bg-saturation">Saturation <output data-bg-value="saturation">100%</output></label><input id="thumbnail-bg-saturation" type="range" min="0" max="200" value="100" data-bg-control="saturation"></div>',
         '<div class="thumbnail-bg-slider"><label for="thumbnail-bg-blur">Blur <output data-bg-value="blur">0px</output></label><input id="thumbnail-bg-blur" type="range" min="0" max="12" value="0" data-bg-control="blur"></div>',
-        '<div class="thumbnail-bg-paint"><strong>Selective Brush &amp; Eraser</strong><p class="thumbnail-editor-note">Paint only the area you want to shade. Use Eraser to restore it.</p><div class="thumbnail-bg-paint-tools"><button type="button" class="secondary active" data-bg-paint-mode="brush">🖌️ Brush</button><button type="button" class="secondary" data-bg-paint-mode="eraser">⌫ Eraser</button></div><label>Brush colour <input type="color" data-bg-paint-color value="#160b2b"></label><label>Brush size <output data-bg-paint-size-value>70px</output><input type="range" min="10" max="240" value="70" data-bg-paint-size></label><label>Strength <output data-bg-paint-opacity-value>45%</output><input type="range" min="5" max="100" value="45" data-bg-paint-opacity></label><button type="button" class="secondary" data-bg-paint-clear>Clear brush strokes</button></div>',
+        '<div class="thumbnail-bg-paint"><strong>Selective Brush &amp; Eraser</strong><p class="thumbnail-editor-note">Paint only the area you want to shade. Use Eraser to restore it.</p><div class="thumbnail-bg-paint-tools"><button type="button" class="secondary active" data-bg-paint-mode="brush">🖌️ Free Brush</button><button type="button" class="secondary" data-bg-paint-mode="eraser">⌫ Eraser</button><button type="button" class="secondary" data-bg-paint-mode="rect">▭ Rectangle Shade</button><button type="button" class="secondary" data-bg-paint-mode="ellipse">◯ Ellipse Shade</button></div><p class="thumbnail-editor-note">Rectangle ya ellipse choose karke canvas par drag karein. Shade sirf shape ke andar lagega.</p><label>Brush colour <input type="color" data-bg-paint-color value="#160b2b"></label><label>Brush size <output data-bg-paint-size-value>70px</output><input type="range" min="10" max="240" value="70" data-bg-paint-size></label><label>Strength <output data-bg-paint-opacity-value>45%</output><input type="range" min="5" max="100" value="45" data-bg-paint-opacity></label><button type="button" class="secondary" data-bg-paint-clear>Clear brush strokes</button></div>',
         '<button type="button" class="secondary thumbnail-bg-reset" data-bg-reset>↺ Reset background</button>'
       ].join("");
       const backgroundGroup = makeStudioGroup(toolsRail, "Background Studio", "🎨", [backgroundStudio], { open: false });
@@ -5870,14 +5870,24 @@
           brushCtx.save();
           brushCtx.globalCompositeOperation = stroke.mode === "eraser" ? "destination-out" : "source-over";
           brushCtx.globalAlpha = stroke.opacity;
+          brushCtx.fillStyle = stroke.color;
           brushCtx.strokeStyle = stroke.color;
-          brushCtx.lineWidth = stroke.size;
-          brushCtx.lineCap = "round";
-          brushCtx.lineJoin = "round";
-          brushCtx.beginPath();
-          stroke.points.forEach((point, index) => index ? brushCtx.lineTo(point.x, point.y) : brushCtx.moveTo(point.x, point.y));
-          if (stroke.points.length === 1) { brushCtx.lineTo(stroke.points[0].x + .1, stroke.points[0].y + .1); }
-          brushCtx.stroke();
+          if (stroke.shape === "rect" || stroke.shape === "ellipse") {
+            const start = stroke.points[0];
+            const end = stroke.points[stroke.points.length - 1];
+            const x = Math.min(start.x, end.x), y = Math.min(start.y, end.y);
+            const w = Math.abs(end.x - start.x), h = Math.abs(end.y - start.y);
+            if (stroke.shape === "rect") brushCtx.fillRect(x, y, w, h);
+            else { brushCtx.beginPath(); brushCtx.ellipse(x + w/2, y + h/2, Math.max(w/2,.5), Math.max(h/2,.5), 0, 0, Math.PI*2); brushCtx.fill(); }
+          } else {
+            brushCtx.lineWidth = stroke.size;
+            brushCtx.lineCap = "round";
+            brushCtx.lineJoin = "round";
+            brushCtx.beginPath();
+            stroke.points.forEach((point, index) => index ? brushCtx.lineTo(point.x, point.y) : brushCtx.moveTo(point.x, point.y));
+            if (stroke.points.length === 1) brushCtx.lineTo(stroke.points[0].x + .1, stroke.points[0].y + .1);
+            brushCtx.stroke();
+          }
           brushCtx.restore();
         });
       }
@@ -5901,7 +5911,7 @@
         event.preventDefault();
         const rect = brushCanvas.getBoundingClientRect();
         const point = { x:(event.clientX-rect.left)/rect.width*1280, y:(event.clientY-rect.top)/rect.height*720 };
-        activeBrushStroke = { mode:brushMode, color:brushColorInput.value, size:Number(brushSizeInput.value), opacity:brushMode === "eraser" ? 1 : Number(brushOpacityInput.value)/100, points:[point] };
+        activeBrushStroke = { mode:brushMode === "eraser" ? "eraser" : "brush", shape:(brushMode === "rect" || brushMode === "ellipse") ? brushMode : null, color:brushColorInput.value, size:Number(brushSizeInput.value), opacity:brushMode === "eraser" ? 1 : Number(brushOpacityInput.value)/100, points:[point, point] };
         brushStrokes.push(activeBrushStroke);
         brushCanvas.setPointerCapture(event.pointerId);
         redrawBrushStrokes();
@@ -5909,7 +5919,9 @@
       brushCanvas.addEventListener("pointermove", event => {
         if (!activeBrushStroke) return;
         const rect = brushCanvas.getBoundingClientRect();
-        activeBrushStroke.points.push({ x:(event.clientX-rect.left)/rect.width*1280, y:(event.clientY-rect.top)/rect.height*720 });
+        const point = { x:(event.clientX-rect.left)/rect.width*1280, y:(event.clientY-rect.top)/rect.height*720 };
+        if (activeBrushStroke.shape) activeBrushStroke.points[1] = point;
+        else activeBrushStroke.points.push(point);
         redrawBrushStrokes();
       });
       const finishBrushStroke = () => {
