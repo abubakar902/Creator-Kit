@@ -3543,6 +3543,9 @@
       box-shadow:0 8px 24px rgba(0,0,0,.35);
     }
     .thumbnail-sticker-picker.thumbnail-sticker-popup[hidden] { display:none !important; }
+    .thumbnail-sticker-search-label { display:block; grid-column:1/-1; margin:0 0 2px; color:#e9ddff; font-size:11px; font-weight:750; }
+    .thumbnail-sticker-search-label input { display:block; width:100%; min-height:38px; margin-top:5px; padding:8px 10px; border:1px solid var(--border-strong); border-radius:9px; color:var(--text); background:rgba(8,4,18,.9); font-size:12px; }
+    .thumbnail-sticker-empty { grid-column:1/-1; margin:4px 0; padding:10px; color:var(--muted); font-size:11px; text-align:center; }
     .thumbnail-sticker-picker.thumbnail-sticker-popup .thumbnail-sticker-group { min-width:0; }
     .thumbnail-sticker-picker.thumbnail-sticker-popup .thumbnail-sticker-group strong { font-size:11px; }
     .thumbnail-sticker-picker.thumbnail-sticker-popup .thumbnail-sticker-group > div { gap:5px; }
@@ -5538,10 +5541,14 @@
           '<input type="file" accept="image/*" data-image-file hidden>',
         '</div>',
         '<div data-sticker-picker hidden class="thumbnail-sticker-picker">',
+          '<label class="thumbnail-sticker-search-label">Find a sticker<input type="search" data-sticker-search placeholder="Search: fire, subscribe, cricket, arrow..." autocomplete="off"></label>',
           '<div class="thumbnail-sticker-group"><strong>Creator &amp; Subscribe</strong><div data-sticker-group="creator"></div></div>',
           '<div class="thumbnail-sticker-group"><strong>Arrows &amp; Pointers</strong><div data-sticker-group="arrows"></div></div>',
           '<div class="thumbnail-sticker-group"><strong>Reactions &amp; Effects</strong><div data-sticker-group="effects"></div></div>',
           '<div class="thumbnail-sticker-group"><strong>Gaming &amp; Sports</strong><div data-sticker-group="gaming"></div></div>',
+          '<div class="thumbnail-sticker-group"><strong>Social Media</strong><div data-sticker-group="social"></div></div>',
+          '<div class="thumbnail-sticker-group"><strong>Stars &amp; Symbols</strong><div data-sticker-group="symbols"></div></div>',
+          '<p data-sticker-empty hidden class="thumbnail-sticker-empty">No stickers found. Try another word.</p>',
         '</div>',
         '<div data-shape-picker hidden class="thumbnail-sticker-picker thumbnail-shape-picker"><strong class="thumbnail-shape-title">Choose a shape</strong><div class="thumbnail-shape-options"><button type="button" class="secondary" data-shape="rectangle">▰ Rectangle</button><button type="button" class="secondary" data-shape="circle">● Circle</button><button type="button" class="secondary" data-shape="triangle">▲ Triangle</button><button type="button" class="secondary" data-shape="star">★ Star</button><button type="button" class="secondary" data-shape="arrow">➜ Arrow</button></div></div>',
         '<div class="thumbnail-editor-stage" aria-label="Thumbnail editing canvas"><img class="thumbnail-editor-background" alt="Thumbnail background"></div>',
@@ -5909,10 +5916,32 @@
 
       shell.querySelector("[data-add-text]").addEventListener("click", () => addTextLayer("Your text", "#ffffff", 64));
       const stickerGroups = {
-        creator: ["🔔","👍","❤️","💬","↗️"],
-        arrows: ["➡️","⬅️","⬆️","⬇️","↗️","↘️","↙️","↖️","➜","➤","➥","➦","⤴️","⤵️","👇","👆"],
-        effects: ["🔥","💥","⚡","💀","👑","🎯","💎","🚀","❤️","😈","😱","😂","🤯","✨","💯","❗","❓"],
-        gaming: ["🏆","🎮","🐉","⚔️","🛡️","🥇","🏏"]
+        creator: ["🔔","👍","❤️","💬","↗️","🔴","▶️","📢","🎬","📌","🔔","💖"],
+        arrows: ["➡️","⬅️","⬆️","⬇️","↗️","↘️","↙️","↖️","➜","➤","➥","➦","⤴️","⤵️","👇","👆","⬅","⏩","⏪"],
+        effects: ["🔥","💥","⚡","💀","👑","🎯","💎","🚀","❤️","😈","😱","😂","🤯","✨","💯","❗","❓","🌟","💫","☄️","💢","🌀"],
+        gaming: ["🏆","🎮","🐉","⚔️","🛡️","🥇","🏏","🏏","🏅","🎯","👾","🕹️","🥊","🏎️"],
+        social: ["📸","📱","💻","🌐","📣","💬","✉️","🔗","⭐","💜","💙","💚","🧡","🤍"],
+        symbols: ["★","☆","✦","✧","●","○","◆","◇","■","□","✓","✕","＋","！","？","∞"]
+      };
+      const stickerSearchNames = {
+        "🔔":"bell notification alert","👍":"like thumbs up","❤️":"heart love","💬":"comment chat message",
+        "↗️":"share","🔴":"record live red dot","▶️":"play video youtube","📢":"announce megaphone",
+        "🎬":"clapper video","📌":"pin","💖":"love heart","➡️":"right arrow","⬅️":"left arrow",
+        "⬆️":"up arrow","⬇️":"down arrow","↗️":"diagonal arrow","↘️":"diagonal arrow","↙️":"diagonal arrow",
+        "↖️":"diagonal arrow","➜":"right arrow","➤":"pointer arrow","➥":"curved arrow","➦":"curved arrow",
+        "⤴️":"turn up arrow","⤵️":"turn down arrow","👇":"point down hand","👆":"point up hand",
+        "🔥":"fire hot","💥":"explosion boom","⚡":"lightning electric","💀":"skull","👑":"crown king",
+        "🎯":"target aim","💎":"diamond","🚀":"rocket launch","😈":"devil","😱":"shock surprised",
+        "😂":"laugh funny","🤯":"mind blown","✨":"sparkles shine","💯":"hundred perfect","❗":"exclamation",
+        "❓":"question","🌟":"star shine","💫":"dizzy sparkle","☄️":"comet","💢":"anger","🌀":"swirl",
+        "🏆":"trophy winner","🎮":"gaming controller","🐉":"dragon","⚔️":"swords battle","🛡️":"shield",
+        "🥇":"gold medal first","🏏":"cricket bat ball","🏅":"medal award","👾":"alien game","🕹️":"joystick",
+        "🥊":"boxing glove","🏎️":"racing car","📸":"camera instagram photo","📱":"mobile phone",
+        "💻":"computer laptop","🌐":"globe website","📣":"megaphone announcement","✉️":"email message",
+        "🔗":"link chain","💜":"purple heart","💙":"blue heart","💚":"green heart","🧡":"orange heart",
+        "🤍":"white heart","★":"star","☆":"outline star","✦":"sparkle star","✧":"outline sparkle",
+        "●":"circle","○":"outline circle","◆":"diamond","◇":"outline diamond","■":"square","□":"outline square",
+        "✓":"check tick","✕":"cross close","＋":"plus","！":"exclamation","？":"question","∞":"infinity"
       };
       Object.entries(stickerGroups).forEach(([group, options]) => {
         const holder = stickerPicker.querySelector('[data-sticker-group="' + group + '"]');
@@ -5921,12 +5950,32 @@
           option.type = "button";
           option.className = "secondary";
           option.textContent = sticker;
+          option.title = (stickerSearchNames[sticker] || group) + " sticker";
+          option.dataset.stickerSearch = (sticker + " " + group + " " + (stickerSearchNames[sticker] || "")).toLowerCase();
+          option.setAttribute("aria-label", option.title);
           option.addEventListener("click", () => {
             addSticker(sticker, group === "creator" ? "#ff3b55" : "#ffe500", group === "creator" ? 58 : 86);
             closeStickerPopup();
           });
           holder.append(option);
         });
+      });
+      const stickerSearch = stickerPicker.querySelector("[data-sticker-search]");
+      const stickerEmpty = stickerPicker.querySelector("[data-sticker-empty]");
+      stickerSearch.addEventListener("input", () => {
+        const query = stickerSearch.value.trim().toLowerCase();
+        let total = 0;
+        stickerPicker.querySelectorAll(".thumbnail-sticker-group").forEach(group => {
+          let visible = 0;
+          group.querySelectorAll("button[data-sticker-search]").forEach(option => {
+            const match = !query || option.dataset.stickerSearch.includes(query);
+            option.hidden = !match;
+            if (match) visible++;
+          });
+          group.hidden = visible === 0;
+          total += visible;
+        });
+        stickerEmpty.hidden = total > 0;
       });
       const stickerDockElement = shell.querySelector(".thumbnail-sticker-dock");
       const closeStickerButton = document.createElement("button");
@@ -5943,6 +5992,8 @@
         stickerPanel.hidden = true;
         stickerButton.setAttribute("aria-expanded", "false");
         stickerDockElement.classList.remove("is-open");
+        stickerSearch.value = "";
+        stickerSearch.dispatchEvent(new Event("input"));
       }
       stickerButton.addEventListener("click", (event) => {
         event.preventDefault();
