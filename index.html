@@ -3543,6 +3543,15 @@
       box-shadow:0 8px 24px rgba(0,0,0,.35);
     }
     .thumbnail-sticker-picker.thumbnail-sticker-popup[hidden] { display:none !important; }
+    .thumbnail-background-studio { display:grid; gap:10px; padding:2px 0 4px; }
+    .thumbnail-bg-presets { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:5px; }
+    .thumbnail-bg-presets button { min-width:0; padding:7px 4px; font-size:10px; }
+    .thumbnail-bg-presets button.active { border-color:var(--purple); background:rgba(155,108,255,.2); }
+    .thumbnail-bg-slider { display:grid; gap:5px; }
+    .thumbnail-bg-slider label { display:flex; justify-content:space-between; gap:8px; color:var(--text); font-size:11px; font-weight:700; }
+    .thumbnail-bg-slider output { color:var(--muted); font-variant-numeric:tabular-nums; }
+    .thumbnail-bg-slider input { width:100%; margin:0; accent-color:var(--purple); }
+    .thumbnail-bg-reset { width:100%; font-size:11px; }
     .thumbnail-sticker-search-label { display:block; grid-column:1/-1; margin:0 0 2px; color:#e9ddff; font-size:11px; font-weight:750; }
     .thumbnail-sticker-search-label input { display:block; width:100%; min-height:38px; margin-top:5px; padding:8px 10px; border:1px solid var(--border-strong); border-radius:9px; color:var(--text); background:rgba(8,4,18,.9); font-size:12px; }
     .thumbnail-sticker-empty { grid-column:1/-1; margin:4px 0; padding:10px; color:var(--muted); font-size:11px; text-align:center; }
@@ -5660,6 +5669,21 @@
       const undoButton = actionBar.querySelector("[data-undo]");
       const redoButton = actionBar.querySelector("[data-redo]");
       const imageFileControl = actionBar.querySelector("[data-image-file]");
+      const backgroundStudio = document.createElement("div");
+      backgroundStudio.className = "thumbnail-background-studio";
+      backgroundStudio.innerHTML = [
+        '<div class="thumbnail-bg-presets" role="group" aria-label="Background presets">',
+          '<button type="button" class="secondary" data-bg-preset="cinematic">🎬 Cinematic</button>',
+          '<button type="button" class="secondary" data-bg-preset="vibrant">🌈 Vibrant</button>',
+          '<button type="button" class="secondary" data-bg-preset="soft">☁️ Soft</button>',
+        '</div>',
+        '<div class="thumbnail-bg-slider"><label for="thumbnail-bg-brightness">Brightness <output data-bg-value="brightness">100%</output></label><input id="thumbnail-bg-brightness" type="range" min="40" max="160" value="100" data-bg-control="brightness"></div>',
+        '<div class="thumbnail-bg-slider"><label for="thumbnail-bg-contrast">Contrast <output data-bg-value="contrast">100%</output></label><input id="thumbnail-bg-contrast" type="range" min="40" max="180" value="100" data-bg-control="contrast"></div>',
+        '<div class="thumbnail-bg-slider"><label for="thumbnail-bg-saturation">Saturation <output data-bg-value="saturation">100%</output></label><input id="thumbnail-bg-saturation" type="range" min="0" max="200" value="100" data-bg-control="saturation"></div>',
+        '<div class="thumbnail-bg-slider"><label for="thumbnail-bg-blur">Blur <output data-bg-value="blur">0px</output></label><input id="thumbnail-bg-blur" type="range" min="0" max="12" value="0" data-bg-control="blur"></div>',
+        '<button type="button" class="secondary thumbnail-bg-reset" data-bg-reset>↺ Reset background</button>'
+      ].join("");
+      const backgroundGroup = makeStudioGroup(toolsRail, "Background Studio", "🎨", [backgroundStudio], { open: false });
       const addTextGroup = makeStudioGroup(toolsRail, "Add Text", "T", [addTextBar], { open: true });
       const stickerGroup = makeStudioGroup(toolsRail, "Stickers", "✨", [stickerDock], { open: false });
       const imageGroup = makeStudioGroup(toolsRail, "Add Image", "🖼️", [uploadButton, imageFileControl], { open: false });
@@ -5741,6 +5765,43 @@
       const stickerPicker = shell.querySelector("[data-sticker-picker]");
       const shapePicker = shell.querySelector("[data-shape-picker]");
       background.src = backgroundUrl;
+      const backgroundFilterInputs = backgroundStudio.querySelectorAll("[data-bg-control]");
+      function applyBackgroundSettings() {
+        background.style.filter = "brightness(" + backgroundSettings.brightness + "%) contrast(" + backgroundSettings.contrast + "%) saturate(" + backgroundSettings.saturation + "%) blur(" + backgroundSettings.blur + "px)";
+        backgroundFilterInputs.forEach(input => {
+          const key = input.dataset.bgControl;
+          input.value = backgroundSettings[key];
+          const output = backgroundStudio.querySelector('[data-bg-value="' + key + '"]');
+          if (output) output.textContent = backgroundSettings[key] + (key === "blur" ? "px" : "%");
+        });
+        backgroundStudio.querySelectorAll("[data-bg-preset]").forEach(button => button.classList.toggle("active", button.dataset.bgPreset === backgroundSettings.preset));
+      }
+      function setBackgroundPreset(preset) {
+        const presets = {
+          cinematic:{ brightness:92, contrast:128, saturation:112, blur:0 },
+          vibrant:{ brightness:108, contrast:118, saturation:165, blur:0 },
+          soft:{ brightness:108, contrast:88, saturation:82, blur:2 }
+        };
+        backgroundSettings = { ...presets[preset], preset };
+        applyBackgroundSettings();
+        saveHistory();
+      }
+      backgroundFilterInputs.forEach(input => {
+        input.addEventListener("input", () => {
+          backgroundSettings[input.dataset.bgControl] = Number(input.value);
+          delete backgroundSettings.preset;
+          applyBackgroundSettings();
+        });
+        input.addEventListener("change", saveHistory);
+      });
+      backgroundStudio.querySelectorAll("[data-bg-preset]").forEach(button => button.addEventListener("click", () => setBackgroundPreset(button.dataset.bgPreset)));
+      backgroundStudio.querySelector("[data-bg-reset]").addEventListener("click", () => {
+        backgroundSettings = { brightness:100, contrast:100, saturation:100, blur:0 };
+        applyBackgroundSettings();
+        saveHistory();
+        message.textContent = "Background adjustments reset.";
+      });
+      applyBackgroundSettings();
 
       let layers = [{
         id: "headline", type: "text", text: headline,
@@ -5756,9 +5817,10 @@
       let layerCounter = 0;
       let history = [];
       let historyIndex = -1;
+      let backgroundSettings = { brightness:100, contrast:100, saturation:100, blur:0 };
 
       const selectedLayer = () => layers.find(layer => layer.id === selectedId);
-      const snapshot = () => JSON.stringify({ layers, selectedId });
+      const snapshot = () => JSON.stringify({ layers, selectedId, backgroundSettings });
       function saveHistory() {
         const state = snapshot();
         if (history[historyIndex] === state) return;
@@ -5774,6 +5836,8 @@
         const state = JSON.parse(history[historyIndex]);
         layers = state.layers;
         selectedId = state.selectedId;
+        backgroundSettings = state.backgroundSettings || { brightness:100, contrast:100, saturation:100, blur:0 };
+        applyBackgroundSettings();
         renderLayers();
         syncControls();
         updateHistoryButtons();
@@ -6153,8 +6217,11 @@
           const ctx = canvas.getContext("2d");
           if (!ctx) throw new Error("Your browser could not export the thumbnail.");
           const bg = await loadImageForThumbnail(backgroundUrl);
-          // Match the editor canvas: fit the complete background to 16:9 without cropping.
+          // Match the editor canvas and bake all background adjustments into the PNG.
+          ctx.save();
+          ctx.filter = "brightness(" + backgroundSettings.brightness + "%) contrast(" + backgroundSettings.contrast + "%) saturate(" + backgroundSettings.saturation + "%) blur(" + backgroundSettings.blur + "px)";
           ctx.drawImage(bg, 0, 0, 1280, 720);
+          ctx.restore();
           for (const layer of layers) {
             if (layer.visible === false) continue;
             ctx.save();
