@@ -7463,6 +7463,18 @@
 
           const editor = createThumbnailLayerEditor(generatedImageUrl, headline, accent, position, { hasUploadedCharacter: !!characterReferenceFile });
           overlay.appendChild(editor);
+          // Automatically separate the exact uploaded character as soon as the editor opens.
+          // This reuses the generated image and never regenerates or alters the preserved face layer.
+          if (characterReferenceFile) {
+            const autoSeparateButton = editor.querySelector("[data-separate-character]");
+            if (autoSeparateButton) {
+              requestAnimationFrame(() => {
+                if (autoSeparateButton.isConnected && !autoSeparateButton.disabled) {
+                  autoSeparateButton.click();
+                }
+              });
+            }
+          }
           overlay.querySelector("[data-close-thumbnail-editor]").focus();
         });
 
