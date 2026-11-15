@@ -2141,6 +2141,14 @@
     .thumbnail-studio-group-body > .field-group { margin:0 0 10px; }
     .thumbnail-studio-group-body > .field-group:last-child { margin-bottom:0; }
     .thumbnail-bg-removal-studio { display:grid; gap:9px; min-width:0; }
+    .thumbnail-character-studio { margin-top:10px; padding:10px; border:1px solid rgba(155,108,255,.28); border-radius:12px; background:rgba(155,108,255,.055); }
+    .thumbnail-character-card { display:grid; gap:9px; min-width:0; }
+    .thumbnail-character-card > strong { color:#eee7ff; font-size:12px; }
+    .thumbnail-character-card label { display:grid; gap:5px; color:#d8ccef; font-size:12px; }
+    .thumbnail-character-card select,.thumbnail-character-card textarea,.thumbnail-character-card input[type="file"] { width:100%; min-width:0; }
+    .thumbnail-character-card textarea { resize:vertical; }
+    .thumbnail-character-card [data-character-create] { width:100%; min-height:42px; }
+
     .thumbnail-bg-removal-studio > button { width:100%; min-height:40px; white-space:normal; }
     .thumbnail-bg-library { margin-top:8px; padding:10px; border:1px solid var(--border); border-radius:12px; background:rgba(255,255,255,.025); }
     .thumbnail-bg-library > strong { display:block; font-size:12px; color:#e9ddff; }
@@ -5856,6 +5864,18 @@
       const addTextGroup = makeStudioGroup(toolsRail, "Add Text", "T", [addTextBar], { open: true });
       const stickerGroup = makeStudioGroup(toolsRail, "Stickers", "✨", [stickerDock], { open: false });
       const imageGroup = makeStudioGroup(toolsRail, "Add Image", "🖼️", [uploadButton, imageFileControl], { open: false });
+      // Character Studio: generate a new character or transform an uploaded reference pose.
+      const characterStudio = document.createElement("div");
+      characterStudio.className = "thumbnail-character-studio";
+      characterStudio.innerHTML = [
+        '<div class="thumbnail-character-card"><strong>🤖 AI Character Studio</strong><p class="thumbnail-editor-note">Naya full-body character banayein ya apni photo ko instruction wali pose mein transform karein.</p>',
+        '<label>Character option<select data-character-mode><option value="generate">Generate a new character</option><option value="pose">Upload image &amp; change pose</option></select></label>',
+        '<label>Pose / character instruction<textarea rows="3" maxlength="700" data-character-prompt placeholder="Example: Full-body standing cricket player, facing camera, right hand holding a bat, left hand on waist. Keep the face natural and unchanged."></textarea></label>',
+        '<label data-character-upload-wrap hidden>Upload character photo<input type="file" accept="image/png,image/jpeg,image/webp" data-character-file></label>',
+        '<button type="button" class="primary" data-character-create>✨ Create Character</button>',
+        '<p class="thumbnail-editor-note" data-character-status role="status" aria-live="polite">Character will be added as a separate movable layer in your thumbnail.</p></div>'
+      ].join("");
+      imageGroup.querySelector(".thumbnail-studio-group-body").append(characterStudio);
       const backgroundGroup = makeStudioGroup(toolsRail, "Background Studio", "🎨", [backgroundStudio], { open: false, advanced: true });
       imageGroup.after(backgroundGroup);
 
@@ -6419,6 +6439,76 @@
         };
         reader.readAsDataURL(file);
         fileInput.value = "";
+      });
+
+      const characterModeInput = characterStudio.querySelector("[data-character-mode]");
+      const characterPromptInput = characterStudio.querySelector("[data-character-prompt]");
+      const characterFileInput = characterStudio.querySelector("[data-character-file]");
+      const characterUploadWrap = characterStudio.querySelector("[data-character-upload-wrap]");
+      const characterCreateButton = characterStudio.querySelector("[data-character-create]");
+      const characterStatus = characterStudio.querySelector("[data-character-status]");
+      characterModeInput.addEventListener("change", () => {
+        characterUploadWrap.hidden = characterModeInput.value !== "pose";
+        characterStatus.textContent = characterModeInput.value === "pose"
+          ? "Upload a clear character photo. AI will try to keep the face unchanged while changing the pose."
+          : "Describe the character, full-body standing pose and outfit you want.";
+      });
+      characterCreateButton.addEventListener("click", async () => {
+        const mode = characterModeInput.value;
+        const instruction = characterPromptInput.value.trim();
+        const file = characterFileInput.files && characterFileInput.files[0];
+        if (!instruction) { characterStatus.textContent = "Please describe the character and its pose first."; return; }
+        if (mode === "pose" && !file) { characterStatus.textContent = "Please upload the character photo first."; return; }
+        if (file && file.size > 3 * 1024 * 1024) { characterStatus.textContent = "Please use an image smaller than 3 MB."; return; }
+        if (file && !["image/png","image/jpeg","image/webp"].includes(file.type)) { characterStatus.textContent = "Please use PNG, JPG or WEBP."; return; }
+        characterCreateButton.disabled = true;
+        characterCreateButton.textContent = "⏳ Creating...";
+        characterStatus.textContent = mode === "pose" ? "Transforming the uploaded character pose..." : "Generating your new character...";
+        try {
+          let imageBase64 = "";
+          let mimeType = "";
+          if (mode === "pose") {
+            mimeType = file.type;
+            imageBase64 = await new Promise((resolve,reject) => {
+              const reader = new FileReader();
+              reader.onload = () => resolve(String(reader.result).split(",")[1] || "");
+              reader.onerror = () => reject(new Error("Could not read the uploaded character image."));
+              reader.readAsDataURL(file);
+            });
+            if (!imageBase64) throw new Error("Uploaded image could not be prepared.");
+          }
+          const faceProtection = mode === "pose"
+            ? " Preserve the exact same person's identity and face from the reference image: do not change facial structure, eyes, nose, mouth, expression, skin texture, age or hairstyle. Do not apply any filter, retouching, beautification, makeup or visual effect to the face. Change only body pose, body position and clothing as requested. Keep the face photorealistic and untouched. "
+            : " Create an original fictional character with a natural, clean face. ";
+          const prompt = "Create one single full-body character, head to toe, completely visible, standing naturally inside the frame. Pose and action: " + instruction + ". " + faceProtection + " Professional cinematic creator-thumbnail character, clear anatomy, realistic hands, sharp details, isolated against a simple plain dark neutral background for easy background removal. Character only, no text, no logo, no collage, no extra people.";
+          const response = await workerFetch(WORKER_URL, {
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body:JSON.stringify({action:"generate_image",prompt,imageBase64,mimeType})
+          });
+          let data;
+          try { data = await response.json(); } catch { throw new Error("The image service returned an unreadable response."); }
+          if (!response.ok) throw new Error(data.error || data.details || data.message || "Character generation failed.");
+          const generated = getImagePayload(data);
+          if (!generated || typeof generated !== "string") throw new Error(data.error || "No character image was returned. Please try again.");
+          const src = generated.startsWith("data:") ? generated : "data:image/png;base64," + generated;
+          const img = await loadImageForThumbnail(src);
+          const naturalWidth = img.naturalWidth || img.width;
+          const naturalHeight = img.naturalHeight || img.height;
+          const width = Math.min(390, naturalWidth);
+          const height = width * naturalHeight / naturalWidth;
+          layerCounter++;
+          const layer = {id:"character-" + layerCounter,type:"image",src,x:700,y:Math.max(10,Math.round((720-height)/2)),width,height,rotation:0};
+          layers.push(layer); selectedId = layer.id; saveHistory(); renderLayers(); syncControls();
+          characterStatus.textContent = "Character added to thumbnail as a separate layer. You can move, resize and remove its background.";
+          characterFileInput.value = "";
+        } catch (error) {
+          console.error("Thumbnail character studio error:",error);
+          characterStatus.textContent = error && error.message ? error.message : "Could not create the character. Please try again.";
+        } finally {
+          characterCreateButton.disabled = false;
+          characterCreateButton.textContent = "✨ Create Character";
+        }
       });
 
       const removeBackgroundButton = backgroundRemovalStudio.querySelector("[data-remove-image-background]");
