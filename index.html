@@ -1903,6 +1903,10 @@
     .thumbnail-editor-toolbar { display:flex; flex-wrap:wrap; gap:9px; margin:14px 0; }
     .thumbnail-editor-toolbar button, .thumbnail-editor-controls button { min-height:40px; }
     .thumbnail-editor-stage { position:relative; width:100%; max-width:850px; aspect-ratio:16/9; margin:14px auto; overflow:hidden; border:2px solid var(--border-strong); border-radius:12px; background:#090611; touch-action:none; user-select:none; }
+    .thumbnail-editor-stage.thumbnail-mask-painting { cursor:none; }
+    .thumbnail-mask-cursor { position:absolute; z-index:10000; display:none; pointer-events:none; border:1.5px solid #fff; border-radius:50%; box-shadow:0 0 0 1px rgba(0,0,0,.9),0 0 5px rgba(0,0,0,.85),inset 0 0 2px rgba(255,255,255,.35); transform:translate(-50%,-50%); background:rgba(255,255,255,.035); }
+    .thumbnail-mask-cursor::after { content:""; position:absolute; inset:3px; border:1px dashed rgba(255,255,255,.72); border-radius:50%; }
+    .thumbnail-mask-cursor.soft { box-shadow:0 0 0 1px rgba(0,0,0,.9),0 0 7px rgba(255,255,255,.6),inset 0 0 7px rgba(255,255,255,.16); }
     .thumbnail-editor-stage > img.thumbnail-editor-background { position:absolute; inset:0; width:100%; height:100%; object-fit:fill; object-position:center center; pointer-events:none; }
     .thumbnail-editor-stage > canvas.thumbnail-bg-paint-canvas { position:absolute; inset:0; width:100%; height:100%; z-index:1; pointer-events:none; touch-action:none; }
     .thumbnail-editor-stage.bg-paint-active > canvas.thumbnail-bg-paint-canvas { pointer-events:auto; cursor:crosshair; }
@@ -6425,6 +6429,30 @@
       const customBackgroundInput = backgroundRemovalStudio.querySelector("[data-bg-custom-file]");
       let maskMode = "erase";
       let maskPaintingEnabled = false;
+      const maskCursor = document.createElement("div");
+      maskCursor.className = "thumbnail-mask-cursor";
+      maskCursor.setAttribute("aria-hidden", "true");
+      stage.appendChild(maskCursor);
+      const hideMaskCursor = () => { maskCursor.style.display = "none"; };
+      const updateMaskCursor = event => {
+        if (!maskPaintingEnabled) { hideMaskCursor(); return; }
+        const layer = selectedLayer();
+        if (!layer || layer.type !== "image" || !layer.backgroundRemoved) { hideMaskCursor(); return; }
+        const rect = stage.getBoundingClientRect();
+        const point = maskPoint(event, layer, rect);
+        if (point.x < 0 || point.y < 0 || point.x > (maskCanvasCache.get(layer.id)?.canvas.width || 0) || point.y > (maskCanvasCache.get(layer.id)?.canvas.height || 0)) { hideMaskCursor(); return; }
+        const cached = maskCanvasCache.get(layer.id);
+        if (!cached) { hideMaskCursor(); return; }
+        const diameter = Math.max(4, Number(maskSizeInput.value) * layer.width / cached.canvas.width * rect.width / 1280);
+        const softness = Number(maskSoftnessInput.value) * layer.width / cached.canvas.width * rect.width / 1280;
+        maskCursor.style.width = diameter + "px";
+        maskCursor.style.height = diameter + "px";
+        maskCursor.style.left = (event.clientX - rect.left) + "px";
+        maskCursor.style.top = (event.clientY - rect.top) + "px";
+        maskCursor.style.borderWidth = softness > 2 ? "2px" : "1.5px";
+        maskCursor.classList.toggle("soft", softness > 0);
+        maskCursor.style.display = "block";
+      };
       const maskMoveButton = backgroundRemovalStudio.querySelector("[data-mask-move-mode]");
       const maskSizeInput = backgroundRemovalStudio.querySelector("[data-mask-size]");
       const maskSoftnessInput = backgroundRemovalStudio.querySelector("[data-mask-softness]");
@@ -6442,6 +6470,7 @@
         maskMoveButton.classList.toggle("active", !enabled);
         maskModeButtons.forEach(item => item.classList.toggle("active", enabled && item.dataset.maskMode === maskMode));
         stage.classList.toggle("thumbnail-mask-painting", enabled);
+        if (!enabled) hideMaskCursor();
       };
       maskMoveButton.addEventListener("click", () => {
         setMaskPainting(false);
@@ -6452,8 +6481,8 @@
         setMaskPainting(true);
         removalStatus.textContent = maskMode === "erase" ? "Erase mode: paint over the cutout area you want to hide. Choose Move Image to move the cutout." : "Restore mode: paint to bring back erased parts. Choose Move Image to move the cutout.";
       }));
-      maskSizeInput.addEventListener("input", () => backgroundRemovalStudio.querySelector("[data-mask-size-value]").textContent = maskSizeInput.value + "px");
-      maskSoftnessInput.addEventListener("input", () => backgroundRemovalStudio.querySelector("[data-mask-softness-value]").textContent = maskSoftnessInput.value + "px");
+      maskSizeInput.addEventListener("input", () => { backgroundRemovalStudio.querySelector("[data-mask-size-value]").textContent = maskSizeInput.value + "px"; });
+      maskSoftnessInput.addEventListener("input", () => { backgroundRemovalStudio.querySelector("[data-mask-softness-value]").textContent = maskSoftnessInput.value + "px"; });
       const dataUrlToFile = async (dataUrl, name) => {
         const response = await fetch(dataUrl);
         const blob = await response.blob();
@@ -6657,6 +6686,7 @@
         paintMaskPoint(startPoint);
       };
       const moveMaskPaint = event => {
+        updateMaskCursor(event);
         if (!activeMask || activeMask.pointerId !== event.pointerId) return;
         event.preventDefault(); event.stopImmediatePropagation();
         const layer = selectedLayer(); if (!layer) return;
@@ -6678,6 +6708,7 @@
       stage.addEventListener("pointermove", moveMaskPaint, true);
       stage.addEventListener("pointerup", finishMaskPaint, true);
       stage.addEventListener("pointercancel", finishMaskPaint, true);
+      stage.addEventListener("pointerleave", hideMaskCursor);
 
       backgroundRemovalStudio.querySelector("[data-bg-restore-generated]").addEventListener("click", () => {
         activeBackgroundKey = "generated"; activeBackgroundUrl = backgroundAssetCache.get(activeBackgroundKey) || backgroundUrl; background.src = activeBackgroundUrl;
