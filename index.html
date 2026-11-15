@@ -2141,13 +2141,6 @@
     .thumbnail-studio-group-body > .field-group { margin:0 0 10px; }
     .thumbnail-studio-group-body > .field-group:last-child { margin-bottom:0; }
     .thumbnail-bg-removal-studio { display:grid; gap:9px; min-width:0; }
-    .thumbnail-character-studio { margin-top:10px; padding:10px; border:1px solid rgba(155,108,255,.28); border-radius:12px; background:rgba(155,108,255,.055); }
-    .thumbnail-character-card { display:grid; gap:9px; min-width:0; }
-    .thumbnail-character-card > strong { color:#eee7ff; font-size:12px; }
-    .thumbnail-character-card label { display:grid; gap:5px; color:#d8ccef; font-size:12px; }
-    .thumbnail-character-card select,.thumbnail-character-card textarea,.thumbnail-character-card input[type="file"] { width:100%; min-width:0; }
-    .thumbnail-character-card textarea { resize:vertical; }
-    .thumbnail-character-card [data-character-create] { width:100%; min-height:42px; }
 
     .thumbnail-bg-removal-studio > button { width:100%; min-height:40px; white-space:normal; }
     .thumbnail-bg-library { margin-top:8px; padding:10px; border:1px solid var(--border); border-radius:12px; background:rgba(255,255,255,.025); }
@@ -3341,6 +3334,14 @@
         <label for="thumbnailInstruction">Instruction (English)</label>
         <textarea id="thumbnailInstruction" maxlength="400" placeholder="Example: A gamer building a beautiful house in a colorful game world"></textarea>
         <p class="workspace-intro prompt-help">Write what should appear in the picture. Use short, simple English instructions.</p>
+      </div>
+
+      <div class="field-group" style="padding:12px;border:1px solid rgba(155,108,255,.28);border-radius:12px;background:rgba(155,108,255,.055)">
+        <label for="thumbnailCharacterReference">🧍 Add your own character (optional)</label>
+        <input id="thumbnailCharacterReference" type="file" accept="image/png,image/jpeg,image/webp">
+        <label for="thumbnailPoseInstruction" style="display:block;margin-top:10px">Pose instruction</label>
+        <textarea id="thumbnailPoseInstruction" maxlength="300" rows="2" placeholder="Example: Make my character stand on the right, facing camera, holding a cricket bat. Keep the same face."></textarea>
+        <p class="workspace-intro prompt-help">Upload a character photo and describe the pose. AI will use it in the thumbnail and try to preserve the same face and identity.</p>
       </div>
 
       <div class="row">
@@ -5583,6 +5584,8 @@
     const thumbnailHeadline = document.getElementById("thumbnailHeadline");
     const thumbnailInstruction = document.getElementById("thumbnailInstruction");
     const thumbnailCharacterType = document.getElementById("thumbnailCharacterType");
+    const thumbnailCharacterReference = document.getElementById("thumbnailCharacterReference");
+    const thumbnailPoseInstruction = document.getElementById("thumbnailPoseInstruction");
     const thumbnailStyle = document.getElementById("thumbnailStyle");
     const thumbnailAccent = document.getElementById("thumbnailAccent");
     const thumbnailPosition = document.getElementById("thumbnailPosition");
@@ -5864,653 +5867,6 @@
       const addTextGroup = makeStudioGroup(toolsRail, "Add Text", "T", [addTextBar], { open: true });
       const stickerGroup = makeStudioGroup(toolsRail, "Stickers", "✨", [stickerDock], { open: false });
       const imageGroup = makeStudioGroup(toolsRail, "Add Image", "🖼️", [uploadButton, imageFileControl], { open: false });
-      // Character Studio: generate a new character or transform an uploaded reference pose.
-      const characterStudio = document.createElement("div");
-      characterStudio.className = "thumbnail-character-studio";
-      characterStudio.innerHTML = [
-        '<div class="thumbnail-character-card"><strong>🤖 AI Character Studio</strong><p class="thumbnail-editor-note">Naya full-body character banayein ya apni photo ko instruction wali pose mein transform karein.</p>',
-        '<label>Character option<select data-character-mode><option value="generate">Generate a new character</option><option value="pose">Upload image &amp; change pose</option></select></label>',
-        '<label>Pose / character instruction<textarea rows="3" maxlength="700" data-character-prompt placeholder="Example: Full-body standing cricket player, facing camera, right hand holding a bat, left hand on waist. Keep the face natural and unchanged."></textarea></label>',
-        '<label data-character-upload-wrap hidden>Upload character photo<input type="file" accept="image/png,image/jpeg,image/webp" data-character-file></label>',
-        '<button type="button" class="primary" data-character-create>✨ Create Character</button>',
-        '<p class="thumbnail-editor-note" data-character-status role="status" aria-live="polite">Character will be added as a separate movable layer in your thumbnail.</p></div>'
-      ].join("");
-      imageGroup.querySelector(".thumbnail-studio-group-body").append(characterStudio);
-      const backgroundGroup = makeStudioGroup(toolsRail, "Background Studio", "🎨", [backgroundStudio], { open: false, advanced: true });
-      imageGroup.after(backgroundGroup);
-
-      // Major 7: one Advanced-only group for AI cutouts and background library.
-      const backgroundRemovalStudio = document.createElement("div");
-      backgroundRemovalStudio.className = "thumbnail-bg-removal-studio";
-      backgroundRemovalStudio.innerHTML = [
-        '<p class="thumbnail-editor-note">Add Image se character ya object select karein. AI us image ka background remove karega.</p>',
-        '<button type="button" class="primary" data-remove-image-background>✂️ Remove Background with AI</button>',
-        '<button type="button" class="secondary" data-restore-original-image disabled>↶ Restore Original Image</button>',
-        '<div class="thumbnail-bg-mask-tools"><strong>Cutout Refinement</strong><p class="thumbnail-editor-note">Select an AI-cutout image, then paint on the image to erase or restore parts of the cutout.</p>',
-          '<button type="button" class="secondary active" data-mask-move-mode>↔ Move Image</button>',
-          '<div class="thumbnail-bg-library-grid"><button type="button" class="secondary" data-mask-mode="erase">⌫ Erase</button><button type="button" class="secondary" data-mask-mode="restore">↶ Restore</button></div>',
-          '<label>Brush size <output data-mask-size-value>36px</output><input type="range" min="8" max="150" value="36" data-mask-size></label>',
-          '<label>Edge softness <output data-mask-softness-value>2px</output><input type="range" min="0" max="16" value="2" data-mask-softness></label>',
-          '<button type="button" class="secondary" data-mask-clear>Clear refinements</button></div>',
-        '<p class="thumbnail-editor-note" data-bg-removal-status>Select an image layer first. Processing happens in your browser.</p>',
-        '<div class="thumbnail-bg-library"><strong>Background Library</strong><p class="thumbnail-editor-note">Choose a theme for your 1280 × 720 thumbnail.</p>',
-          '<div class="thumbnail-bg-library-grid">',
-            '<button type="button" class="secondary" data-bg-library="gaming">🎮 Gaming</button>',
-            '<button type="button" class="secondary" data-bg-library="cricket">🏏 Cricket</button>',
-            '<button type="button" class="secondary" data-bg-library="sports">🏆 Sports</button>',
-            '<button type="button" class="secondary" data-bg-library="tech">💻 Tech</button>',
-            '<button type="button" class="secondary" data-bg-library="horror">👻 Horror</button>',
-            '<button type="button" class="secondary" data-bg-library="nature">🌿 Nature</button>',
-            '<button type="button" class="secondary" data-bg-library="gradient">🌈 Gradient</button>',
-          '</div>',
-          '<button type="button" class="secondary" data-bg-custom-upload>＋ Upload Custom Background</button>',
-          '<input type="file" accept="image/png,image/jpeg,image/webp" data-bg-custom-file hidden>',
-          '<button type="button" class="secondary" data-bg-restore-generated>↶ Restore Original Generated Background</button>',
-        '</div>'
-      ].join("");
-      const backgroundRemovalGroup = makeStudioGroup(toolsRail, "Background Removal & Library", "✂️", [backgroundRemovalStudio], { open: false, advanced: true });
-      backgroundGroup.after(backgroundRemovalGroup);
-
-      const shapeGroup = makeStudioGroup(toolsRail, "Shapes", "⬡", [addShapeButton, shapePanel], { open: false });
-      const moreGroup = makeStudioGroup(toolsRail, "More Tools", "⚙️", [duplicateButton, undoButton, redoButton], { open: false, advanced: true });
-      actionBar.remove();
-
-      // The layer manager is an advanced workspace feature; basic editing remains available on canvas.
-      const panelHead = inspector.querySelector(".thumbnail-editor-panel-head");
-      const layerDeleteBar = inspector.querySelector(".thumbnail-editor-order");
-      const layerGroup = makeStudioGroup(inspector, "Layers & Organization", "▤", [panelHead, inspector.querySelector(".thumbnail-editor-layers"), layerDeleteBar], { open: true, advanced: true });
-      const editHeading = inspector.querySelector(".thumbnail-editor-edit-heading");
-      const controlsGrid = inspector.querySelector(".thumbnail-editor-controls");
-      const field = selector => controlsGrid.querySelector(selector);
-      const basicFields = [
-        field("[data-layer-text]")?.closest(".field-group"),
-        field("[data-layer-color]")?.closest(".field-group"),
-        field("[data-layer-font]")?.closest(".field-group"),
-        field("[data-layer-size]")?.closest(".field-group"),
-        field("[data-layer-bold]")?.closest(".field-group")
-      ];
-      const typographyFields = [
-        field("[data-layer-align]")?.closest(".field-group"),
-        field("[data-layer-line-spacing]")?.closest(".field-group"),
-        field("[data-layer-italic]")?.closest(".field-group")
-      ];
-      const effectsFields = [
-        field("[data-layer-effect]")?.closest(".field-group"),
-        field("[data-layer-opacity]")?.closest(".field-group"),
-        field("[data-layer-outline]")?.closest(".field-group"),
-        field("[data-layer-outline-color]")?.closest(".field-group")
-      ];
-      const positionFields = [
-        field("[data-layer-width]")?.closest(".field-group"),
-        field("[data-layer-rotation]")?.closest(".field-group")
-      ];
-      const basicGroup = makeStudioGroup(inspector, "Basic Editing", "✏️", [editHeading, ...basicFields], { open: true });
-      makeStudioGroup(inspector, "Typography", "Aa", typographyFields, { open: false, advanced: true });
-      makeStudioGroup(inspector, "Colours & Outline", "🎨", [effectsFields[3], effectsFields[2]], { open: false, advanced: true });
-      makeStudioGroup(inspector, "Effects & Opacity", "✨", [effectsFields[0], effectsFields[1]], { open: false, advanced: true });
-      makeStudioGroup(inspector, "Position & Rotation", "↗️", positionFields, { open: false, advanced: true });
-      controlsGrid.remove();
-
-      modeSwitch.querySelectorAll("[data-editor-mode]").forEach(button => {
-        button.addEventListener("click", () => {
-          const advanced = button.dataset.editorMode === "advanced";
-          shell.classList.toggle("thumbnail-studio-advanced", advanced);
-          modeSwitch.querySelectorAll("[data-editor-mode]").forEach(item => {
-            const active = item === button;
-            item.classList.toggle("active", active);
-            item.setAttribute("aria-pressed", String(active));
-          });
-          modeNote.textContent = advanced
-            ? "Advanced Mode: all editing groups, layer organization and detailed controls are now available."
-            : "Simple Mode: only the essential controls are shown. Your design and settings stay saved when you switch modes.";
-        });
-      });
-
-      const stage = shell.querySelector(".thumbnail-editor-stage");
-      const background = shell.querySelector(".thumbnail-editor-background");
-      const layerButtons = shell.querySelector(".thumbnail-editor-layers");
-      const textControl = shell.querySelector("[data-layer-text]");
-      const colorControl = shell.querySelector("[data-layer-color]");
-      const sizeControl = shell.querySelector("[data-layer-size]");
-      const widthControl = shell.querySelector("[data-layer-width]");
-      const rotationControl = shell.querySelector("[data-layer-rotation]");
-      const fontControl = shell.querySelector("[data-layer-font]");
-      const outlineControl = shell.querySelector("[data-layer-outline]");
-      const boldControl = shell.querySelector("[data-layer-bold]");
-      const italicControl = shell.querySelector("[data-layer-italic]");
-      const effectControl = shell.querySelector("[data-layer-effect]");
-      const outlineColorControl = shell.querySelector("[data-layer-outline-color]");
-      const alignControl = shell.querySelector("[data-layer-align]");
-      const opacityControl = shell.querySelector("[data-layer-opacity]");
-      const lineSpacingControl = shell.querySelector("[data-layer-line-spacing]");
-      const shapeOutlineHint = shell.querySelector("[data-layer-outline]");
-      const message = shell.querySelector("[data-editor-message]");
-      const fileInput = shell.querySelector("[data-image-file]");
-      const stickerPicker = shell.querySelector("[data-sticker-picker]");
-      const shapePicker = shell.querySelector("[data-shape-picker]");
-      let activeBackgroundUrl = backgroundUrl;
-      const backgroundAssetCache = new Map([["generated", backgroundUrl]]);
-      let activeBackgroundKey = "generated";
-      let backgroundAssetCounter = 0;
-      background.src = activeBackgroundUrl;
-      const brushCanvas = document.createElement("canvas");
-      brushCanvas.className = "thumbnail-bg-paint-canvas";
-      brushCanvas.width = 1280;
-      brushCanvas.height = 720;
-      stage.insertBefore(brushCanvas, stage.firstChild.nextSibling);
-      const brushCtx = brushCanvas.getContext("2d");
-      let brushStrokes = [];
-      let activeBrushStroke = null;
-      let brushMode = "brush";
-      const brushSizeInput = backgroundStudio.querySelector("[data-bg-paint-size]");
-      const brushOpacityInput = backgroundStudio.querySelector("[data-bg-paint-opacity]");
-      const brushColorInput = backgroundStudio.querySelector("[data-bg-paint-color]");
-      function redrawBrushStrokes() {
-        brushCtx.clearRect(0, 0, 1280, 720);
-        brushStrokes.forEach(stroke => {
-          if (!stroke.points.length) return;
-          brushCtx.save();
-          brushCtx.globalCompositeOperation = stroke.mode === "eraser" ? "destination-out" : "source-over";
-          brushCtx.globalAlpha = stroke.opacity;
-          brushCtx.fillStyle = stroke.color;
-          brushCtx.strokeStyle = stroke.color;
-          if (stroke.shape === "rect" || stroke.shape === "ellipse") {
-            const start = stroke.points[0];
-            const end = stroke.points[stroke.points.length - 1];
-            const x = Math.min(start.x, end.x), y = Math.min(start.y, end.y);
-            const w = Math.abs(end.x - start.x), h = Math.abs(end.y - start.y);
-            if (stroke.shape === "rect") brushCtx.fillRect(x, y, w, h);
-            else { brushCtx.beginPath(); brushCtx.ellipse(x + w/2, y + h/2, Math.max(w/2,.5), Math.max(h/2,.5), 0, 0, Math.PI*2); brushCtx.fill(); }
-          } else {
-            brushCtx.lineWidth = stroke.size;
-            brushCtx.lineCap = "round";
-            brushCtx.lineJoin = "round";
-            brushCtx.beginPath();
-            stroke.points.forEach((point, index) => index ? brushCtx.lineTo(point.x, point.y) : brushCtx.moveTo(point.x, point.y));
-            if (stroke.points.length === 1) brushCtx.lineTo(stroke.points[0].x + .1, stroke.points[0].y + .1);
-            brushCtx.stroke();
-          }
-          brushCtx.restore();
-        });
-      }
-      function setBrushMode(mode) {
-        brushMode = mode;
-        stage.classList.toggle("bg-paint-active", true);
-        backgroundStudio.querySelectorAll("[data-bg-paint-mode]").forEach(button => button.classList.toggle("active", button.dataset.bgPaintMode === mode));
-        message.textContent = mode === "eraser" ? "Eraser active: paint over any stroke to remove it." : "Brush active: paint directly on the background.";
-      }
-      backgroundStudio.querySelectorAll("[data-bg-paint-mode]").forEach(button => button.addEventListener("click", () => setBrushMode(button.dataset.bgPaintMode)));
-      brushSizeInput.addEventListener("input", () => backgroundStudio.querySelector("[data-bg-paint-size-value]").textContent = brushSizeInput.value + "px");
-      brushOpacityInput.addEventListener("input", () => backgroundStudio.querySelector("[data-bg-paint-opacity-value]").textContent = brushOpacityInput.value + "%");
-      backgroundStudio.querySelector("[data-bg-paint-clear]").addEventListener("click", () => {
-        brushStrokes = [];
-        redrawBrushStrokes();
-        saveHistory();
-        message.textContent = "All selective brush strokes cleared.";
-      });
-      brushCanvas.addEventListener("pointerdown", event => {
-        if (!stage.classList.contains("bg-paint-active")) return;
-        event.preventDefault();
-        const rect = brushCanvas.getBoundingClientRect();
-        const point = { x:(event.clientX-rect.left)/rect.width*1280, y:(event.clientY-rect.top)/rect.height*720 };
-        activeBrushStroke = { mode:brushMode === "eraser" ? "eraser" : "brush", shape:(brushMode === "rect" || brushMode === "ellipse") ? brushMode : null, color:brushColorInput.value, size:Number(brushSizeInput.value), opacity:brushMode === "eraser" ? 1 : Number(brushOpacityInput.value)/100, points:[point, point] };
-        brushStrokes.push(activeBrushStroke);
-        brushCanvas.setPointerCapture(event.pointerId);
-        redrawBrushStrokes();
-      });
-      brushCanvas.addEventListener("pointermove", event => {
-        if (!activeBrushStroke) return;
-        const rect = brushCanvas.getBoundingClientRect();
-        const point = { x:(event.clientX-rect.left)/rect.width*1280, y:(event.clientY-rect.top)/rect.height*720 };
-        if (activeBrushStroke.shape) activeBrushStroke.points[1] = point;
-        else activeBrushStroke.points.push(point);
-        redrawBrushStrokes();
-      });
-      const finishBrushStroke = () => {
-        if (!activeBrushStroke) return;
-        activeBrushStroke = null;
-        saveHistory();
-      };
-      brushCanvas.addEventListener("pointerup", finishBrushStroke);
-      brushCanvas.addEventListener("pointercancel", finishBrushStroke);
-      const backgroundFilterInputs = backgroundStudio.querySelectorAll("[data-bg-control]");
-      let backgroundSettings = { brightness:100, contrast:100, saturation:100, blur:0 };
-      function applyBackgroundSettings() {
-        background.style.filter = "brightness(" + backgroundSettings.brightness + "%) contrast(" + backgroundSettings.contrast + "%) saturate(" + backgroundSettings.saturation + "%) blur(" + backgroundSettings.blur + "px)";
-        backgroundFilterInputs.forEach(input => {
-          const key = input.dataset.bgControl;
-          input.value = backgroundSettings[key];
-          const output = backgroundStudio.querySelector('[data-bg-value="' + key + '"]');
-          if (output) output.textContent = backgroundSettings[key] + (key === "blur" ? "px" : "%");
-        });
-        backgroundStudio.querySelectorAll("[data-bg-preset]").forEach(button => button.classList.toggle("active", button.dataset.bgPreset === backgroundSettings.preset));
-      }
-      function setBackgroundPreset(preset) {
-        const presets = {
-          cinematic:{ brightness:92, contrast:128, saturation:112, blur:0 },
-          vibrant:{ brightness:108, contrast:118, saturation:165, blur:0 },
-          soft:{ brightness:108, contrast:88, saturation:82, blur:2 }
-        };
-        backgroundSettings = { ...presets[preset], preset };
-        applyBackgroundSettings();
-        saveHistory();
-      }
-      backgroundFilterInputs.forEach(input => {
-        input.addEventListener("input", () => {
-          backgroundSettings[input.dataset.bgControl] = Number(input.value);
-          delete backgroundSettings.preset;
-          applyBackgroundSettings();
-        });
-        input.addEventListener("change", saveHistory);
-      });
-      backgroundStudio.querySelectorAll("[data-bg-preset]").forEach(button => button.addEventListener("click", () => setBackgroundPreset(button.dataset.bgPreset)));
-      backgroundStudio.querySelector("[data-bg-reset]").addEventListener("click", () => {
-        backgroundSettings = { brightness:100, contrast:100, saturation:100, blur:0 };
-        applyBackgroundSettings();
-        saveHistory();
-        message.textContent = "Background adjustments reset.";
-      });
-      applyBackgroundSettings();
-
-      let layers = [{
-        id: "headline", type: "text", text: headline,
-        x: initialPosition === "left" ? 60 : (initialPosition === "top" || initialPosition === "bottom" ? 190 : 790),
-        y: initialPosition === "top" ? 55 : (initialPosition === "bottom" ? 500 : 250),
-        width: initialPosition === "top" || initialPosition === "bottom" ? 900 : 430,
-        fontSize: initialPosition === "top" || initialPosition === "bottom" ? 76 : 82,
-        color: accent || "#ffffff", rotation: 0, font: "Impact", outline: 8,
-        align: "center", opacity: 100, lineSpacing: 108
-      }];
-      let selectedId = "headline";
-      let dragState = null;
-      let resizeState = null;
-      let layerCounter = 0;
-      let history = [];
-      let historyIndex = -1;
-
-      const selectedLayer = () => layers.find(layer => layer.id === selectedId);
-      const snapshot = () => JSON.stringify({ layers, selectedId, backgroundSettings, brushStrokes, activeBackgroundKey });
-      function saveHistory() {
-        const state = snapshot();
-        if (history[historyIndex] === state) return;
-        history = history.slice(0, historyIndex + 1);
-        history.push(state);
-        if (history.length > 60) history.shift();
-        historyIndex = history.length - 1;
-        updateHistoryButtons();
-      }
-      function restoreHistory(index) {
-        if (index < 0 || index >= history.length) return;
-        historyIndex = index;
-        const state = JSON.parse(history[historyIndex]);
-        layers = state.layers;
-        selectedId = state.selectedId;
-        backgroundSettings = state.backgroundSettings || { brightness:100, contrast:100, saturation:100, blur:0 };
-        brushStrokes = state.brushStrokes || [];
-        activeBackgroundKey = state.activeBackgroundKey || "generated";
-        activeBackgroundUrl = backgroundAssetCache.get(activeBackgroundKey) || backgroundUrl;
-        background.src = activeBackgroundUrl;
-        redrawBrushStrokes();
-        applyBackgroundSettings();
-        renderLayers();
-        syncControls();
-        updateHistoryButtons();
-      }
-      function updateHistoryButtons() {
-        shell.querySelector("[data-undo]").disabled = historyIndex <= 0;
-        shell.querySelector("[data-redo]").disabled = historyIndex >= history.length - 1;
-      }
-      function renderLayers() {
-        stage.querySelectorAll(".thumbnail-editor-layer").forEach(node => node.remove());
-        layerButtons.replaceChildren();
-        const stageWidth = stage.getBoundingClientRect().width || 850;
-        [...layers].reverse().forEach((layer, displayIndex) => {
-          const index = layers.findIndex(item => item.id === layer.id);
-          const node = document.createElement("div");
-          node.className = "thumbnail-editor-layer" + (layer.id === selectedId ? " selected" : "");
-          node.dataset.layerId = layer.id;
-          node.style.display = layer.visible === false ? "none" : "";
-          node.style.left = (layer.x / 1280 * 100) + "%";
-          node.style.top = (layer.y / 720 * 100) + "%";
-          node.style.width = (layer.width / 1280 * 100) + "%";
-          node.style.zIndex = String(index + 1);
-          node.style.transform = "rotate(" + (layer.rotation || 0) + "deg)";
-          if (layer.type === "image") {
-            const img = document.createElement("img");
-            img.src = layer.src;
-            img.alt = "Added image layer";
-            if (layer.maskData) {
-              const maskUrl = 'url("' + layer.maskData + '")';
-              img.style.maskImage = maskUrl;
-              img.style.webkitMaskImage = maskUrl;
-              img.style.maskMode = "alpha";
-              img.style.webkitMaskSize = "100% 100%";
-              img.style.maskSize = "100% 100%";
-              img.style.webkitMaskRepeat = "no-repeat";
-              img.style.maskRepeat = "no-repeat";
-            }
-            node.append(img);
-          } else if (layer.type === "shape") {
-            node.textContent = ({ rectangle:"▰", circle:"●", triangle:"▲", star:"★", arrow:"➜" })[layer.shape] || "●";
-            node.style.fontSize = (layer.fontSize * stageWidth / 1280) + "px";
-            node.style.color = layer.color || "#ffcc33";
-            node.style.webkitTextStroke = Math.max(0, Number(layer.outline || 0) * stageWidth / 1280) + "px " + (layer.outlineColor || "#12091f");
-            node.style.paintOrder = "stroke fill";
-            node.style.opacity = String((layer.opacity == null ? 100 : layer.opacity) / 100);
-            node.style.lineHeight = "1";
-            node.style.textShadow = "0 3px 10px rgba(0,0,0,.45)";
-          } else {
-            node.textContent = layer.text;
-            node.style.fontFamily = '"' + (layer.font || "Arial") + '", sans-serif';
-            node.style.fontWeight = layer.bold === false ? "500" : "900";
-            node.style.fontStyle = layer.italic ? "italic" : "normal";
-            node.style.fontSize = (layer.fontSize * stageWidth / 1280) + "px";
-            node.style.color = layer.color || "#ffffff";
-            node.style.textAlign = layer.align || "center";
-            node.style.justifyContent = layer.align === "left" ? "flex-start" : layer.align === "right" ? "flex-end" : "center";
-            node.style.opacity = String((layer.opacity == null ? 100 : layer.opacity) / 100);
-            node.style.lineHeight = String((layer.lineSpacing || 108) / 100);
-            node.style.webkitTextStroke = Math.max(0, Number(layer.outline || 0) * stageWidth / 1280) + "px " + (layer.outlineColor || "#12091f");
-            node.style.paintOrder = "stroke fill";
-            const effects = { shadow:"2px 3px 7px rgba(0,0,0,.9)", strong:"4px 5px 12px rgba(0,0,0,1)", glow:"0 0 8px #b78cff, 0 0 18px #8b5cf6", "neon-cyan":"0 0 4px #fff, 0 0 10px #22d3ee, 0 0 24px #06b6d4", "neon-pink":"0 0 4px #fff, 0 0 10px #f0abfc, 0 0 24px #d946ef", fire:"0 0 5px #fff7ed, 0 0 12px #fb923c, 0 0 25px #dc2626", "3d":"2px 2px 0 #24123f, 4px 4px 0 #160b2b, 6px 7px 8px rgba(0,0,0,.65)", long:"5px 5px 0 rgba(0,0,0,.28), 9px 9px 0 rgba(0,0,0,.18), 13px 13px 12px rgba(0,0,0,.25)", none:"none" };
-            node.style.textShadow = effects[layer.effect || "shadow"];
-          }
-          if (layer.id === selectedId && layer.locked !== true) {
-            ["nw","ne","sw","se"].forEach(corner => {
-              const resizeHandle = document.createElement("button");
-              resizeHandle.type = "button";
-              resizeHandle.className = "thumbnail-layer-resize";
-              resizeHandle.dataset.corner = corner;
-              resizeHandle.setAttribute("aria-label", "Drag " + corner + " corner to resize selected layer");
-              resizeHandle.title = "Drag this corner to make it bigger or smaller";
-              node.append(resizeHandle);
-            });
-          }
-          stage.append(node);
-          const row = document.createElement("div");
-          row.className = "thumbnail-layer-row"; row.draggable = true;
-          const chip = document.createElement("button"); chip.type = "button";
-          chip.className = "secondary thumbnail-layer-chip" + (layer.id === selectedId ? " active" : "");
-          chip.textContent = (layer.type === "image" ? "🖼️ " : layer.type === "shape" ? "⬡ " : "T ") + (layer.name || (layer.type === "image" ? "Image " + (index + 1) : layer.type === "shape" ? layer.shape + " shape" : (layer.text || "Text").slice(0, 20)));
-          chip.title = "Select layer";
-          chip.addEventListener("click", () => { selectedId = layer.id; renderLayers(); syncControls(); });
-          const miniButton = (label, title, action) => { const b=document.createElement("button"); b.type="button"; b.className="secondary thumbnail-layer-mini"; b.textContent=label; b.title=title; b.setAttribute("aria-label",title); b.addEventListener("click", action); return b; };
-          row.append(chip,
-            miniButton(layer.visible === false ? "◉" : "◌", layer.visible === false ? "Show layer" : "Hide layer", () => { layer.visible = layer.visible === false; saveHistory(); renderLayers(); syncControls(); }),
-            miniButton(layer.locked ? "🔒" : "🔓", layer.locked ? "Unlock layer" : "Lock layer", () => { layer.locked = !layer.locked; saveHistory(); renderLayers(); syncControls(); }),
-            miniButton("✎", "Rename layer", () => { const next=prompt("Layer name:", layer.name || (layer.type==="text" ? (layer.text || "Text").slice(0,24) : layer.type==="shape" ? layer.shape+" shape" : "Image")); if(next && next.trim()){ layer.name=next.trim().slice(0,40); saveHistory(); renderLayers(); } })
-          );
-          row.addEventListener("dragstart", event => { event.dataTransfer.setData("text/plain", layer.id); event.dataTransfer.effectAllowed = "move"; row.classList.add("is-dragging"); });
-          row.addEventListener("dragend", () => row.classList.remove("is-dragging"));
-          row.addEventListener("dragover", event => { event.preventDefault(); event.dataTransfer.dropEffect = "move"; });
-          row.addEventListener("drop", event => {
-            event.preventDefault();
-            const draggedId = event.dataTransfer.getData("text/plain");
-            const targetId = layer.id;
-            if (!draggedId || draggedId === targetId) return;
-            const topToBottom = [...layers].reverse();
-            const fromIndex = topToBottom.findIndex(item => item.id === draggedId);
-            const toIndex = topToBottom.findIndex(item => item.id === targetId);
-            if (fromIndex < 0 || toIndex < 0) return;
-            const [moving] = topToBottom.splice(fromIndex, 1);
-            topToBottom.splice(toIndex, 0, moving);
-            layers = topToBottom.reverse();
-            saveHistory();
-            renderLayers();
-            syncControls();
-          });
-          layerButtons.append(row);
-        });
-      }
-      function syncControls() {
-        const layer = selectedLayer();
-        const isImage = layer && layer.type === "image";
-        const isText = layer && layer.type === "text";
-        textControl.disabled = !isText;
-        colorControl.disabled = !layer || isImage;
-        fontControl.disabled = !isText;
-        sizeControl.disabled = !layer || isImage;
-        outlineControl.disabled = !(isText || (layer && layer.type === "shape"));
-        boldControl.disabled = !isText;
-        italicControl.disabled = !isText;
-        effectControl.disabled = !isText;
-        outlineColorControl.disabled = !(isText || (layer && layer.type === "shape"));
-        alignControl.disabled = !isText;
-        opacityControl.disabled = !(isText || (layer && layer.type === "shape"));
-        lineSpacingControl.disabled = !isText;
-        if (!layer) { syncBackgroundRemovalControls(); syncMaskControls(); return; }
-        textControl.value = isText ? layer.text : (isImage ? "Image layer (use width and rotation controls)" : "Shape layer (use colour, width and rotation)");
-        colorControl.value = layer.color || "#ffffff";
-        fontControl.value = layer.font || "Arial";
-        sizeControl.value = isText || !isImage ? layer.fontSize : 84;
-        widthControl.value = Math.max(80, Math.min(1200, layer.width || 430));
-        rotationControl.value = layer.rotation || 0;
-        outlineControl.value = layer.outline || 0;
-        outlineColorControl.value = layer.outlineColor || "#12091f";
-        boldControl.checked = layer.bold !== false;
-        italicControl.checked = !!layer.italic;
-        effectControl.value = layer.effect || "shadow";
-        outlineColorControl.value = layer.outlineColor || "#12091f";
-        alignControl.value = layer.align || "center";
-        opacityControl.value = layer.opacity == null ? 100 : layer.opacity;
-        lineSpacingControl.value = layer.lineSpacing || 108;
-        syncBackgroundRemovalControls();
-        syncMaskControls();
-      }
-      function addTextLayer(text, color, fontSize) {
-        layerCounter++;
-        const layer = { id: "text-" + layerCounter, type: "text", text: text || "Your text", x: 330, y: 250 + (layerCounter % 4) * 55, width: 620, fontSize: fontSize || 64, color: color || "#ffffff", rotation: 0, font: "Impact", outline: 8, align: "center", opacity: 100, lineSpacing: 108 };
-        layer.name = "Text " + layerCounter; layer.visible = true; layer.locked = false;
-        layers.push(layer); selectedId = layer.id; saveHistory(); renderLayers(); syncControls();
-      }
-      function addSticker(text, color, size) {
-        addTextLayer(text, color || "#ffe500", size || 86);
-      }
-      function addShape(shape) {
-        layerCounter++;
-        const layer = { id:"shape-" + layerCounter, type:"shape", shape, name:shape+" shape", visible:true, locked:false, x:480, y:210, width:190, height:190, fontSize:190, color:"#ffcc33", rotation:0, opacity:100 };
-        layers.push(layer); selectedId = layer.id; saveHistory(); renderLayers(); syncControls();
-        message.textContent = "Shape added. Drag it on the canvas; change its colour, size and rotation.";
-        shapePicker.hidden = true;
-        shell.querySelector("[data-add-shape]").setAttribute("aria-expanded","false");
-      }
-
-      shell.querySelector("[data-add-text]").addEventListener("click", () => addTextLayer("Your text", "#ffffff", 64));
-      const stickerGroups = {
-        creator: ["🔔","👍","❤️","💬","↗️","🔴","▶️","📢","🎬","📌","🔔","💖"],
-        arrows: ["➡️","⬅️","⬆️","⬇️","↗️","↘️","↙️","↖️","➜","➤","➥","➦","⤴️","⤵️","👇","👆","⬅","⏩","⏪"],
-        effects: ["🔥","💥","⚡","💀","👑","🎯","💎","🚀","❤️","😈","😱","😂","🤯","✨","💯","❗","❓","🌟","💫","☄️","💢","🌀"],
-        gaming: ["🏆","🎮","🐉","⚔️","🛡️","🥇","🏏","🏏","🏅","🎯","👾","🕹️","🥊","🏎️"],
-        social: ["📸","📱","💻","🌐","📣","💬","✉️","🔗","⭐","💜","💙","💚","🧡","🤍"],
-        symbols: ["★","☆","✦","✧","●","○","◆","◇","■","□","✓","✕","＋","！","？","∞"]
-      };
-      const stickerSearchNames = {
-        "🔔":"bell notification alert","👍":"like thumbs up","❤️":"heart love","💬":"comment chat message",
-        "↗️":"share","🔴":"record live red dot","▶️":"play video youtube","📢":"announce megaphone",
-        "🎬":"clapper video","📌":"pin","💖":"love heart","➡️":"right arrow","⬅️":"left arrow",
-        "⬆️":"up arrow","⬇️":"down arrow","↗️":"diagonal arrow","↘️":"diagonal arrow","↙️":"diagonal arrow",
-        "↖️":"diagonal arrow","➜":"right arrow","➤":"pointer arrow","➥":"curved arrow","➦":"curved arrow",
-        "⤴️":"turn up arrow","⤵️":"turn down arrow","👇":"point down hand","👆":"point up hand",
-        "🔥":"fire hot","💥":"explosion boom","⚡":"lightning electric","💀":"skull","👑":"crown king",
-        "🎯":"target aim","💎":"diamond","🚀":"rocket launch","😈":"devil","😱":"shock surprised",
-        "😂":"laugh funny","🤯":"mind blown","✨":"sparkles shine","💯":"hundred perfect","❗":"exclamation",
-        "❓":"question","🌟":"star shine","💫":"dizzy sparkle","☄️":"comet","💢":"anger","🌀":"swirl",
-        "🏆":"trophy winner","🎮":"gaming controller","🐉":"dragon","⚔️":"swords battle","🛡️":"shield",
-        "🥇":"gold medal first","🏏":"cricket bat ball","🏅":"medal award","👾":"alien game","🕹️":"joystick",
-        "🥊":"boxing glove","🏎️":"racing car","📸":"camera instagram photo","📱":"mobile phone",
-        "💻":"computer laptop","🌐":"globe website","📣":"megaphone announcement","✉️":"email message",
-        "🔗":"link chain","💜":"purple heart","💙":"blue heart","💚":"green heart","🧡":"orange heart",
-        "🤍":"white heart","★":"star","☆":"outline star","✦":"sparkle star","✧":"outline sparkle",
-        "●":"circle","○":"outline circle","◆":"diamond","◇":"outline diamond","■":"square","□":"outline square",
-        "✓":"check tick","✕":"cross close","＋":"plus","！":"exclamation","？":"question","∞":"infinity"
-      };
-      Object.entries(stickerGroups).forEach(([group, options]) => {
-        const holder = stickerPicker.querySelector('[data-sticker-group="' + group + '"]');
-        options.forEach(sticker => {
-          const option = document.createElement("button");
-          option.type = "button";
-          option.className = "secondary";
-          option.textContent = sticker;
-          option.title = (stickerSearchNames[sticker] || group) + " sticker";
-          option.dataset.stickerSearch = (sticker + " " + group + " " + (stickerSearchNames[sticker] || "")).toLowerCase();
-          option.setAttribute("aria-label", option.title);
-          option.addEventListener("click", () => {
-            addSticker(sticker, group === "creator" ? "#ff3b55" : "#ffe500", group === "creator" ? 58 : 86);
-            closeStickerPopup();
-          });
-          holder.append(option);
-        });
-      });
-      const stickerSearch = stickerPicker.querySelector("[data-sticker-search]");
-      const stickerEmpty = stickerPicker.querySelector("[data-sticker-empty]");
-      stickerSearch.addEventListener("input", () => {
-        const query = stickerSearch.value.trim().toLowerCase();
-        let total = 0;
-        stickerPicker.querySelectorAll(".thumbnail-sticker-group").forEach(group => {
-          let visible = 0;
-          group.querySelectorAll("button[data-sticker-search]").forEach(option => {
-            const match = !query || option.dataset.stickerSearch.includes(query);
-            option.hidden = !match;
-            if (match) visible++;
-          });
-          group.hidden = visible === 0;
-          total += visible;
-        });
-        stickerEmpty.hidden = total > 0;
-      });
-      const stickerDockElement = shell.querySelector(".thumbnail-sticker-dock");
-      const closeStickerButton = document.createElement("button");
-      closeStickerButton.type = "button";
-      closeStickerButton.className = "secondary thumbnail-sticker-close";
-      closeStickerButton.textContent = "✕";
-      closeStickerButton.setAttribute("aria-label", "Close stickers");
-      stickerDockElement.append(closeStickerButton);
-      // Simple inline toggle: the panel stays inside the Stickers tool and cannot be clipped by viewport positioning.
-      stickerPanel.classList.add("thumbnail-sticker-popup");
-      stickerPanel.hidden = true;
-      stickerButton.setAttribute("aria-expanded", "false");
-      function closeStickerPopup() {
-        stickerPanel.hidden = true;
-        stickerButton.setAttribute("aria-expanded", "false");
-        stickerDockElement.classList.remove("is-open");
-        stickerSearch.value = "";
-        stickerSearch.dispatchEvent(new Event("input"));
-      }
-      stickerButton.addEventListener("click", (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        const opening = stickerPanel.hidden;
-        stickerPanel.hidden = !opening;
-        stickerButton.setAttribute("aria-expanded", String(opening));
-        stickerDockElement.classList.toggle("is-open", opening);
-      });
-      closeStickerButton.addEventListener("click", (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        closeStickerPopup();
-      });
-      const shapeButton = shell.querySelector("[data-add-shape]");
-      shapeButton.addEventListener("click", () => {
-        const opening = shapePicker.hidden;
-        shapePicker.hidden = !opening;
-        stickerPicker.hidden = true;
-        stickerButton.setAttribute("aria-expanded","false");
-        shapeButton.setAttribute("aria-expanded",String(opening));
-      });
-      shapePicker.querySelectorAll("[data-shape]").forEach(button => button.addEventListener("click", () => addShape(button.dataset.shape)));
-      shell.querySelector("[data-upload-image]").addEventListener("click", () => fileInput.click());
-      fileInput.addEventListener("change", () => {
-        const file = fileInput.files && fileInput.files[0];
-        if (!file) return;
-        if (!file.type.startsWith("image/")) { message.textContent = "Please choose an image file."; return; }
-        if (file.size > 12 * 1024 * 1024) { message.textContent = "Please choose an image smaller than 12 MB."; return; }
-        const reader = new FileReader();
-        reader.onload = () => {
-          const img = new Image();
-          img.onload = () => {
-            layerCounter++;
-            const width = Math.min(420, img.naturalWidth || 420);
-            const height = width * (img.naturalHeight / img.naturalWidth);
-            const layer = { id: "image-" + layerCounter, type: "image", src: String(reader.result), x: 430, y: 170, width, height, rotation: 0 };
-            layers.push(layer); selectedId = layer.id; saveHistory(); renderLayers(); syncControls();
-            message.textContent = "Image added. Drag it anywhere and use Layer Width to resize.";
-          };
-          img.src = String(reader.result);
-        };
-        reader.readAsDataURL(file);
-        fileInput.value = "";
-      });
-
-      const characterModeInput = characterStudio.querySelector("[data-character-mode]");
-      const characterPromptInput = characterStudio.querySelector("[data-character-prompt]");
-      const characterFileInput = characterStudio.querySelector("[data-character-file]");
-      const characterUploadWrap = characterStudio.querySelector("[data-character-upload-wrap]");
-      const characterCreateButton = characterStudio.querySelector("[data-character-create]");
-      const characterStatus = characterStudio.querySelector("[data-character-status]");
-      characterModeInput.addEventListener("change", () => {
-        characterUploadWrap.hidden = characterModeInput.value !== "pose";
-        characterStatus.textContent = characterModeInput.value === "pose"
-          ? "Upload a clear character photo. AI will try to keep the face unchanged while changing the pose."
-          : "Describe the character, full-body standing pose and outfit you want.";
-      });
-      characterCreateButton.addEventListener("click", async () => {
-        const mode = characterModeInput.value;
-        const instruction = characterPromptInput.value.trim();
-        const file = characterFileInput.files && characterFileInput.files[0];
-        if (!instruction) { characterStatus.textContent = "Please describe the character and its pose first."; return; }
-        if (mode === "pose" && !file) { characterStatus.textContent = "Please upload the character photo first."; return; }
-        if (file && file.size > 3 * 1024 * 1024) { characterStatus.textContent = "Please use an image smaller than 3 MB."; return; }
-        if (file && !["image/png","image/jpeg","image/webp"].includes(file.type)) { characterStatus.textContent = "Please use PNG, JPG or WEBP."; return; }
-        characterCreateButton.disabled = true;
-        characterCreateButton.textContent = "⏳ Creating...";
-        characterStatus.textContent = mode === "pose" ? "Transforming the uploaded character pose..." : "Generating your new character...";
-        try {
-          let imageBase64 = "";
-          let mimeType = "";
-          if (mode === "pose") {
-            mimeType = file.type;
-            imageBase64 = await new Promise((resolve,reject) => {
-              const reader = new FileReader();
-              reader.onload = () => resolve(String(reader.result).split(",")[1] || "");
-              reader.onerror = () => reject(new Error("Could not read the uploaded character image."));
-              reader.readAsDataURL(file);
-            });
-            if (!imageBase64) throw new Error("Uploaded image could not be prepared.");
-          }
-          const faceProtection = mode === "pose"
-            ? " Preserve the exact same person's identity and face from the reference image: do not change facial structure, eyes, nose, mouth, expression, skin texture, age or hairstyle. Do not apply any filter, retouching, beautification, makeup or visual effect to the face. Change only body pose, body position and clothing as requested. Keep the face photorealistic and untouched. "
-            : " Create an original fictional character with a natural, clean face. ";
-          const prompt = "Create one single full-body character, head to toe, completely visible, standing naturally inside the frame. Pose and action: " + instruction + ". " + faceProtection + " Professional cinematic creator-thumbnail character, clear anatomy, realistic hands, sharp details, isolated against a simple plain dark neutral background for easy background removal. Character only, no text, no logo, no collage, no extra people.";
-          const response = await workerFetch(WORKER_URL, {
-            method:"POST",
-            headers:{"Content-Type":"application/json"},
-            body:JSON.stringify({action:"generate_image",prompt,imageBase64,mimeType})
-          });
-          let data;
-          try { data = await response.json(); } catch { throw new Error("The image service returned an unreadable response."); }
-          if (!response.ok) throw new Error(data.error || data.details || data.message || "Character generation failed.");
-          const generated = getImagePayload(data);
-          if (!generated || typeof generated !== "string") throw new Error(data.error || "No character image was returned. Please try again.");
-          const src = generated.startsWith("data:") ? generated : "data:image/png;base64," + generated;
-          const img = await loadImageForThumbnail(src);
-          const naturalWidth = img.naturalWidth || img.width;
-          const naturalHeight = img.naturalHeight || img.height;
-          const width = Math.min(390, naturalWidth);
-          const height = width * naturalHeight / naturalWidth;
-          layerCounter++;
-          const layer = {id:"character-" + layerCounter,type:"image",src,x:700,y:Math.max(10,Math.round((720-height)/2)),width,height,rotation:0};
-          layers.push(layer); selectedId = layer.id; saveHistory(); renderLayers(); syncControls();
-          characterStatus.textContent = "Character added to thumbnail as a separate layer. You can move, resize and remove its background.";
-          characterFileInput.value = "";
-        } catch (error) {
-          console.error("Thumbnail character studio error:",error);
-          characterStatus.textContent = error && error.message ? error.message : "Could not create the character. Please try again.";
-        } finally {
-          characterCreateButton.disabled = false;
-          characterCreateButton.textContent = "✨ Create Character";
-        }
-      });
-
       const removeBackgroundButton = backgroundRemovalStudio.querySelector("[data-remove-image-background]");
       const restoreOriginalButton = backgroundRemovalStudio.querySelector("[data-restore-original-image]");
       const removalStatus = backgroundRemovalStudio.querySelector("[data-bg-removal-status]");
@@ -7119,6 +6475,8 @@
       const style = thumbnailStyle.value;
       const position = thumbnailPosition.value;
       const accent = thumbnailAccent.value;
+      const characterReferenceFile = thumbnailCharacterReference.files && thumbnailCharacterReference.files[0];
+      const poseInstruction = thumbnailPoseInstruction.value.trim();
 
       if (!headline) {
         thumbnailMessage.textContent = "Please enter the exact thumbnail headline.";
@@ -7128,6 +6486,19 @@
       if (!instruction) {
         thumbnailMessage.textContent = "Please write a short English instruction for the picture.";
         thumbnailInstruction.focus();
+        return;
+      }
+      if (characterReferenceFile && characterReferenceFile.size > 3 * 1024 * 1024) {
+        thumbnailMessage.textContent = "Please use a character image smaller than 3 MB.";
+        return;
+      }
+      if (characterReferenceFile && !["image/png","image/jpeg","image/webp"].includes(characterReferenceFile.type)) {
+        thumbnailMessage.textContent = "Please upload a PNG, JPG or WEBP character image.";
+        return;
+      }
+      if (poseInstruction && !characterReferenceFile) {
+        thumbnailMessage.textContent = "Please upload your character image before adding a pose instruction.";
+        thumbnailCharacterReference.focus();
         return;
       }
 
@@ -7156,6 +6527,7 @@
           position === "right" ? "Keep RIGHT 42% clear for headline. " :
           position === "top" ? "Keep TOP 30% clear for headline. " :
           "Keep BOTTOM 30% clear for headline. ") +
+        (characterReferenceFile ? " Use the uploaded reference image as the exact main character. Preserve the same person, face, facial structure, eyes, nose, mouth, expression, skin tone and hairstyle. Do not beautify, retouch, filter or stylize the face. Change only the body pose and body position as described: " + (poseInstruction || "Keep the character in a natural pose that fits the scene.") + " Keep the character recognizable and fully visible. " : "") +
         "Bright detailed scene, dramatic light, vivid colours, sharp focus. No words, logos, borders or collage.";
 
       if (thumbnailPrompt.length > 1000) {
@@ -7178,10 +6550,22 @@
       }
 
       try {
+        let imageBase64 = "";
+        let mimeType = "";
+        if (characterReferenceFile) {
+          mimeType = characterReferenceFile.type;
+          imageBase64 = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(String(reader.result).split(",")[1] || "");
+            reader.onerror = () => reject(new Error("Could not read the uploaded character image."));
+            reader.readAsDataURL(characterReferenceFile);
+          });
+          if (!imageBase64) throw new Error("Uploaded character image could not be prepared.");
+        }
         let response = await workerFetch(WORKER_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "generate_image", prompt: thumbnailPrompt })
+          body: JSON.stringify({ action: "generate_image", prompt: thumbnailPrompt, imageBase64, mimeType })
         });
 
         let data;
@@ -7219,7 +6603,7 @@
           response = await workerFetch(WORKER_URL, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ action: "generate_image", prompt: safeRetryPrompt })
+            body: JSON.stringify({ action: "generate_image", prompt: safeRetryPrompt + (characterReferenceFile ? " Use the uploaded reference image, preserve the same face and identity, and follow this pose: " + (poseInstruction || "natural pose matching the scene") + ". Do not retouch or alter the face." : ""), imageBase64, mimeType })
           });
           try { data = await response.json(); }
           catch { throw new Error("The image service returned an unreadable retry response. Please try again."); }
