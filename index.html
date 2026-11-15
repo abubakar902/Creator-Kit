@@ -6484,7 +6484,7 @@
         const localY = dx * Math.sin(angle) + dy * Math.cos(angle) + (layer.height || layer.width) / 2;
         if (localX < 0 || localY < 0 || localX > layer.width || localY > (layer.height || layer.width)) { hideMaskCursor(); return; }
         // Brush size is measured against the 1280px editor width, exactly like the mask stroke.
-        const diameter = Math.max(4, Number(maskSizeInput.value) * rect.width / 1280);
+        const diameter = Math.max(4, Number(maskSizeInput.value) * 1.2 * rect.width / 1280);
         maskCursor.style.width = diameter + "px";
         maskCursor.style.height = diameter + "px";
         maskCursor.style.left = (event.clientX - rect.left) + "px";
@@ -6557,7 +6557,7 @@
           removeBackgroundButton.textContent = "Removing background...";
           const output = await removeBackground(sourceFile, {
             model: "lite",
-            quality: "quality",
+            quality: "fast",
             onProgress: ({ stage, progress, message: progressMessage }) => {
               const percent = typeof progress === "number" ? " " + Math.round(progress * 100) + "%" : "";
               removalStatus.textContent = (progressMessage || stage || "AI processing") + percent;
@@ -6662,7 +6662,7 @@
         if (!activeMask || !layer) return;
         const ctx = activeMask.ctx;
         const scale = activeMask.canvas.width / Math.max(1, layer.width);
-        const size = Number(maskSizeInput.value) * scale;
+        const size = Number(maskSizeInput.value) * 1.2 * scale;
         ctx.save();
         ctx.globalCompositeOperation = maskMode === "erase" ? "destination-out" : "source-over";
         ctx.globalAlpha = 1;
@@ -6671,7 +6671,7 @@
         ctx.shadowColor = "#ffffff";
         ctx.shadowBlur = softness;
         ctx.strokeStyle = "#ffffff"; ctx.fillStyle = "#ffffff";
-        ctx.lineWidth = size; ctx.lineCap = "round"; ctx.lineJoin = "round";
+        ctx.lineWidth = Math.max(1, size - softness * 2); ctx.lineCap = "round"; ctx.lineJoin = "round";
         if (activeMask.last) {
           ctx.beginPath(); ctx.moveTo(activeMask.last.x, activeMask.last.y); ctx.lineTo(point.x, point.y); ctx.stroke();
         } else {
@@ -6719,7 +6719,7 @@
         }
         activeMask = { ...cached, last:null, pointerId:event.pointerId };
         const startPoint = maskPoint(event, layer, stage.getBoundingClientRect());
-        if (startPoint.x < 0 || startPoint.y < 0 || startPoint.x > canvas.width || startPoint.y > canvas.height) { activeMask = null; return; }
+        if (startPoint.x < 0 || startPoint.y < 0 || startPoint.x > activeMask.canvas.width || startPoint.y > activeMask.canvas.height) { activeMask = null; return; }
         stage.setPointerCapture(event.pointerId);
         paintMaskPoint(startPoint);
       };
