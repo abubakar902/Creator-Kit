@@ -6622,6 +6622,7 @@
         }
         const layer = selectedLayer();
         if (!layer || layer.type !== "image" || !layer.backgroundRemoved || !stage.contains(event.target)) return;
+        // Stop the normal drag handler immediately; image loading happens asynchronously.
         event.preventDefault(); event.stopImmediatePropagation();
         const img = await loadImageForThumbnail(layer.src);
         const canvas = document.createElement("canvas");
