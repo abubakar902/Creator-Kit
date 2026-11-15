@@ -6496,12 +6496,6 @@
         thumbnailMessage.textContent = "Please upload a PNG, JPG or WEBP character image.";
         return;
       }
-      if (poseInstruction && !characterReferenceFile) {
-        thumbnailMessage.textContent = "Please upload your character image before adding a pose instruction.";
-        thumbnailCharacterReference.focus();
-        return;
-      }
-
       // Compact character prompts prevent the 1000-character limit and avoid unnecessary moderation triggers.
       const characterDirection = characterType === "anime-style character"
         ? "2D Japanese anime illustration: expressive eyes, hand-drawn outlines, detailed anime hair and cel shading. "
