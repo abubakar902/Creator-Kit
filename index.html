@@ -1903,10 +1903,8 @@
     .thumbnail-editor-toolbar { display:flex; flex-wrap:wrap; gap:9px; margin:14px 0; }
     .thumbnail-editor-toolbar button, .thumbnail-editor-controls button { min-height:40px; }
     .thumbnail-editor-stage { position:relative; width:100%; max-width:850px; aspect-ratio:16/9; margin:14px auto; overflow:hidden; border:2px solid var(--border-strong); border-radius:12px; background:#090611; touch-action:none; user-select:none; }
-    .thumbnail-editor-stage.thumbnail-mask-painting { cursor:none; }
-    .thumbnail-mask-cursor { position:absolute; z-index:10000; display:none; pointer-events:none; border:1.5px solid #fff; border-radius:50%; box-shadow:0 0 0 1px rgba(0,0,0,.9),0 0 5px rgba(0,0,0,.85),inset 0 0 2px rgba(255,255,255,.35); transform:translate(-50%,-50%); background:rgba(255,255,255,.035); }
-    .thumbnail-mask-cursor::after { content:""; position:absolute; inset:3px; border:1px dashed rgba(255,255,255,.72); border-radius:50%; }
-    .thumbnail-mask-cursor.soft { box-shadow:0 0 0 1px rgba(0,0,0,.9),0 0 7px rgba(255,255,255,.6),inset 0 0 7px rgba(255,255,255,.16); }
+    .thumbnail-editor-stage.thumbnail-mask-painting, .thumbnail-editor-stage.thumbnail-mask-painting * { cursor:none !important; }
+    .thumbnail-mask-cursor { position:absolute; z-index:10000; display:none; pointer-events:none; box-sizing:border-box; border:1.5px solid #fff; border-radius:50%; box-shadow:0 0 0 1px #111,0 0 3px rgba(0,0,0,.9); transform:translate(-50%,-50%); background:transparent; }
     .thumbnail-editor-stage > img.thumbnail-editor-background { position:absolute; inset:0; width:100%; height:100%; object-fit:fill; object-position:center center; pointer-events:none; }
     .thumbnail-editor-stage > canvas.thumbnail-bg-paint-canvas { position:absolute; inset:0; width:100%; height:100%; z-index:1; pointer-events:none; touch-action:none; }
     .thumbnail-editor-stage.bg-paint-active > canvas.thumbnail-bg-paint-canvas { pointer-events:auto; cursor:crosshair; }
@@ -6484,17 +6482,13 @@
         const dx = stageX - cx, dy = stageY - cy;
         const localX = dx * Math.cos(angle) - dy * Math.sin(angle) + layer.width / 2;
         const localY = dx * Math.sin(angle) + dy * Math.cos(angle) + (layer.height || layer.width) / 2;
-        const pointX = localX / layer.width * cached.canvas.width;
-        const pointY = localY / (layer.height || layer.width) * cached.canvas.height;
-        if (pointX < 0 || pointY < 0 || pointX > cached.canvas.width || pointY > cached.canvas.height) { hideMaskCursor(); return; }
-        const diameter = Math.max(4, Number(maskSizeInput.value) * layer.width / cached.canvas.width * rect.width / 1280);
-        const softness = Number(maskSoftnessInput.value) * layer.width / cached.canvas.width * rect.width / 1280;
+        if (localX < 0 || localY < 0 || localX > layer.width || localY > (layer.height || layer.width)) { hideMaskCursor(); return; }
+        // Brush size is measured against the 1280px editor width, exactly like the mask stroke.
+        const diameter = Math.max(4, Number(maskSizeInput.value) * rect.width / 1280);
         maskCursor.style.width = diameter + "px";
         maskCursor.style.height = diameter + "px";
         maskCursor.style.left = (event.clientX - rect.left) + "px";
         maskCursor.style.top = (event.clientY - rect.top) + "px";
-        maskCursor.style.borderWidth = softness > 2 ? "2px" : "1.5px";
-        maskCursor.classList.toggle("soft", softness > 0);
         maskCursor.style.display = "block";
       };
       const maskMoveButton = backgroundRemovalStudio.querySelector("[data-mask-move-mode]");
@@ -6729,16 +6723,30 @@
         stage.setPointerCapture(event.pointerId);
         paintMaskPoint(startPoint);
       };
+      let pendingMaskPoint = null;
+      let maskPaintFrame = 0;
+      const flushMaskPoint = () => {
+        maskPaintFrame = 0;
+        if (!pendingMaskPoint || !activeMask) return;
+        const queued = pendingMaskPoint;
+        pendingMaskPoint = null;
+        const layer = selectedLayer();
+        if (layer) paintMaskPoint(maskPoint(queued, layer, stage.getBoundingClientRect()));
+      };
       const moveMaskPaint = event => {
         updateMaskCursor(event);
         if (!activeMask || activeMask.pointerId !== event.pointerId) return;
         event.preventDefault(); event.stopImmediatePropagation();
-        const layer = selectedLayer(); if (!layer) return;
-        paintMaskPoint(maskPoint(event, layer, stage.getBoundingClientRect()));
+        pendingMaskPoint = { clientX:event.clientX, clientY:event.clientY, pointerId:event.pointerId };
+        if (!maskPaintFrame) maskPaintFrame = requestAnimationFrame(flushMaskPoint);
       };
       const finishMaskPaint = event => {
         if (!activeMask || activeMask.pointerId !== event.pointerId) return;
         event.preventDefault(); event.stopImmediatePropagation();
+        if (maskPaintFrame) cancelAnimationFrame(maskPaintFrame);
+        maskPaintFrame = 0;
+        if (pendingMaskPoint) flushMaskPoint();
+        pendingMaskPoint = null;
         const layer = selectedLayer();
         if (layer && layer.type === "image" && layer.backgroundRemoved) {
           layer.maskData = activeMask.canvas.toDataURL("image/png");
