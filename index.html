@@ -6434,15 +6434,59 @@
       maskCursor.setAttribute("aria-hidden", "true");
       stage.appendChild(maskCursor);
       const hideMaskCursor = () => { maskCursor.style.display = "none"; };
+      const maskCursorLoading = new Set();
       const updateMaskCursor = event => {
         if (!maskPaintingEnabled) { hideMaskCursor(); return; }
         const layer = selectedLayer();
         if (!layer || layer.type !== "image" || !layer.backgroundRemoved) { hideMaskCursor(); return; }
         const rect = stage.getBoundingClientRect();
-        const point = maskPoint(event, layer, rect);
-        if (point.x < 0 || point.y < 0 || point.x > (maskCanvasCache.get(layer.id)?.canvas.width || 0) || point.y > (maskCanvasCache.get(layer.id)?.canvas.height || 0)) { hideMaskCursor(); return; }
-        const cached = maskCanvasCache.get(layer.id);
-        if (!cached) { hideMaskCursor(); return; }
+        let cached = maskCanvasCache.get(layer.id);
+        if (!cached) {
+          hideMaskCursor();
+          if (maskCursorLoading.has(layer.id)) return;
+          maskCursorLoading.add(layer.id);
+          const sourceImage = new Image();
+          sourceImage.onload = () => {
+            const naturalWidth = sourceImage.naturalWidth || sourceImage.width;
+            const naturalHeight = sourceImage.naturalHeight || sourceImage.height;
+            const downscale = Math.min(1, 2048 / Math.max(naturalWidth, naturalHeight));
+            const canvas = document.createElement("canvas");
+            canvas.width = Math.max(1, Math.round(naturalWidth * downscale));
+            canvas.height = Math.max(1, Math.round(naturalHeight * downscale));
+            const ctx = canvas.getContext("2d", { alpha:true });
+            if (!ctx) { maskCursorLoading.delete(layer.id); return; }
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = "high";
+            const finishCache = () => {
+              cached = { canvas, ctx, src:layer.src, maskData:layer.maskData || null, scaleX:canvas.width / naturalWidth, scaleY:canvas.height / naturalHeight };
+              maskCanvasCache.set(layer.id, cached);
+              maskCursorLoading.delete(layer.id);
+              updateMaskCursor(event);
+            };
+            if (layer.maskData) {
+              const savedMask = new Image();
+              savedMask.onload = () => { ctx.drawImage(savedMask, 0, 0, canvas.width, canvas.height); finishCache(); };
+              savedMask.onerror = () => { maskCursorLoading.delete(layer.id); };
+              savedMask.src = layer.maskData;
+            } else {
+              ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+              finishCache();
+            }
+          };
+          sourceImage.onerror = () => maskCursorLoading.delete(layer.id);
+          sourceImage.src = layer.src;
+          return;
+        }
+        const stageX = (event.clientX - rect.left) / rect.width * 1280;
+        const stageY = (event.clientY - rect.top) / rect.height * 720;
+        const cx = layer.x + layer.width / 2, cy = layer.y + (layer.height || layer.width) / 2;
+        const angle = -(layer.rotation || 0) * Math.PI / 180;
+        const dx = stageX - cx, dy = stageY - cy;
+        const localX = dx * Math.cos(angle) - dy * Math.sin(angle) + layer.width / 2;
+        const localY = dx * Math.sin(angle) + dy * Math.cos(angle) + (layer.height || layer.width) / 2;
+        const pointX = localX / layer.width * cached.canvas.width;
+        const pointY = localY / (layer.height || layer.width) * cached.canvas.height;
+        if (pointX < 0 || pointY < 0 || pointX > cached.canvas.width || pointY > cached.canvas.height) { hideMaskCursor(); return; }
         const diameter = Math.max(4, Number(maskSizeInput.value) * layer.width / cached.canvas.width * rect.width / 1280);
         const softness = Number(maskSoftnessInput.value) * layer.width / cached.canvas.width * rect.width / 1280;
         maskCursor.style.width = diameter + "px";
