@@ -1914,6 +1914,9 @@
     .thumbnail-bg-paint input[type="color"] { display:block; width:100%; height:34px; margin-top:5px; }
     .thumbnail-editor-layer { position:absolute; display:flex; align-items:center; justify-content:center; text-align:center; white-space:pre-wrap; overflow-wrap:anywhere; font-weight:950; line-height:1.02; cursor:grab; touch-action:none; user-select:none; transform-origin:center center; padding:3px; }
     .thumbnail-editor-layer.selected { outline:2px dashed #c4b5fd; outline-offset:2px; }
+    .thumbnail-layer-resize { position:absolute; right:-9px; bottom:-9px; width:20px; height:20px; padding:0; border:2px solid #fff; border-radius:50%; background:#8b5cf6; box-shadow:0 1px 8px rgba(0,0,0,.65); cursor:nwse-resize; touch-action:none; z-index:5; }
+    .thumbnail-editor-layer:not(.selected) .thumbnail-layer-resize { display:none; }
+    .thumbnail-layer-resize::after { content:""; position:absolute; inset:5px; border-right:2px solid #fff; border-bottom:2px solid #fff; }
     .thumbnail-editor-layer img { display:block; width:100%; height:auto; pointer-events:none; }
     .thumbnail-editor-controls { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-top:14px; }
     .thumbnail-editor-controls .field-group { min-width:0; }
@@ -6093,6 +6096,7 @@
       }];
       let selectedId = "headline";
       let dragState = null;
+      let resizeState = null;
       let layerCounter = 0;
       let history = [];
       let historyIndex = -1;
@@ -6183,6 +6187,14 @@
             node.style.paintOrder = "stroke fill";
             const effects = { shadow:"2px 3px 7px rgba(0,0,0,.9)", strong:"4px 5px 12px rgba(0,0,0,1)", glow:"0 0 8px #b78cff, 0 0 18px #8b5cf6", "neon-cyan":"0 0 4px #fff, 0 0 10px #22d3ee, 0 0 24px #06b6d4", "neon-pink":"0 0 4px #fff, 0 0 10px #f0abfc, 0 0 24px #d946ef", fire:"0 0 5px #fff7ed, 0 0 12px #fb923c, 0 0 25px #dc2626", "3d":"2px 2px 0 #24123f, 4px 4px 0 #160b2b, 6px 7px 8px rgba(0,0,0,.65)", long:"5px 5px 0 rgba(0,0,0,.28), 9px 9px 0 rgba(0,0,0,.18), 13px 13px 12px rgba(0,0,0,.25)", none:"none" };
             node.style.textShadow = effects[layer.effect || "shadow"];
+          }
+          if (layer.id === selectedId && layer.locked !== true) {
+            const resizeHandle = document.createElement("button");
+            resizeHandle.type = "button";
+            resizeHandle.className = "thumbnail-layer-resize";
+            resizeHandle.setAttribute("aria-label", "Drag to resize selected layer");
+            resizeHandle.title = "Drag to make bigger or smaller";
+            node.append(resizeHandle);
           }
           stage.append(node);
           const row = document.createElement("div");
@@ -6665,7 +6677,7 @@
         const layer = selectedLayer(); if (layer && layer.type === "text") { layer.font = fontControl.value; saveHistory(); renderLayers(); }
       });
       sizeControl.addEventListener("input", () => {
-        const layer = selectedLayer(); if (layer && layer.type === "text") { layer.fontSize = Number(sizeControl.value); renderLayers(); }
+        const layer = selectedLayer(); if (layer && (layer.type === "text" || layer.type === "shape")) { layer.fontSize = Number(sizeControl.value); if (layer.type === "shape") { layer.width = layer.fontSize; layer.height = layer.fontSize; } renderLayers(); }
       });
       sizeControl.addEventListener("change", saveHistory);
       widthControl.addEventListener("input", () => {
@@ -6696,11 +6708,20 @@
       lineSpacingControl.addEventListener("change", saveHistory);
 
       stage.addEventListener("pointerdown", event => {
+        const resizeHandle = event.target.closest(".thumbnail-layer-resize");
         const node = event.target.closest(".thumbnail-editor-layer");
         if (!node) return;
         const layer = layers.find(item => item.id === node.dataset.layerId);
         if (!layer) return;
         selectedId = layer.id;
+        if (resizeHandle && !layer.locked) {
+          const rect = stage.getBoundingClientRect();
+          saveHistory();
+          resizeState = { id:layer.id, node, startX:event.clientX, startWidth:layer.width || 120, startHeight:layer.height || layer.width || 120, startFontSize:layer.fontSize || 84, stageWidth:rect.width };
+          try { stage.setPointerCapture(event.pointerId); } catch (_) {}
+          event.preventDefault(); event.stopPropagation();
+          return;
+        }
         if (layer.locked) { renderLayers(); syncControls(); return; }
         const rect = stage.getBoundingClientRect();
         saveHistory();
@@ -6711,6 +6732,19 @@
         event.preventDefault();
       });
       stage.addEventListener("pointermove", event => {
+        if (resizeState) {
+          const layer = layers.find(item => item.id === resizeState.id);
+          if (!layer) return;
+          const delta = (event.clientX - resizeState.startX) * 1280 / resizeState.stageWidth;
+          const nextWidth = Math.max(48, Math.min(1200, resizeState.startWidth + delta));
+          const scale = nextWidth / resizeState.startWidth;
+          layer.width = nextWidth;
+          if (layer.type === "image") layer.height = resizeState.startHeight * scale;
+          else if (layer.type === "text" || layer.type === "shape") { layer.fontSize = Math.max(18, Math.min(320, resizeState.startFontSize * scale)); if (layer.type === "shape") layer.height = layer.width; }
+          resizeState.node.style.width = (layer.width / 1280 * 100) + "%";
+          if (layer.type === "text" || layer.type === "shape") resizeState.node.style.fontSize = (layer.fontSize * resizeState.stageWidth / 1280) + "px";
+          return;
+        }
         if (!dragState) return;
         const layer = layers.find(item => item.id === dragState.id);
         if (!layer) return;
@@ -6726,6 +6760,7 @@
         }
       });
       const finishLayerDrag = () => {
+        if (resizeState) { resizeState = null; saveHistory(); renderLayers(); syncControls(); return; }
         if (!dragState) return;
         dragState = null;
         saveHistory();
