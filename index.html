@@ -1914,7 +1914,11 @@
     .thumbnail-bg-paint input[type="color"] { display:block; width:100%; height:34px; margin-top:5px; }
     .thumbnail-editor-layer { position:absolute; display:flex; align-items:center; justify-content:center; text-align:center; white-space:pre-wrap; overflow-wrap:anywhere; font-weight:950; line-height:1.02; cursor:grab; touch-action:none; user-select:none; transform-origin:center center; padding:3px; }
     .thumbnail-editor-layer.selected { outline:2px dashed #c4b5fd; outline-offset:2px; }
-    .thumbnail-layer-resize { position:absolute; right:-9px; bottom:-9px; width:20px; height:20px; padding:0; border:2px solid #fff; border-radius:50%; background:#8b5cf6; box-shadow:0 1px 8px rgba(0,0,0,.65); cursor:nwse-resize; touch-action:none; z-index:5; }
+    .thumbnail-layer-resize { position:absolute; width:20px; height:20px; padding:0; border:2px solid #fff; border-radius:50%; background:#8b5cf6; box-shadow:0 1px 8px rgba(0,0,0,.65); touch-action:none; z-index:5; }
+    .thumbnail-layer-resize[data-corner="nw"] { left:-9px; top:-9px; cursor:nwse-resize; }
+    .thumbnail-layer-resize[data-corner="ne"] { right:-9px; top:-9px; cursor:nesw-resize; }
+    .thumbnail-layer-resize[data-corner="sw"] { left:-9px; bottom:-9px; cursor:nesw-resize; }
+    .thumbnail-layer-resize[data-corner="se"] { right:-9px; bottom:-9px; cursor:nwse-resize; }
     .thumbnail-editor-layer:not(.selected) .thumbnail-layer-resize { display:none; }
     .thumbnail-layer-resize::after { content:""; position:absolute; inset:5px; border-right:2px solid #fff; border-bottom:2px solid #fff; }
     .thumbnail-editor-layer img { display:block; width:100%; height:auto; pointer-events:none; }
@@ -5735,7 +5739,7 @@
             '<div class="field-group"><label>Text style</label><div class="thumbnail-type-toggles"><label><input type="checkbox" data-layer-bold checked> Bold</label><label><input type="checkbox" data-layer-italic> Italic</label></div></div>',
             '<div class="field-group"><label>Text effect</label><select data-layer-effect><option value="shadow">Soft shadow</option><option value="strong">Strong shadow</option><option value="glow">Purple glow</option><option value="neon-cyan">Neon cyan</option><option value="neon-pink">Neon pink</option><option value="fire">Fire glow</option><option value="3d">3D depth</option><option value="long">Long shadow</option><option value="none">No effect</option></select></div>',
             '<div class="field-group"><label>Outline colour</label><input type="color" value="#12091f" data-layer-outline-color style="width:100%;min-height:40px"></div>',
-            '<div class="field-group"><label>Text / Shape Size</label><input type="range" min="18" max="320" value="84" data-layer-size style="width:100%"></div>',
+            '<div class="field-group"><label>Text / Shape Size</label><input type="range" min="8" max="1200" value="84" data-layer-size style="width:100%"></div>',
             '<div class="field-group"><label>Layer width</label><input type="range" min="80" max="1200" value="430" data-layer-width style="width:100%"></div>',
             '<div class="field-group"><label>Rotation</label><input type="range" min="-180" max="180" value="0" data-layer-rotation style="width:100%"></div>',
             '<div class="field-group thumbnail-control-wide"><label>Outline thickness</label><input type="range" min="0" max="30" value="5" data-layer-outline style="width:100%"></div>',
@@ -6189,12 +6193,15 @@
             node.style.textShadow = effects[layer.effect || "shadow"];
           }
           if (layer.id === selectedId && layer.locked !== true) {
-            const resizeHandle = document.createElement("button");
-            resizeHandle.type = "button";
-            resizeHandle.className = "thumbnail-layer-resize";
-            resizeHandle.setAttribute("aria-label", "Drag to resize selected layer");
-            resizeHandle.title = "Drag to make bigger or smaller";
-            node.append(resizeHandle);
+            ["nw","ne","sw","se"].forEach(corner => {
+              const resizeHandle = document.createElement("button");
+              resizeHandle.type = "button";
+              resizeHandle.className = "thumbnail-layer-resize";
+              resizeHandle.dataset.corner = corner;
+              resizeHandle.setAttribute("aria-label", "Drag " + corner + " corner to resize selected layer");
+              resizeHandle.title = "Drag this corner to make it bigger or smaller";
+              node.append(resizeHandle);
+            });
           }
           stage.append(node);
           const row = document.createElement("div");
@@ -6717,7 +6724,7 @@
         if (resizeHandle && !layer.locked) {
           const rect = stage.getBoundingClientRect();
           saveHistory();
-          resizeState = { id:layer.id, node, startX:event.clientX, startWidth:layer.width || 120, startHeight:layer.height || layer.width || 120, startFontSize:layer.fontSize || 84, stageWidth:rect.width };
+          resizeState = { id:layer.id, node, corner:resizeHandle.dataset.corner || "se", startX:event.clientX, startY:event.clientY, startLayerX:layer.x, startLayerY:layer.y, startWidth:layer.width || 120, startHeight:layer.height || (layer.type === "text" ? (layer.fontSize || 84) * 2 : layer.width || 120), startFontSize:layer.fontSize || 84, stageWidth:rect.width };
           try { stage.setPointerCapture(event.pointerId); } catch (_) {}
           event.preventDefault(); event.stopPropagation();
           return;
@@ -6735,12 +6742,21 @@
         if (resizeState) {
           const layer = layers.find(item => item.id === resizeState.id);
           if (!layer) return;
-          const delta = (event.clientX - resizeState.startX) * 1280 / resizeState.stageWidth;
-          const nextWidth = Math.max(48, Math.min(1200, resizeState.startWidth + delta));
+          const dx = (event.clientX - resizeState.startX) * 1280 / resizeState.stageWidth;
+          const dy = (event.clientY - resizeState.startY) * 1280 / (resizeState.stageWidth * 720 / 1280);
+          const sx = resizeState.corner.includes("w") ? -1 : 1;
+          const sy = resizeState.corner.includes("n") ? -1 : 1;
+          const delta = (dx * sx + dy * sy) / 2;
+          const nextWidth = Math.max(12, Math.min(6000, resizeState.startWidth + delta));
           const scale = nextWidth / resizeState.startWidth;
           layer.width = nextWidth;
           if (layer.type === "image") layer.height = resizeState.startHeight * scale;
-          else if (layer.type === "text" || layer.type === "shape") { layer.fontSize = Math.max(18, Math.min(320, resizeState.startFontSize * scale)); if (layer.type === "shape") layer.height = layer.width; }
+          else if (layer.type === "text" || layer.type === "shape") { layer.fontSize = Math.max(8, Math.min(1200, resizeState.startFontSize * scale)); if (layer.type === "shape") layer.height = layer.width; }
+          const nextHeight = layer.type === "image" ? layer.height : layer.type === "shape" ? layer.width : resizeState.startHeight * scale;
+          layer.x = resizeState.startLayerX - (nextWidth - resizeState.startWidth) / 2;
+          layer.y = resizeState.startLayerY - (nextHeight - resizeState.startHeight) / 2;
+          resizeState.node.style.left = (layer.x / 1280 * 100) + "%";
+          resizeState.node.style.top = (layer.y / 720 * 100) + "%";
           resizeState.node.style.width = (layer.width / 1280 * 100) + "%";
           if (layer.type === "text" || layer.type === "shape") resizeState.node.style.fontSize = (layer.fontSize * resizeState.stageWidth / 1280) + "px";
           return;
