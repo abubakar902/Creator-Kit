@@ -3339,9 +3339,9 @@
       <div class="field-group" style="padding:12px;border:1px solid rgba(155,108,255,.28);border-radius:12px;background:rgba(155,108,255,.055)">
         <label for="thumbnailCharacterReference">🧍 Add your own character (optional)</label>
         <input id="thumbnailCharacterReference" type="file" accept="image/png,image/jpeg,image/webp">
-        <label for="thumbnailPoseInstruction" style="display:block;margin-top:10px">Pose instruction</label>
-        <textarea id="thumbnailPoseInstruction" maxlength="300" rows="2" placeholder="Example: Make my character stand on the right, facing camera, holding a cricket bat. Keep the same face."></textarea>
-        <p class="workspace-intro prompt-help">Upload a character photo and describe the pose. AI will use it in the thumbnail and try to preserve the same face and identity.</p>
+        <label for="thumbnailPoseInstruction" style="display:block;margin-top:10px">Your uploaded image pose instruction (optional)</label>
+        <textarea id="thumbnailPoseInstruction" maxlength="300" rows="2" placeholder="Optional: Make my uploaded person stand on the right, facing camera, holding a cricket bat."></textarea>
+        <p class="workspace-intro prompt-help">This optional instruction applies only to your uploaded person. The main Instruction box controls the scene and selected AI character pose.</p>
       </div>
 
       <div class="row">
@@ -6519,26 +6519,30 @@
         position === "right" ? "Character on LEFT, fully visible. " :
         position === "top" ? "Character in LOWER half. " :
         "Character in UPPER half. ";
-      const thumbnailPrompt = "Create a premium 16:9 YouTube thumbnail. " +
-        characterDirection +
-        "Scene: " + instruction + ". Style: " + style + ". " +
-        characterPlacement +
-        (position === "left" ? "Keep LEFT 42% clear for headline. " :
-          position === "right" ? "Keep RIGHT 42% clear for headline. " :
-          position === "top" ? "Keep TOP 30% clear for headline. " :
-          "Keep BOTTOM 30% clear for headline. ") +
-        (characterReferenceFile ? " Use the uploaded reference image as the exact main character. Preserve the same person, face, facial structure, eyes, nose, mouth, expression, skin tone and hairstyle. Do not beautify, retouch, filter or stylize the face. Change only the body pose and body position as described: " + (poseInstruction || "Keep the character in a natural pose that fits the scene.") + " Keep the character recognizable and fully visible. " : "") +
+      const sceneAndAiPose = instruction;
+      const aiCharacterDescription = characterDirection.trim();
+      const thumbnailPrompt = "Create a premium 16:9 YouTube thumbnail. Scene and AI character pose instructions: " +
+        sceneAndAiPose + ". " +
+        (characterType === "no character"
+          ? (characterReferenceFile ? "Do not add any extra AI character. Use the uploaded person as the only character. " : "Do not show any people or characters. ")
+          : "Add one " + aiCharacterDescription + " as a SECOND DISTINCT character, separate from the uploaded reference person. The selected AI character must follow the pose/action described in the scene and instruction. Both people must be visible together and must not be merged into one person. ") +
+        "Visual style: " + style + ". " +
+        (position === "left" ? "Keep LEFT 42% clear for headline; place subjects on the RIGHT. " :
+          position === "right" ? "Keep RIGHT 42% clear for headline; place subjects on the LEFT. " :
+          position === "top" ? "Keep TOP 30% clear for headline; place subjects in the LOWER area. " :
+          "Keep BOTTOM 30% clear for headline; place subjects in the UPPER area. ") +
+        (characterReferenceFile ? "The uploaded image is a separate person who must also appear in this same thumbnail. Preserve this person's identity and face. Apply ONLY this uploaded-person pose instruction: " + (poseInstruction || "Use a natural pose that fits the scene.") + ". Keep this uploaded person distinct from the selected AI character. " : "") +
         "Bright detailed scene, dramatic light, vivid colours, sharp focus. No words, logos, borders or collage.";
 
       if (thumbnailPrompt.length > 1000) {
-        thumbnailMessage.textContent = "Please shorten the English instruction.";
+        thumbnailMessage.textContent = "Please shorten the scene and character instructions.";
         return;
       }
 
       thumbnailIsGenerating = true;
       thumbnailGenerateButton.disabled = true;
       thumbnailGenerateButton.textContent = "Creating thumbnail...";
-      thumbnailMessage.textContent = "Creating your thumbnail background. Please wait...";
+      thumbnailMessage.textContent = "Creating your thumbnail. Please wait...";
       thumbnailResult.replaceChildren();
       if (thumbnailOutputUrl) {
         URL.revokeObjectURL(thumbnailOutputUrl);
@@ -6562,58 +6566,50 @@
           });
           if (!imageBase64) throw new Error("Uploaded character image could not be prepared.");
         }
-        let response = await workerFetch(WORKER_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "generate_image", prompt: thumbnailPrompt, imageBase64, mimeType })
-        });
 
-        let data;
-        try { data = await response.json(); }
-        catch { throw new Error("The server returned an unreadable response. Please try again."); }
-
-        let generatedImage = getImagePayload(data);
-        const firstError = String(data.error || data.details || data.message || "");
-        // Retry once for every character type if the service blocks the prompt or returns no image.
-        if (!response.ok || !generatedImage || typeof generatedImage !== "string") {
-          thumbnailMessage.textContent = "Adjusting the prompt and trying once more...";
-          const retryCharacter = characterType === "anime-style character"
-            ? "a clearly recognizable 2D anime character with expressive eyes, detailed anime hair and clean cel shading"
-            : characterType === "realistic human character"
-              ? "a photorealistic human with natural facial features and realistic anatomy"
-              : characterType === "cartoon character"
-                ? "a polished, colourful 3D cartoon character with expressive features"
-                : characterType === "superhero character"
-                  ? "an original fictional masked hero in a bright, unique costume, with no logos"
-                  : characterType === "3D game character"
-                    ? "a detailed 3D video-game character with realistic materials and clear full-body proportions"
-                    : "no character or people";
-          const retryPlacement = characterType === "no character" ? "Show the scene only. " :
-            position === "left" ? "Place the character fully visible on the RIGHT. " :
-            position === "right" ? "Place the character fully visible on the LEFT. " :
-            position === "top" ? "Place the character in the LOWER half. " :
-            "Place the character in the UPPER half. ";
-          const retryHeadlineSpace = position === "left" ? "Leave the LEFT side clear for headline text. " :
-            position === "right" ? "Leave the RIGHT side clear for headline text. " :
-            position === "top" ? "Leave the TOP area clear for headline text. " :
-            "Leave the BOTTOM area clear for headline text. ";
-          const safeRetryPrompt = "Create a clear 16:9 YouTube thumbnail. Show " + retryCharacter +
-            ". Scene: " + instruction.slice(0, 160) + ". " + retryPlacement + retryHeadlineSpace +
-            "Use " + style + " with strong lighting, clear subject separation and vivid colours. No text, logos or collage.";
-          response = await workerFetch(WORKER_URL, {
+        const sendThumbnailRequest = async prompt => {
+          const response = await workerFetch(WORKER_URL, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ action: "generate_image", prompt: safeRetryPrompt + (characterReferenceFile ? " Use the uploaded reference image, preserve the same face and identity, and follow this pose: " + (poseInstruction || "natural pose matching the scene") + ". Do not retouch or alter the face." : ""), imageBase64, mimeType })
+            body: JSON.stringify({ action: "generate_image", prompt, imageBase64, mimeType })
           });
+          let data;
           try { data = await response.json(); }
-          catch { throw new Error("The image service returned an unreadable retry response. Please try again."); }
-          generatedImage = getImagePayload(data);
-        }
-        if (!response.ok) {
-          throw new Error(data.error || data.details || data.message || firstError || `Thumbnail generation failed (${response.status}).`);
-        }
-        if (!generatedImage || typeof generatedImage !== "string") {
-          throw new Error(data.error || data.details || data.message || "The image service returned no picture after retry. Please try again.");
+          catch { throw new Error("The image service returned an unreadable response."); }
+          const image = getImagePayload(data);
+          if (!response.ok || !image || typeof image !== "string") {
+            throw new Error(data.error || data.details || data.message || `Thumbnail generation failed (${response.status || "no image"}).`);
+          }
+          return image;
+        };
+
+        let generatedImage;
+        try {
+          generatedImage = await sendThumbnailRequest(thumbnailPrompt);
+        } catch (firstAttemptError) {
+          thumbnailMessage.textContent = "First attempt did not work. Simplifying the prompt and trying once more...";
+          const retryType = characterType === "no character" ? "no AI character" :
+            characterType === "anime-style character" ? "one 2D anime character" :
+            characterType === "realistic human character" ? "one photorealistic human character" :
+            characterType === "cartoon character" ? "one colourful cartoon character" :
+            characterType === "superhero character" ? "one original superhero character with no logos" :
+            "one detailed 3D game character";
+          const retryPrompt = "Create a clear premium 16:9 YouTube thumbnail. Scene and AI character pose: " +
+            instruction.slice(0, 190) + ". " +
+            (characterType === "no character"
+              ? (characterReferenceFile ? "Do not add another character; show only the uploaded person. " : "Show no people. ")
+              : "Show " + retryType + " as one person AND keep the uploaded reference person as a SECOND, separate person if an image is attached. Never merge them. The AI character follows the scene pose instruction. ") +
+            (characterReferenceFile ? "Preserve the uploaded person's identity and face. Uploaded-person pose instruction (optional): " + (poseInstruction || "natural pose fitting the scene") + ". " : "") +
+            (position === "left" ? "Leave left side clear for headline; subjects on right. " :
+              position === "right" ? "Leave right side clear for headline; subjects on left. " :
+              position === "top" ? "Leave top area clear for headline; subjects below. " :
+              "Leave bottom area clear for headline; subjects above. ") +
+            "Use " + style + ", vivid colours, clear subject separation and strong lighting. No text, logos or collage.";
+          try {
+            generatedImage = await sendThumbnailRequest(retryPrompt);
+          } catch (secondAttemptError) {
+            throw new Error(secondAttemptError.message || firstAttemptError.message || "Thumbnail generation failed after one retry. Please try again.");
+          }
         }
         const generatedImageUrl = generatedImage.startsWith("data:")
           ? generatedImage
