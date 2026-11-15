@@ -3387,10 +3387,11 @@
 
       <div class="field-group" style="padding:12px;border:1px solid rgba(155,108,255,.28);border-radius:12px;background:rgba(155,108,255,.055)">
         <label for="thumbnailCharacterReference">🧍 Add your own character (optional)</label>
+        <p class="workspace-intro prompt-help">Upload a clear photo or character image with the face visible and good lighting. PNG, JPG/JPEG, and WEBP are accepted. For best results, use one person without heavy blur or cropping.</p>
         <input id="thumbnailCharacterReference" type="file" accept="image/png,image/jpeg,image/webp">
-        <label for="thumbnailPoseInstruction" style="display:block;margin-top:10px">Your uploaded image pose instruction (optional)</label>
-        <textarea id="thumbnailPoseInstruction" maxlength="300" rows="2" placeholder="Optional: Make my uploaded person stand on the right, facing camera, holding a cricket bat."></textarea>
-        <p class="workspace-intro prompt-help">This optional instruction applies only to your uploaded person. The main Instruction box controls the scene and selected AI character pose.</p>
+        <label for="thumbnailPoseInstruction" style="display:block;margin-top:10px">How should your uploaded character appear? (optional)</label>
+        <textarea id="thumbnailPoseInstruction" maxlength="300" rows="2" placeholder="Example: Place my character on the right, facing the camera and holding a cricket bat."></textarea>
+        <p class="workspace-intro prompt-help">Describe only the uploaded character's pose or placement. The main Instruction box controls the scene and the AI-generated character. Your uploaded character's identity and face should be preserved.</p>
       </div>
 
       <button class="primary" id="thumbnailGenerateButton" type="button">✨ Generate Thumbnail</button>
@@ -5869,16 +5870,12 @@
       const addTextGroup = makeStudioGroup(toolsRail, "Add Text", "T", [addTextBar], { open: true });
       const stickerGroup = makeStudioGroup(toolsRail, "Stickers", "✨", [stickerDock], { open: false });
       const imageGroup = makeStudioGroup(toolsRail, "Add Image", "🖼️", [uploadButton, imageFileControl], { open: false });
-      const imageUploadHelp = document.createElement("p");
-      imageUploadHelp.className = "thumbnail-editor-note thumbnail-image-upload-help";
-      imageUploadHelp.textContent = "Accepted formats: transparent PNG or transparent WEBP only. JPG/JPEG and images with solid backgrounds are not supported.";
-      imageGroup.querySelector(".thumbnail-studio-group-body").append(imageUploadHelp);
       let separateCharacterButton = null;
       let separateCharacterStatus = null;
-      if (characterMoveOptions && characterMoveOptions.hasUploadedCharacter) {
+      if (characterMoveOptions && characterMoveOptions.hasCharacter) {
         const separateCharacterPanel = document.createElement("div");
         separateCharacterPanel.className = "thumbnail-character-move-panel";
-        separateCharacterPanel.innerHTML = '<strong>Move Your Uploaded Character</strong><p class="thumbnail-editor-note">Separate the exact character already generated, including the held object, into its own movable layer. The existing face and pose will not be regenerated.</p><button type="button" class="primary" data-separate-character>✦ Make Character Movable</button><p class="thumbnail-editor-note" data-separate-character-status role="status" aria-live="polite">Your generated character is currently part of the background. Use this once to separate it.</p>';
+        separateCharacterPanel.innerHTML = '<strong>Move Your Character</strong><p class="thumbnail-editor-note">Separate the character already visible in this thumbnail, including the held object, into its own movable layer. The existing face and pose will not be regenerated.</p><button type="button" class="primary" data-separate-character>✦ Make Character Movable</button><p class="thumbnail-editor-note" data-separate-character-status role="status" aria-live="polite">Your character is currently part of the background. Use this once to separate it.</p>';
         imageGroup.querySelector(".thumbnail-studio-group-body").append(separateCharacterPanel);
         separateCharacterButton = separateCharacterPanel.querySelector("[data-separate-character]");
         separateCharacterStatus = separateCharacterPanel.querySelector("[data-separate-character-status]");
@@ -7461,11 +7458,12 @@
           overlay.querySelector("[data-close-thumbnail-editor]").addEventListener("click", closeEditor);
           document.addEventListener("keydown", handleEditorEscape);
 
-          const editor = createThumbnailLayerEditor(generatedImageUrl, headline, accent, position, { hasUploadedCharacter: !!characterReferenceFile });
+          const hasCharacterToMove = !!characterReferenceFile || characterType !== "no character";
+          const editor = createThumbnailLayerEditor(generatedImageUrl, headline, accent, position, { hasCharacter: hasCharacterToMove });
           overlay.appendChild(editor);
-          // Automatically separate the exact uploaded character as soon as the editor opens.
+          // Automatically separate the visible character as soon as the editor opens.
           // This reuses the generated image and never regenerates or alters the preserved face layer.
-          if (characterReferenceFile) {
+          if (hasCharacterToMove) {
             const autoSeparateButton = editor.querySelector("[data-separate-character]");
             if (autoSeparateButton) {
               requestAnimationFrame(() => {
