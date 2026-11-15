@@ -5865,7 +5865,8 @@
         '<button type="button" class="primary" data-remove-image-background>✂️ Remove Background with AI</button>',
         '<button type="button" class="secondary" data-restore-original-image disabled>↶ Restore Original Image</button>',
         '<div class="thumbnail-bg-mask-tools"><strong>Cutout Refinement</strong><p class="thumbnail-editor-note">Select an AI-cutout image, then paint on the image to erase or restore parts of the cutout.</p>',
-          '<div class="thumbnail-bg-library-grid"><button type="button" class="secondary active" data-mask-mode="erase">⌫ Erase</button><button type="button" class="secondary" data-mask-mode="restore">↶ Restore</button></div>',
+          '<button type="button" class="secondary active" data-mask-move-mode>↔ Move Image</button>',
+          '<div class="thumbnail-bg-library-grid"><button type="button" class="secondary" data-mask-mode="erase">⌫ Erase</button><button type="button" class="secondary" data-mask-mode="restore">↶ Restore</button></div>',
           '<label>Brush size <output data-mask-size-value>36px</output><input type="range" min="8" max="150" value="36" data-mask-size></label>',
           '<label>Edge softness <output data-mask-softness-value>2px</output><input type="range" min="0" max="16" value="2" data-mask-softness></label>',
           '<button type="button" class="secondary" data-mask-clear>Clear refinements</button></div>',
@@ -6423,6 +6424,8 @@
       const removalStatus = backgroundRemovalStudio.querySelector("[data-bg-removal-status]");
       const customBackgroundInput = backgroundRemovalStudio.querySelector("[data-bg-custom-file]");
       let maskMode = "erase";
+      let maskPaintingEnabled = false;
+      const maskMoveButton = backgroundRemovalStudio.querySelector("[data-mask-move-mode]");
       const maskSizeInput = backgroundRemovalStudio.querySelector("[data-mask-size]");
       const maskSoftnessInput = backgroundRemovalStudio.querySelector("[data-mask-softness]");
       const maskModeButtons = backgroundRemovalStudio.querySelectorAll("[data-mask-mode]");
@@ -6434,10 +6437,20 @@
         maskSoftnessInput.disabled = !ready;
         backgroundRemovalStudio.querySelector("[data-mask-clear]").disabled = !ready || !layer.maskData;
       };
+      const setMaskPainting = enabled => {
+        maskPaintingEnabled = enabled;
+        maskMoveButton.classList.toggle("active", !enabled);
+        maskModeButtons.forEach(item => item.classList.toggle("active", enabled && item.dataset.maskMode === maskMode));
+        stage.classList.toggle("thumbnail-mask-painting", enabled);
+      };
+      maskMoveButton.addEventListener("click", () => {
+        setMaskPainting(false);
+        removalStatus.textContent = "Move mode: drag the cutout image anywhere on the thumbnail.";
+      });
       maskModeButtons.forEach(button => button.addEventListener("click", () => {
         maskMode = button.dataset.maskMode;
-        maskModeButtons.forEach(item => item.classList.toggle("active", item === button));
-        removalStatus.textContent = maskMode === "erase" ? "Erase mode: paint over the cutout area you want to hide." : "Restore mode: paint to bring back erased parts of the AI cutout.";
+        setMaskPainting(true);
+        removalStatus.textContent = maskMode === "erase" ? "Erase mode: paint over the cutout area you want to hide. Choose Move Image to move the cutout." : "Restore mode: paint to bring back erased parts. Choose Move Image to move the cutout.";
       }));
       maskSizeInput.addEventListener("input", () => backgroundRemovalStudio.querySelector("[data-mask-size-value]").textContent = maskSizeInput.value + "px");
       maskSoftnessInput.addEventListener("input", () => backgroundRemovalStudio.querySelector("[data-mask-softness-value]").textContent = maskSoftnessInput.value + "px");
@@ -6595,10 +6608,10 @@
         }
         ctx.restore();
         activeMask.last = point;
-        layer.maskData = activeMask.canvas.toDataURL("image/png");
-        renderLayers();
+        // Keep pointer movement lightweight: serialize and redraw only once when the stroke ends.
       };
       const beginMaskPaint = async event => {
+        if (!maskPaintingEnabled) return;
         const clickedLayerNode = event.target.closest && event.target.closest(".thumbnail-editor-layer");
         if (clickedLayerNode && stage.contains(clickedLayerNode)) {
           const clickedLayer = layers.find(item => item.id === clickedLayerNode.dataset.layerId);
@@ -6636,8 +6649,13 @@
       const finishMaskPaint = event => {
         if (!activeMask || activeMask.pointerId !== event.pointerId) return;
         event.preventDefault(); event.stopImmediatePropagation();
-        activeMask = null; saveHistory(); renderLayers(); syncMaskControls();
-        removalStatus.textContent = maskMode === "erase" ? "Cutout area erased. Use Restore to bring it back." : "Erased cutout area restored.";
+        const layer = selectedLayer();
+        if (layer && layer.type === "image" && layer.backgroundRemoved) {
+          layer.maskData = activeMask.canvas.toDataURL("image/png");
+        }
+        activeMask = null;
+        saveHistory(); renderLayers(); syncControls(); syncMaskControls();
+        removalStatus.textContent = maskMode === "erase" ? "Cutout area erased. Choose Move Image to reposition it, or Restore to paint back." : "Erased cutout area restored. Choose Move Image to reposition it.";
       };
       stage.addEventListener("pointerdown", beginMaskPaint, true);
       stage.addEventListener("pointermove", moveMaskPaint, true);
@@ -6746,15 +6764,21 @@
           const dy = (event.clientY - resizeState.startY) * 1280 / (resizeState.stageWidth * 720 / 1280);
           const sx = resizeState.corner.includes("w") ? -1 : 1;
           const sy = resizeState.corner.includes("n") ? -1 : 1;
-          const delta = (dx * sx + dy * sy) / 2;
-          const nextWidth = Math.max(12, Math.min(6000, resizeState.startWidth + delta));
+          const aspect = resizeState.startHeight / Math.max(1, resizeState.startWidth);
+          const projectedDelta = (dx * sx + dy * sy * aspect) / (1 + aspect * aspect);
+          const nextWidth = Math.max(12, Math.min(6000, resizeState.startWidth + projectedDelta));
           const scale = nextWidth / resizeState.startWidth;
           layer.width = nextWidth;
           if (layer.type === "image") layer.height = resizeState.startHeight * scale;
           else if (layer.type === "text" || layer.type === "shape") { layer.fontSize = Math.max(8, Math.min(1200, resizeState.startFontSize * scale)); if (layer.type === "shape") layer.height = layer.width; }
           const nextHeight = layer.type === "image" ? layer.height : layer.type === "shape" ? layer.width : resizeState.startHeight * scale;
-          layer.x = resizeState.startLayerX - (nextWidth - resizeState.startWidth) / 2;
-          layer.y = resizeState.startLayerY - (nextHeight - resizeState.startHeight) / 2;
+          // Keep the opposite corner fixed while the grabbed corner moves.
+          layer.x = resizeState.corner.includes("w")
+            ? resizeState.startLayerX + resizeState.startWidth - nextWidth
+            : resizeState.startLayerX;
+          layer.y = resizeState.corner.includes("n")
+            ? resizeState.startLayerY + resizeState.startHeight - nextHeight
+            : resizeState.startLayerY;
           resizeState.node.style.left = (layer.x / 1280 * 100) + "%";
           resizeState.node.style.top = (layer.y / 720 * 100) + "%";
           resizeState.node.style.width = (layer.width / 1280 * 100) + "%";
