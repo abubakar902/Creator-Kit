@@ -6515,7 +6515,7 @@
         const layer = selectedLayer();
         if (!layer || layer.type !== "image" || !layer.originalSrc) return;
         layer.src = layer.originalSrc;
-        delete layer.originalSrc; delete layer.backgroundRemoved; delete layer.maskData;
+        delete layer.originalSrc; delete layer.backgroundRemoved; delete layer.maskData; maskCanvasCache.delete(layer.id);
         saveHistory(); renderLayers(); syncControls(); syncBackgroundRemovalControls(); syncMaskControls();
         removalStatus.textContent = "Original image restored.";
       });
@@ -6575,10 +6575,11 @@
       backgroundRemovalStudio.querySelector("[data-mask-clear]").addEventListener("click", () => {
         const layer = selectedLayer();
         if (!layer || !layer.backgroundRemoved || !layer.maskData) return;
-        delete layer.maskData; saveHistory(); renderLayers(); syncMaskControls();
+        delete layer.maskData; maskCanvasCache.delete(layer.id); saveHistory(); renderLayers(); syncMaskControls();
         removalStatus.textContent = "Cutout refinements cleared.";
       });
       let activeMask = null;
+      const maskCanvasCache = new Map();
       const maskPoint = (event, layer, rect) => {
         const stageX = (event.clientX - rect.left) / rect.width * 1280;
         const stageY = (event.clientY - rect.top) / rect.height * 720;
@@ -6598,7 +6599,10 @@
         ctx.save();
         ctx.globalCompositeOperation = maskMode === "erase" ? "destination-out" : "source-over";
         ctx.globalAlpha = 1;
-        ctx.filter = "blur(" + (Number(maskSoftnessInput.value) * scale) + "px)";
+        const softness = Number(maskSoftnessInput.value) * scale;
+        ctx.filter = "none";
+        ctx.shadowColor = "#ffffff";
+        ctx.shadowBlur = softness;
         ctx.strokeStyle = "#ffffff"; ctx.fillStyle = "#ffffff";
         ctx.lineWidth = size; ctx.lineCap = "round"; ctx.lineJoin = "round";
         if (activeMask.last) {
@@ -6624,18 +6628,29 @@
         if (!layer || layer.type !== "image" || !layer.backgroundRemoved || !stage.contains(event.target)) return;
         // Stop the normal drag handler immediately; image loading happens asynchronously.
         event.preventDefault(); event.stopImmediatePropagation();
-        const img = await loadImageForThumbnail(layer.src);
-        const canvas = document.createElement("canvas");
-        canvas.width = img.naturalWidth || img.width; canvas.height = img.naturalHeight || img.height;
-        const ctx = canvas.getContext("2d");
-        if (!ctx) return;
-        if (layer.maskData) {
-          const savedMask = await loadImageForThumbnail(layer.maskData);
-          ctx.drawImage(savedMask, 0, 0, canvas.width, canvas.height);
-        } else {
-          ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+        let cached = maskCanvasCache.get(layer.id);
+        if (!cached || cached.src !== layer.src || cached.maskData !== (layer.maskData || null)) {
+          const img = await loadImageForThumbnail(layer.src);
+          const naturalWidth = img.naturalWidth || img.width;
+          const naturalHeight = img.naturalHeight || img.height;
+          const downscale = Math.min(1, 2048 / Math.max(naturalWidth, naturalHeight));
+          const canvas = document.createElement("canvas");
+          canvas.width = Math.max(1, Math.round(naturalWidth * downscale));
+          canvas.height = Math.max(1, Math.round(naturalHeight * downscale));
+          const ctx = canvas.getContext("2d", { alpha:true });
+          if (!ctx) return;
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = "high";
+          if (layer.maskData) {
+            const savedMask = await loadImageForThumbnail(layer.maskData);
+            ctx.drawImage(savedMask, 0, 0, canvas.width, canvas.height);
+          } else {
+            ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+          }
+          cached = { canvas, ctx, src:layer.src, maskData:layer.maskData || null, scaleX:canvas.width / naturalWidth, scaleY:canvas.height / naturalHeight };
+          maskCanvasCache.set(layer.id, cached);
         }
-        activeMask = { canvas, ctx, last:null, pointerId:event.pointerId };
+        activeMask = { ...cached, last:null, pointerId:event.pointerId };
         const startPoint = maskPoint(event, layer, stage.getBoundingClientRect());
         if (startPoint.x < 0 || startPoint.y < 0 || startPoint.x > canvas.width || startPoint.y > canvas.height) { activeMask = null; return; }
         stage.setPointerCapture(event.pointerId);
@@ -6653,6 +6668,7 @@
         const layer = selectedLayer();
         if (layer && layer.type === "image" && layer.backgroundRemoved) {
           layer.maskData = activeMask.canvas.toDataURL("image/png");
+          maskCanvasCache.set(layer.id, { canvas:activeMask.canvas, ctx:activeMask.ctx, src:layer.src, maskData:layer.maskData, scaleX:activeMask.scaleX, scaleY:activeMask.scaleY });
         }
         activeMask = null;
         saveHistory(); renderLayers(); syncControls(); syncMaskControls();
