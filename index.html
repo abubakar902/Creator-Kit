@@ -5759,7 +5759,13 @@
       const modeSwitch = document.createElement("div");
       modeSwitch.className = "thumbnail-studio-mode";
       modeSwitch.innerHTML = '<span>Editor mode</span><button type="button" class="secondary active" data-editor-mode="simple" aria-pressed="true">Simple</button><button type="button" class="secondary" data-editor-mode="advanced" aria-pressed="false">Advanced</button>';
-      studioTop.append(heading, modeSwitch);
+      const saveButton = exportBar.querySelector("[data-export-thumbnail]");
+      saveButton.textContent = "💾 Save & Download PNG";
+      saveButton.setAttribute("aria-label", "Save and download final thumbnail as PNG");
+      exportBar.style.cssText = "display:flex;align-items:center;justify-content:flex-end;flex:0 0 auto;width:auto;margin:0;padding:0";
+      saveButton.style.cssText = "width:auto;min-width:176px;min-height:40px;padding:9px 16px;white-space:nowrap";
+      studioTop.style.flexWrap = "wrap";
+      studioTop.append(heading, modeSwitch, exportBar);
 
       const workspace = document.createElement("div");
       workspace.className = "thumbnail-studio-workspace";
@@ -5776,7 +5782,7 @@
       const canvasArea = document.createElement("main");
       canvasArea.className = "thumbnail-studio-canvas";
       canvasArea.innerHTML = '<div class="thumbnail-studio-canvas-title"><strong>Thumbnail Canvas</strong><span>1280 × 720 · 16:9</span></div>';
-      canvasArea.append(stageElement, stageHint, exportBar);
+      canvasArea.append(stageElement, stageHint);
 
       const inspectorRail = document.createElement("aside");
       inspectorRail.className = "thumbnail-studio-inspector";
