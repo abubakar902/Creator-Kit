@@ -5883,6 +5883,104 @@
       const backgroundGroup = makeStudioGroup(toolsRail, "Background Studio", "🎨", [backgroundStudio], { open: false, advanced: true });
       imageGroup.after(backgroundGroup);
 
+      // AI Character Studio: generate a fresh character and add it as an independent cutout layer.
+      const aiCharacterStudio = document.createElement("div");
+      aiCharacterStudio.className = "thumbnail-ai-character-studio";
+      aiCharacterStudio.innerHTML = [
+        '<p class="thumbnail-editor-note">Create a new character here without leaving the editor. Choose a style, describe its pose, then add it directly to the canvas as a separate movable layer.</p>',
+        '<label class="thumbnail-editor-note" for="thumbnail-editor-character-type">Character style</label>',
+        '<select data-editor-character-type id="thumbnail-editor-character-type" class="thumbnail-editor-input"><option value="realistic human">Realistic Person</option><option value="anime">Anime</option><option value="cartoon">Cartoon</option><option value="superhero">Superhero</option><option value="3D game character">3D Game Character</option></select>',
+        '<label class="thumbnail-editor-note" for="thumbnail-editor-character-pose">Character pose / appearance</label>',
+        '<textarea data-editor-character-pose id="thumbnail-editor-character-pose" class="thumbnail-editor-input" rows="3" maxlength="500" placeholder="Example: A confident cricket player standing, holding a bat in one hand, facing the camera."></textarea>',
+        '<button type="button" class="primary" data-generate-editor-character>✦ Generate New Character</button>',
+        '<p class="thumbnail-editor-note" data-editor-character-status role="status" aria-live="polite">The character will be generated, background-removed, and added as a separate layer.</p>'
+      ].join("");
+      const aiCharacterGroup = makeStudioGroup(toolsRail, "Create New Character", "🧍", [aiCharacterStudio], { open: false });
+      backgroundGroup.after(aiCharacterGroup);
+      const editorCharacterType = aiCharacterStudio.querySelector("[data-editor-character-type]");
+      const editorCharacterPose = aiCharacterStudio.querySelector("[data-editor-character-pose]");
+      const editorCharacterButton = aiCharacterStudio.querySelector("[data-generate-editor-character]");
+      const editorCharacterStatus = aiCharacterStudio.querySelector("[data-editor-character-status]");
+      editorCharacterButton.addEventListener("click", async () => {
+        const pose = editorCharacterPose.value.trim();
+        const style = editorCharacterType.value;
+        if (!pose) {
+          editorCharacterStatus.textContent = "Please describe the new character's pose and appearance first.";
+          editorCharacterPose.focus();
+          return;
+        }
+        editorCharacterButton.disabled = true;
+        editorCharacterButton.textContent = "⏳ Creating Character...";
+        editorCharacterStatus.textContent = "Generating your character. Please wait...";
+        try {
+          const characterPrompt = [
+            "Create one full-body isolated " + style + " character for a YouTube thumbnail.",
+            "Character description and exact pose: " + pose,
+            "Show the complete character from head to feet, centered, with hands and held objects fully visible.",
+            "Transparent background if supported. No scenery, no text, no logos, no extra people, no border.",
+            "Keep clean detailed edges suitable for background removal and compositing onto another image."
+          ].join("\n");
+          const response = await workerFetch(WORKER_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "generate_image", prompt: characterPrompt })
+          });
+          let data;
+          try { data = await response.json(); }
+          catch { throw new Error("The image service returned an unreadable response."); }
+          const generatedCharacter = getImagePayload(data);
+          if (!response.ok || !generatedCharacter || typeof generatedCharacter !== "string") {
+            throw new Error(data.error || data.details || data.message || "Character generation failed.");
+          }
+          const characterDataUrl = generatedCharacter.startsWith("data:")
+            ? generatedCharacter
+            : "data:image/png;base64," + generatedCharacter;
+          editorCharacterStatus.textContent = "Removing the background so the character can move independently...";
+          const characterFile = await dataUrlToFile(characterDataUrl, "TrivexaAI-character.png");
+          if (characterFile.size > 8 * 1024 * 1024) throw new Error("The generated character is too large to process. Please try a simpler prompt.");
+          const characterImage = await loadImageForThumbnail(characterDataUrl);
+          const characterPixels = (characterImage.naturalWidth || characterImage.width) * (characterImage.naturalHeight || characterImage.height);
+          if (!characterPixels || characterPixels > 12000000) throw new Error("The generated character is above the safe 12-megapixel limit.");
+          const { removeBackground } = await import("https://esm.sh/@bg0/browser@0.1.1?bundle");
+          const cutout = await removeBackground(characterFile, { model:"lite", quality:"fast" });
+          if (!cutout || !cutout.blob) throw new Error("The background remover did not return a transparent character.");
+          const transparentCharacterUrl = await blobToDataUrl(cutout.blob);
+          const cutoutImage = await loadImageForThumbnail(transparentCharacterUrl);
+          const naturalWidth = cutoutImage.naturalWidth || cutoutImage.width;
+          const naturalHeight = cutoutImage.naturalHeight || cutoutImage.height;
+          const scale = Math.min(1, 460 / naturalWidth, 620 / naturalHeight);
+          const width = Math.max(1, Math.round(naturalWidth * scale));
+          const height = Math.max(1, Math.round(naturalHeight * scale));
+          layerCounter++;
+          const newCharacterLayer = {
+            id:"image-" + layerCounter,
+            type:"image",
+            name:"AI Character",
+            src:transparentCharacterUrl,
+            x:Math.max(20, Math.min(1280 - width - 20, 760)),
+            y:Math.max(10, Math.round((720 - height) / 2)),
+            width,
+            height,
+            rotation:0,
+            opacity:100,
+            visible:true,
+            locked:false
+          };
+          layers.push(newCharacterLayer);
+          selectedId = newCharacterLayer.id;
+          saveHistory();
+          renderLayers();
+          syncControls();
+          editorCharacterStatus.textContent = "New character added! Select it on the canvas to move, resize, or rotate it.";
+        } catch (error) {
+          console.error("Editor character generation failed:", error);
+          editorCharacterStatus.textContent = error && error.message ? error.message : "Could not create the character. Please try again.";
+        } finally {
+          editorCharacterButton.disabled = false;
+          editorCharacterButton.textContent = "✦ Generate New Character";
+        }
+      });
+
       // Major 7: one Advanced-only group for AI cutouts and background library.
       const backgroundRemovalStudio = document.createElement("div");
       backgroundRemovalStudio.className = "thumbnail-bg-removal-studio";
