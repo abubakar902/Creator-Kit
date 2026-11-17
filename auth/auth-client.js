@@ -19,17 +19,35 @@ export function getInitializationError(){return initError;}
 if(authConfigured&&auth){
  window.fetch=async(input,init={})=>{let url="";try{url=typeof input==="string"?new URL(input,location.href).href:input instanceof URL?input.href:input?.url||"";}catch{return nativeFetch(input,init);}if(new URL(url,location.href).origin!==workerOrigin)return nativeFetch(input,init);await authReady;const u=auth.currentUser||firstUser;if(!u){login();throw new Error("Please sign in with Google.");}const headers=new Headers(input instanceof Request?input.headers:undefined);new Headers(init.headers||{}).forEach((v,k)=>headers.set(k,v));headers.set("Authorization","Bearer "+await u.getIdToken());return nativeFetch(input,{...init,headers,cache:"no-store"});};
  
- // The homepage stays public for search engines and visitors. Standalone tool
- // pages require sign-in before their local or server-backed interface is used.
+ // Public homepage, SEO landing pages and account pages remain readable.
+ // Their protected actions require sign-in before execution.
  const currentPath=window.location.pathname.toLowerCase();
  const isMainHome=currentPath.endsWith("/")||currentPath.endsWith("/index.html");
  const isAuthPage=currentPath.includes("/auth/");
- if(!isMainHome&&!isAuthPage){
-   authReady.then(user=>{
-     if(!user&&!auth.currentUser)login();
-   });
- }
-
- const replayed=new WeakSet();document.addEventListener("click",async e=>{if(replayed.has(e)){replayed.delete(e);return;}const el=e.target instanceof Element?e.target.closest(".tool[data-tool], [data-requires-auth]"):null;if(!el||auth.currentUser)return;e.preventDefault();e.stopImmediatePropagation();await authReady;if(auth.currentUser||firstUser){const ev=new MouseEvent("click",{bubbles:true,cancelable:true,view:window});replayed.add(ev);el.dispatchEvent(ev);}else login();},true);
+ const isStandaloneToolPage=!isMainHome&&!isAuthPage;
+ const replayed=new WeakSet();
+ document.addEventListener("click",async e=>{
+   if(replayed.has(e)){replayed.delete(e);return;}
+   const selector=isStandaloneToolPage?"button, input[type='submit'], [data-requires-auth]":".tool[data-tool], [data-requires-auth]";
+   const el=e.target instanceof Element?e.target.closest(selector):null;
+   if(!el||auth.currentUser||firstUser)return;
+   e.preventDefault();e.stopImmediatePropagation();
+   await authReady;
+   if(auth.currentUser||firstUser){
+     const ev=new MouseEvent("click",{bubbles:true,cancelable:true,view:window});
+     replayed.add(ev);el.dispatchEvent(ev);
+   }else login();
+ },true);
+ let allowReplayedSubmit=false;
+ document.addEventListener("submit",async e=>{
+   if(allowReplayedSubmit){allowReplayedSubmit=false;return;}
+   if(!isStandaloneToolPage||auth.currentUser||firstUser)return;
+   e.preventDefault();e.stopImmediatePropagation();
+   await authReady;
+   if(auth.currentUser||firstUser){
+     allowReplayedSubmit=true;
+     e.target.requestSubmit(e.submitter||undefined);
+   }else login();
+ },true);
 }
 window.TrivexaAuth=Object.freeze({configured:authConfigured,auth,ready:authReady,signInWithGoogle,signOut:signOutTrivexaAI,getProfile:getAccountProfile,workerRequest,getSafeNextUrl,getInitializationError});
