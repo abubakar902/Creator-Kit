@@ -5672,12 +5672,48 @@
         ctx.fillRect(position === "left" ? 58 : canvas.width - 66, 118, 8, 484);
       }
 
-      // Add the user's original transparent PNG as a separate, untouched photo layer.
-      // The image model never receives or redraws this person's face.
+      // Integrate the user's original cutout naturally WITHOUT changing any person pixels.
+      // The soft silhouette shadow and ground contact shadow are drawn behind the photo only.
+      // Then the exact original image is drawn normally on top: no face/body filters, retouching,
+      // recolouring, warping, relighting, or AI regeneration is applied to the person.
       if (characterDataUrl) {
         const originalCharacter = await loadImageForThumbnail(characterDataUrl);
         const characterLayout = getThumbnailCharacterLayout(originalCharacter, position);
-        ctx.drawImage(originalCharacter, characterLayout.x, characterLayout.y, characterLayout.width, characterLayout.height);
+        const { x, y, width, height } = characterLayout;
+
+        // Soft contact shadow on the scene floor, behind the character's feet.
+        ctx.save();
+        const groundShadow = ctx.createRadialGradient(
+          x + width * 0.5, Math.min(716, y + height - 3), 2,
+          x + width * 0.5, Math.min(716, y + height - 3), Math.max(45, width * 0.58)
+        );
+        groundShadow.addColorStop(0, "rgba(0,0,0,0.38)");
+        groundShadow.addColorStop(0.58, "rgba(0,0,0,0.18)");
+        groundShadow.addColorStop(1, "rgba(0,0,0,0)");
+        ctx.fillStyle = groundShadow;
+        ctx.beginPath();
+        ctx.ellipse(
+          x + width * 0.5,
+          Math.min(716, y + height - 2),
+          Math.max(45, width * 0.58),
+          Math.max(12, width * 0.10),
+          0, 0, Math.PI * 2
+        );
+        ctx.fill();
+        ctx.restore();
+
+        // Soft drop shadow follows only the transparent cutout's alpha silhouette.
+        ctx.save();
+        ctx.shadowColor = "rgba(0,0,0,0.48)";
+        ctx.shadowBlur = 24;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 12;
+        ctx.drawImage(originalCharacter, x, y, width, height);
+        ctx.restore();
+
+        // Draw the source photo unchanged over its shadow. This preserves every original
+        // face and body pixel while helping the cutout sit naturally in the generated scene.
+        ctx.drawImage(originalCharacter, x, y, width, height);
       }
 
       const maxWidth = isSide ? 520 : 1080;
