@@ -5608,19 +5608,6 @@
       });
     }
 
-    function getThumbnailCharacterLayout(img, position) {
-      const scale = Math.min(470 / img.width, 620 / img.height, 1);
-      const width = Math.max(1, Math.round(img.width * scale));
-      const height = Math.max(1, Math.round(img.height * scale));
-      let x = Math.round((1280 - width) / 2);
-      let y = Math.round(700 - height);
-      if (position === "left") x = 1280 - width - 55;
-      else if (position === "right") x = 55;
-      else if (position === "top") { x = Math.round((1280 - width) / 2); y = 720 - height - 24; }
-      else if (position === "bottom") { x = Math.round((1280 - width) / 2); y = 24; }
-      return { x, y, width, height };
-    }
-
     function wrapThumbnailHeadline(ctx, text, maxWidth, maxLines) {
       const words = text.trim().split(/\s+/).filter(Boolean);
       const lines = [];
@@ -5639,7 +5626,7 @@
       return lines;
     }
 
-    async function composeThumbnail(generatedImageUrl, headline, position, accent, characterDataUrl = "") {
+    async function composeThumbnail(generatedImageUrl, headline, position, accent) {
       const sourceImage = await loadImageForThumbnail(generatedImageUrl);
       const canvas = document.createElement("canvas");
       canvas.width = 1280;
@@ -5670,50 +5657,6 @@
         ctx.fillRect(position === "left" ? 0 : canvas.width - 650, 0, 650, canvas.height);
         ctx.fillStyle = "rgba(239,35,55,0.9)";
         ctx.fillRect(position === "left" ? 58 : canvas.width - 66, 118, 8, 484);
-      }
-
-      // Integrate the user's original cutout naturally WITHOUT changing any person pixels.
-      // The soft silhouette shadow and ground contact shadow are drawn behind the photo only.
-      // Then the exact original image is drawn normally on top: no face/body filters, retouching,
-      // recolouring, warping, relighting, or AI regeneration is applied to the person.
-      if (characterDataUrl) {
-        const originalCharacter = await loadImageForThumbnail(characterDataUrl);
-        const characterLayout = getThumbnailCharacterLayout(originalCharacter, position);
-        const { x, y, width, height } = characterLayout;
-
-        // Soft contact shadow on the scene floor, behind the character's feet.
-        ctx.save();
-        const groundShadow = ctx.createRadialGradient(
-          x + width * 0.5, Math.min(716, y + height - 3), 2,
-          x + width * 0.5, Math.min(716, y + height - 3), Math.max(45, width * 0.58)
-        );
-        groundShadow.addColorStop(0, "rgba(0,0,0,0.38)");
-        groundShadow.addColorStop(0.58, "rgba(0,0,0,0.18)");
-        groundShadow.addColorStop(1, "rgba(0,0,0,0)");
-        ctx.fillStyle = groundShadow;
-        ctx.beginPath();
-        ctx.ellipse(
-          x + width * 0.5,
-          Math.min(716, y + height - 2),
-          Math.max(45, width * 0.58),
-          Math.max(12, width * 0.10),
-          0, 0, Math.PI * 2
-        );
-        ctx.fill();
-        ctx.restore();
-
-        // Soft drop shadow follows only the transparent cutout's alpha silhouette.
-        ctx.save();
-        ctx.shadowColor = "rgba(0,0,0,0.48)";
-        ctx.shadowBlur = 24;
-        ctx.shadowOffsetX = 0;
-        ctx.shadowOffsetY = 12;
-        ctx.drawImage(originalCharacter, x, y, width, height);
-        ctx.restore();
-
-        // Draw the source photo unchanged over its shadow. This preserves every original
-        // face and body pixel while helping the cutout sit naturally in the generated scene.
-        ctx.drawImage(originalCharacter, x, y, width, height);
       }
 
       const maxWidth = isSide ? 520 : 1080;
@@ -6271,17 +6214,7 @@
       });
       applyBackgroundSettings();
 
-      const initialLayers = [];
-      if (characterMoveOptions?.characterDataUrl) {
-        const layout = characterMoveOptions.characterLayout || { x: 800, y: 100, width: 400, height: 600 };
-        initialLayers.push({
-          id: "uploaded-original-character", type: "image", name: "Original Character (Face Preserved)",
-          src: characterMoveOptions.characterDataUrl,
-          x: layout.x, y: layout.y, width: layout.width, height: layout.height,
-          rotation: 0, opacity: 100, visible: true, locked: false
-        });
-      }
-      initialLayers.push({
+      let layers = [{
         id: "headline", type: "text", text: headline,
         x: initialPosition === "left" ? 60 : (initialPosition === "top" || initialPosition === "bottom" ? 190 : 790),
         y: initialPosition === "top" ? 55 : (initialPosition === "bottom" ? 500 : 250),
@@ -6289,8 +6222,7 @@
         fontSize: initialPosition === "top" || initialPosition === "bottom" ? 76 : 82,
         color: accent || "#ffffff", rotation: 0, font: "Impact", outline: 8,
         align: "center", opacity: 100, lineSpacing: 108
-      });
-      let layers = initialLayers;
+      }];
       let selectedId = "headline";
       let dragState = null;
       let resizeState = null;
@@ -7473,16 +7405,20 @@
         "Character in UPPER half. ";
       const sceneAndAiPose = instruction;
       const aiCharacterDescription = characterDirection.trim();
-      const thumbnailPrompt = "Premium 16:9 YouTube thumbnail background. " +
+      const faceIdentityInstruction = characterReferenceFile
+        ? "Uploaded person: preserve the exact same individual, not a lookalike. Face identity is the highest priority. Keep the same facial geometry and features: head shape, eyes and spacing, eyebrows, nose, lips, cheeks, jaw, hairline, hairstyle and skin tone. Do not beautify, smooth, reshape, stylize, age, de-age, swap or invent a new face. Change only the requested pose, body position, clothing and scene. If anything conflicts, preserve the reference face first. "
+        : "";
+      const thumbnailPrompt = "Premium 16:9 YouTube thumbnail. Scene/action: " +
+        sceneAndAiPose + ". " +
         (characterType === "no character"
-          ? "Create a cinematic ENVIRONMENT-ONLY background inspired by: " + sceneAndAiPose + ". Treat any person, character, action or pose mentioned in the instruction as context for the setting only; show the setting, surroundings, props and atmosphere, NOT the person performing it. BACKGROUND PLATE ONLY: absolutely NO people, NO humans, NO characters, NO faces, NO bodies, NO human silhouettes, NO crowds, NO statues, NO portraits, NO mannequins and NO human-like figures anywhere, including distant figures, posters or reflections. The user's exact original cutout photo is composited separately afterward. "
-          : "Scene/action: " + sceneAndAiPose + ". Add one " + aiCharacterDescription + " as a separate fictional character; do not imitate or replace the uploaded person. ") +
+          ? (characterReferenceFile ? "Use the uploaded person as the only person; add no extra character. " : "No people or characters. ")
+          : "Add one " + aiCharacterDescription + " as a distinct second character; follow the scene action and do not merge the two people. ") +
         "Style: " + style + ". " +
-        (position === "left" ? "Keep left 42% clear for headline; keep the right side suitable for a separately placed person. " :
-          position === "right" ? "Keep right 42% clear for headline; keep the left side suitable for a separately placed person. " :
-          position === "top" ? "Keep top 30% clear for headline; keep lower area suitable for a separately placed person. " :
-          "Keep bottom 30% clear for headline; keep upper area suitable for a separately placed person. ") +
-        (characterReferenceFile ? "Do not generate, redraw, replace or modify the uploaded person's face or body. That original transparent photo will be composited afterward. " + (poseInstruction ? "The separate original photo will be placed as requested: " + poseInstruction + ". " : "") : "") +
+        (position === "left" ? "Keep left 42% clear for headline; subjects right. " :
+          position === "right" ? "Keep right 42% clear for headline; subjects left. " :
+          position === "top" ? "Keep top 30% clear; subjects below. " :
+          "Keep bottom 30% clear; subjects above. ") +
+        (characterReferenceFile ? faceIdentityInstruction + "Uploaded-person pose only: " + (poseInstruction || "natural pose fitting the scene") + ". Keep this person separate from the AI character. " : "") +
         "Sharp detail, vivid lighting. No text, logos, borders or collage.";
 
       if (thumbnailPrompt.length > 1400) {
@@ -7505,27 +7441,24 @@
       }
 
       try {
-        // Keep the uploaded character completely out of the image model request.
-        // Read it locally so the exact original photo can be composited after the background is generated.
-        let characterDataUrl = "";
-        let characterLayout = null;
+        let imageBase64 = "";
+        let mimeType = "";
         if (characterReferenceFile) {
-          characterDataUrl = await new Promise((resolve, reject) => {
+          mimeType = characterReferenceFile.type;
+          imageBase64 = await new Promise((resolve, reject) => {
             const reader = new FileReader();
-            reader.onload = () => resolve(String(reader.result) || "");
-            reader.onerror = () => reject(new Error("Could not read the original character image."));
+            reader.onload = () => resolve(String(reader.result).split(",")[1] || "");
+            reader.onerror = () => reject(new Error("Could not read the uploaded character image."));
             reader.readAsDataURL(characterReferenceFile);
           });
-          if (!characterDataUrl.startsWith("data:image/")) throw new Error("Uploaded character image could not be prepared.");
-          const originalCharacterForLayout = await loadImageForThumbnail(characterDataUrl);
-          characterLayout = getThumbnailCharacterLayout(originalCharacterForLayout, position);
+          if (!imageBase64) throw new Error("Uploaded character image could not be prepared.");
         }
 
         const sendThumbnailRequest = async prompt => {
           const response = await workerFetch(WORKER_URL, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ action: "generate_image", prompt })
+            body: JSON.stringify({ action: "generate_image", prompt, imageBase64, mimeType, preserveIdentity: !!characterReferenceFile })
           });
           let data;
           try { data = await response.json(); }
@@ -7548,11 +7481,12 @@
             characterType === "cartoon character" ? "one colourful cartoon character" :
             characterType === "superhero character" ? "one original superhero character with no logos" :
             "one detailed 3D game character";
-          const retryPrompt = "Premium 16:9 YouTube thumbnail background. " +
+          const retryPrompt = "Premium 16:9 YouTube thumbnail. Scene and AI character pose: " +
+            instruction.slice(0, 190) + ". " +
             (characterType === "no character"
-              ? "Create only the empty environment and scenery inspired by this setting: " + instruction.slice(0, 190) + ". Do not depict anyone performing an action described in the instruction. Absolutely NO people, humans, characters, faces, bodies, crowds, silhouettes, statues, portraits, mannequins or human-like figures anywhere, including tiny or distant figures, posters or reflections. The user's exact original cutout is composited separately afterward. "
-              : "Scene and AI character pose: " + instruction.slice(0, 190) + ". Show " + retryType + " as a separate fictional character; the original uploaded photo will be placed separately afterward. ") +
-            (characterReferenceFile ? "Do not redraw or replace the uploaded person. " : "") +
+              ? (characterReferenceFile ? "Do not add another character; show only the uploaded person. " : "Show no people. ")
+              : "Show " + retryType + " as one person AND keep the uploaded reference person as a SECOND, separate person if an image is attached. Never merge them. The AI character follows the scene pose instruction. ") +
+            (characterReferenceFile ? faceIdentityInstruction + "Uploaded-person pose only: " + (poseInstruction || "natural pose fitting the scene") + ". " : "") +
             (position === "left" ? "Leave left side clear for headline; subjects on right. " :
               position === "right" ? "Leave right side clear for headline; subjects on left. " :
               position === "top" ? "Leave top area clear for headline; subjects below. " :
@@ -7569,7 +7503,7 @@
           : `data:image/png;base64,${generatedImage}`;
 
         thumbnailMessage.textContent = "Preparing your finished thumbnail preview...";
-        thumbnailPreviewUrl = await composeThumbnail(generatedImageUrl, headline, position, accent, characterDataUrl);
+        thumbnailPreviewUrl = await composeThumbnail(generatedImageUrl, headline, position, accent);
 
         const resultCard = document.createElement("div");
         resultCard.className = "thumbnail-result-card";
@@ -7626,7 +7560,7 @@
           document.addEventListener("keydown", handleEditorEscape);
 
           const hasCharacterToMove = !!characterReferenceFile || characterType !== "no character";
-          const editor = createThumbnailLayerEditor(generatedImageUrl, headline, accent, position, { hasCharacter: hasCharacterToMove, characterDataUrl, characterLayout });
+          const editor = createThumbnailLayerEditor(generatedImageUrl, headline, accent, position, { hasCharacter: hasCharacterToMove });
           overlay.appendChild(editor);
           // Do not run character separation automatically.
           // It downloads/runs a local AI model and sends a background-cleanup request.
