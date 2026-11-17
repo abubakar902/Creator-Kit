@@ -3749,6 +3749,56 @@
       .thumbnail-studio-workspace { height:auto; overflow:visible; }
       .thumbnail-studio-tools, .thumbnail-studio-inspector { height:auto; max-height:none; overflow:visible !important; }
     }
+    /* MAJOR 9 — SIDE PANEL FULL-LENGTH SCROLL FIX */
+    @media (min-width:1051px) {
+      .thumbnail-studio-workspace {
+        min-height:0;
+        overflow:hidden;
+      }
+      .thumbnail-studio-tools,
+      .thumbnail-studio-inspector {
+        box-sizing:border-box;
+        height:100% !important;
+        max-height:calc(100dvh - 150px) !important;
+        min-height:0 !important;
+        padding-bottom:30px !important;
+        overflow-x:hidden !important;
+        overflow-y:scroll !important;
+        overscroll-behavior-y:contain;
+        scroll-padding-bottom:30px;
+        scrollbar-width:auto;
+        scrollbar-color:rgba(196,181,253,.72) rgba(255,255,255,.07);
+      }
+      .thumbnail-studio-tools::-webkit-scrollbar,
+      .thumbnail-studio-inspector::-webkit-scrollbar { width:12px; }
+      .thumbnail-studio-tools::-webkit-scrollbar-track,
+      .thumbnail-studio-inspector::-webkit-scrollbar-track {
+        border-radius:10px;
+        background:rgba(255,255,255,.045);
+      }
+      .thumbnail-studio-tools::-webkit-scrollbar-thumb,
+      .thumbnail-studio-inspector::-webkit-scrollbar-thumb {
+        min-height:36px;
+        border:3px solid rgba(18,12,34,.8);
+        border-radius:10px;
+        background:rgba(196,181,253,.68);
+      }
+      .thumbnail-studio-tools > .thumbnail-studio-group:last-child,
+      .thumbnail-studio-inspector > .thumbnail-studio-group:last-child {
+        margin-bottom:20px;
+      }
+    }
+    @media (max-width:1050px) {
+      .thumbnail-studio-tools,
+      .thumbnail-studio-inspector {
+        height:auto !important;
+        max-height:none !important;
+        min-height:0 !important;
+        padding-bottom:16px !important;
+        overflow:visible !important;
+      }
+    }
+
     /* MAJOR 9 — Professional Preview, Safe Areas, Colour Themes and Version History */
     .thumbnail-studio-canvas-title { flex-wrap:wrap; }
     .thumbnail-preview-toggle { min-height:34px; padding:6px 10px; font-size:10px; white-space:nowrap; }
