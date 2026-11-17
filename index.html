@@ -5724,7 +5724,7 @@
           '<button type="button" class="secondary" data-duplicate>⧉ Duplicate</button>',
           '<button type="button" class="secondary" data-undo>↶ Undo</button>',
           '<button type="button" class="secondary" data-redo>↷ Redo</button>',
-          '<input type="file" accept="image/png,image/webp" data-image-file hidden>',
+          '<input type="file" accept="image/png,image/jpeg,image/webp" data-image-file hidden>',
         '</div>',
         '<div data-sticker-picker hidden class="thumbnail-sticker-picker">',
           '<label class="thumbnail-sticker-search-label">Find a sticker<input type="search" data-sticker-search placeholder="Search: fire, subscribe, cricket, arrow..." autocomplete="off"></label>',
@@ -6525,8 +6525,8 @@
         const file = fileInput.files && fileInput.files[0];
         if (!file) return;
         const resetFilePicker = () => { fileInput.value = ""; };
-        if (!["image/png", "image/webp"].includes(file.type)) {
-          message.textContent = "Only transparent PNG and transparent WEBP images are supported. JPG/JPEG files are not accepted.";
+        if (!["image/png", "image/jpeg", "image/webp"].includes(file.type)) {
+          message.textContent = "Please choose a PNG, JPG/JPEG or WEBP image.";
           resetFilePicker();
           return;
         }
@@ -6552,24 +6552,6 @@
               const naturalWidth = img.naturalWidth || img.width;
               const naturalHeight = img.naturalHeight || img.height;
               if (!naturalWidth || !naturalHeight) throw new Error("Image dimensions could not be read.");
-              const sampleScale = Math.min(1, 256 / Math.max(naturalWidth, naturalHeight));
-              const sampleWidth = Math.max(1, Math.round(naturalWidth * sampleScale));
-              const sampleHeight = Math.max(1, Math.round(naturalHeight * sampleScale));
-              const sampleCanvas = document.createElement("canvas");
-              sampleCanvas.width = sampleWidth;
-              sampleCanvas.height = sampleHeight;
-              const sampleContext = sampleCanvas.getContext("2d", { willReadFrequently:true });
-              if (!sampleContext) throw new Error("Your browser could not check this image's transparency.");
-              sampleContext.drawImage(img, 0, 0, sampleWidth, sampleHeight);
-              const pixels = sampleContext.getImageData(0, 0, sampleWidth, sampleHeight).data;
-              let transparentPixels = 0;
-              for (let alphaIndex = 3; alphaIndex < pixels.length; alphaIndex += 4) {
-                if (pixels[alphaIndex] < 245) transparentPixels++;
-              }
-              const transparentRatio = transparentPixels / (sampleWidth * sampleHeight);
-              if (transparentRatio < 0.003) {
-                throw new Error("This image does not appear to have a transparent background. Upload a cutout PNG or transparent WEBP.");
-              }
               const scale = Math.min(1, 420 / naturalWidth, 580 / naturalHeight);
               const width = Math.max(1, Math.round(naturalWidth * scale));
               const height = Math.max(1, Math.round(naturalHeight * scale));
@@ -6593,9 +6575,9 @@
               saveHistory();
               renderLayers();
               syncControls();
-              message.textContent = "Transparent image added as a separate layer. Drag it on the canvas, resize it, or rotate it.";
+              message.textContent = "Image added as a separate movable layer. Drag it on the canvas, resize it, or rotate it.";
             } catch (error) {
-              message.textContent = error && error.message ? error.message : "Could not add this image. Please use a transparent PNG or WEBP.";
+              message.textContent = error && error.message ? error.message : "Could not add this image. Please try a PNG, JPG/JPEG or WEBP file.";
             } finally {
               resetFilePicker();
             }
@@ -6774,6 +6756,17 @@
       if (separateCharacterButton && separateCharacterStatus) {
         separateCharacterButton.addEventListener("click", async () => {
           if (separateCharacterButton.disabled) return;
+          const existingCutout = layers.find(layer => layer.type === "image" && (layer.backgroundRemoved || String(layer.id || "").startsWith("character-cutout-")));
+          if (existingCutout) {
+            selectedId = existingCutout.id;
+            renderLayers();
+            syncControls();
+            separateCharacterButton.textContent = "✓ Character Is Already Movable";
+            separateCharacterButton.disabled = true;
+            separateCharacterStatus.textContent = "Your character is already a separate movable layer. Select it on the canvas and drag it—no need to process it again.";
+            message.textContent = "Character is already movable. No extra processing was started.";
+            return;
+          }
           separateCharacterButton.disabled = true;
           separateCharacterButton.textContent = "⏳ Separating Character...";
           separateCharacterStatus.textContent = "Loading the local AI cutout model. Your existing character image and face will be kept exactly as generated.";
