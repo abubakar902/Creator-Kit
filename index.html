@@ -5377,7 +5377,7 @@
           const response = await workerFetch(WORKER_URL, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ action: "generate_image", prompt, imageBase64, mimeType, preserveIdentity: !!characterReferenceFile })
+            body: JSON.stringify({ action: "generate_image", prompt, imageBase64, mimeType })
           });
           let data;
           try { data = await response.json(); }
@@ -7458,7 +7458,7 @@
           const response = await workerFetch(WORKER_URL, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ action: "generate_image", prompt, imageBase64, mimeType })
+            body: JSON.stringify({ action: "generate_image", prompt, imageBase64, mimeType, preserveIdentity: !!characterReferenceFile })
           });
           let data;
           try { data = await response.json(); }
