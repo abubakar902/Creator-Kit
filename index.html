@@ -6040,7 +6040,146 @@
       makeStudioGroup(inspector, "Typography", "Aa", typographyFields, { open: false, advanced: true });
       makeStudioGroup(inspector, "Colours & Outline", "🎨", [effectsFields[3], effectsFields[2]], { open: false, advanced: true });
       makeStudioGroup(inspector, "Effects & Opacity", "✨", [effectsFields[0], effectsFields[1]], { open: false, advanced: true });
+
       makeStudioGroup(inspector, "Position & Rotation", "↗️", positionFields, { open: false, advanced: true });
+
+      // AI THUMBNAIL CRITIC — reviews the creator's brief and current design settings.
+      const criticPanel = document.createElement("section");
+      criticPanel.className = "thumbnail-ai-critic";
+      criticPanel.style.cssText = "margin-top:14px;padding:13px;border:1px solid rgba(155,108,255,.38);border-radius:13px;background:rgba(155,108,255,.07)";
+      const criticHeading = document.createElement("strong");
+      criticHeading.textContent = "🤖 AI Thumbnail Critic";
+      criticHeading.style.cssText = "display:block;font-size:14px;margin-bottom:6px;color:#eadfff";
+      const criticIntro = document.createElement("p");
+      criticIntro.textContent = "Get practical feedback on your headline, scene brief, style and layout. The critic reviews your design settings, not the actual image pixels.";
+      criticIntro.style.cssText = "margin:0 0 10px;color:var(--muted);font-size:11px;line-height:1.55";
+      const criticRunButton = document.createElement("button");
+      criticRunButton.type = "button";
+      criticRunButton.className = "primary";
+      criticRunButton.textContent = "✨ Review My Thumbnail";
+      criticRunButton.style.cssText = "width:100%;min-height:42px;font-size:12px";
+      const criticStatus = document.createElement("p");
+      criticStatus.setAttribute("role","status");
+      criticStatus.setAttribute("aria-live","polite");
+      criticStatus.style.cssText = "margin:9px 0 0;color:var(--muted);font-size:11px;line-height:1.5";
+      const criticResults = document.createElement("div");
+      criticResults.style.cssText = "display:grid;gap:9px;margin-top:10px";
+      criticPanel.append(criticHeading,criticIntro,criticRunButton,criticStatus,criticResults);
+      inspector.append(criticPanel);
+
+      const applyCriticSuggestion = suggestion => {
+        const action = String(suggestion.action || "");
+        const setControl = (control,value) => {
+          if (!control || control.disabled) return false;
+          control.value = String(value);
+          control.dispatchEvent(new Event("input",{bubbles:true}));
+          control.dispatchEvent(new Event("change",{bubbles:true}));
+          return true;
+        };
+        selectedId = "headline";
+        renderLayers();
+        syncControls();
+        if (action === "text_size") return setControl(sizeControl,Math.max(42,Math.min(150,Number(suggestion.value)||82)));
+        if (action === "text_color" && /^#[0-9a-f]{6}$/i.test(String(suggestion.value))) return setControl(colorControl,String(suggestion.value));
+        if (action === "outline") return setControl(outlineControl,Math.max(0,Math.min(30,Number(suggestion.value)||0)));
+        if (["background_brightness","background_contrast","background_saturation"].includes(action)) {
+          const key = action.replace("background_","");
+          const limits = {brightness:[40,160],contrast:[40,180],saturation:[0,200]};
+          const value = Math.max(limits[key][0],Math.min(limits[key][1],Number(suggestion.value)||100));
+          return setControl(backgroundStudio.querySelector('[data-bg-control="' + key + '"]'),value);
+        }
+        return false;
+      };
+
+      criticRunButton.addEventListener("click", async () => {
+        const headlineLayer = layers.find(layer => layer.id === "headline");
+        const currentHeadline = (headlineLayer && headlineLayer.text) || headline || "";
+        if (!currentHeadline.trim()) {
+          criticStatus.textContent = "Add a headline before asking the AI critic to review your thumbnail.";
+          return;
+        }
+        criticRunButton.disabled = true;
+        criticRunButton.textContent = "⏳ Reviewing...";
+        criticStatus.textContent = "Gemini is preparing feedback and practical improvements...";
+        criticResults.replaceChildren();
+        const criticPrompt = [
+          "Act as an expert YouTube thumbnail design coach.",
+          "Review the following thumbnail design brief and current editor settings. You cannot see the image pixels, so do not claim that you inspected the actual picture.",
+          "Focus on headline readability, headline clarity, likely subject clarity from the scene brief, colour harmony, visual hierarchy and composition.",
+          "Return ONLY valid JSON, no markdown, in this exact shape:",
+          '{"score":7,"summary":"One short overall assessment.","suggestions":[{"title":"Short action title","reason":"Why this change helps","action":"text_size","value":96}]}',
+          "Return 3 or 4 useful suggestions. Each suggestion must use one action from this exact list: text_size, text_color, outline, background_brightness, background_contrast, background_saturation.",
+          "Use numeric values for every action except text_color, which must be a six-digit HEX colour such as #ffffff.",
+          "Keep text_size between 42 and 150, outline between 0 and 30, background_brightness between 40 and 160, background_contrast between 40 and 180, and background_saturation between 0 and 200.",
+          "Make suggestions specific to the supplied headline and design. Do not suggest changes that are already at the recommended value.",
+          "",
+          "HEADLINE: " + currentHeadline,
+          "SCENE BRIEF: " + String((characterMoveOptions && characterMoveOptions.sceneBrief) || "Not provided"),
+          "VISUAL STYLE: " + String((characterMoveOptions && characterMoveOptions.visualStyle) || "Not provided"),
+          "CHARACTER TYPE: " + String((characterMoveOptions && characterMoveOptions.characterType) || "Not provided"),
+          "HEADLINE POSITION: " + String(initialPosition || "Not provided"),
+          "CURRENT HEADLINE COLOUR: " + String((headlineLayer && headlineLayer.color) || accent || "#ffffff"),
+          "CURRENT HEADLINE SIZE: " + String((headlineLayer && headlineLayer.fontSize) || 82),
+          "CURRENT OUTLINE THICKNESS: " + String(headlineLayer && headlineLayer.outline !== undefined ? headlineLayer.outline : 8),
+          "CURRENT BACKGROUND SETTINGS: " + JSON.stringify(backgroundSettings)
+        ].join("\n");
+        try {
+          const answer = await askGemini(criticPrompt);
+          const cleaned = String(answer).replace(/\x60\x60\x60(?:json)?/gi,"").replace(/\x60\x60\x60/g,"").trim();
+          const firstBrace = cleaned.indexOf("{");
+          const lastBrace = cleaned.lastIndexOf("}");
+          if (firstBrace < 0 || lastBrace <= firstBrace) throw new Error("The AI returned feedback in an unexpected format. Please try again.");
+          const report = JSON.parse(cleaned.slice(firstBrace,lastBrace+1));
+          const suggestions = Array.isArray(report.suggestions) ? report.suggestions.slice(0,4) : [];
+          if (!suggestions.length) throw new Error("The AI did not return any usable suggestions. Please try again.");
+          const score = Math.max(1,Math.min(10,Number(report.score)||7));
+          criticStatus.textContent = "AI design score: " + score + "/10 — " + String(report.summary || "Review the suggestions below and choose which changes to apply.");
+          suggestions.forEach((suggestion,index) => {
+            const card = document.createElement("article");
+            card.style.cssText = "padding:10px;border:1px solid var(--border-strong);border-radius:10px;background:rgba(8,4,18,.55)";
+            const title = document.createElement("strong");
+            title.textContent = (index+1) + ". " + String(suggestion.title || "Improvement suggestion");
+            title.style.cssText = "display:block;font-size:12px;color:var(--text);margin-bottom:5px";
+            const reason = document.createElement("p");
+            reason.textContent = String(suggestion.reason || "This change may improve the thumbnail.");
+            reason.style.cssText = "margin:0 0 9px;color:var(--muted);font-size:11px;line-height:1.5";
+            const actions = document.createElement("div");
+            actions.style.cssText = "display:flex;gap:7px;flex-wrap:wrap";
+            const accept = document.createElement("button");
+            accept.type = "button";
+            accept.className = "secondary";
+            accept.textContent = "✓ Accept";
+            accept.style.cssText = "min-height:32px;padding:6px 10px;font-size:11px";
+            const reject = document.createElement("button");
+            reject.type = "button";
+            reject.className = "secondary";
+            reject.textContent = "✕ Reject";
+            reject.style.cssText = "min-height:32px;padding:6px 10px;font-size:11px";
+            const decision = document.createElement("span");
+            decision.style.cssText = "align-self:center;color:var(--muted);font-size:10px";
+            accept.addEventListener("click",() => {
+              const applied = applyCriticSuggestion(suggestion);
+              decision.textContent = applied ? "Applied" : "Could not apply — select the headline layer and try again.";
+              accept.disabled = true;
+              reject.disabled = true;
+            });
+            reject.addEventListener("click",() => {
+              decision.textContent = "Rejected";
+              accept.disabled = true;
+              reject.disabled = true;
+            });
+            actions.append(accept,reject,decision);
+            card.append(title,reason,actions);
+            criticResults.append(card);
+          });
+        } catch (error) {
+          criticStatus.textContent = (error && error.message) || "The AI review could not be completed. Please try again.";
+        } finally {
+          criticRunButton.disabled = false;
+          criticRunButton.textContent = "↻ Review Again";
+        }
+      });
+
       controlsGrid.remove();
 
       modeSwitch.querySelectorAll("[data-editor-mode]").forEach(button => {
@@ -7381,7 +7520,7 @@
           document.addEventListener("keydown", handleEditorEscape);
 
           const hasCharacterToMove = !!characterReferenceFile || characterType !== "no character";
-          const editor = createThumbnailLayerEditor(generatedImageUrl, headline, accent, position, { hasCharacter: hasCharacterToMove });
+          const editor = createThumbnailLayerEditor(generatedImageUrl, headline, accent, position, { hasCharacter: hasCharacterToMove, sceneBrief: instruction, visualStyle: style, characterType: characterType });
           overlay.appendChild(editor);
           // Do not run character separation automatically.
           // It downloads/runs a local AI model and sends a background-cleanup request.
