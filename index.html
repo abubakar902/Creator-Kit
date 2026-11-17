@@ -5870,16 +5870,6 @@
       const addTextGroup = makeStudioGroup(toolsRail, "Add Text", "T", [addTextBar], { open: true });
       const stickerGroup = makeStudioGroup(toolsRail, "Stickers", "✨", [stickerDock], { open: false });
       const imageGroup = makeStudioGroup(toolsRail, "Add Image", "🖼️", [uploadButton, imageFileControl], { open: false });
-      let separateCharacterButton = null;
-      let separateCharacterStatus = null;
-      if (characterMoveOptions && characterMoveOptions.hasCharacter) {
-        const separateCharacterPanel = document.createElement("div");
-        separateCharacterPanel.className = "thumbnail-character-move-panel";
-        separateCharacterPanel.innerHTML = '<strong>Move Your Character</strong><p class="thumbnail-editor-note">Separate the character already visible in this thumbnail, including the held object, into its own movable layer. The existing face and pose will not be regenerated.</p><button type="button" class="primary" data-separate-character>✦ Make Character Movable</button><p class="thumbnail-editor-note" data-separate-character-status role="status" aria-live="polite">Your character is currently part of the background. Use this once to separate it.</p>';
-        imageGroup.querySelector(".thumbnail-studio-group-body").append(separateCharacterPanel);
-        separateCharacterButton = separateCharacterPanel.querySelector("[data-separate-character]");
-        separateCharacterStatus = separateCharacterPanel.querySelector("[data-separate-character-status]");
-      }
       const backgroundGroup = makeStudioGroup(toolsRail, "Background Studio", "🎨", [backgroundStudio], { open: false, advanced: true });
       imageGroup.after(backgroundGroup);
 
@@ -6613,7 +6603,7 @@
           sourceImage.onload = () => {
             const naturalWidth = sourceImage.naturalWidth || sourceImage.width;
             const naturalHeight = sourceImage.naturalHeight || sourceImage.height;
-            const downscale = Math.min(1, 2048 / Math.max(naturalWidth, naturalHeight));
+            const downscale = Math.min(1, 1280 / Math.max(naturalWidth, naturalHeight));
             const canvas = document.createElement("canvas");
             canvas.width = Math.max(1, Math.round(naturalWidth * downscale));
             canvas.height = Math.max(1, Math.round(naturalHeight * downscale));
@@ -6753,168 +6743,6 @@
         removalStatus.textContent = "Original image restored.";
       });
 
-      if (separateCharacterButton && separateCharacterStatus) {
-        separateCharacterButton.addEventListener("click", async () => {
-          if (separateCharacterButton.disabled) return;
-          const existingCutout = layers.find(layer => layer.type === "image" && (layer.backgroundRemoved || String(layer.id || "").startsWith("character-cutout-")));
-          if (existingCutout) {
-            selectedId = existingCutout.id;
-            renderLayers();
-            syncControls();
-            separateCharacterButton.textContent = "✓ Character Is Already Movable";
-            separateCharacterButton.disabled = true;
-            separateCharacterStatus.textContent = "Your character is already a separate movable layer. Select it on the canvas and drag it—no need to process it again.";
-            message.textContent = "Character is already movable. No extra processing was started.";
-            return;
-          }
-          separateCharacterButton.disabled = true;
-          separateCharacterButton.textContent = "⏳ Separating Character...";
-          separateCharacterStatus.textContent = "Loading the local AI cutout model. Your existing character image and face will be kept exactly as generated.";
-          try {
-            const sourceFile = await dataUrlToFile(backgroundUrl, "TrivexaAI-generated-thumbnail.png");
-            if (sourceFile.size > 8 * 1024 * 1024) {
-              throw new Error("This generated image is too large for safe character separation. Please try a smaller thumbnail.");
-            }
-            const sourceImage = await loadImageForThumbnail(backgroundUrl);
-            const sourceWidth = sourceImage.naturalWidth || sourceImage.width;
-            const sourceHeight = sourceImage.naturalHeight || sourceImage.height;
-            if (!sourceWidth || !sourceHeight || sourceWidth * sourceHeight > 12000000) {
-              throw new Error("This generated image is above the safe 12-megapixel limit.");
-            }
-
-            const { removeBackground } = await import("https://esm.sh/@bg0/browser@0.1.1?bundle");
-            separateCharacterStatus.textContent = "Extracting the exact character and the object they are holding...";
-            const cutoutResult = await removeBackground(sourceFile, {
-              model: "lite",
-              quality: "fast",
-              onProgress: ({ stage: progressStage, progress, message: progressMessage }) => {
-                const percent = typeof progress === "number" ? " " + Math.round(progress * 100) + "%" : "";
-                separateCharacterStatus.textContent = (progressMessage || progressStage || "Extracting character") + percent;
-              }
-            });
-            if (!cutoutResult || !cutoutResult.blob) {
-              throw new Error("The character cutout model did not return an image. Please try again.");
-            }
-
-            const cutoutUrl = await blobToDataUrl(cutoutResult.blob);
-            const cutoutImage = await loadImageForThumbnail(cutoutUrl);
-            const cutoutWidth = cutoutImage.naturalWidth || cutoutImage.width;
-            const cutoutHeight = cutoutImage.naturalHeight || cutoutImage.height;
-            const cutoutCanvas = document.createElement("canvas");
-            cutoutCanvas.width = cutoutWidth;
-            cutoutCanvas.height = cutoutHeight;
-            const cutoutContext = cutoutCanvas.getContext("2d", { willReadFrequently:true });
-            if (!cutoutContext) throw new Error("Your browser could not prepare the character cutout.");
-            cutoutContext.drawImage(cutoutImage, 0, 0, cutoutWidth, cutoutHeight);
-            const cutoutPixels = cutoutContext.getImageData(0, 0, cutoutWidth, cutoutHeight);
-            let minX = cutoutWidth, minY = cutoutHeight, maxX = -1, maxY = -1;
-            let visiblePixels = 0, transparentPixels = 0;
-            for (let y = 0; y < cutoutHeight; y++) {
-              for (let x = 0; x < cutoutWidth; x++) {
-                const alpha = cutoutPixels.data[(y * cutoutWidth + x) * 4 + 3];
-                if (alpha > 18) {
-                  visiblePixels++;
-                  if (x < minX) minX = x;
-                  if (y < minY) minY = y;
-                  if (x > maxX) maxX = x;
-                  if (y > maxY) maxY = y;
-                } else {
-                  transparentPixels++;
-                }
-              }
-            }
-            if (maxX < minX || maxY < minY || transparentPixels < cutoutWidth * cutoutHeight * 0.025 || visiblePixels < 500) {
-              throw new Error("AI could not isolate the character cleanly from this scene. Your original thumbnail has not been changed.");
-            }
-
-            const cropWidth = maxX - minX + 1;
-            const cropHeight = maxY - minY + 1;
-            const croppedCanvas = document.createElement("canvas");
-            croppedCanvas.width = cropWidth;
-            croppedCanvas.height = cropHeight;
-            const croppedContext = croppedCanvas.getContext("2d");
-            if (!croppedContext) throw new Error("Your browser could not crop the character layer.");
-            croppedContext.drawImage(cutoutCanvas, minX, minY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
-            const characterLayerUrl = croppedCanvas.toDataURL("image/png");
-
-            separateCharacterStatus.textContent = "Cleaning the original character out of the background while keeping the same scene...";
-            const sourceDataUrl = await blobToDataUrl(sourceFile);
-            const sourceBase64 = sourceDataUrl.split(",")[1] || "";
-            if (!sourceBase64) throw new Error("Could not prepare the original thumbnail for background cleanup.");
-            const subjectSide = initialPosition === "left" ? "right side, opposite the headline" :
-              initialPosition === "right" ? "left side, opposite the headline" :
-              initialPosition === "top" ? "lower half, below the headline" : "upper half, above the headline";
-            const cleanupPrompt = "Edit the supplied 16:9 YouTube thumbnail image. Remove the main foreground person or character from the " +
-              subjectSide + ", including the bat or any object held by that person, and naturally reconstruct the background that was behind them. " +
-              "Preserve the same environment, camera angle, perspective, lighting, colours, textures, shadows, and all unrelated scene objects. " +
-              "Do not add any people, faces, bodies, characters, silhouettes, text, or logos. Return a clean 16:9 background only.";
-            const cleanupResponse = await workerFetch(WORKER_URL, {
-              method:"POST",
-              headers:{"Content-Type":"application/json"},
-              body:JSON.stringify({action:"generate_image",prompt:cleanupPrompt,imageBase64:sourceBase64,mimeType:sourceFile.type || "image/png"})
-            });
-            let cleanupData;
-            try { cleanupData = await cleanupResponse.json(); }
-            catch { throw new Error("The background cleanup service returned an unreadable response."); }
-            const cleanedBackground = getImagePayload(cleanupData);
-            if (!cleanupResponse.ok || !cleanedBackground || typeof cleanedBackground !== "string") {
-              throw new Error(cleanupData.error || cleanupData.details || cleanupData.message || "Could not clean the character out of the background.");
-            }
-            const cleanedBackgroundUrl = cleanedBackground.startsWith("data:")
-              ? cleanedBackground
-              : "data:image/png;base64," + cleanedBackground;
-            await loadImageForThumbnail(cleanedBackgroundUrl);
-
-            const stageScaleX = 1280 / sourceWidth;
-            const stageScaleY = 720 / sourceHeight;
-            const layerWidth = cropWidth * stageScaleX;
-            const layerHeight = cropHeight * stageScaleY;
-            const layerX = minX * stageScaleX;
-            const layerY = minY * stageScaleY;
-            backgroundAssetCounter++;
-            const cleanBackgroundKey = "character-separated-" + backgroundAssetCounter;
-            backgroundAssetCache.set(cleanBackgroundKey, cleanedBackgroundUrl);
-            activeBackgroundKey = cleanBackgroundKey;
-            activeBackgroundUrl = cleanedBackgroundUrl;
-            background.src = activeBackgroundUrl;
-            backgroundSettings = { brightness:100, contrast:100, saturation:100, blur:0 };
-            applyBackgroundSettings();
-
-            layerCounter++;
-            const characterLayer = {
-              id:"character-cutout-" + layerCounter,
-              type:"image",
-              name:"Uploaded Character",
-              src:characterLayerUrl,
-              x:layerX,
-              y:layerY,
-              width:layerWidth,
-              height:layerHeight,
-              rotation:0,
-              opacity:100,
-              visible:true,
-              locked:false,
-              backgroundRemoved:true
-            };
-            layers.push(characterLayer);
-            selectedId = characterLayer.id;
-            saveHistory();
-            renderLayers();
-            syncControls();
-            syncBackgroundRemovalControls();
-            syncMaskControls();
-            separateCharacterStatus.textContent = "Done! The exact generated character is now a separate movable layer. Select and drag it anywhere on the canvas.";
-            separateCharacterButton.textContent = "✓ Character Is Movable";
-            separateCharacterButton.disabled = true;
-            message.textContent = "Your original generated face and pose are preserved in a separate editable layer.";
-          } catch (error) {
-            console.error("Thumbnail character separation error:", error);
-            separateCharacterStatus.textContent = error && error.message ? error.message : "Could not separate the character. Your original thumbnail remains unchanged.";
-            separateCharacterButton.textContent = "✦ Try Again";
-            separateCharacterButton.disabled = false;
-          }
-        });
-      }
       backgroundRemovalStudio.querySelector("[data-bg-custom-upload]").addEventListener("click", () => customBackgroundInput.click());
       customBackgroundInput.addEventListener("change", () => {
         const file = customBackgroundInput.files && customBackgroundInput.files[0];
@@ -7029,7 +6857,7 @@
           const img = await loadImageForThumbnail(layer.src);
           const naturalWidth = img.naturalWidth || img.width;
           const naturalHeight = img.naturalHeight || img.height;
-          const downscale = Math.min(1, 2048 / Math.max(naturalWidth, naturalHeight));
+          const downscale = Math.min(1, 1280 / Math.max(naturalWidth, naturalHeight));
           const canvas = document.createElement("canvas");
           canvas.width = Math.max(1, Math.round(naturalWidth * downscale));
           canvas.height = Math.max(1, Math.round(naturalHeight * downscale));
