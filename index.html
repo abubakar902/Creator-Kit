@@ -6237,9 +6237,7 @@
 
       const initialLayers = [];
       if (characterMoveOptions?.characterDataUrl) {
-        const characterImage = new Image();
-        characterImage.src = characterMoveOptions.characterDataUrl;
-        const layout = getThumbnailCharacterLayout(characterImage, initialPosition);
+        const layout = characterMoveOptions.characterLayout || { x: 800, y: 100, width: 400, height: 600 };
         initialLayers.push({
           id: "uploaded-original-character", type: "image", name: "Original Character (Face Preserved)",
           src: characterMoveOptions.characterDataUrl,
@@ -7475,6 +7473,7 @@
         // Keep the uploaded character completely out of the image model request.
         // Read it locally so the exact original photo can be composited after the background is generated.
         let characterDataUrl = "";
+        let characterLayout = null;
         if (characterReferenceFile) {
           characterDataUrl = await new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -7483,6 +7482,8 @@
             reader.readAsDataURL(characterReferenceFile);
           });
           if (!characterDataUrl.startsWith("data:image/")) throw new Error("Uploaded character image could not be prepared.");
+          const originalCharacterForLayout = await loadImageForThumbnail(characterDataUrl);
+          characterLayout = getThumbnailCharacterLayout(originalCharacterForLayout, position);
         }
 
         const sendThumbnailRequest = async prompt => {
@@ -7591,7 +7592,7 @@
           document.addEventListener("keydown", handleEditorEscape);
 
           const hasCharacterToMove = !!characterReferenceFile || characterType !== "no character";
-          const editor = createThumbnailLayerEditor(generatedImageUrl, headline, accent, position, { hasCharacter: hasCharacterToMove, characterDataUrl });
+          const editor = createThumbnailLayerEditor(generatedImageUrl, headline, accent, position, { hasCharacter: hasCharacterToMove, characterDataUrl, characterLayout });
           overlay.appendChild(editor);
           // Do not run character separation automatically.
           // It downloads/runs a local AI model and sends a background-cleanup request.
