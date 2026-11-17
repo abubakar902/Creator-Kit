@@ -6065,7 +6065,7 @@
       const criticResults = document.createElement("div");
       criticResults.style.cssText = "display:grid;gap:9px;margin-top:10px";
       criticPanel.append(criticHeading,criticIntro,criticRunButton,criticStatus,criticResults);
-      inspector.append(criticPanel);
+      makeStudioGroup(inspector, "AI Thumbnail Critic", "🤖", [criticPanel], { open: false, advanced: true });
 
       const applyCriticSuggestion = suggestion => {
         const action = String(suggestion.action || "");
