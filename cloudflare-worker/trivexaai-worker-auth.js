@@ -854,7 +854,8 @@ export default {
   if(accountResponse)return accountResponse;
   const action=String(body.action||"generate_text").toLowerCase();
   if(ADVANCED_ACTIONS.has(action)&&user.role!=="admin"&&user.advanced_access!=="approved")return reply({error:"This feature needs an invite or admin approval.",code:"ADVANCED_ACCESS_REQUIRED"},403);
-  const forwardHeaders=new Headers(request.headers);forwardHeaders.delete("Content-Length");forwardHeaders.delete("Host");\n  const forwarded=new Request(request.url,{method:"POST",headers:forwardHeaders,body:JSON.stringify(body)});
+  const forwardHeaders=new Headers(request.headers);forwardHeaders.delete("Content-Length");forwardHeaders.delete("Host");
+  const forwarded=new Request(request.url,{method:"POST",headers:forwardHeaders,body:JSON.stringify(body)});
   let response;
   try{response=await legacyWorker.fetch(forwarded,env);}catch(e){console.error("Legacy Worker error:",e);return reply({error:"The tool request failed."},500);}
   const headers=new Headers(response.headers);
