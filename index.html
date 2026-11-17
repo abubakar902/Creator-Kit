@@ -7473,11 +7473,10 @@
         "Character in UPPER half. ";
       const sceneAndAiPose = instruction;
       const aiCharacterDescription = characterDirection.trim();
-      const thumbnailPrompt = "Premium 16:9 YouTube thumbnail background. Scene/action: " +
-        sceneAndAiPose + ". " +
+      const thumbnailPrompt = "Premium 16:9 YouTube thumbnail background. " +
         (characterType === "no character"
-          ? "BACKGROUND PLATE ONLY: create an empty environment with absolutely NO people, NO humans, NO characters, NO faces, NO bodies, NO human silhouettes, NO crowds, NO statues and NO human-like figures anywhere in the image. Do not add a person even in the distance or background. The user's original cutout photo is added separately after generation. "
-          : "Add one " + aiCharacterDescription + " as a separate fictional character; do not imitate or replace the uploaded person. ") +
+          ? "Create a cinematic ENVIRONMENT-ONLY background inspired by: " + sceneAndAiPose + ". Treat any person, character, action or pose mentioned in the instruction as context for the setting only; show the setting, surroundings, props and atmosphere, NOT the person performing it. BACKGROUND PLATE ONLY: absolutely NO people, NO humans, NO characters, NO faces, NO bodies, NO human silhouettes, NO crowds, NO statues, NO portraits, NO mannequins and NO human-like figures anywhere, including distant figures, posters or reflections. The user's exact original cutout photo is composited separately afterward. "
+          : "Scene/action: " + sceneAndAiPose + ". Add one " + aiCharacterDescription + " as a separate fictional character; do not imitate or replace the uploaded person. ") +
         "Style: " + style + ". " +
         (position === "left" ? "Keep left 42% clear for headline; keep the right side suitable for a separately placed person. " :
           position === "right" ? "Keep right 42% clear for headline; keep the left side suitable for a separately placed person. " :
@@ -7549,11 +7548,10 @@
             characterType === "cartoon character" ? "one colourful cartoon character" :
             characterType === "superhero character" ? "one original superhero character with no logos" :
             "one detailed 3D game character";
-          const retryPrompt = "Premium 16:9 YouTube thumbnail. Scene and AI character pose: " +
-            instruction.slice(0, 190) + ". " +
+          const retryPrompt = "Premium 16:9 YouTube thumbnail background. " +
             (characterType === "no character"
-              ? "EMPTY BACKGROUND ONLY. Absolutely no people, humans, characters, faces, bodies, crowds, silhouettes, statues or human-like figures anywhere, including tiny or distant figures. The user's original cutout is composited separately afterward. "
-              : "Show " + retryType + " as a separate fictional character; the original uploaded photo will be placed separately afterward. ") +
+              ? "Create only the empty environment and scenery inspired by this setting: " + instruction.slice(0, 190) + ". Do not depict anyone performing an action described in the instruction. Absolutely NO people, humans, characters, faces, bodies, crowds, silhouettes, statues, portraits, mannequins or human-like figures anywhere, including tiny or distant figures, posters or reflections. The user's exact original cutout is composited separately afterward. "
+              : "Scene and AI character pose: " + instruction.slice(0, 190) + ". Show " + retryType + " as a separate fictional character; the original uploaded photo will be placed separately afterward. ") +
             (characterReferenceFile ? "Do not redraw or replace the uploaded person. " : "") +
             (position === "left" ? "Leave left side clear for headline; subjects on right. " :
               position === "right" ? "Leave right side clear for headline; subjects on left. " :
