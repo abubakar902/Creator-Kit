@@ -7440,7 +7440,7 @@
       const thumbnailPrompt = "Premium 16:9 YouTube thumbnail background. Scene/action: " +
         sceneAndAiPose + ". " +
         (characterType === "no character"
-          ? "Do not generate any people or characters; the uploaded original person, if any, will be placed separately as an untouched photo layer. "
+          ? "BACKGROUND PLATE ONLY: create an empty environment with absolutely NO people, NO humans, NO characters, NO faces, NO bodies, NO human silhouettes, NO crowds, NO statues and NO human-like figures anywhere in the image. Do not add a person even in the distance or background. The user's original cutout photo is added separately after generation. "
           : "Add one " + aiCharacterDescription + " as a separate fictional character; do not imitate or replace the uploaded person. ") +
         "Style: " + style + ". " +
         (position === "left" ? "Keep left 42% clear for headline; keep the right side suitable for a separately placed person. " :
@@ -7516,7 +7516,7 @@
           const retryPrompt = "Premium 16:9 YouTube thumbnail. Scene and AI character pose: " +
             instruction.slice(0, 190) + ". " +
             (characterType === "no character"
-              ? "Generate no people; the original uploaded photo will be placed separately afterward. "
+              ? "EMPTY BACKGROUND ONLY. Absolutely no people, humans, characters, faces, bodies, crowds, silhouettes, statues or human-like figures anywhere, including tiny or distant figures. The user's original cutout is composited separately afterward. "
               : "Show " + retryType + " as a separate fictional character; the original uploaded photo will be placed separately afterward. ") +
             (characterReferenceFile ? "Do not redraw or replace the uploaded person. " : "") +
             (position === "left" ? "Leave left side clear for headline; subjects on right. " :
