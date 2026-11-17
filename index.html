@@ -3749,6 +3749,52 @@
       .thumbnail-studio-workspace { height:auto; overflow:visible; }
       .thumbnail-studio-tools, .thumbnail-studio-inspector { height:auto; max-height:none; overflow:visible !important; }
     }
+    /* MAJOR 9 — Professional Preview, Safe Areas, Colour Themes and Version History */
+    .thumbnail-studio-canvas-title { flex-wrap:wrap; }
+    .thumbnail-preview-toggle { min-height:34px; padding:6px 10px; font-size:10px; white-space:nowrap; }
+    .thumbnail-safe-guides { position:absolute; inset:0; z-index:9000; pointer-events:none; }
+    .thumbnail-safe-guides[hidden] { display:none !important; }
+    .thumbnail-safe-guide-outer { position:absolute; inset:5%; border:1.5px dashed rgba(255,255,255,.88); box-shadow:0 0 0 999px rgba(0,0,0,.04); }
+    .thumbnail-safe-guide-inner { position:absolute; inset:11% 9%; border:1.5px dashed #f0abfc; }
+    .thumbnail-safe-guide-inner span { position:absolute; top:5px; left:7px; padding:2px 5px; border-radius:4px; background:rgba(26,12,43,.82); color:#f5d0fe; font-size:9px; font-weight:900; letter-spacing:.7px; }
+    .thumbnail-safe-guide-vertical, .thumbnail-safe-guide-horizontal { position:absolute; background:rgba(255,255,255,.22); }
+    .thumbnail-safe-guide-vertical { top:5%; bottom:5%; left:50%; width:1px; }
+    .thumbnail-safe-guide-horizontal { left:5%; right:5%; top:50%; height:1px; }
+    .thumbnail-mobile-preview-panel { margin:14px auto 4px; padding:14px; border:1px solid var(--border-strong); border-radius:14px; background:rgba(8,4,18,.58); }
+    .thumbnail-mobile-preview-panel[hidden] { display:none !important; }
+    .thumbnail-mobile-preview-device { width:min(100%,370px); margin:0 auto; padding:12px; border:1px solid rgba(196,181,253,.38); border-radius:23px; background:#171320; box-shadow:0 14px 38px rgba(0,0,0,.38); }
+    .thumbnail-mobile-preview-appbar { display:flex; align-items:center; gap:8px; min-height:30px; color:#f8f6fc; font-size:11px; }
+    .thumbnail-mobile-preview-appicon { display:grid; place-items:center; width:22px; height:22px; border-radius:7px; background:#e87979; color:#fff; font-size:11px; }
+    .thumbnail-mobile-preview-live { margin-left:auto; padding:3px 6px; border-radius:999px; color:#c4b5fd; background:rgba(155,108,255,.15); font-size:8px; font-weight:900; letter-spacing:.6px; }
+    .thumbnail-mobile-preview-channel { display:flex; align-items:center; gap:8px; padding:10px 0 8px; }
+    .thumbnail-mobile-preview-avatar { display:grid; place-items:center; width:29px; height:29px; border-radius:50%; background:linear-gradient(135deg,#8b5cf6,#e879f9); color:#fff; font-size:12px; font-weight:900; }
+    .thumbnail-mobile-preview-channel strong, .thumbnail-mobile-preview-channel small { display:block; line-height:1.35; }
+    .thumbnail-mobile-preview-channel strong { color:#f6f1ff; font-size:10px; }
+    .thumbnail-mobile-preview-channel small { color:#9d95aa; font-size:8px; }
+    .thumbnail-mobile-preview-menu { margin-left:auto; color:#aaa1b8; letter-spacing:2px; }
+    .thumbnail-mobile-preview-viewport { width:100%; aspect-ratio:16/9; overflow:hidden; border-radius:9px; background:#090611; }
+    .thumbnail-mobile-preview-stage { pointer-events:none; }
+    .thumbnail-mobile-preview-caption { padding:9px 2px 6px; }
+    .thumbnail-mobile-preview-caption strong { display:block; color:#f7f3ff; font-size:11px; line-height:1.45; }
+    .thumbnail-mobile-preview-caption small { display:block; margin-top:4px; color:#a69caf; font-size:9px; }
+    .thumbnail-mobile-preview-actions { display:flex; flex-wrap:wrap; gap:15px; padding:8px 2px 1px; border-top:1px solid rgba(255,255,255,.08); color:#c8c0da; font-size:9px; }
+    .thumbnail-colour-preset-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px; }
+    .thumbnail-colour-preset { min-height:38px; padding:7px 8px; font-size:11px; }
+    .thumbnail-colour-preset.active { border-color:#c4b5fd; background:rgba(155,108,255,.24); color:#fff; }
+    .thumbnail-version-history > [data-save-thumbnail-version] { width:100%; min-height:40px; }
+    .thumbnail-version-status { margin:8px 0; color:#c4b5fd; font-size:10px; line-height:1.45; }
+    .thumbnail-version-list { display:grid; gap:7px; }
+    .thumbnail-version-empty { margin:4px 0; color:var(--muted); font-size:10px; }
+    .thumbnail-version-row { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:8px; border:1px solid var(--border); border-radius:9px; background:rgba(255,255,255,.035); }
+    .thumbnail-version-row span { min-width:0; color:#e8def8; font-size:10px; }
+    .thumbnail-version-row button { flex:0 0 auto; min-height:31px; padding:5px 9px; font-size:10px; }
+    @media(max-width:680px) {
+      .thumbnail-studio-canvas-title { align-items:flex-start; }
+      .thumbnail-preview-toggle { flex:1 1 calc(50% - 6px); }
+      .thumbnail-mobile-preview-panel { padding:9px; }
+      .thumbnail-mobile-preview-device { padding:9px; }
+    }
+
 </style>
 
     <!-- AI CREATOR ASSISTANT WORKSPACE -->
@@ -5807,6 +5853,43 @@
       canvasArea.innerHTML = '<div class="thumbnail-studio-canvas-title"><strong>Thumbnail Canvas</strong><span>1280 × 720 · 16:9</span></div>';
       canvasArea.append(stageElement, stageHint);
 
+      // Major 9: live mobile-feed preview, built from the current editor layers.
+      const canvasTitle = canvasArea.querySelector(".thumbnail-studio-canvas-title");
+      const mobilePreviewButton = document.createElement("button");
+      mobilePreviewButton.type = "button";
+      mobilePreviewButton.className = "secondary thumbnail-preview-toggle";
+      mobilePreviewButton.textContent = "📱 Mobile Preview";
+      mobilePreviewButton.setAttribute("aria-expanded", "false");
+      const safeGuideButton = document.createElement("button");
+      safeGuideButton.type = "button";
+      safeGuideButton.className = "secondary thumbnail-preview-toggle";
+      safeGuideButton.textContent = "▦ Show Safe Guides";
+      safeGuideButton.setAttribute("aria-pressed", "false");
+      canvasTitle.append(mobilePreviewButton, safeGuideButton);
+
+      const mobilePreviewPanel = document.createElement("section");
+      mobilePreviewPanel.className = "thumbnail-mobile-preview-panel";
+      mobilePreviewPanel.hidden = true;
+      mobilePreviewPanel.innerHTML = [
+        '<div class="thumbnail-mobile-preview-device">',
+          '<div class="thumbnail-mobile-preview-appbar"><span class="thumbnail-mobile-preview-appicon">▶</span><strong>Mobile feed preview</strong><span class="thumbnail-mobile-preview-live">LIVE</span></div>',
+          '<div class="thumbnail-mobile-preview-channel"><span class="thumbnail-mobile-preview-avatar">T</span><span><strong>Your channel</strong><small>Suggested video</small></span><span class="thumbnail-mobile-preview-menu">•••</span></div>',
+          '<div class="thumbnail-mobile-preview-viewport" data-mobile-preview-viewport></div>',
+          '<div class="thumbnail-mobile-preview-caption"><strong>Your video title appears here — see how the thumbnail stands out in a mobile feed.</strong><small>Your channel · 12K views · 2 hours ago</small></div>',
+          '<div class="thumbnail-mobile-preview-actions"><span>♡ Like</span><span>↗ Share</span><span>＋ Save</span></div>',
+        '</div>',
+        '<p class="thumbnail-editor-note">Preview uses your current canvas layers. This is a visual size check, not an exact copy of any video platform interface.</p>'
+      ].join("");
+      canvasArea.append(mobilePreviewPanel);
+      const mobilePreviewViewport = mobilePreviewPanel.querySelector("[data-mobile-preview-viewport]");
+      mobilePreviewButton.addEventListener("click", () => {
+        const open = mobilePreviewPanel.hidden;
+        mobilePreviewPanel.hidden = !open;
+        mobilePreviewButton.setAttribute("aria-expanded", String(open));
+        mobilePreviewButton.textContent = open ? "✕ Close Mobile Preview" : "📱 Mobile Preview";
+        if (open) updateMobilePreview();
+      });
+
       const inspectorRail = document.createElement("aside");
       inspectorRail.className = "thumbnail-studio-inspector";
       inspectorRail.innerHTML = '<div class="thumbnail-studio-section-title">② EDIT & ORGANIZE</div>';
@@ -5887,6 +5970,23 @@
       ].join("");
       const aiCharacterGroup = makeStudioGroup(toolsRail, "Create New Character", "🧍", [aiCharacterStudio], { open: false });
       backgroundGroup.after(aiCharacterGroup);
+
+      // Major 9: one-click creative colour themes.
+      const colourPresetStudio = document.createElement("div");
+      colourPresetStudio.className = "thumbnail-colour-presets";
+      colourPresetStudio.innerHTML = [
+        '<div class="thumbnail-colour-preset-grid">',
+          '<button type="button" class="secondary thumbnail-colour-preset" data-colour-preset="cinematic">🎬 Cinematic</button>',
+          '<button type="button" class="secondary thumbnail-colour-preset" data-colour-preset="gaming">🎮 Gaming</button>',
+          '<button type="button" class="secondary thumbnail-colour-preset" data-colour-preset="horror">👻 Horror</button>',
+          '<button type="button" class="secondary thumbnail-colour-preset" data-colour-preset="cricket">🏏 Cricket</button>',
+          '<button type="button" class="secondary thumbnail-colour-preset" data-colour-preset="luxury">💎 Luxury</button>',
+          '<button type="button" class="secondary thumbnail-colour-preset" data-colour-preset="vibrant">🌈 Vibrant</button>',
+        '</div>',
+        '<p class="thumbnail-editor-note" data-colour-status>Choose a theme to style the background, text and shapes together.</p>'
+      ].join("");
+      const colourPresetGroup = makeStudioGroup(toolsRail, "Colour Presets", "🎨", [colourPresetStudio], { open:false });
+      aiCharacterGroup.after(colourPresetGroup);
       const editorCharacterType = aiCharacterStudio.querySelector("[data-editor-character-type]");
       const editorCharacterPose = aiCharacterStudio.querySelector("[data-editor-character-pose]");
       const editorCharacterButton = aiCharacterStudio.querySelector("[data-generate-editor-character]");
@@ -6067,6 +6167,20 @@
       criticPanel.append(criticHeading,criticIntro,criticRunButton,criticStatus,criticResults);
       makeStudioGroup(inspector, "AI Thumbnail Critic", "🤖", [criticPanel], { open: false, advanced: true });
 
+      // Major 9: save and restore named checkpoints inside this editing session.
+      const versionHistoryPanel = document.createElement("div");
+      versionHistoryPanel.className = "thumbnail-version-history";
+      versionHistoryPanel.innerHTML = [
+        '<p class="thumbnail-editor-note">Save a checkpoint before trying a big change. You can restore any saved version while this editor stays open.</p>',
+        '<button type="button" class="secondary" data-save-thumbnail-version>＋ Save Current Version</button>',
+        '<p class="thumbnail-version-status" data-version-status role="status" aria-live="polite">No saved versions yet.</p>',
+        '<div class="thumbnail-version-list" data-version-list></div>'
+      ].join("");
+      makeStudioGroup(inspector, "Version History", "🕘", [versionHistoryPanel], { open:false });
+      const versionSaveButton = versionHistoryPanel.querySelector("[data-save-thumbnail-version]");
+      const versionStatus = versionHistoryPanel.querySelector("[data-version-status]");
+      const versionList = versionHistoryPanel.querySelector("[data-version-list]");
+
       const applyCriticSuggestion = suggestion => {
         const action = String(suggestion.action || "");
         const setControl = (control,value) => {
@@ -6219,6 +6333,54 @@
       const fileInput = shell.querySelector("[data-image-file]");
       const stickerPicker = shell.querySelector("[data-sticker-picker]");
       const shapePicker = shell.querySelector("[data-shape-picker]");
+
+      // Safe-area overlay sits above artwork but never intercepts canvas interaction.
+      const safeGuides = document.createElement("div");
+      safeGuides.className = "thumbnail-safe-guides";
+      safeGuides.hidden = true;
+      safeGuides.setAttribute("aria-hidden", "true");
+      safeGuides.innerHTML = '<div class="thumbnail-safe-guide-outer"></div><div class="thumbnail-safe-guide-inner"><span>TEXT SAFE AREA</span></div><div class="thumbnail-safe-guide-vertical"></div><div class="thumbnail-safe-guide-horizontal"></div>';
+      stage.append(safeGuides);
+      safeGuideButton.addEventListener("click", () => {
+        safeGuides.hidden = !safeGuides.hidden;
+        const visible = !safeGuides.hidden;
+        safeGuideButton.setAttribute("aria-pressed", String(visible));
+        safeGuideButton.textContent = visible ? "▦ Hide Safe Guides" : "▦ Show Safe Guides";
+      });
+
+      function updateMobilePreview() {
+        if (mobilePreviewPanel.hidden) return;
+        const previewWidth = mobilePreviewViewport.clientWidth || 300;
+        const scale = previewWidth / 850;
+        const previewStage = document.createElement("div");
+        previewStage.className = "thumbnail-editor-stage thumbnail-mobile-preview-stage";
+        previewStage.style.cssText = "position:relative;display:block;width:850px;height:478.125px;max-width:none;aspect-ratio:16/9;margin:0;border:0;border-radius:0;overflow:hidden;transform-origin:top left;transform:scale(" + scale + ");";
+        Array.from(stage.children).forEach(child => {
+          if (child === safeGuides || child.classList.contains("thumbnail-mask-cursor")) return;
+          const copy = child.cloneNode(true);
+          if (copy.classList.contains("thumbnail-editor-layer")) {
+            copy.classList.remove("selected");
+            copy.querySelectorAll(".thumbnail-layer-resize").forEach(handle => handle.remove());
+          }
+          previewStage.append(copy);
+        });
+        mobilePreviewViewport.replaceChildren(previewStage);
+        const sourceCanvases = stage.querySelectorAll("canvas");
+        const previewCanvases = previewStage.querySelectorAll("canvas");
+        sourceCanvases.forEach((source, index) => {
+          const target = previewCanvases[index];
+          if (!target) return;
+          target.width = source.width;
+          target.height = source.height;
+          const context = target.getContext("2d");
+          if (context) {
+            try { context.drawImage(source, 0, 0); } catch (error) { /* Keep the rest of the preview available. */ }
+          }
+        });
+      }
+      stage.addEventListener("pointerup", updateMobilePreview);
+      stage.addEventListener("pointercancel", updateMobilePreview);
+
       let activeBackgroundUrl = backgroundUrl;
       const backgroundAssetCache = new Map([["generated", backgroundUrl]]);
       let activeBackgroundKey = "generated";
@@ -6301,6 +6463,7 @@
         if (!activeBrushStroke) return;
         activeBrushStroke = null;
         saveHistory();
+        updateMobilePreview();
       };
       brushCanvas.addEventListener("pointerup", finishBrushStroke);
       brushCanvas.addEventListener("pointercancel", finishBrushStroke);
@@ -6315,6 +6478,7 @@
           if (output) output.textContent = backgroundSettings[key] + (key === "blur" ? "px" : "%");
         });
         backgroundStudio.querySelectorAll("[data-bg-preset]").forEach(button => button.classList.toggle("active", button.dataset.bgPreset === backgroundSettings.preset));
+        updateMobilePreview();
       }
       function setBackgroundPreset(preset) {
         const presets = {
@@ -6358,6 +6522,8 @@
       let layerCounter = 0;
       let history = [];
       let historyIndex = -1;
+      let savedVersions = [];
+      let savedVersionCounter = 0;
 
       const selectedLayer = () => layers.find(layer => layer.id === selectedId);
       const snapshot = () => JSON.stringify({ layers, selectedId, backgroundSettings, brushStrokes, activeBackgroundKey });
@@ -6387,6 +6553,61 @@
         syncControls();
         updateHistoryButtons();
       }
+      function renderSavedVersions() {
+        versionList.replaceChildren();
+        if (!savedVersions.length) {
+          const empty = document.createElement("p");
+          empty.className = "thumbnail-version-empty";
+          empty.textContent = "Your saved checkpoints will appear here.";
+          versionList.append(empty);
+          return;
+        }
+        [...savedVersions].reverse().forEach(version => {
+          const row = document.createElement("div");
+          row.className = "thumbnail-version-row";
+          const details = document.createElement("span");
+          details.textContent = version.label + " · " + version.time;
+          const restoreButton = document.createElement("button");
+          restoreButton.type = "button";
+          restoreButton.className = "secondary";
+          restoreButton.textContent = "Restore";
+          restoreButton.addEventListener("click", () => {
+            const currentState = snapshot();
+            if (currentState === version.state) {
+              versionStatus.textContent = version.label + " is already the current design.";
+              return;
+            }
+            history = history.slice(0, historyIndex + 1);
+            if (history[history.length - 1] !== currentState) history.push(currentState);
+            history.push(version.state);
+            if (history.length > 60) history.shift();
+            historyIndex = history.length - 1;
+            restoreHistory(historyIndex);
+            versionStatus.textContent = version.label + " restored. Use Undo to return to your previous design.";
+          });
+          row.append(details, restoreButton);
+          versionList.append(row);
+        });
+      }
+      versionSaveButton.addEventListener("click", () => {
+        saveHistory();
+        const state = snapshot();
+        if (savedVersions.length && savedVersions[savedVersions.length - 1].state === state) {
+          versionStatus.textContent = "This design is already saved as the latest version.";
+          return;
+        }
+        savedVersionCounter += 1;
+        savedVersions.push({
+          label: "Version " + savedVersionCounter,
+          time: new Date().toLocaleTimeString([], { hour:"2-digit", minute:"2-digit" }),
+          state
+        });
+        if (savedVersions.length > 8) savedVersions.shift();
+        renderSavedVersions();
+        versionStatus.textContent = "Version " + savedVersionCounter + " saved on this device.";
+      });
+      renderSavedVersions();
+
       function updateHistoryButtons() {
         shell.querySelector("[data-undo]").disabled = historyIndex <= 0;
         shell.querySelector("[data-redo]").disabled = historyIndex >= history.length - 1;
@@ -6492,6 +6713,7 @@
           });
           layerButtons.append(row);
         });
+        updateMobilePreview();
       }
       function syncControls() {
         const layer = selectedLayer();
@@ -6528,6 +6750,34 @@
         syncBackgroundRemovalControls();
         syncMaskControls();
       }
+      const creatorColourPresets = {
+        cinematic:{ background:{brightness:92,contrast:128,saturation:108,blur:0}, text:"#ffffff", outline:"#111827", shape:"#fbbf24" },
+        gaming:{ background:{brightness:104,contrast:142,saturation:155,blur:0}, text:"#67e8f9", outline:"#30105e", shape:"#a78bfa" },
+        horror:{ background:{brightness:82,contrast:145,saturation:82,blur:0}, text:"#f87171", outline:"#190707", shape:"#dc2626" },
+        cricket:{ background:{brightness:102,contrast:126,saturation:138,blur:0}, text:"#fef08a", outline:"#064e3b", shape:"#16a34a" },
+        luxury:{ background:{brightness:94,contrast:118,saturation:82,blur:0}, text:"#f6e3a1", outline:"#3b2b12", shape:"#c5a35f" },
+        vibrant:{ background:{brightness:106,contrast:132,saturation:165,blur:0}, text:"#ffeb5b", outline:"#581c87", shape:"#ec4899" }
+      };
+      colourPresetStudio.querySelectorAll("[data-colour-preset]").forEach(button => {
+        button.addEventListener("click", () => {
+          const preset = creatorColourPresets[button.dataset.colourPreset];
+          if (!preset) return;
+          backgroundSettings = { ...preset.background };
+          layers = layers.map(layer => {
+            if (layer.type === "text") return { ...layer, color:preset.text, outlineColor:preset.outline };
+            if (layer.type === "shape") return { ...layer, color:preset.shape, outlineColor:preset.outline };
+            return layer;
+          });
+          applyBackgroundSettings();
+          saveHistory();
+          renderLayers();
+          syncControls();
+          colourPresetStudio.querySelectorAll("[data-colour-preset]").forEach(item => item.classList.toggle("active", item === button));
+          colourPresetStudio.querySelector("[data-colour-status]").textContent = button.textContent.trim() + " theme applied to the background, text and shapes.";
+          message.textContent = button.textContent.trim() + " colour preset applied.";
+        });
+      });
+
       function addTextLayer(text, color, fontSize) {
         layerCounter++;
         const layer = { id: "text-" + layerCounter, type: "text", text: text || "Your text", x: 330, y: 250 + (layerCounter % 4) * 55, width: 620, fontSize: fontSize || 64, color: color || "#ffffff", rotation: 0, font: "Impact", outline: 8, align: "center", opacity: 100, lineSpacing: 108 };
