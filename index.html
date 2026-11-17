@@ -6583,8 +6583,51 @@
       let savedVersions = [];
       let savedVersionCounter = 0;
 
+      // Keep large uploaded image data only once in memory. Undo/Redo snapshots
+      // store compact references instead of repeating the same Base64 strings.
+      const HISTORY_ASSET_TOKEN = "__trivexaHistoryAsset";
+      const historyAssetStore = new Map();
+      const historyAssetLookup = new Map();
+      let historyAssetCounter = 0;
+      const packHistoryAsset = value => {
+        if (typeof value !== "string" || !value.startsWith("data:")) return value;
+        let id = historyAssetLookup.get(value);
+        if (!id) {
+          id = "asset-" + (++historyAssetCounter);
+          historyAssetLookup.set(value, id);
+          historyAssetStore.set(id, value);
+        }
+        return { [HISTORY_ASSET_TOKEN]: id };
+      };
+      const pruneHistoryAssets = () => {
+        const referenced = new Set();
+        const collectReferences = stateText => {
+          if (typeof stateText !== "string") return;
+          const matcher = new RegExp('"__trivexaHistoryAsset":"([^"]+)"', "g");
+          let match;
+          while ((match = matcher.exec(stateText)) !== null) referenced.add(match[1]);
+        };
+        history.forEach(collectReferences);
+        savedVersions.forEach(version => collectReferences(version.state));
+        for (const [id, data] of historyAssetStore) {
+          if (!referenced.has(id)) {
+            historyAssetStore.delete(id);
+            if (historyAssetLookup.get(data) === id) historyAssetLookup.delete(data);
+          }
+        }
+      };
+
       const selectedLayer = () => layers.find(layer => layer.id === selectedId);
-      const snapshot = () => JSON.stringify({ layers, selectedId, backgroundSettings, brushStrokes, activeBackgroundKey });
+      const snapshot = () => {
+        const snapshotLayers = layers.map(layer => {
+          const copy = { ...layer };
+          ["src", "originalSrc", "maskData"].forEach(key => {
+            if (typeof copy[key] === "string") copy[key] = packHistoryAsset(copy[key]);
+          });
+          return copy;
+        });
+        return JSON.stringify({ layers:snapshotLayers, selectedId, backgroundSettings, brushStrokes, activeBackgroundKey });
+      };
       function saveHistory() {
         const state = snapshot();
         if (history[historyIndex] === state) return;
@@ -6592,13 +6635,24 @@
         history.push(state);
         if (history.length > 60) history.shift();
         historyIndex = history.length - 1;
+        pruneHistoryAssets();
         updateHistoryButtons();
       }
       function restoreHistory(index) {
         if (index < 0 || index >= history.length) return;
         historyIndex = index;
         const state = JSON.parse(history[historyIndex]);
-        layers = state.layers;
+        layers = (state.layers || []).map(layer => {
+          const restored = { ...layer };
+          ["src", "originalSrc", "maskData"].forEach(key => {
+            const value = restored[key];
+            if (value && typeof value === "object" && typeof value[HISTORY_ASSET_TOKEN] === "string") {
+              const asset = historyAssetStore.get(value[HISTORY_ASSET_TOKEN]);
+              if (asset) restored[key] = asset;
+            }
+          });
+          return restored;
+        });
         selectedId = state.selectedId;
         backgroundSettings = state.backgroundSettings || { brightness:100, contrast:100, saturation:100, blur:0 };
         brushStrokes = state.brushStrokes || [];
@@ -6661,6 +6715,7 @@
           state
         });
         if (savedVersions.length > 8) savedVersions.shift();
+        pruneHistoryAssets();
         renderSavedVersions();
         versionStatus.textContent = "Version " + savedVersionCounter + " saved on this device.";
       });
