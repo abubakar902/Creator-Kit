@@ -5377,7 +5377,7 @@
           const response = await workerFetch(WORKER_URL, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ action: "generate_image", prompt, imageBase64, mimeType })
+            body: JSON.stringify({ action: "generate_image", prompt, imageBase64, mimeType, preserveIdentity: !!characterReferenceFile })
           });
           let data;
           try { data = await response.json(); }
@@ -7405,21 +7405,24 @@
         "Character in UPPER half. ";
       const sceneAndAiPose = instruction;
       const aiCharacterDescription = characterDirection.trim();
-      const thumbnailPrompt = "Create a premium 16:9 YouTube thumbnail. Scene and AI character pose instructions: " +
+      const faceIdentityInstruction = characterReferenceFile
+        ? "Uploaded person: preserve the exact same individual, not a lookalike. Face identity is the highest priority. Keep the same facial geometry and features: head shape, eyes and spacing, eyebrows, nose, lips, cheeks, jaw, hairline, hairstyle and skin tone. Do not beautify, smooth, reshape, stylize, age, de-age, swap or invent a new face. Change only the requested pose, body position, clothing and scene. If anything conflicts, preserve the reference face first. "
+        : "";
+      const thumbnailPrompt = "Premium 16:9 YouTube thumbnail. Scene/action: " +
         sceneAndAiPose + ". " +
         (characterType === "no character"
-          ? (characterReferenceFile ? "Do not add any extra AI character. Use the uploaded person as the only character. " : "Do not show any people or characters. ")
-          : "Add one " + aiCharacterDescription + " as a SECOND DISTINCT character, separate from the uploaded reference person. The selected AI character must follow the pose/action described in the scene and instruction. Both people must be visible together and must not be merged into one person. ") +
-        "Visual style: " + style + ". " +
-        (position === "left" ? "Keep LEFT 42% clear for headline; place subjects on the RIGHT. " :
-          position === "right" ? "Keep RIGHT 42% clear for headline; place subjects on the LEFT. " :
-          position === "top" ? "Keep TOP 30% clear for headline; place subjects in the LOWER area. " :
-          "Keep BOTTOM 30% clear for headline; place subjects in the UPPER area. ") +
-        (characterReferenceFile ? "The uploaded image is a separate person who must also appear in this same thumbnail. Preserve this person's identity and face. Apply ONLY this uploaded-person pose instruction: " + (poseInstruction || "Use a natural pose that fits the scene.") + ". Keep this uploaded person distinct from the selected AI character. " : "") +
-        "Bright detailed scene, dramatic light, vivid colours, sharp focus. No words, logos, borders or collage.";
+          ? (characterReferenceFile ? "Use the uploaded person as the only person; add no extra character. " : "No people or characters. ")
+          : "Add one " + aiCharacterDescription + " as a distinct second character; follow the scene action and do not merge the two people. ") +
+        "Style: " + style + ". " +
+        (position === "left" ? "Keep left 42% clear for headline; subjects right. " :
+          position === "right" ? "Keep right 42% clear for headline; subjects left. " :
+          position === "top" ? "Keep top 30% clear; subjects below. " :
+          "Keep bottom 30% clear; subjects above. ") +
+        (characterReferenceFile ? faceIdentityInstruction + "Uploaded-person pose only: " + (poseInstruction || "natural pose fitting the scene") + ". Keep this person separate from the AI character. " : "") +
+        "Sharp detail, vivid lighting. No text, logos, borders or collage.";
 
-      if (thumbnailPrompt.length > 1000) {
-        thumbnailMessage.textContent = "Please shorten the scene and character instructions.";
+      if (thumbnailPrompt.length > 1400) {
+        thumbnailMessage.textContent = "Please shorten the scene or pose instructions slightly. Face-preservation instructions are added automatically.";
         return;
       }
 
@@ -7478,12 +7481,12 @@
             characterType === "cartoon character" ? "one colourful cartoon character" :
             characterType === "superhero character" ? "one original superhero character with no logos" :
             "one detailed 3D game character";
-          const retryPrompt = "Create a clear premium 16:9 YouTube thumbnail. Scene and AI character pose: " +
+          const retryPrompt = "Premium 16:9 YouTube thumbnail. Scene and AI character pose: " +
             instruction.slice(0, 190) + ". " +
             (characterType === "no character"
               ? (characterReferenceFile ? "Do not add another character; show only the uploaded person. " : "Show no people. ")
               : "Show " + retryType + " as one person AND keep the uploaded reference person as a SECOND, separate person if an image is attached. Never merge them. The AI character follows the scene pose instruction. ") +
-            (characterReferenceFile ? "Preserve the uploaded person's identity and face. Uploaded-person pose instruction (optional): " + (poseInstruction || "natural pose fitting the scene") + ". " : "") +
+            (characterReferenceFile ? faceIdentityInstruction + "Uploaded-person pose only: " + (poseInstruction || "natural pose fitting the scene") + ". " : "") +
             (position === "left" ? "Leave left side clear for headline; subjects on right. " :
               position === "right" ? "Leave right side clear for headline; subjects on left. " :
               position === "top" ? "Leave top area clear for headline; subjects below. " :
@@ -7559,18 +7562,9 @@
           const hasCharacterToMove = !!characterReferenceFile || characterType !== "no character";
           const editor = createThumbnailLayerEditor(generatedImageUrl, headline, accent, position, { hasCharacter: hasCharacterToMove });
           overlay.appendChild(editor);
-          // Automatically separate the visible character as soon as the editor opens.
-          // This reuses the generated image and never regenerates or alters the preserved face layer.
-          if (hasCharacterToMove) {
-            const autoSeparateButton = editor.querySelector("[data-separate-character]");
-            if (autoSeparateButton) {
-              requestAnimationFrame(() => {
-                if (autoSeparateButton.isConnected && !autoSeparateButton.disabled) {
-                  autoSeparateButton.click();
-                }
-              });
-            }
-          }
+          // Do not run character separation automatically.
+          // It downloads/runs a local AI model and sends a background-cleanup request.
+          // Keep the editor responsive; the user can start separation manually when needed.
           overlay.querySelector("[data-close-thumbnail-editor]").focus();
         });
 
