@@ -858,6 +858,16 @@ export default {
   try{user=await getUser(env,claims);}catch(e){console.error("Account database error:",e);return reply({error:"Could not load your TrivexaAI account.",code:"ACCOUNT_UNAVAILABLE"},503);}
   if(!user)return reply({error:"Account unavailable."},503);
   if(user.status!=="active")return reply({error:user.status==="banned"?"This account has been disabled.":"This account is temporarily suspended.",code:user.status==="banned"?"ACCOUNT_BANNED":"ACCOUNT_SUSPENDED"},403);
+  // Protect invite-code guessing and sensitive admin mutations. These routes
+  // are handled before legacyWorker, so they need their own limiter check.
+  const accountActionName=String(body.action||"").toLowerCase();
+  if(env.CREATOR_LIMITER&&(accountActionName==="auth_redeem_invite"||accountActionName.startsWith("admin_"))){
+   const clientIP=request.headers.get("CF-Connecting-IP")||"unknown";
+   try{
+    const {success}=await env.CREATOR_LIMITER.limit({key:`auth:${clientIP}:${user.uid}:${accountActionName}`});
+    if(!success)return reply({error:"Too many account requests. Please wait a minute and try again.",code:"ACCOUNT_RATE_LIMITED"},429);
+   }catch(e){console.error("Account rate limiter error:",e);}
+  }
   const accountResponse=await accountAction(body,env,user,reply);
   if(accountResponse)return accountResponse;
   const action=String(body.action||"generate_text").toLowerCase();
