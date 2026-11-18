@@ -307,20 +307,23 @@ const legacyWorker = {
         if (
           typeof body.prompt !== "string" ||
           !body.prompt.trim() ||
-          body.prompt.length > 1000
+          body.prompt.length > 1400
         ) {
           return reply({
-            error: "Enter a prompt of up to 1000 characters."
+            error: "Enter a prompt of up to 1400 characters."
           }, 400);
         }
 
         const form = new FormData();
-        const finalPrompt = body.imageBase64
-          ? `IDENTITY LOCK: Preserve the exact identity, facial structure, skin tone, hairstyle, eyes, nose, lips and jawline from the uploaded photo. Do not regenerate or beautify the face. Only change clothing, background, lighting and accessories.
+        const identityInstruction = body.preserveIdentity === true
+          ? `FACE IDENTITY LOCK — HIGHEST PRIORITY:
 
-${body.prompt.trim()}`
-          : body.prompt.trim();
+Use the uploaded reference photo as the exact same person, not a lookalike. Preserve the original face identity and facial geometry: head shape, forehead, hairline, eyebrows, eyes and spacing, nose, lips, cheeks, jawline, ears, hairstyle, skin tone and natural details. Do not beautify, retouch, smooth, reshape, stylize, age, de-age, swap or invent a new face. Change only the requested pose/body position, clothing and scene. If any instruction conflicts, preserve the original face first.
 
+`
+          : "";
+
+        const finalPrompt = identityInstruction + body.prompt.trim();
         form.append("prompt", finalPrompt);
 
         if (body.imageBase64) {
@@ -341,7 +344,12 @@ ${body.prompt.trim()}`
             return reply({ error: "Use a PNG, JPG or WEBP image." }, 400);
           }
 
-          const binary = atob(imageData);
+          let binary;
+          try {
+            binary = atob(imageData);
+          } catch {
+            return reply({ error: "The uploaded image is not valid base64." }, 400);
+          }
           const bytes = Uint8Array.from(binary, c => c.charCodeAt(0));
 
           form.append(
