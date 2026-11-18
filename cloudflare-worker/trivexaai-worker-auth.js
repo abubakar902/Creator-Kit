@@ -42,6 +42,7 @@ async function verifyIdToken(token, env) {
   if (claims.iss !== "https://securetoken.google.com/" + project || claims.aud !== project) throw new Error("Token audience rejected.");
   if (!claims.sub || claims.sub.length > 128 || !Number.isFinite(claims.exp) || claims.exp <= now) throw new Error("Token expired or invalid.");
   if (!Number.isFinite(claims.iat) || claims.iat > now+300 || !Number.isFinite(claims.auth_time) || claims.auth_time > now+300) throw new Error("Token time invalid.");
+  if (claims.nbf !== undefined && (!Number.isFinite(claims.nbf) || claims.nbf > now + 300 || claims.nbf > now)) throw new Error("Token not yet valid.");
   if (claims.email_verified !== true || typeof claims.email !== "string" || !claims.email.includes("@")) throw new Error("Verified Google email required.");
   if (claims.firebase?.sign_in_provider !== "google.com") throw new Error("Google sign-in required.");
   const key = await getSigningKey(head.kid);
