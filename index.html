@@ -2627,6 +2627,7 @@
 /* Photo Text Editor collapsible control groups */
 .pt-accordion{display:block;padding:0;overflow:hidden}.pt-accordion-summary{list-style:none;display:flex;align-items:center;gap:11px;min-height:54px;padding:13px 15px;cursor:pointer;color:var(--text);font-size:13px;font-weight:850;user-select:none}.pt-accordion-summary::-webkit-details-marker{display:none}.pt-accordion-summary:hover{background:rgba(155,108,255,.09)}.pt-accordion-icon{width:30px;height:30px;display:grid;place-items:center;flex:0 0 30px;border-radius:9px;background:rgba(155,108,255,.16);font-size:15px}.pt-accordion-summary>span:nth-child(2){flex:1}.pt-accordion-chevron{color:#c4b5fd;font-size:19px;transition:transform .2s ease}.pt-accordion[open]>.pt-accordion-summary{border-bottom:1px solid var(--border);background:rgba(155,108,255,.07)}.pt-accordion[open]>.pt-accordion-summary .pt-accordion-chevron{transform:rotate(180deg)}.pt-accordion-body{display:grid;gap:10px;padding:14px}.pt-accordion-body>.pt-panel{margin:0}.pt-accordion:focus-within{border-color:#8b5cf6}
 </style>
+  <script type="module" src="auth/auth-client.js"></script>
 </head>
 <body>
 
@@ -2640,6 +2641,8 @@
       <div class="nav-right">
         <a class="nav-link" href="#workspaceTabs" data-switch-tab="search">Explore tools</a>
         <a class="nav-link" href="#workspaceTabs" data-switch-tab="favourites">Favourites</a>
+        <a class="nav-link" href="auth/login.html">Sign in</a>
+        <a class="nav-link" href="auth/account.html">My account</a>
         <div class="status">
           <span class="status-dot"></span> Studio Online
         </div>
@@ -2663,7 +2666,7 @@
           <span>✍️ English AI writing</span>
           <span>🎨 AI image suite</span>
           <span>🎙️ Voice generation</span>
-          <span>⚡ No sign-up required</span>
+          <span>🔐 Google sign-in protected</span>
         </div>
       </div>
       <div class="hero-showcase" aria-label="TrivexaAI creator studio preview">
@@ -3932,7 +3935,18 @@
       <p>Choose a tool, enter your topic, and review the generated suggestions before publishing. Results may need editing to match your voice and audience. Video download options depend on the supported link and the availability of the connected service. Only download content you own or have permission to use, and follow each platform's terms.</p>
     </section>
     
-    <section id="privacy" class="sr-only" aria-label="Privacy">Do not submit passwords, private information or sensitive personal data in tool prompts. Review connected services and their policies before using the tools.</section>
+    <section id="privacy" aria-labelledby="privacy-title" style="margin:0 auto 48px;padding:clamp(20px,3.5vw,30px);border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--panel);color:var(--text-secondary)">
+      <h2 id="privacy-title" style="color:var(--text);margin:0 0 10px;font-size:22px;font-weight:800">Privacy at TrivexaAI</h2>
+      <p>TrivexaAI uses Google sign-in to protect tool access and manage accounts. Google handles your Google password; TrivexaAI does not receive or store that password.</p>
+      <h3 style="color:var(--text)">Account information</h3>
+      <p>When you sign in, Firebase Authentication provides TrivexaAI with your account identifier, verified email address, display name and profile-photo URL. TrivexaAI stores these details in its Cloudflare D1 account database together with your account role, status, access level, account creation time and last-seen time. The database also stores hashed invite codes and security audit records for administrative actions. Your Google password and Firebase sign-in token are not stored in that account database.</p>
+      <h3 style="color:var(--text)">Tool inputs and service providers</h3>
+      <p>Prompts, tool settings and any image or media data you submit are sent to the TrivexaAI Worker to provide the requested feature. Depending on the tool, requests may be processed by Cloudflare Workers AI, Google Gemini or a connected third-party download-service provider. Those providers process the information needed to return the result under their own privacy terms. The Worker uses request IP information to apply abuse-prevention rate limits.</p>
+      <h3 style="color:var(--text)">How information is used</h3>
+      <p>Information is used to sign you in, provide tools, manage basic and advanced access, administer invite codes, protect the service and investigate misuse. TrivexaAI does not sell account information. Do not include passwords, private documents or other sensitive personal information in prompts or uploads.</p>
+      <h3 style="color:var(--text)">Retention and requests</h3>
+      <p>Account and security records are retained for as long as needed to operate, secure and administer TrivexaAI. You may send an account-data or deletion request through the <a href="feedback.html" style="color:var(--text);text-decoration:underline">TrivexaAI feedback page</a>; requests are handled manually. Cloudflare, Google and other providers may also process data under their own privacy policies.</p>
+    </section>
   </main>
 
   <!-- FOOTER -->
