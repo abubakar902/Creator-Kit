@@ -355,7 +355,7 @@ function addKeyframe(){
 function previewPointerDown(e){
  const target=e.target.closest("[data-clip-id]");if(!target||isPlaying)return;
  const c=clips.find(item=>item.id===target.dataset.clipId);if(!c||!(c.type==="video"||c.type==="image"||c.type==="text"))return;
- e.preventDefault();pause();selectClip(c.id);snapshot();
+ e.preventDefault();pause();if(selectedId!==c.id){selectedId=c.id;renderTimeline();renderInspector();}snapshot();
  const local=Math.max(0,Math.min(c.duration,playhead-c.start)),motion=animatedValues(c,local);
  dragState={kind:"preview",id:c.id,pointerId:e.pointerId,startX:e.clientX,startY:e.clientY,rect:target.getBoundingClientRect(),stageRect:$("previewStage").getBoundingClientRect(),local,base:motion,orig:clone(c),moved:false};
  $("previewStage").classList.add("is-dragging");
