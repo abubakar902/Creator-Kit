@@ -612,6 +612,9 @@ async function exportVideo(){
  const mediaItems=[],chunks=[];
  const oldStatus=$("saveStatus").textContent;
  try{
+  const hasSoundSources=exportClips.some(c=>c.type==="video"||c.type==="audio");
+  const AudioContextClass=window.AudioContext||window.webkitAudioContext;
+  if(hasSoundSources&&AudioContextClass){audioContext=new AudioContextClass();await audioContext.resume();}
   pause();await saveProject();
   const size=exportCanvasSize(),canvas=document.createElement("canvas");
   canvas.width=size.width;canvas.height=size.height;
@@ -641,18 +644,14 @@ async function exportVideo(){
   const audioItems=mediaItems.filter(item=>item.clip.type==="video"||item.clip.type==="audio");
   let audioDestination=null;
   if(audioItems.length){
-   const AudioContextClass=window.AudioContext||window.webkitAudioContext;
-   if(AudioContextClass){
-    audioContext=new AudioContextClass();
-    await audioContext.resume();
-    audioDestination=audioContext.createMediaStreamDestination();
-    audioItems.forEach(item=>{
-     const source=audioContext.createMediaElementSource(item.media);
-     const gain=audioContext.createGain();
-     source.connect(gain);gain.connect(audioDestination);
-     item.gain=gain;
-    });
-   }
+   if(!audioContext)throw new Error("This browser cannot mix the video's audio for export. Please use an updated Chrome or Edge browser.");
+   audioDestination=audioContext.createMediaStreamDestination();
+   audioItems.forEach(item=>{
+    const source=audioContext.createMediaElementSource(item.media);
+    const gain=audioContext.createGain();
+    source.connect(gain);gain.connect(audioDestination);
+    item.gain=gain;
+   });
   }
   const fps=Math.max(15,Math.min(60,Number(project.fps)||30));
   canvasStream=canvas.captureStream(fps);
