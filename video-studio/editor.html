@@ -211,7 +211,11 @@ function animatedValues(c,local){
  const base=animationBase(c),frames=Array.isArray(c.keyframes)?c.keyframes.slice().sort((a,b)=>a.time-b.time):[];
  if(!frames.length)return base;
  const readFrame=k=>({...base,...(k.values||{})});
- if(local<=frames[0].time)return readFrame(frames[0]);
+ if(local<=frames[0].time){
+  if(frames[0].time<=0.0001)return readFrame(frames[0]);
+  const first=readFrame(frames[0]),p=Math.max(0,Math.min(1,local/frames[0].time));
+  return{x:base.x+(first.x-base.x)*p,y:base.y+(first.y-base.y)*p,scale:base.scale+(first.scale-base.scale)*p,rotation:base.rotation+(first.rotation-base.rotation)*p,opacity:base.opacity+(first.opacity-base.opacity)*p};
+ }
  if(local>=frames[frames.length-1].time)return readFrame(frames[frames.length-1]);
  let a=frames[0],b=frames[frames.length-1];
  for(let i=0;i<frames.length-1;i++){if(local>=frames[i].time&&local<=frames[i+1].time){a=frames[i];b=frames[i+1];break;}}
