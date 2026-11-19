@@ -31,6 +31,19 @@
 .keyframe-row button{border:0;background:transparent;color:#eadcff;font-size:10px;cursor:pointer}
 .keyframe-row .remove-keyframe{color:#f2a5c5;font-size:14px;padding:0 4px}
 
+
+.property-group{border:1px solid #38284f;border-radius:10px;background:#171127;margin:0 0 9px;overflow:hidden}
+.property-group>summary{list-style:none;cursor:pointer;padding:11px 12px;font-size:11px;font-weight:800;color:#eadcff;display:flex;align-items:center;justify-content:space-between;user-select:none}
+.property-group>summary::-webkit-details-marker{display:none}
+.property-group>summary:after{content:"＋";color:#b98aff;font-size:14px}
+.property-group[open]>summary:after{content:"−"}
+.property-group[open]>summary{border-bottom:1px solid #302143;background:#1d1530}
+.group-body{padding:10px 11px}
+.group-body .prop:first-child{margin-top:2px}.group-body .prop:last-child{margin-bottom:2px}
+#previewStage video,#previewStage img{pointer-events:auto;touch-action:none;cursor:move}
+#textPreview>[data-clip-id]{pointer-events:auto;touch-action:none;cursor:move;user-select:none}
+#previewStage.is-dragging{outline:2px solid #a75cff;outline-offset:2px}
+@media(max-width:680px){.property-group>summary{padding:12px;font-size:12px}.group-body{padding:9px}}
 </style>
 </head>
 <body>
@@ -76,17 +89,13 @@
 <h2>Properties</h2>
 <div id="inspectorHint" class="inspector-hint">Select a clip on the timeline to edit its settings. Import media or add a text layer to get started.</div>
 <div id="clipInspector" class="hidden">
-<div class="prop"><label for="propName">Clip name</label><input id="propName" type="text"></div>
+<details class="property-group" id="nameGroup" open><summary>Name &amp; Timing</summary><div class="group-body"><div class="prop"><label for="propName">Clip name</label><input id="propName" type="text"></div>
 <div class="prop-grid">
 <div class="prop"><label for="propStart">Start (seconds)</label><input id="propStart" type="number" min="0" step="0.1"></div>
 <div class="prop"><label for="propDuration">Duration (seconds)</label><input id="propDuration" type="number" min="0.2" step="0.1"></div>
 </div>
-<div class="prop" id="volumeProp"><label for="propVolume">Volume</label><input id="propVolume" type="range" min="0" max="1" step="0.05"></div>
-<div id="fadeProps" class="prop-grid hidden">
-<div class="prop"><label for="propFadeIn">Fade in (sec)</label><input id="propFadeIn" type="number" min="0" step="0.1" value="0"></div>
-<div class="prop"><label for="propFadeOut">Fade out (sec)</label><input id="propFadeOut" type="number" min="0" step="0.1" value="0"></div>
-</div>
-<div id="transformProps" class="hidden">
+</div></details>
+<details class="property-group" id="transformGroup" open><summary>Transform &amp; Position</summary><div class="group-body"><div id="transformProps" class="hidden">
 <div class="prop"><label>Transform</label></div>
 <div class="prop-grid">
 <div class="prop"><label for="propScale">Scale</label><input id="propScale" type="number" min="0.1" max="4" step="0.1" value="1"></div>
@@ -96,7 +105,8 @@
 </div>
 <div class="prop"><label for="propOpacity">Opacity</label><input id="propOpacity" type="range" min="0" max="1" step="0.05" value="1"></div>
 </div>
-<div id="effectProps" class="hidden">
+</div></details>
+<details class="property-group" id="effectsGroup"><summary>Effects &amp; Transitions</summary><div class="group-body"><div id="effectProps" class="hidden">
 <div class="prop"><label for="propFilterPreset">Effect preset</label><select id="propFilterPreset"><option value="none">Original</option><option value="cinematic">Cinematic</option><option value="vivid">Vivid</option><option value="warm">Warm</option><option value="cool">Cool</option><option value="noir">Black & White</option><option value="vintage">Vintage</option></select></div>
 <div class="prop-grid">
 <div class="prop"><label for="propBrightness">Brightness</label><input id="propBrightness" type="range" min="0.5" max="1.8" step="0.05" value="1"></div>
@@ -111,7 +121,8 @@
 <div class="prop"><label for="propTransitionDuration">Transition duration (seconds)</label><input id="propTransitionDuration" type="number" min="0.1" max="2.5" step="0.1" value="0.6"></div>
 <p class="inspector-hint">The selected effect plays at the beginning of this clip when the playhead enters it.</p>
 </div>
-<div class="prop hidden" id="textProp"><label for="propText">Text overlay</label><textarea id="propText"></textarea></div>
+</div></details>
+<details class="property-group" id="textGroup" open><summary>Text &amp; Style</summary><div class="group-body"><div class="prop hidden" id="textProp"><label for="propText">Text overlay</label><textarea id="propText"></textarea></div>
 <div id="textStyleProps" class="hidden">
 <div class="prop-grid">
 <div class="prop"><label for="propTextColor">Text colour</label><input id="propTextColor" type="color" value="#ffffff"></div>
@@ -137,11 +148,19 @@
 </div>
 <div class="prop"><label for="propTextOpacity">Text opacity</label><input id="propTextOpacity" type="range" min="0" max="1" step="0.05" value="1"></div>
 </div>
-<div class="keyframe-panel hidden" id="keyframeProps">
+</div></details>
+<details class="property-group" id="keyframeGroup" open><summary>Keyframes &amp; Animation</summary><div class="group-body"><div class="keyframe-panel hidden" id="keyframeProps">
 <div class="keyframe-head"><strong>Animation keyframes</strong><button class="btn" type="button" id="addKeyframeBtn">＋ Add keyframe</button></div>
 <p class="keyframe-note">Move the playhead, change position / scale / rotation / opacity, then add a keyframe. The editor animates smoothly between points.</p>
 <div class="keyframe-list" id="keyframeList"></div>
 </div>
+</div></details>
+<details class="property-group" id="audioGroup"><summary>Audio &amp; Volume</summary><div class="group-body"><div class="prop" id="volumeProp"><label for="propVolume">Volume</label><input id="propVolume" type="range" min="0" max="1" step="0.05"></div>
+<div id="fadeProps" class="prop-grid hidden">
+<div class="prop"><label for="propFadeIn">Fade in (sec)</label><input id="propFadeIn" type="number" min="0" step="0.1" value="0"></div>
+<div class="prop"><label for="propFadeOut">Fade out (sec)</label><input id="propFadeOut" type="number" min="0" step="0.1" value="0"></div>
+</div>
+</div></details>
 <div class="inspector-actions">
 <button class="btn" id="applyProps" type="button">Apply</button>
 <button class="btn" id="duplicateBtn" type="button">Duplicate</button>
@@ -246,6 +265,7 @@ function renderInspector(){
  $("transformProps").classList.toggle("hidden",!media);
  $("effectProps").classList.toggle("hidden",!media);
  $("transitionProps").classList.toggle("hidden",!media);
+ $("nameGroup").classList.remove("hidden");$("transformGroup").classList.toggle("hidden",!media);$("effectsGroup").classList.toggle("hidden",!media);$("textGroup").classList.toggle("hidden",!isText);$("keyframeGroup").classList.toggle("hidden",!visual);$("audioGroup").classList.toggle("hidden",!(c.type==="audio"||c.type==="video"));
  $("propFilterPreset").value=c.filterPreset||"none";
  $("propBrightness").value=c.brightness??1;
  $("propContrast").value=c.contrast??1;
@@ -286,7 +306,7 @@ function hexRgba(hex,alpha){const h=String(hex||"#000000").replace("#","");const
 function clipEnvelope(c,local){let g=1;const fi=Math.max(0,Number(c.fadeIn)||0),fo=Math.max(0,Number(c.fadeOut)||0);if(fi>0)g=Math.min(g,Math.max(0,Math.min(1,local/fi)));if(fo>0)g=Math.min(g,Math.max(0,Math.min(1,(c.duration-local)/fo)));return g;}
 function visualFilter(c,extraBlur=0){const b=c.brightness??1,co=c.contrast??1,s=c.saturation??1,bl=Math.max(0,(c.blur||0)+extraBlur),h=c.hue||0;return "brightness("+b+") contrast("+co+") saturate("+s+") blur("+bl+"px) hue-rotate("+h+"deg)";}
 function applyVisualStyle(el,c,local){const motion=animatedValues(c,local),type=c.transition||"none",dur=Math.max(.1,Math.min(Number(c.transitionDuration)||.6,c.duration||.6)),p=type==="none"?1:Math.max(0,Math.min(1,local/dur));let x=motion.x,scale=Math.max(.1,Math.min(4,motion.scale)),opacity=motion.opacity,mask="inset(0 0 0 0)",extraBlur=0;if(type==="fade")opacity*=p;else if(type==="zoom"){opacity*=p;scale*=.82+.18*p;}else if(type==="slide-left"){x+=(1-p)*18;opacity*=Math.min(1,p*1.4);}else if(type==="wipe-left"){mask="inset(0 "+(100-p*100)+"% 0 0)";}else if(type==="blur-reveal"){extraBlur=(1-p)*14;opacity*=Math.min(1,p*1.5);}el.style.transform="translate("+x+"%, "+motion.y+"%) scale("+scale+") rotate("+motion.rotation+"deg)";el.style.opacity=String(Math.max(0,Math.min(1,opacity)));el.style.clipPath=mask;el.style.filter=visualFilter(c,extraBlur);el.style.transformOrigin="center center";}
-function renderPreview(){const base=activeAt(playhead,"video"),over=activeAt(playhead,"overlay"),primary=over&&over.type==="video"?over:base,overlayImage=over&&over.type==="image"?over:null,video=$("videoPreview"),img=$("imagePreview"),placeholder=$("previewPlaceholder");placeholder.style.display="none";if(primary&&primary.type==="video"){video.style.display="block";const local=playhead-primary.start;applyVisualStyle(video,primary,local);video.volume=Math.max(0,Math.min(1,(primary.volume??1)*clipEnvelope(primary,local)));const url=assetUrl(primary.assetId);if(activeVideoId!==primary.id){video.pause();video.src=url;activeVideoId=primary.id;video.load();}const ct=primary.sourceStart+Math.max(0,local);try{if(video.readyState>=1&&Math.abs(video.currentTime-ct)>.65)video.currentTime=Math.min(ct,Math.max(0,primary.duration));}catch(e){}if(isPlaying){if(video.paused)video.play().catch(()=>{});}else video.pause();if(overlayImage){img.style.display="block";img.classList.add("is-overlay");img.style.width="48%";img.style.height="48%";img.style.inset="auto 4% 4% auto";applyVisualStyle(img,overlayImage,playhead-overlayImage.start);if(activeImageId!==overlayImage.id){img.src=assetUrl(overlayImage.assetId);activeImageId=overlayImage.id;}}else{img.style.display="none";img.classList.remove("is-overlay");activeImageId=null;}}else if(overlayImage){if(activeVideoId!==null){video.pause();video.removeAttribute("src");activeVideoId=null;}video.style.display="none";img.style.display="block";img.classList.remove("is-overlay");img.style.width="100%";img.style.height="100%";img.style.inset="0";applyVisualStyle(img,overlayImage,playhead-overlayImage.start);if(activeImageId!==overlayImage.id){img.src=assetUrl(overlayImage.assetId);activeImageId=overlayImage.id;}}else{if(activeVideoId!==null){video.pause();video.removeAttribute("src");activeVideoId=null;}video.style.display="none";img.style.display="none";activeImageId=null;placeholder.style.display="block";}const texts=clips.filter(c=>c.track==="text"&&playhead>=c.start&&playhead<c.start+c.duration);$("textPreview").replaceChildren();texts.forEach(c=>{const span=document.createElement("div");span.textContent=c.text||"Text";span.style.position="absolute";const motion=animatedValues(c,playhead-c.start);span.style.left=(50+motion.x)+"%";span.style.top=(50+motion.y)+"%";span.style.transform="translate(-50%,-50%) scale("+motion.scale+") rotate("+motion.rotation+"deg)";span.style.opacity=String(Math.max(0,Math.min(1,motion.opacity)));span.style.maxWidth="88%";span.style.boxSizing="border-box";span.style.color=c.color||"#ffffff";span.style.fontFamily=c.font||"Arial, sans-serif";span.style.fontSize=Math.max(10,Math.min(120,Number(c.fontSize)||42))+"px";span.style.fontWeight=String(c.weight||800);span.style.fontStyle=c.italic?"italic":"normal";span.style.textAlign=c.align||"center";span.style.lineHeight="1.12";span.style.whiteSpace="pre-wrap";span.style.overflowWrap="anywhere";span.style.padding=(Number(c.bgOpacity||0)>0?"8px 13px":"2px 4px");span.style.borderRadius="7px";span.style.backgroundColor=hexRgba(c.bgColor||"#000000",Number(c.bgOpacity)||0);span.style.textShadow="0 3px 10px #000";$("textPreview").append(span);});$("textPreview").style.display=texts.length?"block":"none";const dims=(project.ratio==="custom"?String(project.resolution||"1920x1080").split("x"):[]),frame=project.ratio==="9:16"?"9 / 16":project.ratio==="1:1"?"1 / 1":project.ratio==="4:5"?"4 / 5":project.ratio==="custom"&&dims.length===2?dims[0]+" / "+dims[1]:"16 / 9";$("previewStage").style.aspectRatio=frame;video.style.objectFit=$("previewFit").value;img.style.objectFit="contain";}function syncAudio(){const active=clips.filter(c=>c.type==="audio"&&playhead>=c.start&&playhead<c.start+c.duration);const keep=new Set(active.map(c=>c.id));for(const [id,node] of audioNodes){if(!keep.has(id)){node.pause();node.removeAttribute("src");audioNodes.delete(id);}}for(const c of active){let node=audioNodes.get(c.id);if(!node){node=new Audio(assetUrl(c.assetId));audioNodes.set(c.id,node);}const local=playhead-c.start;node.volume=Math.max(0,Math.min(1,(c.volume??1)*clipEnvelope(c,local)));const ct=c.sourceStart+local;if(Math.abs(node.currentTime-ct)>.5){try{node.currentTime=ct;}catch(e){}}if(isPlaying)node.play().catch(()=>{});else node.pause();}}
+function renderPreview(){const base=activeAt(playhead,"video"),over=activeAt(playhead,"overlay"),primary=over&&over.type==="video"?over:base,overlayImage=over&&over.type==="image"?over:null,video=$("videoPreview"),img=$("imagePreview"),placeholder=$("previewPlaceholder");placeholder.style.display="none";if(primary&&primary.type==="video"){video.style.display="block";const local=playhead-primary.start;applyVisualStyle(video,primary,local);video.dataset.clipId=primary.id;video.volume=Math.max(0,Math.min(1,(primary.volume??1)*clipEnvelope(primary,local)));const url=assetUrl(primary.assetId);if(activeVideoId!==primary.id){video.pause();video.src=url;activeVideoId=primary.id;video.load();}const ct=primary.sourceStart+Math.max(0,local);try{if(video.readyState>=1&&Math.abs(video.currentTime-ct)>.65)video.currentTime=Math.min(ct,Math.max(0,primary.duration));}catch(e){}if(isPlaying){if(video.paused)video.play().catch(()=>{});}else video.pause();if(overlayImage){img.style.display="block";img.classList.add("is-overlay");img.style.width="48%";img.style.height="48%";img.style.inset="auto 4% 4% auto";applyVisualStyle(img,overlayImage,playhead-overlayImage.start);img.dataset.clipId=overlayImage.id;if(activeImageId!==overlayImage.id){img.src=assetUrl(overlayImage.assetId);activeImageId=overlayImage.id;}}else{img.style.display="none";img.classList.remove("is-overlay");activeImageId=null;}}else if(overlayImage){if(activeVideoId!==null){video.pause();video.removeAttribute("src");activeVideoId=null;}video.style.display="none";img.style.display="block";img.classList.remove("is-overlay");img.style.width="100%";img.style.height="100%";img.style.inset="0";applyVisualStyle(img,overlayImage,playhead-overlayImage.start);img.dataset.clipId=overlayImage.id;if(activeImageId!==overlayImage.id){img.src=assetUrl(overlayImage.assetId);activeImageId=overlayImage.id;}}else{if(activeVideoId!==null){video.pause();video.removeAttribute("src");activeVideoId=null;}video.style.display="none";img.style.display="none";activeImageId=null;placeholder.style.display="block";}const texts=clips.filter(c=>c.track==="text"&&playhead>=c.start&&playhead<c.start+c.duration);$("textPreview").replaceChildren();texts.forEach(c=>{const span=document.createElement("div");span.textContent=c.text||"Text";span.dataset.clipId=c.id;span.style.position="absolute";const motion=animatedValues(c,playhead-c.start);span.style.left=(50+motion.x)+"%";span.style.top=(50+motion.y)+"%";span.style.transform="translate(-50%,-50%) scale("+motion.scale+") rotate("+motion.rotation+"deg)";span.style.opacity=String(Math.max(0,Math.min(1,motion.opacity)));span.style.maxWidth="88%";span.style.boxSizing="border-box";span.style.color=c.color||"#ffffff";span.style.fontFamily=c.font||"Arial, sans-serif";span.style.fontSize=Math.max(10,Math.min(120,Number(c.fontSize)||42))+"px";span.style.fontWeight=String(c.weight||800);span.style.fontStyle=c.italic?"italic":"normal";span.style.textAlign=c.align||"center";span.style.lineHeight="1.12";span.style.whiteSpace="pre-wrap";span.style.overflowWrap="anywhere";span.style.padding=(Number(c.bgOpacity||0)>0?"8px 13px":"2px 4px");span.style.borderRadius="7px";span.style.backgroundColor=hexRgba(c.bgColor||"#000000",Number(c.bgOpacity)||0);span.style.textShadow="0 3px 10px #000";$("textPreview").append(span);});$("textPreview").style.display=texts.length?"block":"none";const dims=(project.ratio==="custom"?String(project.resolution||"1920x1080").split("x"):[]),frame=project.ratio==="9:16"?"9 / 16":project.ratio==="1:1"?"1 / 1":project.ratio==="4:5"?"4 / 5":project.ratio==="custom"&&dims.length===2?dims[0]+" / "+dims[1]:"16 / 9";$("previewStage").style.aspectRatio=frame;video.style.objectFit=$("previewFit").value;img.style.objectFit="contain";}function syncAudio(){const active=clips.filter(c=>c.type==="audio"&&playhead>=c.start&&playhead<c.start+c.duration);const keep=new Set(active.map(c=>c.id));for(const [id,node] of audioNodes){if(!keep.has(id)){node.pause();node.removeAttribute("src");audioNodes.delete(id);}}for(const c of active){let node=audioNodes.get(c.id);if(!node){node=new Audio(assetUrl(c.assetId));audioNodes.set(c.id,node);}const local=playhead-c.start;node.volume=Math.max(0,Math.min(1,(c.volume??1)*clipEnvelope(c,local)));const ct=c.sourceStart+local;if(Math.abs(node.currentTime-ct)>.5){try{node.currentTime=ct;}catch(e){}}if(isPlaying)node.play().catch(()=>{});else node.pause();}}
 function setPlayhead(t){playhead=Math.max(0,Math.min(duration(),t));$("playhead").style.left=(116+playhead*scale)+"px";$("currentTime").textContent=fmt(playhead);$("totalTime").textContent=fmt(duration());renderPreview();syncAudio();}
 function frame(now){if(!isPlaying)return;if(!lastFrame)lastFrame=now;playhead+=(now-lastFrame)/1000;lastFrame=now;if(playhead>=duration()){playhead=duration();pause();}setPlayhead(playhead);raf=requestAnimationFrame(frame);}
 function play(){if(isPlaying)return;if(playhead>=duration())playhead=0;isPlaying=true;lastFrame=0;$("playBtn").textContent="Ⅱ";renderPreview();syncAudio();raf=requestAnimationFrame(frame);}
@@ -331,6 +351,46 @@ function addKeyframe(){
  renderKeyframes();renderPreview();scheduleSave();
  notify("Keyframe added at "+fmt(time)+".");
 }
+
+function previewPointerDown(e){
+ const target=e.target.closest("[data-clip-id]");if(!target||isPlaying)return;
+ const c=clips.find(item=>item.id===target.dataset.clipId);if(!c||!(c.type==="video"||c.type==="image"||c.type==="text"))return;
+ e.preventDefault();pause();selectClip(c.id);snapshot();
+ const local=Math.max(0,Math.min(c.duration,playhead-c.start)),motion=animatedValues(c,local);
+ dragState={kind:"preview",id:c.id,pointerId:e.pointerId,startX:e.clientX,startY:e.clientY,rect:target.getBoundingClientRect(),stageRect:$("previewStage").getBoundingClientRect(),local,base:motion,orig:clone(c),moved:false};
+ $("previewStage").classList.add("is-dragging");
+ try{target.setPointerCapture(e.pointerId);}catch{}
+}
+function setPreviewPosition(c,local,x,y){
+ const frames=Array.isArray(c.keyframes)?c.keyframes:[];
+ if(local>.025||frames.length){
+  if(!frames.length)c.keyframes=[{time:0,values:animationBase(c)}];
+  let frame=c.keyframes.find(k=>Math.abs(k.time-local)<.04);
+  if(!frame){frame={time:Number(local.toFixed(3)),values:animatedValues(c,local)};c.keyframes.push(frame);}
+  frame.values={...(frame.values||{}),x,y};c.keyframes.sort((a,b)=>a.time-b.time);
+ }else{c.x=x;c.y=y;}
+}
+function previewPointerMove(e){
+ const d=dragState;if(!d||d.kind!=="preview"||e.pointerId!==d.pointerId)return;
+ const c=clips.find(item=>item.id===d.id);if(!c)return;
+ const width=Math.max(1,d.rect.width),height=Math.max(1,d.rect.height);
+ let dx=e.clientX-d.startX,dy=e.clientY-d.startY;
+ let x=d.base.x+dx/width*100,y=d.base.y+dy/height*100;
+ if(c.type==="text"){x=d.base.x+dx/Math.max(1,d.stageRect.width)*100;y=d.base.y+dy/Math.max(1,d.stageRect.height)*100;}
+ const limit=c.type==="text"?45:100;x=Math.max(-limit,Math.min(limit,x));y=Math.max(-limit,Math.min(limit,y));
+ setPreviewPosition(c,d.local,Number(x.toFixed(2)),Number(y.toFixed(2)));
+ d.moved=true;
+ if(c.type==="text"){$("propTextX").value=x.toFixed(1);$("propTextY").value=y.toFixed(1);}else{$("propX").value=x.toFixed(1);$("propY").value=y.toFixed(1);}
+ renderPreview();renderKeyframes();
+}
+function previewPointerUp(e){
+ const d=dragState;if(!d||d.kind!=="preview"||e.pointerId!==d.pointerId)return;
+ $("previewStage").classList.remove("is-dragging");
+ if(d.moved){renderInspector();renderTimeline();scheduleSave();notify("Preview position updated"+(d.local>.025?" and keyframe saved.":"."));}
+ else{undoStack.pop();updateHistoryButtons();}
+ dragState=null;
+}
+
 function addText(){const text=prompt("Enter the text for your video:","Your title here");if(!text||!text.trim())return;snapshot();clips.push({id:uid(),name:"Text overlay",type:"text",track:"text",text:text.trim().slice(0,180),color:"#ffffff",fontSize:42,font:"Arial, sans-serif",weight:800,align:"center",bgColor:"#000000",bgOpacity:0,x:0,y:0,start:playhead,duration:5,sourceStart:0});selectClip(clips[clips.length-1].id);renderAll();scheduleSave();}
 function splitSelected(){const c=selectedClip();if(!c||playhead<=c.start+.15||playhead>=c.start+c.duration-.15){notify("Move the playhead inside the selected clip before splitting.");return;}snapshot();const first=playhead-c.start,second={...clone(c),id:uid(),name:c.name+" (split)",start:playhead,sourceStart:(c.sourceStart||0)+first,duration:c.duration-first};if(Array.isArray(c.keyframes)){second.keyframes=c.keyframes.filter(k=>k.time>=first).map(k=>({...k,time:Number((k.time-first).toFixed(3))}));c.keyframes=c.keyframes.filter(k=>k.time<first);}c.duration=first;clips.push(second);selectClip(second.id);renderAll();scheduleSave();}
 function deleteSelected(){const c=selectedClip();if(!c)return;snapshot();clips=clips.filter(x=>x.id!==c.id);selectedId=null;renderAll();scheduleSave();}
@@ -359,6 +419,10 @@ document.querySelectorAll('input[type="range"]').forEach(el=>{updateRangeFill(el
 $("ruler").addEventListener("pointerdown",rulerSeek);
 $("timelineScroll").addEventListener("click",e=>{if(e.target.classList.contains("track-content")||e.target.classList.contains("track-row")){const rect=e.currentTarget.getBoundingClientRect();const x=e.clientX-rect.left+e.currentTarget.scrollLeft-116;pause();setPlayhead(Math.max(0,x/scale));}});
 $("previewFit").addEventListener("change",renderPreview);
+$("previewStage").addEventListener("pointerdown",previewPointerDown);
+window.addEventListener("pointermove",previewPointerMove);
+window.addEventListener("pointerup",previewPointerUp);
+window.addEventListener("pointercancel",previewPointerUp);
 $("exportBtn").addEventListener("click",()=>notify("The editor and timeline are active. Video rendering/export is the next development milestone."));
 window.addEventListener("beforeunload",()=>{if(project&&db){clearTimeout(saveTimer);saveProject();}for(const u of urls.values())URL.revokeObjectURL(u);for(const a of audioNodes.values())a.pause();});
 initialise();
