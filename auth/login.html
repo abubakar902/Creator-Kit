@@ -1,1 +1,93 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#100b20"><title>Sign in · TrivexaAI</title><link rel="icon" href="../trivexaai-icon.png"><script type="module" src="./auth-client.js"></script><style>:root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:radial-gradient(circle at 50% 0,#39245e,transparent 34rem),#100b20;color:#f8f6fc;font-family:system-ui,Arial;padding:22px}.card{width:min(440px,100%);padding:34px;border:1px solid #392951;border-radius:24px;background:#1a1230;text-align:center;box-shadow:0 25px 70px #0008}.brand{font-size:24px;font-weight:850;margin-bottom:26px}.brand span{color:#e879f9}h1{margin:0 0 8px;font-size:29px}p{color:#b8accd;line-height:1.6}button{width:100%;padding:15px;border:0;border-radius:12px;background:white;color:#211830;font-size:15px;font-weight:800;cursor:pointer}button:disabled{opacity:.6}#status{min-height:42px;margin-top:14px;font-size:13px;color:#d8c9f0}a{color:#d8c9f0;text-decoration:none;font-size:13px}</style></head><body><main class="card"><div class="brand">Trivexa<span>AI</span></div><h1>Welcome to TrivexaAI</h1><p>Continue with Google to use TrivexaAI tools and manage your account.</p><button id="go">Continue with Google</button><div id="status" role="status">Your Google password is never shared with TrivexaAI.</div><a href="../">← Back to website</a></main><script type="module">import{auth,authReady,authConfigured,signInWithGoogle,getAccountProfile,getSafeNextUrl}from"./auth-client.js";const b=document.getElementById("go"),s=document.getElementById("status"),next=getSafeNextUrl();if(!authConfigured){b.disabled=true;s.textContent="Firebase setup is not complete yet. Please try again after the website administrator enables Google sign-in.";}else{authReady.then(async()=>{if(auth?.currentUser){try{await getAccountProfile();location.replace(next);}catch(e){s.textContent=e.message;}}});}b.onclick=async()=>{b.disabled=true;s.textContent="Opening Google sign-in…";try{const result=await signInWithGoogle();if(!result?.redirecting)location.replace(next);}catch(e){s.textContent=e.message||"Sign-in failed. Please try again.";b.disabled=false;}};</script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="theme-color" content="#100b20">
+  <title>Sign in · TrivexaAI</title>
+  <link rel="icon" href="../trivexaai-icon.png">
+  <script type="module" src="./auth-client.js"></script>
+  <style>
+    :root{color-scheme:dark;--bg:#100b20;--panel:#1a1230;--panel2:#21183a;--purple:#9b6cff;--pink:#e879f9;--text:#f8f5ff;--muted:#b8accd;--border:#392951}
+    *{box-sizing:border-box}
+    body{margin:0;min-height:100vh;display:grid;place-items:center;overflow-x:hidden;padding:26px 16px;background:radial-gradient(ellipse at 50% -15%,rgba(155,108,255,.38),transparent 42rem),radial-gradient(circle at 10% 85%,rgba(232,121,249,.1),transparent 25rem),var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+    body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.28;background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:42px 42px;mask-image:linear-gradient(to bottom,#000,transparent 85%)}
+    .shell{position:relative;width:min(100%,470px)}
+    .brand{display:flex;align-items:center;justify-content:center;gap:12px;margin:0 auto 22px;text-decoration:none;color:var(--text)}
+    .brand img{width:54px;height:54px;border-radius:16px;object-fit:cover;box-shadow:0 8px 28px rgba(155,108,255,.3);background:#171126}
+    .brand-name{font-size:27px;font-weight:900;letter-spacing:-1px}
+    .brand-name span{background:linear-gradient(100deg,#c4b5fd,#e879f9);-webkit-background-clip:text;background-clip:text;color:transparent}
+    .card{padding:clamp(25px,6vw,38px);border:1px solid rgba(196,181,253,.2);border-radius:26px;background:linear-gradient(145deg,rgba(33,24,58,.96),rgba(26,18,48,.98));box-shadow:0 28px 90px rgba(0,0,0,.44),inset 0 1px 0 rgba(255,255,255,.045);text-align:center;backdrop-filter:blur(16px)}
+    .eyebrow{display:inline-flex;align-items:center;gap:7px;padding:7px 11px;border:1px solid rgba(155,108,255,.28);border-radius:999px;background:rgba(155,108,255,.1);color:#e4d5ff;font-size:10px;font-weight:850;letter-spacing:1.1px;text-transform:uppercase}
+    h1{margin:18px 0 10px;font-size:clamp(27px,7vw,34px);line-height:1.12;letter-spacing:-1.1px}
+    .intro{margin:0 auto;color:var(--muted);font-size:14px;line-height:1.75;max-width:340px}
+    .benefits{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:25px 0}
+    .benefit{display:flex;align-items:center;gap:9px;padding:11px 12px;border:1px solid rgba(196,181,253,.12);border-radius:13px;background:rgba(10,7,20,.22);text-align:left;color:#e7def5;font-size:11px;font-weight:650}
+    .benefit span{font-size:17px}
+    .google-btn{display:flex;align-items:center;justify-content:center;gap:11px;width:100%;min-height:54px;padding:13px 18px;border:0;border-radius:14px;background:#fff;color:#211830;font-size:14px;font-weight:850;cursor:pointer;box-shadow:0 8px 22px rgba(0,0,0,.2);transition:transform .18s ease,box-shadow .18s ease}
+    .google-btn:hover{transform:translateY(-2px);box-shadow:0 12px 28px rgba(0,0,0,.28)}
+    .google-btn:disabled{opacity:.62;cursor:wait;transform:none}
+    .google-g{display:grid;place-items:center;width:23px;height:23px;border-radius:50%;font-size:19px;font-weight:900;background:conic-gradient(from -45deg,#4285f4 0 25%,#34a853 25% 50%,#fbbc05 50% 75%,#ea4335 75%);color:white;text-shadow:0 1px 2px rgba(0,0,0,.28)}
+    #status{min-height:24px;margin:14px 0 0;color:#d8c9f0;font-size:12px;line-height:1.6}
+    .secure{display:flex;align-items:center;justify-content:center;gap:7px;margin:15px 0 0;color:#9387a9;font-size:10px}
+    .back{display:inline-flex;align-items:center;justify-content:center;margin-top:22px;color:#d9c9ff;font-size:12px;font-weight:700;text-decoration:none}
+    .back:hover{color:#fff}
+    .foot{text-align:center;margin:17px 0 0;color:#7f748f;font-size:10px}
+    @media(max-width:390px){.card{padding:24px 18px;border-radius:21px}.brand{margin-bottom:17px}.brand img{width:47px;height:47px}.brand-name{font-size:24px}.benefits{gap:7px}.benefit{padding:10px 8px;font-size:10px}}
+    @media(prefers-reduced-motion:reduce){*,*:before,*:after{transition:none!important}}
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <a class="brand" href="../" aria-label="TrivexaAI home">
+      <img src="../trivexaai-icon.png" alt="TrivexaAI logo" width="54" height="54">
+      <span class="brand-name">Trivexa<span>AI</span></span>
+    </a>
+    <section class="card">
+      <div class="eyebrow"><span aria-hidden="true">✦</span> Your creator workspace</div>
+      <h1>Bring your ideas to life.</h1>
+      <p class="intro">Sign in with Google to open your TrivexaAI workspace, use creator tools and manage your account.</p>
+      <div class="benefits" aria-label="Account benefits">
+        <div class="benefit"><span aria-hidden="true">⚡</span> Access your tools</div>
+        <div class="benefit"><span aria-hidden="true">☁️</span> Your account dashboard</div>
+        <div class="benefit"><span aria-hidden="true">🎨</span> Creative workspace</div>
+        <div class="benefit"><span aria-hidden="true">🔐</span> Secure Google sign-in</div>
+      </div>
+      <button class="google-btn" id="go" type="button"><span class="google-g" aria-hidden="true">G</span><span>Continue with Google</span></button>
+      <div id="status" role="status" aria-live="polite">Your Google password is handled by Google. TrivexaAI never sees it.</div>
+      <div class="secure"><span aria-hidden="true">🔒</span> Sign-in protected by Firebase Authentication</div>
+      <a class="back" href="../">← Back to TrivexaAI</a>
+    </section>
+    <p class="foot">© 2026 TrivexaAI · Create something worth sharing.</p>
+  </main>
+  <script type="module">
+    import {auth,authReady,authConfigured,signInWithGoogle,getAccountProfile,getSafeNextUrl} from "./auth-client.js";
+    const button=document.getElementById("go");
+    const status=document.getElementById("status");
+    const next=getSafeNextUrl();
+    if(!authConfigured){
+      button.disabled=true;
+      status.textContent="Google sign-in is not configured yet. Please try again later.";
+    }else{
+      authReady.then(async()=>{
+        if(auth?.currentUser){
+          try{await getAccountProfile();location.replace(next);}
+          catch(error){status.textContent=error.message||"We could not load your account. Please try again.";}
+        }
+      });
+    }
+    button.onclick=async()=>{
+      button.disabled=true;
+      status.textContent="Connecting securely to Google…";
+      try{
+        const result=await signInWithGoogle();
+        if(!result?.redirecting)location.replace(next);
+      }catch(error){
+        status.textContent=error.message||"Sign-in failed. Please try again.";
+        button.disabled=false;
+      }
+    };
+  </script>
+</body>
+</html>
