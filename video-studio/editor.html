@@ -237,7 +237,7 @@
    <p class="export-modal-status" id="exportModalStatus">Ready to export</p>
    <p class="export-modal-detail" id="exportModalDetail">Your project stays on this device while it is being exported.</p>
    <div class="export-info-grid">
-    <div class="export-info"><small>FORMAT</small><strong>WebM</strong></div>
+    <div class="export-info"><small>FORMAT</small><strong>MP4</strong></div>
     <div class="export-info"><small>FRAME RATE</small><strong id="exportFpsInfo">30 FPS</strong></div>
     <div class="export-info"><small>OUTPUT SIZE</small><strong id="exportSizeInfo">1920 × 1080</strong></div>
    </div>
@@ -755,7 +755,7 @@ function hideExportModal(){
 function downloadLastExport(){
  if(!lastExportBlob)return;
  const url=URL.createObjectURL(lastExportBlob),link=document.createElement("a");
- link.href=url;link.download=lastExportFileName||"trivexaai-video.webm";
+ link.href=url;link.download=lastExportFileName||"trivexaai-video.mp4";
  document.body.append(link);link.click();link.remove();
  setTimeout(()=>URL.revokeObjectURL(url),60000);
 }
@@ -792,7 +792,7 @@ async function exportVideo(){
  const button=$("exportBtn"),originalPlayhead=playhead,exportClips=clone(clips);
  const total=Math.max(0,...exportClips.map(c=>c.start+c.duration));
  if(total<=0){notify("There is nothing to export yet.");return;}
- exportBusy=true;exportController={cancelled:false,cancelWaiters:new Set(),stopRecording:null};
+ exportBusy=true;exportController={cancelled:false,cancelWaiters:new Set(),stopRecording:null};lastExportBlob=null;lastExportFileName="";
  button.disabled=true;button.textContent="Preparing…";showExportModal();
  let audioContext=null,canvasStream=null,recordingStream=null,recordingFrame=0,recorder=null,watchdog=0,stopTimer=0;
  const mediaItems=[],chunks=[];
@@ -854,14 +854,16 @@ async function exportVideo(){
   const tracks=[...canvasStream.getVideoTracks()];
   if(audioDestination)tracks.push(...audioDestination.stream.getAudioTracks());
   recordingStream=new MediaStream(tracks);
-  const mimeTypes=["video/webm;codecs=vp9,opus","video/webm;codecs=vp8,opus","video/webm"];
+  const mimeTypes=["video/mp4","video/mp4;codecs=avc1.424028,mp4a.40.2","video/mp4;codecs=avc1.640028,mp4a.40.2"];
   const mimeType=mimeTypes.find(type=>MediaRecorder.isTypeSupported(type));
-  recorder=mimeType?new MediaRecorder(recordingStream,{mimeType,videoBitsPerSecond:Math.min(16000000,Math.max(3000000,size.width*size.height*2))}):new MediaRecorder(recordingStream);
+  if(!mimeType)throw new Error("MP4 export is not supported by this browser. Please use the latest Google Chrome or Microsoft Edge.");
+  recorder=new MediaRecorder(recordingStream,{mimeType,videoBitsPerSecond:Math.min(16000000,Math.max(3000000,size.width*size.height*2))});
+  if(!String(recorder.mimeType||"").toLowerCase().startsWith("video/mp4"))throw new Error("This browser did not create an MP4 recording. Please update Chrome or Edge and try again.");
   const recordingPromise=new Promise((resolve,reject)=>{
    recorder.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data);};
    recorder.onerror=e=>{recordingFailure=e.error||new Error("The browser stopped the export unexpectedly.");reject(recordingFailure);};
    recorder.onstop=()=>{
-    const blob=new Blob(chunks,{type:recorder.mimeType||"video/webm"});
+    const blob=new Blob(chunks,{type:recorder.mimeType||"video/mp4"});
     if(exportController.cancelled){const error=new Error("Export cancelled by you.");error.name="AbortError";reject(error);}
     else if(recordingFailure)reject(recordingFailure);
     else if(!timelineFinished)reject(new Error("The recorder stopped before the whole timeline finished. Please retry using 720p quality."));
@@ -886,9 +888,9 @@ async function exportVideo(){
     if(exportController.cancelled){stopRecording();return;}
     const elapsed=Math.max(0,(now-startedAt)/1000),time=Math.min(total,elapsed);
     mediaItems.forEach(item=>{
-     const c=item.clip,active=time>=c.start&&time<c.start+c.duration;
+     const c=item.clip,media=item.media,active=time>=c.start&&time<c.start+c.duration;
      if(active){
-      const local=time-c.start,media=item.media;
+      const local=time-c.start;
       if(!item.wasActive){
        const expected=Math.max(0,(c.sourceStart||0)+local);
        try{if(Number.isFinite(media.duration))media.currentTime=Math.min(expected,Math.max(0,media.duration-.03));}catch(e){}
@@ -921,7 +923,7 @@ async function exportVideo(){
     }
     if(elapsed>=total){
      timelineFinished=true;
-     setExportModalProgress(97,"Finishing your video","Finalizing the WebM file. Please keep this tab open.");
+     setExportModalProgress(97,"Finishing your video","Finalizing the MP4 file. Please keep this tab open.");
      stopTimer=setTimeout(()=>{if(recorder&&recorder.state!=="inactive"){try{recorder.stop();}catch(e){recordingFailure=e;}}},250);
      return;
     }
@@ -932,8 +934,8 @@ async function exportVideo(){
   const blob=await recordingPromise;
   if(!blob||blob.size<1000)throw new Error("The exported video is empty. Please try again with another media file.");
   lastExportBlob=blob;
-  lastExportFileName=(safeName(project.name).replace(/\s+/g,"-")||"trivexaai-video")+".webm";
-  setExportModalProgress(100,"Your video is ready!","The WebM export is complete. Download it now, or use Download again later in this window.");
+  lastExportFileName=(safeName(project.name).replace(/\s+/g,"-")||"trivexaai-video")+".mp4";
+  setExportModalProgress(100,"Your video is ready!","The MP4 export is complete. Download it now, or use Download again later in this window.");
   $("exportDialogTitle").textContent="Export complete";
   $("exportQualityRow").hidden=true;
   $("exportCancelBtn").hidden=true;
@@ -943,8 +945,8 @@ async function exportVideo(){
   link.href=url;link.download=lastExportFileName;
   document.body.append(link);link.click();link.remove();
   setTimeout(()=>URL.revokeObjectURL(url),60000);
-  status("Export complete · WebM");
-  notify("Export complete! Your video was downloaded as a WebM file.");
+  status("Export complete · MP4");
+  notify("Export complete! Your MP4 video was downloaded.");
  }catch(error){
   const cancelled=exportController?.cancelled||error?.name==="AbortError";
   status(cancelled?"Export cancelled":"Export failed");
