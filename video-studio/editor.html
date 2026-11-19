@@ -140,10 +140,6 @@
 <div class="prop"><label for="propBgOpacity">Background opacity</label><input id="propBgOpacity" type="range" min="0" max="1" step="0.05" value="0"></div>
 <div class="prop"><label for="propItalic"><input id="propItalic" type="checkbox" style="width:auto;vertical-align:middle"> Italic text</label></div>
 <div class="prop-grid">
-<div class="prop"><label for="propTextX">Text position X (%)</label><input id="propTextX" type="number" min="-45" max="45" step="1" value="0"></div>
-<div class="prop"><label for="propTextY">Text position Y (%)</label><input id="propTextY" type="number" min="-45" max="45" step="1" value="0"></div>
-</div>
-<div class="prop-grid">
 <div class="prop"><label for="propTextScale">Text scale</label><input id="propTextScale" type="range" min="0.1" max="3" step="0.05" value="1"></div>
 <div class="prop"><label for="propTextRotation">Text rotation (°)</label><input id="propTextRotation" type="range" min="-180" max="180" step="1" value="0"></div>
 </div>
@@ -294,8 +290,6 @@ function renderInspector(){
   $("propBgColor").value=c.bgColor||"#000000";
   $("propBgOpacity").value=c.bgOpacity??0;
   $("propItalic").checked=!!c.italic;
-  $("propTextX").value=c.x??0;
-  $("propTextY").value=c.y??0;
   $("propTextScale").value=c.scale??1;
   $("propTextRotation").value=c.rotation??0;
   $("propTextOpacity").value=c.opacity??1;
@@ -364,8 +358,9 @@ function renderKeyframes(){
 function addKeyframe(){
  const c=selectedClip();if(!c||!(c.type==="video"||c.type==="image"||c.type==="text"))return;
  const isText=c.type==="text";
+ const motion=animatedValues(c,Math.max(0,Math.min(c.duration,playhead-c.start)));
  const values=isText?{
-  x:Number($("propTextX").value)||0,y:Number($("propTextY").value)||0,
+  x:motion.x,y:motion.y,
   scale:Number($("propTextScale").value)||1,rotation:Number($("propTextRotation").value)||0,
   opacity:Number($("propTextOpacity").value)
  }:{
@@ -387,11 +382,15 @@ function addKeyframe(){
 function previewPointerDown(e){
  const target=e.target.closest("[data-clip-id]");if(!target||isPlaying)return;
  const c=clips.find(item=>item.id===target.dataset.clipId);if(!c||!(c.type==="video"||c.type==="image"||c.type==="text"))return;
- e.preventDefault();pause();if(selectedId!==c.id){selectedId=c.id;renderTimeline();renderInspector();}snapshot();
+ e.preventDefault();
+ const stage=$("previewStage"),targetRect=target.getBoundingClientRect(),stageRect=stage.getBoundingClientRect();
+ try{stage.setPointerCapture(e.pointerId);}catch{}
+ pause();
+ if(selectedId!==c.id){selectedId=c.id;renderTimeline();renderInspector();}
+ snapshot();
  const local=Math.max(0,Math.min(c.duration,playhead-c.start)),motion=animatedValues(c,local);
- dragState={kind:"preview",id:c.id,pointerId:e.pointerId,startX:e.clientX,startY:e.clientY,rect:target.getBoundingClientRect(),stageRect:$("previewStage").getBoundingClientRect(),local,base:motion,orig:clone(c),moved:false};
- $("previewStage").classList.add("is-dragging");
- try{target.setPointerCapture(e.pointerId);}catch{}
+ dragState={kind:"preview",id:c.id,pointerId:e.pointerId,startX:e.clientX,startY:e.clientY,rect:targetRect,stageRect,local,base:motion,orig:clone(c),moved:false};
+ stage.classList.add("is-dragging");
 }
 function setPreviewPosition(c,local,x,y){
  c.keyframes=Array.isArray(c.keyframes)?c.keyframes:[];
@@ -399,12 +398,12 @@ function setPreviewPosition(c,local,x,y){
  const time=Number(Math.max(0,Math.min(c.duration,local)).toFixed(3));
  const exact=frames.find(k=>Math.abs(k.time-time)<.04);
  if(c.autoNextKeyframe){
-  if(exact){exact.values={...(exact.values||{}),x,y};return;}
+  if(exact){exact.values={...(exact.values||{}),x,y};c.autoNextKeyframe=false;return;}
   const frame={time,values:{...animatedValues(c,local),x,y}};
   frames.push(frame);frames.sort((a,b)=>a.time-b.time);c.autoNextKeyframe=false;return;
  }
  if(exact){exact.values={...(exact.values||{}),x,y};}
- else if(!frames.length&&local<=.025){c.x=x;c.y=y;}
+ else{c.x=x;c.y=y;}
 }
 function previewPointerMove(e){
  const d=dragState;if(!d||d.kind!=="preview"||e.pointerId!==d.pointerId)return;
@@ -416,7 +415,6 @@ function previewPointerMove(e){
  const limit=c.type==="text"?45:100;x=Math.max(-limit,Math.min(limit,x));y=Math.max(-limit,Math.min(limit,y));
  setPreviewPosition(c,d.local,Number(x.toFixed(2)),Number(y.toFixed(2)));
  d.moved=true;
- if(c.type==="text"){$("propTextX").value=x.toFixed(1);$("propTextY").value=y.toFixed(1);}else{$("propX").value=x.toFixed(1);$("propY").value=y.toFixed(1);}
  renderPreview();renderKeyframes();
 }
 function previewPointerUp(e){
@@ -449,7 +447,7 @@ function readPropertiesDraft(c){
  if(c.type==="text"){
   d.text=$("propText").value.slice(0,180);d.color=$("propTextColor").value;d.fontSize=Math.max(10,Math.min(120,Number($("propFontSize").value)||42));d.font=$("propFont").value;
   d.weight=Number($("propWeight").value)||700;d.align=$("propTextAlign").value;d.bgColor=$("propBgColor").value;d.bgOpacity=Math.max(0,Math.min(1,Number($("propBgOpacity").value)||0));
-  d.italic=$("propItalic").checked;d.x=Math.max(-45,Math.min(45,Number($("propTextX").value)||0));d.y=Math.max(-45,Math.min(45,Number($("propTextY").value)||0));
+  d.italic=$("propItalic").checked;
   d.scale=Math.max(.1,Math.min(3,Number($("propTextScale").value)||1));d.rotation=Math.max(-180,Math.min(180,Number($("propTextRotation").value)||0));d.opacity=Math.max(0,Math.min(1,Number($("propTextOpacity").value)||0));
  }
  return d;
