@@ -16,10 +16,10 @@
 .prop input[type="range"],.zoom input[type="range"]{appearance:none;-webkit-appearance:none;width:100%;height:24px;padding:0!important;border:0!important;border-radius:0;background:transparent;cursor:pointer;--range-progress:0%;touch-action:pan-y}
 .prop input[type="range"]:focus-visible,.zoom input[type="range"]:focus-visible{outline:2px solid #c99bff;outline-offset:3px;border-radius:8px}
 .prop input[type="range"]::-webkit-slider-runnable-track,.zoom input[type="range"]::-webkit-slider-runnable-track{height:6px;border-radius:999px;background:linear-gradient(to right,#a75cff 0%,#a75cff var(--range-progress),#3a2b4d var(--range-progress),#3a2b4d 100%)}
-.prop input[type="range"]::-webkit-slider-thumb,.zoom input[type="range"]::-webkit-slider-thumb{appearance:none;-webkit-appearance:none;width:15px;height:15px;margin-top:-4.5px;border-radius:50%;border:3px solid #a75cff;background:#f8efff;box-shadow:0 1px 5px #0009}
+.prop input[type="range"]::-webkit-slider-thumb,.zoom input[type="range"]::-webkit-slider-thumb{appearance:none;-webkit-appearance:none;width:15px;height:15px;margin-top:-4.5px;border-radius:50%;border:3px solid var(--range-thumb-border,#a75cff);background:#f8efff;box-shadow:0 1px 5px #0009}
 .prop input[type="range"]::-moz-range-track,.zoom input[type="range"]::-moz-range-track{height:6px;border-radius:999px;background:#3a2b4d}
 .prop input[type="range"]::-moz-range-progress,.zoom input[type="range"]::-moz-range-progress{height:6px;border-radius:999px;background:#a75cff}
-.prop input[type="range"]::-moz-range-thumb,.zoom input[type="range"]::-moz-range-thumb{width:10px;height:10px;border-radius:50%;border:3px solid #a75cff;background:#f8efff;box-shadow:0 1px 5px #0009}
+.prop input[type="range"]::-moz-range-thumb,.zoom input[type="range"]::-moz-range-thumb{width:10px;height:10px;border-radius:50%;border:3px solid var(--range-thumb-border,#a75cff);background:#f8efff;box-shadow:0 1px 5px #0009}
 .zoom input[type="range"]{width:90px;height:18px}
 .keyframe-panel{margin:15px 0;padding:11px;border:1px solid #493365;border-radius:10px;background:#191129}
 .keyframe-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
@@ -225,6 +225,8 @@ function animatedValues(c,local){
 function updateRangeFill(el){
  const min=Number(el.min||0),max=Number(el.max||100),value=Number(el.value||0),pct=max>min?Math.max(0,Math.min(100,(value-min)/(max-min)*100)):0;
  el.style.setProperty("--range-progress",pct+"%");
+ el.style.setProperty("--range-thumb-border",pct<=0.01?"#6b607c":"#a75cff");
+ el.classList.toggle("range-off",pct<=0.01);
 }
 function refreshRangeFills(){document.querySelectorAll('input[type="range"]').forEach(updateRangeFill);}
 function renderInspector(){
