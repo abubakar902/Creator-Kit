@@ -44,6 +44,34 @@
 #textPreview>[data-clip-id]{pointer-events:auto;touch-action:none;cursor:move;user-select:none}
 #previewStage.is-dragging{outline:2px solid #a75cff;outline-offset:2px}
 @media(max-width:680px){.property-group>summary{padding:12px;font-size:12px}.group-body{padding:9px}}
+
+.export-modal{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(5,3,13,.78);backdrop-filter:blur(14px)}
+.export-modal[hidden]{display:none!important}
+.export-dialog{width:min(100%,520px);border:1px solid #65418c;border-radius:22px;background:radial-gradient(ellipse at 90% 0%,#6932a455,transparent 42%),linear-gradient(155deg,#211535,#100b1e 68%);box-shadow:0 28px 100px #000b;overflow:hidden}
+.export-dialog-head{display:flex;align-items:center;gap:13px;padding:22px 23px 16px}
+.export-dialog-icon{width:46px;height:46px;flex:none;display:grid;place-items:center;border:1px solid #9860d2;border-radius:14px;background:linear-gradient(145deg,#7435b5,#332052);font-size:22px;box-shadow:0 6px 25px #8d38d844}
+.export-dialog-head h2{margin:0;font-size:19px;letter-spacing:-.3px}
+.export-dialog-head p{margin:4px 0 0;color:#b9a8ce;font-size:11px}
+.export-dialog-body{padding:8px 23px 20px}
+.export-quality{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:4px 0 20px}
+.export-quality label{font-size:11px;color:#d9c9ec;font-weight:750}
+.export-quality select{max-width:245px;background:#171027;border:1px solid #493365;border-radius:9px;color:#fff;padding:9px 11px;font-size:11px}
+.export-progress-heading{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:9px}
+.export-progress-heading strong{font-size:12px;color:#f5eaff}
+.export-progress-heading span{font-size:11px;color:#cf9dff;font-weight:800;font-variant-numeric:tabular-nums}
+.export-progress-track{height:11px;border-radius:99px;background:#332442;border:1px solid #51366c;overflow:hidden}
+.export-progress-fill{height:100%;width:0%;border-radius:99px;background:linear-gradient(90deg,#9b4cff,#d56bff,#ff9edc);box-shadow:0 0 16px #bc5aff88;transition:width .22s ease}
+.export-modal-status{margin:12px 0 4px;font-size:12px;font-weight:750;color:#f2eaff}
+.export-modal-detail{margin:0;color:#a99abc;font-size:10px;line-height:1.55;min-height:16px}
+.export-info-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:18px}
+.export-info{border:1px solid #39284f;border-radius:10px;background:#171027;padding:10px}
+.export-info small{display:block;color:#9585ad;font-size:9px;margin-bottom:5px}
+.export-info strong{display:block;color:#f0e5ff;font-size:11px;overflow-wrap:anywhere}
+.export-dialog-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:15px 23px 20px;border-top:1px solid #352346}
+.export-dialog-actions .btn{min-width:104px}
+.export-modal-note{margin-top:12px;color:#8e80a3;font-size:9px;line-height:1.5}
+@media(max-width:480px){.export-dialog-head{padding:18px 16px 13px}.export-dialog-body{padding:7px 16px 16px}.export-dialog-actions{padding:13px 16px 16px;flex-wrap:wrap}.export-quality{align-items:flex-start;flex-direction:column}.export-quality select{max-width:none;width:100%}.export-info-grid{gap:6px}.export-info{padding:8px}.export-dialog-head h2{font-size:17px}}
+
 </style>
 </head>
 <body>
@@ -190,11 +218,44 @@
 </div>
 <section class="panel" id="accessMessage" style="max-width:620px;margin:70px auto;padding:30px;text-align:center" hidden><h2>Video Studio access required</h2><p style="color:#b9accf;line-height:1.6">Please sign in with an approved TrivexaAI account to use the editor.</p><a class="btn primary" href="../auth/account.html">Open My Account</a></section>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="export-modal" id="exportModal" hidden role="dialog" aria-modal="true" aria-labelledby="exportDialogTitle">
+ <section class="export-dialog">
+  <header class="export-dialog-head">
+   <div class="export-dialog-icon" aria-hidden="true">✦</div>
+   <div><h2 id="exportDialogTitle">Export your video</h2><p>Render your project and save it to your device</p></div>
+  </header>
+  <div class="export-dialog-body">
+   <div class="export-quality" id="exportQualityRow">
+    <label for="exportResolution">Export quality</label>
+    <select id="exportResolution">
+     <option value="project">Project resolution</option>
+     <option value="720p">720p · Smaller file · Recommended</option>
+    </select>
+   </div>
+   <div class="export-progress-heading"><strong>Export progress</strong><span id="exportPercent">0%</span></div>
+   <div class="export-progress-track"><div class="export-progress-fill" id="exportProgressFill"></div></div>
+   <p class="export-modal-status" id="exportModalStatus">Ready to export</p>
+   <p class="export-modal-detail" id="exportModalDetail">Your project stays on this device while it is being exported.</p>
+   <div class="export-info-grid">
+    <div class="export-info"><small>FORMAT</small><strong>WebM</strong></div>
+    <div class="export-info"><small>FRAME RATE</small><strong id="exportFpsInfo">30 FPS</strong></div>
+    <div class="export-info"><small>OUTPUT SIZE</small><strong id="exportSizeInfo">1920 × 1080</strong></div>
+   </div>
+   <p class="export-modal-note">Keep this tab open until the export finishes. You can cancel safely at any time.</p>
+  </div>
+  <footer class="export-dialog-actions">
+   <button class="btn" id="exportCancelBtn" type="button">Cancel export</button>
+   <button class="btn" id="exportRetryBtn" type="button" hidden>Try again</button>
+   <button class="btn" id="exportDownloadBtn" type="button" hidden>Download again</button>
+   <button class="btn primary" id="exportCloseBtn" type="button" disabled>Close</button>
+  </footer>
+ </section>
+</div>
 <script type="module">
 import {authReady,auth,getAccountProfile} from "../auth/auth-client.js";
 const $=id=>document.getElementById(id);
 const projectKey="trivexaai_video_studio_projects_v1",dbName="trivexaai-video-studio",dbVersion=1,scaleDefault=64;
-let db=null,project=null,clips=[],assets=[],urls=new Map(),selectedId=null,scale=scaleDefault,playhead=0,isPlaying=false,raf=0,lastFrame=0,activeVideoId=null,activeImageId=null,audioNodes=new Map(),saveTimer=0,undoStack=[],redoStack=[],dragState=null,playheadDrag=null,previewDraft=null,exportBusy=false;
+let db=null,project=null,clips=[],assets=[],urls=new Map(),selectedId=null,scale=scaleDefault,playhead=0,isPlaying=false,raf=0,lastFrame=0,activeVideoId=null,activeImageId=null,audioNodes=new Map(),saveTimer=0,undoStack=[],redoStack=[],dragState=null,playheadDrag=null,previewDraft=null,exportBusy=false,exportController=null,lastExportBlob=null,lastExportFileName="";
 const params=new URLSearchParams(location.search),projectId=params.get("id");
 function notify(msg){const el=$("toast");el.textContent=msg;el.classList.add("show");clearTimeout(window.__editorToast);window.__editorToast=setTimeout(()=>el.classList.remove("show"),3600);}
 function uid(){return crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random().toString(16).slice(2);}
@@ -667,47 +728,116 @@ function waitForExportMedia(element,eventName,label){
   if((eventName==="loadeddata"&&element.readyState>=2)||(eventName==="loadedmetadata"&&element.readyState>=1))done();
  });
 }
+function setExportModalProgress(percent,title,detail){
+ const value=Math.max(0,Math.min(100,Number(percent)||0));
+ $("exportProgressFill").style.width=value+"%";
+ $("exportPercent").textContent=Math.round(value)+"%";
+ $("exportModalStatus").textContent=title||"Working…";
+ $("exportModalDetail").textContent=detail||"";
+}
+function showExportModal(){
+ $("exportModal").hidden=false;
+ $("exportDialogTitle").textContent="Export your video";
+ $("exportQualityRow").hidden=false;
+ $("exportCancelBtn").hidden=false;$("exportCancelBtn").disabled=false;
+ $("exportCancelBtn").textContent="Cancel export";
+ $("exportRetryBtn").hidden=true;$("exportDownloadBtn").hidden=true;
+ $("exportCloseBtn").disabled=true;
+ $("exportFpsInfo").textContent=(Number(project?.fps)||30)+" FPS";
+ const size=exportCanvasSize();
+ $("exportSizeInfo").textContent=size.width+" × "+size.height;
+ setExportModalProgress(0,"Getting ready…","Your project stays on this device while it is being exported.");
+}
+function hideExportModal(){
+ if(exportBusy)return;
+ $("exportModal").hidden=true;
+}
+function downloadLastExport(){
+ if(!lastExportBlob)return;
+ const url=URL.createObjectURL(lastExportBlob),link=document.createElement("a");
+ link.href=url;link.download=lastExportFileName||"trivexaai-video.webm";
+ document.body.append(link);link.click();link.remove();
+ setTimeout(()=>URL.revokeObjectURL(url),60000);
+}
+function waitForExportCancel(promise,controller){
+ return new Promise((resolve,reject)=>{
+  let settled=false;
+  const finish=(fn,value)=>{if(settled)return;settled=true;controller.cancelWaiters.delete(cancel);fn(value);};
+  const cancel=()=>{const error=new Error("Export cancelled by you.");error.name="AbortError";finish(reject,error);};
+  controller.cancelWaiters.add(cancel);
+  Promise.resolve(promise).then(value=>finish(resolve,value),error=>finish(reject,error));
+ });
+}
+function requestExportCancel(){
+ if(!exportBusy||!exportController)return;
+ $("exportCancelBtn").disabled=true;$("exportCancelBtn").textContent="Cancelling…";
+ exportController.cancelled=true;
+ [...exportController.cancelWaiters].forEach(fn=>fn());
+ if(exportController.stopRecording)exportController.stopRecording();
+}
+function getSelectedExportSize(){
+ const size=exportCanvasSize();
+ if($("exportResolution").value!=="720p")return size;
+ const factor=Math.min(1,1280/Math.max(size.width,size.height));
+ let width=Math.max(240,Math.floor(size.width*factor)),height=Math.max(240,Math.floor(size.height*factor));
+ if(width%2)width--;if(height%2)height--;
+ return {width,height};
+}
 async function exportVideo(){
  if(exportBusy)return;
  if(!clips.length){notify("Add at least one clip before exporting.");return;}
- if(typeof MediaRecorder==="undefined"||!HTMLCanvasElement.prototype.captureStream){notify("This browser does not support video export. Please use an updated Chrome or Edge browser.");return;}
+ if(typeof MediaRecorder==="undefined"||!HTMLCanvasElement.prototype.captureStream){
+  notify("This browser does not support video export. Please use an updated Chrome or Edge browser.");return;
+ }
  const button=$("exportBtn"),originalPlayhead=playhead,exportClips=clone(clips);
  const total=Math.max(0,...exportClips.map(c=>c.start+c.duration));
  if(total<=0){notify("There is nothing to export yet.");return;}
- exportBusy=true;button.disabled=true;button.textContent="Preparing…";
- let audioContext=null,canvasStream=null,recordingStream=null,recordingFrame=0,recorder=null;
+ exportBusy=true;exportController={cancelled:false,cancelWaiters:new Set(),stopRecording:null};
+ button.disabled=true;button.textContent="Preparing…";showExportModal();
+ let audioContext=null,canvasStream=null,recordingStream=null,recordingFrame=0,recorder=null,watchdog=0,stopTimer=0;
  const mediaItems=[],chunks=[];
  const oldStatus=$("saveStatus").textContent;
+ let timelineFinished=false,recordingFailure=null;
  try{
+  const size=getSelectedExportSize();
+  $("exportFpsInfo").textContent=(Number(project.fps)||30)+" FPS";
+  $("exportSizeInfo").textContent=size.width+" × "+size.height;
   const hasSoundSources=exportClips.some(c=>c.type==="video"||c.type==="audio");
   const AudioContextClass=window.AudioContext||window.webkitAudioContext;
-  if(hasSoundSources&&AudioContextClass){audioContext=new AudioContextClass();await audioContext.resume();}
+  if(hasSoundSources&&AudioContextClass){
+   audioContext=new AudioContextClass();
+   await waitForExportCancel(audioContext.resume(),exportController);
+  }
   pause();await saveProject();
-  const size=exportCanvasSize(),canvas=document.createElement("canvas");
+  const canvas=document.createElement("canvas");
   canvas.width=size.width;canvas.height=size.height;
   const ctx=canvas.getContext("2d",{alpha:false});
   if(!ctx)throw new Error("Could not create the export canvas.");
   const stageWidth=Math.max(1,$("previewStage").getBoundingClientRect().width||850);
   const fontScale=size.width/stageWidth;
   const assetMap=new Map(assets.map(a=>[a.id,a]));
-  for(const c of exportClips){
-   if(c.type!=="video"&&c.type!=="audio"&&c.type!=="image")continue;
-   const asset=assetMap.get(c.assetId);
+  const mediaClips=exportClips.filter(c=>c.type==="video"||c.type==="audio"||c.type==="image");
+  for(let index=0;index<mediaClips.length;index++){
+   if(exportController.cancelled)throw new Error("Export cancelled by you.");
+   const c=mediaClips[index],asset=assetMap.get(c.assetId);
    if(!asset)throw new Error("A media file is missing: "+(c.name||"unknown file"));
+   setExportModalProgress(3+(index/Math.max(1,mediaClips.length))*18,"Preparing your media","Loading "+(index+1)+" of "+mediaClips.length+": "+(c.name||c.type));
    let media;
    if(c.type==="image"){
-    media=new Image();
-    media.src=assetUrl(c.assetId);
-    if(typeof media.decode==="function")await media.decode();
-    else await new Promise((resolve,reject)=>{media.onload=resolve;media.onerror=()=>reject(new Error("Could not load "+c.name));});
+    media=new Image();media.src=assetUrl(c.assetId);
+    if(typeof media.decode==="function")await waitForExportCancel(media.decode(),exportController);
+    else await waitForExportCancel(new Promise((resolve,reject)=>{media.onload=resolve;media.onerror=()=>reject(new Error("Could not load "+c.name));}),exportController);
    }else{
     media=document.createElement(c.type==="video"?"video":"audio");
     media.preload="auto";media.playsInline=true;media.volume=1;
     const ready=waitForExportMedia(media,c.type==="video"?"loadeddata":"loadedmetadata",c.name||c.type);
-    media.src=assetUrl(c.assetId);media.load();await ready;
+    media.src=assetUrl(c.assetId);media.load();
+    await waitForExportCancel(ready,exportController);
    }
    mediaItems.push({clip:c,media,gain:null,wasActive:false});
+   setExportModalProgress(3+((index+1)/Math.max(1,mediaClips.length))*18,"Preparing your media",(index+1)+" of "+mediaClips.length+" media items ready");
   }
+  if(exportController.cancelled)throw new Error("Export cancelled by you.");
   const audioItems=mediaItems.filter(item=>item.clip.type==="video"||item.clip.type==="audio");
   let audioDestination=null;
   if(audioItems.length){
@@ -716,8 +846,7 @@ async function exportVideo(){
    audioItems.forEach(item=>{
     const source=audioContext.createMediaElementSource(item.media);
     const gain=audioContext.createGain();
-    source.connect(gain);gain.connect(audioDestination);
-    item.gain=gain;
+    source.connect(gain);gain.connect(audioDestination);item.gain=gain;
    });
   }
   const fps=Math.max(15,Math.min(60,Number(project.fps)||30));
@@ -727,63 +856,109 @@ async function exportVideo(){
   recordingStream=new MediaStream(tracks);
   const mimeTypes=["video/webm;codecs=vp9,opus","video/webm;codecs=vp8,opus","video/webm"];
   const mimeType=mimeTypes.find(type=>MediaRecorder.isTypeSupported(type));
-  recorder=mimeType?new MediaRecorder(recordingStream,{mimeType,videoBitsPerSecond:Math.min(24000000,Math.max(6000000,size.width*size.height*4))}):new MediaRecorder(recordingStream);
+  recorder=mimeType?new MediaRecorder(recordingStream,{mimeType,videoBitsPerSecond:Math.min(16000000,Math.max(3000000,size.width*size.height*2))}):new MediaRecorder(recordingStream);
   const recordingPromise=new Promise((resolve,reject)=>{
    recorder.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data);};
-   recorder.onerror=e=>reject(e.error||new Error("The browser stopped the export unexpectedly."));
-   recorder.onstop=()=>resolve(new Blob(chunks,{type:recorder.mimeType||"video/webm"}));
+   recorder.onerror=e=>{recordingFailure=e.error||new Error("The browser stopped the export unexpectedly.");reject(recordingFailure);};
+   recorder.onstop=()=>{
+    const blob=new Blob(chunks,{type:recorder.mimeType||"video/webm"});
+    if(exportController.cancelled){const error=new Error("Export cancelled by you.");error.name="AbortError";reject(error);}
+    else if(recordingFailure)reject(recordingFailure);
+    else if(!timelineFinished)reject(new Error("The recorder stopped before the whole timeline finished. Please retry using 720p quality."));
+    else resolve(blob);
+   };
   });
   const mediaById=new Map(mediaItems.map(item=>[item.clip.id,item]));
-  const fit=$("previewFit").value;
-  const startedAt=performance.now();
-  let lastProgress=-1;
+  const fit=$("previewFit").value,startedAt=performance.now();
+  let lastProgress=-1,drawErrors=0;
   status("Preparing video export…");
+  setExportModalProgress(22,"Rendering your video","The timeline is being recorded in real time. Keep this tab open.");
   recorder.start(1000);
+  const stopRecording=error=>{
+   if(error&&!recordingFailure)recordingFailure=error;
+   cancelAnimationFrame(recordingFrame);
+   if(recorder&&recorder.state!=="inactive"){try{recorder.stop();}catch(e){if(!recordingFailure)recordingFailure=e;}}
+  };
+  exportController.stopRecording=()=>stopRecording();
+  watchdog=setTimeout(()=>stopRecording(new Error("Export took too long and was stopped by the browser. Retry with 720p quality and keep this tab in front.")),Math.max(120000,total*2500+60000));
   const renderTick=now=>{
-   const time=Math.min(total,Math.max(0,(now-startedAt)/1000));
-   mediaItems.forEach(item=>{
-    const c=item.clip,active=time>=c.start&&time<c.start+c.duration;
-    if(active){
-     const local=time-c.start,media=item.media;
-     if(!item.wasActive){
-      try{media.currentTime=Math.max(0,(c.sourceStart||0)+local);}catch(e){}
-      item.wasActive=true;
-      if(c.type==="video"||c.type==="audio")media.play().catch(()=>{});
-     }else if(c.type==="video"&&media.readyState>=1){
-      const expected=(c.sourceStart||0)+local;
-      if(Math.abs(media.currentTime-expected)>.65){try{media.currentTime=expected;}catch(e){}}
+   try{
+    if(exportController.cancelled){stopRecording();return;}
+    const elapsed=Math.max(0,(now-startedAt)/1000),time=Math.min(total,elapsed);
+    mediaItems.forEach(item=>{
+     const c=item.clip,active=time>=c.start&&time<c.start+c.duration;
+     if(active){
+      const local=time-c.start,media=item.media;
+      if(!item.wasActive){
+       const expected=Math.max(0,(c.sourceStart||0)+local);
+       try{if(Number.isFinite(media.duration))media.currentTime=Math.min(expected,Math.max(0,media.duration-.03));}catch(e){}
+       item.wasActive=true;
+       if(c.type==="video"||c.type==="audio")media.play().catch(()=>{});
+      }else if(c.type==="video"&&media.readyState>=1){
+       const expected=(c.sourceStart||0)+local;
+       if(Number.isFinite(media.duration)&&Math.abs(media.currentTime-expected)>.8){try{media.currentTime=Math.min(expected,Math.max(0,media.duration-.03));}catch(e){}}
+      }
+      if(item.gain)item.gain.gain.value=Math.max(0,Math.min(1,(c.volume??1)*clipEnvelope(c,local)));
+     }else{
+      if(item.wasActive&&(c.type==="video"||c.type==="audio"))media.pause();
+      item.wasActive=false;
+      if(item.gain)item.gain.gain.value=0;
      }
-     if(item.gain)item.gain.gain.value=Math.max(0,Math.min(1,(c.volume??1)*clipEnvelope(c,local)));
-    }else{
-     if(item.wasActive&&(c.type==="video"||c.type==="audio"))media.pause();
-     item.wasActive=false;
-     if(item.gain)item.gain.gain.value=0;
+    });
+    try{
+     drawExportFrame(ctx,exportClips,mediaById,time>=total?Math.max(0,total-.001):time,size.width,size.height,fontScale,fit);
+     drawErrors=0;
+    }catch(frameError){
+     drawErrors++;
+     setExportModalProgress(22+Math.min(73,elapsed/total*73),"Rendering your video","Recovering from a slow frame ("+drawErrors+"). The export is continuing.");
+     if(drawErrors>90)throw new Error("The browser could not render some video frames. Try exporting at 720p.");
     }
-   });
-   drawExportFrame(ctx,exportClips,mediaById,time,size.width,size.height,fontScale,fit);
-   const progress=Math.min(99,Math.floor(time/total*100));
-   if(progress!==lastProgress){button.textContent="Export "+progress+"%";status("Exporting video… "+progress+"%");lastProgress=progress;}
-   if(time>=total){
-    drawExportFrame(ctx,exportClips,mediaById,total,size.width,size.height,fontScale,fit);
-    setTimeout(()=>{if(recorder&&recorder.state!=="inactive")recorder.stop();},120);
-    return;
-   }
-   recordingFrame=requestAnimationFrame(renderTick);
+    const progress=Math.min(95,22+Math.floor(Math.min(1,elapsed/total)*73));
+    if(progress!==lastProgress){
+     setExportModalProgress(progress,"Rendering your video","Rendered "+Math.min(100,Math.floor(elapsed/total*100))+"% of the timeline");
+     status("Exporting video… "+Math.min(100,Math.floor(elapsed/total*100))+"%");
+     lastProgress=progress;
+    }
+    if(elapsed>=total){
+     timelineFinished=true;
+     setExportModalProgress(97,"Finishing your video","Finalizing the WebM file. Please keep this tab open.");
+     stopTimer=setTimeout(()=>{if(recorder&&recorder.state!=="inactive"){try{recorder.stop();}catch(e){recordingFailure=e;}}},250);
+     return;
+    }
+    recordingFrame=requestAnimationFrame(renderTick);
+   }catch(error){stopRecording(error);}
   };
   renderTick(startedAt);
   const blob=await recordingPromise;
   if(!blob||blob.size<1000)throw new Error("The exported video is empty. Please try again with another media file.");
+  lastExportBlob=blob;
+  lastExportFileName=(safeName(project.name).replace(/\s+/g,"-")||"trivexaai-video")+".webm";
+  setExportModalProgress(100,"Your video is ready!","The WebM export is complete. Download it now, or use Download again later in this window.");
+  $("exportDialogTitle").textContent="Export complete";
+  $("exportQualityRow").hidden=true;
+  $("exportCancelBtn").hidden=true;
+  $("exportDownloadBtn").hidden=false;
+  $("exportCloseBtn").disabled=false;
   const url=URL.createObjectURL(blob),link=document.createElement("a");
-  link.href=url;link.download=(safeName(project.name).replace(/\s+/g,"-")||"trivexaai-video")+".webm";
+  link.href=url;link.download=lastExportFileName;
   document.body.append(link);link.click();link.remove();
   setTimeout(()=>URL.revokeObjectURL(url),60000);
   status("Export complete · WebM");
   notify("Export complete! Your video was downloaded as a WebM file.");
  }catch(error){
-  status("Export failed");
-  notify("Export failed: "+(error&&error.message?error.message:"Please try again."));
+  const cancelled=exportController?.cancelled||error?.name==="AbortError";
+  status(cancelled?"Export cancelled":"Export failed");
+  setExportModalProgress(0,cancelled?"Export cancelled":"Export could not finish",cancelled?"You cancelled this export. Your project is safe.":(error&&error.message?error.message:"Please try again. Choose 720p if your project is large."));
+  $("exportDialogTitle").textContent=cancelled?"Export cancelled":"Export needs another try";
+  $("exportQualityRow").hidden=false;
+  $("exportCancelBtn").hidden=true;
+  $("exportRetryBtn").hidden=false;
+  $("exportDownloadBtn").hidden=!(lastExportBlob instanceof Blob);
+  $("exportCloseBtn").disabled=false;
+  notify(cancelled?"Export cancelled. Your project is safe.":"Export failed: "+(error&&error.message?error.message:"Please try again."));
  }finally{
   cancelAnimationFrame(recordingFrame);
+  clearTimeout(watchdog);clearTimeout(stopTimer);
   mediaItems.forEach(item=>{try{item.media.pause();}catch(e){}});
   if(recorder&&recorder.state!=="inactive"){try{recorder.stop();}catch(e){}}
   if(recordingStream)recordingStream.getTracks().forEach(track=>track.stop());
@@ -792,7 +967,7 @@ async function exportVideo(){
   button.disabled=false;button.textContent="Export";
   if($("saveStatus").textContent==="Export failed")status(oldStatus);
   if(playhead!==originalPlayhead)setPlayhead(originalPlayhead);
-  exportBusy=false;
+  exportBusy=false;exportController=null;
  }
 }
 
@@ -824,6 +999,11 @@ window.addEventListener("pointermove",previewPointerMove);
 window.addEventListener("pointerup",previewPointerUp);
 window.addEventListener("pointercancel",previewPointerUp);
 $("exportBtn").addEventListener("click",exportVideo);
+$("exportCancelBtn").addEventListener("click",requestExportCancel);
+$("exportCloseBtn").addEventListener("click",hideExportModal);
+$("exportDownloadBtn").addEventListener("click",downloadLastExport);
+$("exportRetryBtn").addEventListener("click",()=>{hideExportModal();exportVideo();});
+$("exportResolution").addEventListener("change",()=>{const size=getSelectedExportSize();$("exportSizeInfo").textContent=size.width+" × "+size.height;});
 window.addEventListener("beforeunload",()=>{if(project&&db){clearTimeout(saveTimer);saveProject();}for(const u of urls.values())URL.revokeObjectURL(u);for(const a of audioNodes.values())a.pause();});
 initialise();
 </script>
