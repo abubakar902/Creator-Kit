@@ -253,7 +253,7 @@ $("deleteBtn").addEventListener("click",deleteSelected);
 $("duplicateBtn").addEventListener("click",duplicateSelected);
 document.addEventListener("input",e=>{if(e.target.matches('input[type="range"]'))syncRangeInput(e.target);});
 $("addKeyframeBtn").addEventListener("click",addOrUpdateKeyframe);$("prevKeyframeBtn").addEventListener("click",()=>seekKeyframe(-1));$("nextKeyframeBtn").addEventListener("click",()=>seekKeyframe(1));$("deleteKeyframeBtn").addEventListener("click",deleteCurrentKeyframe);
-$("propFilterPreset").addEventListener("change",()=>{const presets={none:[1,1,1,0,0],cinematic:[.98,1.18,.82,0,0],vivid:[1.04,1.12,1.45,0,0],warm:[1.06,1.08,1.12,0,8],cool:[1,1.08,1.02,0,-8],noir:[.96,1.28,0,0,0],vintage:[1.04,.92,.78,.3,-5]};const v=presets[$("propFilterPreset").value]||presets.none;["propBrightness","propContrast","propSaturation","propBlur","propHue"].forEach((id,i)=>$(id).value=v[i]);});
+$("propFilterPreset").addEventListener("change",()=>{const presets={none:[1,1,1,0,0],cinematic:[.98,1.18,.82,0,0],vivid:[1.04,1.12,1.45,0,0],warm:[1.06,1.08,1.12,0,8],cool:[1,1.08,1.02,0,-8],noir:[.96,1.28,0,0,0],vintage:[1.04,.92,.78,.3,-5]};const v=presets[$("propFilterPreset").value]||presets.none;["propBrightness","propContrast","propSaturation","propBlur","propHue"].forEach((id,i)=>$(id).value=v[i]);syncAllRangeInputs();});
 $("applyProps").addEventListener("click",applyProperties);
 $("undoBtn").addEventListener("click",undo);$("redoBtn").addEventListener("click",redo);
 $("saveBtn").addEventListener("click",saveProject);
