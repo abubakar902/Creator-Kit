@@ -73,6 +73,25 @@
 .export-options-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:4px 0 18px}.export-quality{display:flex;flex-direction:column;align-items:stretch;gap:7px;margin:0}.export-quality label{font-size:11px;color:#d9c9ec;font-weight:750}.export-quality select{max-width:none;width:100%;background:#171027;border:1px solid #493365;border-radius:9px;color:#fff;padding:10px 11px;font-size:11px}.export-quality select option:disabled{color:#766b83}@media(max-width:480px){.export-options-grid{grid-template-columns:1fr}}
 @media(max-width:480px){.export-dialog-head{padding:18px 16px 13px}.export-dialog-body{padding:7px 16px 16px}.export-dialog-actions{padding:13px 16px 16px;flex-wrap:wrap}.export-quality{align-items:flex-start;flex-direction:column}.export-quality select{max-width:none;width:100%}.export-info-grid{gap:6px}.export-info{padding:8px}.export-dialog-head h2{font-size:17px}}
 
+
+/* Keyboard shortcut guide */
+.shortcuts-modal{position:fixed;inset:0;z-index:990;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(5,3,13,.8);backdrop-filter:blur(14px)}
+.shortcuts-modal[hidden]{display:none!important}
+.shortcuts-dialog{width:min(100%,560px);max-height:min(86vh,680px);overflow:auto;border:1px solid #70459b;border-radius:22px;background:radial-gradient(ellipse at 95% 0%,#7136ad55,transparent 42%),linear-gradient(155deg,#211535,#100b1e 70%);box-shadow:0 28px 100px #000b}
+.shortcuts-head{display:flex;align-items:center;gap:13px;padding:21px 22px 17px;border-bottom:1px solid #3b2a50}
+.shortcuts-icon{width:44px;height:44px;display:grid;place-items:center;flex:none;border:1px solid #9860d2;border-radius:14px;background:linear-gradient(145deg,#7435b5,#332052);font-size:21px;box-shadow:0 6px 25px #8d38d844}
+.shortcuts-head h2{margin:0;font-size:18px}.shortcuts-head p{margin:4px 0 0;color:#b9a8ce;font-size:11px}
+.shortcuts-close{margin-left:auto;border:1px solid #59406f;border-radius:9px;background:#211735;color:#eee1ff;padding:7px 10px;font-size:11px}
+.shortcuts-body{padding:17px 22px 20px}.shortcuts-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.shortcuts-group{border:1px solid #3c2b54;border-radius:13px;background:#171027;padding:12px}
+.shortcuts-group h3{margin:0 0 8px;color:#d7b4ff;font-size:11px;letter-spacing:.5px;text-transform:uppercase}
+.shortcut-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid #30223f}
+.shortcut-row:first-of-type{border-top:0}.shortcut-row span{font-size:11px;color:#e5d9f2}
+.shortcut-keys{display:flex;align-items:center;gap:4px;flex:none}
+.shortcut-keys kbd{min-width:25px;padding:4px 6px;text-align:center;border:1px solid #5a4274;border-bottom-width:2px;border-radius:6px;background:#261a39;color:#fff;font:700 10px ui-monospace,SFMono-Regular,Consolas,monospace;white-space:nowrap}
+.shortcuts-note{margin:13px 0 0;color:#9d8eaf;font-size:10px;line-height:1.55}
+@media(max-width:480px){.shortcuts-modal{padding:10px}.shortcuts-head{padding:16px}.shortcuts-body{padding:13px 16px 16px}.shortcuts-grid{grid-template-columns:1fr}.shortcuts-dialog{max-height:90vh}}
+
 </style>
 </head>
 <body>
@@ -204,6 +223,7 @@
 <button class="btn" type="button" id="addTextBtn">＋ Text</button>
 <button class="btn" type="button" id="splitBtn" disabled>Split at playhead</button>
 <button class="btn" type="button" id="deleteTimelineBtn" disabled>Delete</button>
+<button class="btn" type="button" id="shortcutsBtn" aria-haspopup="dialog" aria-controls="shortcutsModal">⌨ Shortcuts</button>
 <label class="zoom">Zoom <input id="zoomSlider" type="range" min="24" max="140" value="64" step="4"></label>
 </div>
 </div>
@@ -222,6 +242,39 @@
 </div>
 <section class="panel" id="accessMessage" style="max-width:620px;margin:70px auto;padding:30px;text-align:center" hidden><h2>Video Studio access required</h2><p style="color:#b9accf;line-height:1.6">Please sign in with an approved TrivexaAI account to use the editor.</p><a class="btn primary" href="../auth/account.html">Open My Account</a></section>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<div class="shortcuts-modal" id="shortcutsModal" hidden role="dialog" aria-modal="true" aria-labelledby="shortcutsTitle">
+ <section class="shortcuts-dialog">
+  <header class="shortcuts-head">
+   <div class="shortcuts-icon" aria-hidden="true">⌨</div>
+   <div><h2 id="shortcutsTitle">Keyboard shortcuts</h2><p>Work faster without leaving your timeline</p></div>
+   <button class="shortcuts-close" type="button" id="shortcutsCloseBtn">Close ✕</button>
+  </header>
+  <div class="shortcuts-body">
+   <div class="shortcuts-grid">
+    <section class="shortcuts-group">
+     <h3>Playback</h3>
+     <div class="shortcut-row"><span>Play / Pause</span><div class="shortcut-keys"><kbd>Space</kbd></div></div>
+    </section>
+    <section class="shortcuts-group">
+     <h3>History &amp; project</h3>
+     <div class="shortcut-row"><span>Undo</span><div class="shortcut-keys"><kbd>Ctrl</kbd><kbd>+</kbd><kbd>Z</kbd></div></div>
+     <div class="shortcut-row"><span>Redo</span><div class="shortcut-keys"><kbd>Ctrl</kbd><kbd>+</kbd><kbd>Shift</kbd><kbd>+</kbd><kbd>Z</kbd></div></div>
+     <div class="shortcut-row"><span>Redo (alternative)</span><div class="shortcut-keys"><kbd>Ctrl</kbd><kbd>+</kbd><kbd>Y</kbd></div></div>
+     <div class="shortcut-row"><span>Save project</span><div class="shortcut-keys"><kbd>Ctrl</kbd><kbd>+</kbd><kbd>S</kbd></div></div>
+    </section>
+    <section class="shortcuts-group">
+     <h3>Clip editing</h3>
+     <div class="shortcut-row"><span>Split selected clip</span><div class="shortcut-keys"><kbd>S</kbd></div></div>
+     <div class="shortcut-row"><span>Delete selected clip</span><div class="shortcut-keys"><kbd>Delete</kbd></div></div>
+     <div class="shortcut-row"><span>Duplicate selected clip</span><div class="shortcut-keys"><kbd>Ctrl</kbd><kbd>+</kbd><kbd>D</kbd></div></div>
+    </section>
+   </div>
+   <p class="shortcuts-note">On Mac, use ⌘ instead of Ctrl. Shortcuts pause while you type in a text, number or other input field, and while a dialog is open.</p>
+  </div>
+ </section>
+</div>
+
 <div class="export-modal" id="exportModal" hidden role="dialog" aria-modal="true" aria-labelledby="exportDialogTitle">
  <section class="export-dialog">
   <header class="export-dialog-head">
@@ -1308,7 +1361,44 @@ async function exportVideo(){
  }
 }
 
+
+function openShortcutsGuide(){
+ const modal=$("shortcutsModal");if(!modal||!modal.hidden)return;
+ modal.hidden=false;$("shortcutsCloseBtn").focus();
+}
+function closeShortcutsGuide(){
+ const modal=$("shortcutsModal");if(!modal||modal.hidden)return;
+ modal.hidden=true;$("shortcutsBtn").focus();
+}
+function isTypingTarget(target){
+ return !!(target&&(target.isContentEditable||(typeof target.closest==="function"&&target.closest("input,textarea,select,[contenteditable='true']"))));
+}
+function handleEditorShortcuts(event){
+ if($("editorApp").hidden)return;
+ const guide=$("shortcutsModal");
+ if(event.key==="Escape"&&guide&&!guide.hidden){event.preventDefault();closeShortcutsGuide();return;}
+ if((guide&&!guide.hidden)||exportBusy||!$("exportModal").hidden||isTypingTarget(event.target))return;
+ if(event.altKey)return;
+ const key=event.key.toLowerCase(),modifier=event.ctrlKey||event.metaKey;
+ if(modifier){
+  if(key==="z"){event.preventDefault();if(event.shiftKey)redo();else undo();return;}
+  if(key==="y"){event.preventDefault();redo();return;}
+  if(key==="s"){event.preventDefault();saveProject();return;}
+  if(key==="d"){event.preventDefault();duplicateSelected();return;}
+  return;
+ }
+ if(event.shiftKey||event.ctrlKey||event.metaKey)return;
+ if(event.target&&typeof event.target.closest==="function"&&event.target.closest("button,a,[role='button']"))return;
+ if(key===" "){event.preventDefault();if(isPlaying)pause();else play();}
+ else if(key==="s"){event.preventDefault();splitSelected();}
+ else if(key==="delete"||key==="backspace"){if(!selectedId)return;event.preventDefault();deleteSelected();}
+}
+
 async function initialise(){await authReady;if(!auth?.currentUser){location.replace("../auth/login.html?next="+encodeURIComponent(location.href));return;}try{const p=await getAccountProfile();if(!p?.access?.videoStudio){$("accessMessage").hidden=false;return;}db=await openDB();let meta=projectFromLocal();project=await dbRequest("projects","readonly",s=>s.get(projectId));if(!project){if(!meta){notify("Project could not be found. Start a new project first.");setTimeout(()=>location.replace("./"),1400);return;}project={...meta,clips:[]};await dbRequest("projects","readwrite",s=>s.put(project));}project.name=project.name||meta?.name||"Untitled project";clips=Array.isArray(project.clips)?project.clips:[];$("projectTitle").value=project.name;$("previewResolution").textContent=" · "+(project.resolutionLabel||project.resolution||"1920 × 1080")+" · "+(project.fps||30)+" FPS";assets=await dbRequest("assets","readonly",s=>s.getAll());assets=assets.filter(a=>a.projectId===project.id);for(const a of assets)urls.set(a.id,URL.createObjectURL(a.blob));$("editorApp").hidden=false;renderAll();status("Ready · Auto-save on");}catch(e){$("accessMessage").hidden=false;$("accessMessage").querySelector("p").textContent="We could not open the editor: "+e.message;}}
+$("shortcutsBtn").addEventListener("click",openShortcutsGuide);
+$("shortcutsCloseBtn").addEventListener("click",closeShortcutsGuide);
+$("shortcutsModal").addEventListener("click",event=>{if(event.target===$("shortcutsModal"))closeShortcutsGuide();});
+window.addEventListener("keydown",handleEditorShortcuts);
 $("importBtn").addEventListener("click",()=>$("fileInput").click());
 $("fileInput").addEventListener("change",async e=>{if(e.target.files?.length)await importFiles([...e.target.files]);e.target.value="";});
 $("addTextBtn").addEventListener("click",addText);
