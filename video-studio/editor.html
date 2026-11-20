@@ -759,7 +759,7 @@ async function detachAudioFromVideo(){
   if(peakRms<.00008)throw new Error("No audible audio was detected in this video segment.");
   if(!audioBlob||audioBlob.size<1000)throw new Error("The extracted audio file is empty. Please try another video segment.");
   const currentSourceClip=clips.find(item=>item.id===sourceSnapshot.id);
-  if(!currentSourceClip||currentSourceClip.assetId!==sourceSnapshot.assetId||currentSourceClip.start!==sourceSnapshot.start||currentSourceClip.sourceStart!==sourceSnapshot.sourceStart||currentSourceClip.duration!==sourceSnapshot.duration){
+  if(!currentSourceClip||currentSourceClip.assetId!==sourceSnapshot.assetId||currentSourceClip.start!==sourceSnapshot.start||(Number(currentSourceClip.sourceStart)||0)!==sourceSnapshot.sourceStart||currentSourceClip.duration!==sourceSnapshot.duration){
    throw new Error("The video clip changed during extraction. Please select it again and retry.");
   }
   const audioId=uid(),audioDuration=Number(captureDuration.toFixed(3));
