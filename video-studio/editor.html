@@ -121,16 +121,57 @@
 </head>
 <body>
 
-<div class="editor-loading" id="editorLoading" role="status" aria-live="polite" aria-label="Loading Video Studio editor">
-  <div class="editor-loading-card">
-    <div class="editor-loading-brand"><span class="editor-loading-logo" aria-hidden="true">▶</span><span>TrivexaAI<small>VIDEO STUDIO</small></span></div>
+<div class="editor-loading" id="editorLoading" role="status" aria-live="polite" aria-label="Loading Video Studio editor" style="position:fixed;inset:0;z-index:2147483647;display:grid;place-items:center;padding:24px;overflow:auto;background:#0b0718;color:#ffffff">
+  <div class="editor-loading-card" style="position:relative;z-index:1;width:min(100%,440px);padding:35px 30px 30px;border:1px solid #65458a;border-radius:25px;background:linear-gradient(145deg,#221735,#110c1f);box-shadow:0 28px 90px #000b;text-align:center">
+    <div class="editor-loading-brand"><span class="editor-loading-logo" aria-hidden="true" style="width:39px;height:39px;display:grid;place-items:center;border:1px solid #b889e9;border-radius:13px;background:linear-gradient(145deg,#8d43c8,#4b3c9c);color:#fff">▶</span><span>TrivexaAI<small>VIDEO STUDIO</small></span></div>
     <div class="editor-loader-orbit" aria-hidden="true"><div class="editor-loader-core">✦</div></div>
     <h1>Preparing your workspace</h1>
     <p class="editor-loading-message" id="editorLoadingMessage">Getting your editor ready…</p>
     <div class="editor-loading-progress" aria-hidden="true"><span></span></div>
     <p class="editor-loading-foot">Your creative space is almost ready</p>
+
+    <div id="editorStartupRecovery" hidden style="margin-top:20px;gap:9px;justify-content:center;flex-wrap:wrap">
+      <button type="button" id="editorStartupRetry" style="border:0;border-radius:10px;padding:10px 16px;background:linear-gradient(100deg,#9839ef,#634dff);color:#fff;font-weight:800;cursor:pointer">Try Again</button>
+      <a href="./" style="display:inline-flex;align-items:center;border:1px solid #62477e;border-radius:10px;padding:10px 16px;background:#211837;color:#eee1ff;text-decoration:none;font-weight:700">Back to Studio</a>
+    </div>
   </div>
 </div>
+
+<script>
+(function(){
+  var root=document.getElementById("editorLoading");
+  if(!root)return;
+  var message=document.getElementById("editorLoadingMessage");
+  var recovery=document.getElementById("editorStartupRecovery");
+  var retry=document.getElementById("editorStartupRetry");
+  var recovered=false;
+  function showProblem(text){
+    if(recovered||!root.isConnected||root.classList.contains("is-exiting"))return;
+    recovered=true;
+    if(message)message.textContent=text;
+    if(recovery){recovery.hidden=false;recovery.style.display="flex";}
+    if(retry)retry.addEventListener("click",function(){location.reload();},{once:true});
+  }
+  window.addEventListener("error",function(event){
+    var target=event.target;
+    if(target&&target.tagName==="SCRIPT"&&target.type==="module"){
+      showProblem("The editor could not load one of its files. Please try again.");
+    }else if(event.message){
+      showProblem("The editor hit a startup error. Please try again or return to Studio.");
+    }
+  },true);
+  window.addEventListener("unhandledrejection",function(){
+    showProblem("The editor could not finish starting. Check your connection and try again.");
+  });
+  window.setTimeout(function(){
+    var editor=document.getElementById("editorApp");
+    var access=document.getElementById("accessMessage");
+    if(root.isConnected&&!root.classList.contains("is-exiting")&&editor&&editor.hidden&&(!access||access.hidden)){
+      showProblem("The editor is taking longer than expected to start. Please try again.");
+    }
+  },18000);
+})();
+</script>
 
 <header class="topbar">
 <a class="back" href="./">← Studio</a>
