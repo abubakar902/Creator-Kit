@@ -24,7 +24,7 @@
 .keyframe-panel{margin:15px 0;padding:11px;border:1px solid #493365;border-radius:10px;background:#191129}
 .keyframe-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .keyframe-head strong{font-size:11px;color:#f1e6ff}
-.keyframe-head .btn{padding:6px 8px;font-size:10px}
+.keyframe-head .btn{padding:6px 8px;font-size:10px}.keyframe-actions{display:flex;align-items:center;gap:4px;flex-wrap:wrap;justify-content:flex-end}.keyframe-row select{max-width:105px;min-width:82px;padding:4px 5px;border:1px solid #49345f;border-radius:6px;background:#171027;color:#eadcff;font-size:9px}.keyframe-row .copy-keyframe{color:#c5a5ff;font-size:10px;padding:2px 4px}
 .keyframe-note{margin:7px 0;color:#a99abd;font-size:9px;line-height:1.5}
 .keyframe-list{display:grid;gap:6px}
 .keyframe-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 7px;border-radius:7px;background:#241a37}
@@ -536,8 +536,8 @@ body{background:radial-gradient(ellipse at 48% -18%,rgba(126,79,190,.18),transpa
 </div>
 </div></details>
 <details class="property-group" id="keyframeGroup"><summary>Keyframes &amp; Animation</summary><div class="group-body"><div class="keyframe-panel hidden" id="keyframeProps">
-<div class="keyframe-head"><strong>Animation keyframes</strong><button class="btn" type="button" id="addKeyframeBtn">＋ Add keyframe</button></div>
-<p class="keyframe-note">Move the playhead, change position / scale / rotation / opacity, then add a keyframe. The editor animates smoothly between points.</p>
+<div class="keyframe-head"><strong>Animation keyframes</strong><div class="keyframe-actions"><button class="btn" type="button" id="prevKeyframeBtn" title="Previous keyframe">◀</button><button class="btn" type="button" id="nextKeyframeBtn" title="Next keyframe">▶</button><button class="btn" type="button" id="pasteKeyframeBtn" title="Paste copied keyframe" disabled>Paste</button><button class="btn" type="button" id="addKeyframeBtn">＋ Add keyframe</button></div></div>
+<p class="keyframe-note">Add keyframes, choose how motion eases between them, copy a keyframe, or jump between animation points.</p>
 <div class="keyframe-list" id="keyframeList"></div>
 </div>
 </div></details>
@@ -675,7 +675,7 @@ body{background:radial-gradient(ellipse at 48% -18%,rgba(126,79,190,.18),transpa
 import {authReady,auth,getAccountProfile} from "../auth/auth-client.js";
 const $=id=>document.getElementById(id);
 const projectKey="trivexaai_video_studio_projects_v1",dbName="trivexaai-video-studio",dbVersion=1,scaleDefault=64;
-let db=null,project=null,clips=[],assets=[],urls=new Map(),selectedId=null,scale=scaleDefault,playhead=0,isPlaying=false,raf=0,lastFrame=0,activeVideoId=null,activeImageId=null,audioNodes=new Map(),audioWaveforms=new Map(),audioWaveformPending=new Map(),audioWaveformUnavailable=new Set(),audioWaveformQueue=Promise.resolve(),saveTimer=0,saveQueue=Promise.resolve(),saveRevision=0,savedRevision=0,undoStack=[],redoStack=[],dragState=null,playheadDrag=null,previewDraft=null,exportBusy=false,exportController=null,lastExportBlob=null,lastExportFileName="",snapEnabled=true,proxyBusy=false,captionsBusy=false;
+let db=null,project=null,clips=[],assets=[],urls=new Map(),selectedId=null,scale=scaleDefault,playhead=0,isPlaying=false,raf=0,lastFrame=0,activeVideoId=null,activeImageId=null,audioNodes=new Map(),audioWaveforms=new Map(),audioWaveformPending=new Map(),audioWaveformUnavailable=new Set(),audioWaveformQueue=Promise.resolve(),saveTimer=0,saveQueue=Promise.resolve(),saveRevision=0,savedRevision=0,undoStack=[],redoStack=[],dragState=null,playheadDrag=null,previewDraft=null,exportBusy=false,exportController=null,lastExportBlob=null,lastExportFileName="",snapEnabled=true,proxyBusy=false,captionsBusy=false,copiedKeyframe=null,activeKeyframeTime=null;
 const params=new URLSearchParams(location.search),projectId=params.get("id"),WORKER_URL="https://creatorkit-ai.abubakar647648.workers.dev";
 function notify(msg){const el=$("toast");el.textContent=msg;el.classList.add("show");clearTimeout(window.__editorToast);window.__editorToast=setTimeout(()=>el.classList.remove("show"),3600);}
 function uid(){return crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random().toString(16).slice(2);}
@@ -898,15 +898,16 @@ function animatedValues(c,local){
  const base=animationBase(c),frames=Array.isArray(c.keyframes)?c.keyframes.slice().sort((a,b)=>a.time-b.time):[];
  if(!frames.length)return base;
  const readFrame=k=>({...base,...(k.values||{})});
+ const ease=(value,mode)=>{const p=Math.max(0,Math.min(1,value));if(mode==="ease-in")return p*p;if(mode==="ease-out")return 1-(1-p)*(1-p);if(mode==="ease-in-out")return p<.5?2*p*p:1-Math.pow(-2*p+2,2)/2;return p;};
  if(local<=frames[0].time){
   if(frames[0].time<=0.0001)return readFrame(frames[0]);
-  const first=readFrame(frames[0]),p=Math.max(0,Math.min(1,local/frames[0].time));
+  const first=readFrame(frames[0]),p=ease(local/frames[0].time,frames[0].easing||"linear");
   return{x:base.x+(first.x-base.x)*p,y:base.y+(first.y-base.y)*p,scale:base.scale+(first.scale-base.scale)*p,rotation:base.rotation+(first.rotation-base.rotation)*p,opacity:base.opacity+(first.opacity-base.opacity)*p};
  }
  if(local>=frames[frames.length-1].time)return readFrame(frames[frames.length-1]);
  let a=frames[0],b=frames[frames.length-1];
  for(let i=0;i<frames.length-1;i++){if(local>=frames[i].time&&local<=frames[i+1].time){a=frames[i];b=frames[i+1];break;}}
- const av=readFrame(a),bv=readFrame(b),span=Math.max(.0001,b.time-a.time),p=Math.max(0,Math.min(1,(local-a.time)/span));
+ const av=readFrame(a),bv=readFrame(b),span=Math.max(.0001,b.time-a.time),p=ease((local-a.time)/span,a.easing||"linear");
  return{x:av.x+(bv.x-av.x)*p,y:av.y+(bv.y-av.y)*p,scale:av.scale+(bv.scale-av.scale)*p,rotation:av.rotation+(bv.rotation-av.rotation)*p,opacity:av.opacity+(bv.opacity-av.opacity)*p};
 }
 function updateRangeFill(el){
@@ -1272,15 +1273,40 @@ function renderKeyframes(){
  if(!list)return;
  list.replaceChildren();
  const frames=(c&&Array.isArray(c.keyframes)?c.keyframes:[]).slice().sort((a,b)=>a.time-b.time);
+ $("pasteKeyframeBtn").disabled=!copiedKeyframe;
  if(!frames.length){const empty=document.createElement("div");empty.className="keyframe-note";empty.textContent="No keyframes yet. Add one at the current playhead position.";list.append(empty);return;}
  frames.forEach(k=>{
   const row=document.createElement("div");row.className="keyframe-row";
   const jump=document.createElement("button");jump.type="button";jump.textContent="◆  "+fmt(k.time);jump.title="Move playhead to this keyframe";
-  jump.addEventListener("click",()=>{pause();setPlayhead(c.start+k.time);renderTimeline();});
+  jump.addEventListener("click",()=>{pause();activeKeyframeTime=k.time;setPlayhead(c.start+k.time);renderTimeline();renderKeyframes();});
+  const easing=document.createElement("select");easing.setAttribute("aria-label","Motion easing for keyframe at "+fmt(k.time));easing.title="Motion easing from this keyframe to the next";
+  [["linear","Linear"],["ease-in","Ease in"],["ease-out","Ease out"],["ease-in-out","Ease in & out"]].forEach(([value,label])=>{const option=document.createElement("option");option.value=value;option.textContent=label;easing.append(option);});
+  easing.value=k.easing||"linear";
+  easing.addEventListener("change",()=>{snapshot();k.easing=easing.value;renderPreview();scheduleSave();notify("Keyframe easing saved.");});
+  const copy=document.createElement("button");copy.type="button";copy.className="copy-keyframe";copy.textContent="Copy";copy.title="Copy this keyframe";
+  copy.addEventListener("click",()=>{copiedKeyframe=clone(k);activeKeyframeTime=k.time;renderKeyframes();notify("Keyframe copied. Move the playhead and press Paste.");});
   const remove=document.createElement("button");remove.type="button";remove.className="remove-keyframe";remove.textContent="×";remove.title="Remove keyframe";
-  remove.addEventListener("click",()=>{snapshot();const current=selectedClip();if(!current)return;current.keyframes=(current.keyframes||[]).filter(frame=>frame!==k);renderKeyframes();renderPreview();scheduleSave();});
-  row.append(jump,remove);list.append(row);
+  remove.addEventListener("click",()=>{snapshot();const current=selectedClip();if(!current)return;current.keyframes=(current.keyframes||[]).filter(frame=>frame!==k);if(activeKeyframeTime===k.time)activeKeyframeTime=null;renderKeyframes();renderPreview();scheduleSave();});
+  row.append(jump,easing,copy,remove);list.append(row);
  });
+}
+function jumpKeyframe(direction){
+ const c=selectedClip();if(!c||!Array.isArray(c.keyframes)||!c.keyframes.length)return;
+ const frames=c.keyframes.slice().sort((a,b)=>a.time-b.time);
+ const local=playhead-c.start;
+ const target=direction<0?frames.filter(k=>k.time<local-.03).pop():frames.find(k=>k.time>local+.03);
+ if(!target){notify(direction<0?"Already at the first keyframe.":"Already at the last keyframe.");return;}
+ pause();activeKeyframeTime=target.time;setPlayhead(c.start+target.time);renderTimeline();renderKeyframes();
+}
+function pasteKeyframe(){
+ const c=selectedClip();if(!c||!copiedKeyframe)return;
+ const time=Number(Math.max(0,Math.min(c.duration,playhead-c.start)).toFixed(3));
+ snapshot();c.keyframes=Array.isArray(c.keyframes)?c.keyframes:[];
+ const existing=c.keyframes.find(k=>Math.abs(k.time-time)<.04);
+ const pasted={...clone(copiedKeyframe),time};
+ if(existing){existing.values=pasted.values;existing.easing=pasted.easing;}else c.keyframes.push(pasted);
+ c.keyframes.sort((a,b)=>a.time-b.time);activeKeyframeTime=time;
+ renderKeyframes();renderPreview();scheduleSave();notify("Keyframe pasted at "+fmt(time)+".");
 }
 function addKeyframe(){
  const c=selectedClip();if(!c||!(c.type==="video"||c.type==="image"||c.type==="text"))return;
@@ -2251,7 +2277,7 @@ $("deleteBtn").addEventListener("click",deleteSelected);
 $("duplicateBtn").addEventListener("click",duplicateSelected);
 $("detachAudioBtn").addEventListener("click",detachAudioFromVideo);
 $("propFilterPreset").addEventListener("change",()=>{const presets={none:[1,1,1,0,0],cinematic:[.98,1.18,.82,0,0],vivid:[1.04,1.12,1.45,0,0],warm:[1.06,1.08,1.12,0,8],cool:[1,1.08,1.02,0,-8],noir:[.96,1.28,0,0,0],vintage:[1.04,.92,.78,.3,-5]};const v=presets[$("propFilterPreset").value]||presets.none;["propBrightness","propContrast","propSaturation","propBlur","propHue"].forEach((id,i)=>$(id).value=v[i]);refreshRangeFills();});
-$("addKeyframeBtn").addEventListener("click",addKeyframe);
+$("addKeyframeBtn").addEventListener("click",addKeyframe);$("prevKeyframeBtn").addEventListener("click",()=>jumpKeyframe(-1));$("nextKeyframeBtn").addEventListener("click",()=>jumpKeyframe(1));$("pasteKeyframeBtn").addEventListener("click",pasteKeyframe);
 $("clipInspector").addEventListener("input",previewProperties);$("clipInspector").addEventListener("change",previewProperties);
 $("applyProps").addEventListener("click",applyProperties);
 $("undoBtn").addEventListener("click",undo);$("redoBtn").addEventListener("click",redo);
