@@ -139,6 +139,13 @@
 @keyframes editorBootProgress{0%{margin-left:-40%}100%{margin-left:105%}}
 @media(max-width:480px){.editor-loading{padding:13px}.editor-loading .editor-boot-shell{padding:19px 15px;border-radius:21px}.editor-boot-top{margin-bottom:22px}.editor-boot-brand{font-size:16px}.editor-boot-live{font-size:7px;padding:6px 8px}.editor-boot-status{gap:10px}.editor-boot-status span{font-size:9px}.editor-boot-foot{font-size:6px;letter-spacing:.8px}}
 @media(prefers-reduced-motion:reduce){.editor-loading *{animation:none!important}}
+
+.editor-boot-orbit{position:relative;width:54px;height:54px;display:grid;place-items:center;margin:10px auto 12px}
+.editor-boot-orbit:before,.editor-boot-orbit:after{content:"";position:absolute;inset:0;border:2px solid transparent;border-top-color:#a9d7ff;border-right-color:#6c9bd0;border-radius:50%;filter:drop-shadow(0 0 7px #80b9ed);animation:editorBootOrbit 1.15s linear infinite}
+.editor-boot-orbit:after{inset:7px;border-bottom-color:#a99aff;border-left-color:#7d74c8;animation-duration:1.7s;animation-direction:reverse}
+.editor-boot-orbit i{width:27px;height:27px;border:1px solid #9bc7ed;border-radius:9px;background:linear-gradient(145deg,#345b84,#4e4b89);box-shadow:0 0 20px #6e9fdc55}
+.editor-boot-orbit b{position:absolute;color:#e5f2ff;font-size:14px;font-weight:500}
+@keyframes editorBootOrbit{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
@@ -155,6 +162,7 @@
   </div>
   <div class="editor-boot-heading">
    <span class="editor-boot-kicker">YOUR PROJECT · ALMOST THERE</span>
+   <span class="editor-boot-orbit" aria-hidden="true"><i></i><b>✦</b></span>
    <h1>Building your editing space</h1>
    <p class="editor-loading-message" id="editorLoadingMessage">Getting your editor ready…</p>
   </div>
@@ -185,7 +193,7 @@
   <div class="editor-boot-foot"><span>PREPARING YOUR WORKSPACE</span><span>TRIVEXAAI VIDEO EDITOR</span></div>
   <div id="editorStartupRecovery" hidden style="margin-top:20px;gap:9px;justify-content:center;flex-wrap:wrap">
    <button type="button" id="editorStartupRetry" style="border:0;border-radius:10px;padding:10px 16px;background:linear-gradient(100deg,#477ea9,#6250a8);color:#fff;font-weight:800;cursor:pointer">Try Again</button>
-   <a href="./" style="display:inline-flex;align-items:center;border:1px solid #45617e;border-radius:10px;padding:10px 16px;background:#142033;color:#e2edff;text-decoration:none;font-weight:700">Back to Studio</a>
+   <a class="editor-return-studio" href="./" style="display:inline-flex;align-items:center;border:1px solid #45617e;border-radius:10px;padding:10px 16px;background:#142033;color:#e2edff;text-decoration:none;font-weight:700">Back to Studio</a>
   </div>
  </div>
 </div>
@@ -226,8 +234,30 @@
 })();
 </script>
 
+
+<script>
+(function(){
+ document.addEventListener("click",function(event){
+  var link=event.target.closest("a.editor-return-studio");
+  if(!link)return;
+  event.preventDefault();
+  var cameFromStudio=false;
+  try{
+   var previous=new URL(document.referrer);
+   cameFromStudio=previous.origin===location.origin&&previous.pathname.split("/").filter(Boolean).pop()==="video-studio";
+  }catch(e){}
+  if(cameFromStudio&&history.length>1){
+   try{sessionStorage.setItem("trivexaai_skip_studio_startup_once","1");}catch(e){}
+   history.back();
+   return;
+  }
+  location.replace("./?fromEditor=1");
+ });
+})();
+</script>
+
 <header class="topbar">
-<a class="back" href="./">← Studio</a>
+<a class="back editor-return-studio" href="./">← Studio</a>
 <a class="brand" href="../"><img src="../trivexaai-icon.png" alt=""><span>TrivexaAI<small>VIDEO EDITOR</small></span></a>
 <input id="projectTitle" class="project-title" value="Untitled project" aria-label="Project name">
 <div class="save-status" id="saveStatus">Loading project…</div>
