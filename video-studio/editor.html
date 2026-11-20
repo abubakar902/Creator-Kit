@@ -244,9 +244,10 @@
   var cameFromStudio=false;
   try{
    var previous=new URL(document.referrer);
-   cameFromStudio=previous.origin===location.origin&&previous.pathname.replace(/\\/+$/,"").endsWith("/video-studio");
+   cameFromStudio=previous.origin===location.origin&&previous.pathname.split("/").filter(Boolean).pop()==="video-studio";
   }catch(e){}
   if(cameFromStudio&&history.length>1){
+   try{sessionStorage.setItem("trivexaai_skip_studio_startup_once","1");}catch(e){}
    history.back();
    return;
   }
