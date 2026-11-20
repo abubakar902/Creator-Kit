@@ -70,6 +70,7 @@
 .export-dialog-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:15px 23px 20px;border-top:1px solid #352346}
 .export-dialog-actions .btn{min-width:104px}
 .export-modal-note{margin-top:12px;color:#8e80a3;font-size:9px;line-height:1.5}
+.export-options-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:4px 0 18px}.export-quality{display:flex;flex-direction:column;align-items:stretch;gap:7px;margin:0}.export-quality label{font-size:11px;color:#d9c9ec;font-weight:750}.export-quality select{max-width:none;width:100%;background:#171027;border:1px solid #493365;border-radius:9px;color:#fff;padding:10px 11px;font-size:11px}.export-quality select option:disabled{color:#766b83}@media(max-width:480px){.export-options-grid{grid-template-columns:1fr}}
 @media(max-width:480px){.export-dialog-head{padding:18px 16px 13px}.export-dialog-body{padding:7px 16px 16px}.export-dialog-actions{padding:13px 16px 16px;flex-wrap:wrap}.export-quality{align-items:flex-start;flex-direction:column}.export-quality select{max-width:none;width:100%}.export-info-grid{gap:6px}.export-info{padding:8px}.export-dialog-head h2{font-size:17px}}
 
 </style>
@@ -225,19 +226,19 @@
    <div><h2 id="exportDialogTitle">Export your video</h2><p>Render your project and save it to your device</p></div>
   </header>
   <div class="export-dialog-body">
-   <div class="export-quality" id="exportQualityRow">
-    <label for="exportResolution">Export quality</label>
-    <select id="exportResolution">
-     <option value="project">Project resolution</option>
-     <option value="720p" selected>720p · Smaller file · Recommended</option>
-    </select>
+   <div class="export-options-grid" id="exportQualityRow">
+    <div class="export-quality"><label for="exportFormat">Format</label><select id="exportFormat"><option value="mp4">MP4 · Compatible</option><option value="webm" selected>WebM · Smaller</option></select></div>
+    <div class="export-quality"><label for="exportResolution">Resolution</label><select id="exportResolution"><option value="480p">480p · Faster</option><option value="720p" selected>720p · Recommended</option><option value="1080p">1080p · High detail</option><option value="project">Project resolution</option></select></div>
+    <div class="export-quality"><label for="exportFps">Frame rate</label><select id="exportFps"><option value="project">Project FPS</option><option value="24">24 FPS</option><option value="30" selected>30 FPS</option><option value="60">60 FPS · Smooth</option></select></div>
+    <div class="export-quality"><label for="exportBitrate">Quality / file size</label><select id="exportBitrate"><option value="small">Smaller file</option><option value="standard" selected>Standard</option><option value="high">High quality</option></select></div>
    </div>
+   <p id="exportFormatNote" class="export-modal-note">MP4 availability depends on the browser and device encoder. Unsupported formats cannot be selected.</p>
    <div class="export-progress-heading"><strong>Export progress</strong><span id="exportPercent">0%</span></div>
    <div class="export-progress-track"><div class="export-progress-fill" id="exportProgressFill"></div></div>
    <p class="export-modal-status" id="exportModalStatus">Ready to export</p>
    <p class="export-modal-detail" id="exportModalDetail">Your project stays on this device while it is being exported.</p>
    <div class="export-info-grid">
-    <div class="export-info"><small>FORMAT</small><strong>WebM</strong></div>
+    <div class="export-info"><small>FORMAT</small><strong id="exportFormatInfo">WebM</strong></div>
     <div class="export-info"><small>FRAME RATE</small><strong id="exportFpsInfo">30 FPS</strong></div>
     <div class="export-info"><small>OUTPUT SIZE</small><strong id="exportSizeInfo">1920 × 1080</strong></div>
    </div>
@@ -735,6 +736,32 @@ function setExportModalProgress(percent,title,detail){
  $("exportModalStatus").textContent=title||"Working…";
  $("exportModalDetail").textContent=detail||"";
 }
+function supportedExportMime(format){
+ const candidates=format==="mp4"
+  ?["video/mp4;codecs=avc1.424028,mp4a.40.2","video/mp4;codecs=avc1,mp4a.40.2","video/mp4"]
+  :["video/webm;codecs=vp9,opus","video/webm;codecs=vp8,opus","video/webm"];
+ return candidates.find(type=>MediaRecorder.isTypeSupported(type))||"";
+}
+function configureExportOptions(){
+ const mp4Option=$("exportFormat").querySelector('option[value="mp4"]');
+ const mp4Supported=!!supportedExportMime("mp4");
+ mp4Option.disabled=!mp4Supported;
+ $("exportFormatNote").textContent=mp4Supported
+  ?"MP4 is supported by this browser/device. If encoding fails, choose WebM.": "This browser/device does not currently offer MP4 recording. WebM is available; MP4 needs a compatible H.264/AAC encoder.";
+ if(!mp4Supported&&$("exportFormat").value==="mp4")$("exportFormat").value="webm";
+ if(mp4Supported&&$("exportFormat").dataset.userChosen!=="1")$("exportFormat").value="mp4";
+ updateExportSummary();
+}
+function getSelectedExportFps(){
+ const value=$("exportFps").value;
+ return value==="project"?Math.max(15,Math.min(60,Number(project?.fps)||30)):Number(value);
+}
+function updateExportSummary(){
+ const size=getSelectedExportSize();
+ $("exportSizeInfo").textContent=size.width+" × "+size.height;
+ $("exportFpsInfo").textContent=getSelectedExportFps()+" FPS";
+ $("exportFormatInfo").textContent=$("exportFormat").value.toUpperCase();
+}
 function showExportModal(){
  $("exportModal").hidden=false;
  $("exportDialogTitle").textContent="Export your video";
@@ -743,10 +770,8 @@ function showExportModal(){
  $("exportCancelBtn").textContent="Cancel export";
  $("exportRetryBtn").hidden=true;$("exportDownloadBtn").hidden=true;
  $("exportCloseBtn").disabled=true;
- $("exportFpsInfo").textContent=(Number(project?.fps)||30)+" FPS";
- const size=exportCanvasSize();
- $("exportSizeInfo").textContent=size.width+" × "+size.height;
- setExportModalProgress(0,"Getting ready…","Your project stays on this device while it is being exported.");
+ configureExportOptions();
+ setExportModalProgress(0,"Getting ready…","Choose your format, resolution, frame rate and quality.");
 }
 function hideExportModal(){
  if(exportBusy)return;
@@ -776,9 +801,9 @@ function requestExportCancel(){
  if(exportController.stopRecording)exportController.stopRecording();
 }
 function getSelectedExportSize(){
- const size=exportCanvasSize();
- if($("exportResolution").value!=="720p")return size;
- const factor=Math.min(1,1280/Math.max(size.width,size.height));
+ const size=exportCanvasSize(),choice=$("exportResolution").value;
+ const target=choice==="480p"?854:choice==="720p"?1280:choice==="1080p"?1920:Math.max(size.width,size.height);
+ const factor=Math.min(1,target/Math.max(size.width,size.height));
  let width=Math.max(240,Math.floor(size.width*factor)),height=Math.max(240,Math.floor(size.height*factor));
  if(width%2)width--;if(height%2)height--;
  return {width,height};
@@ -799,9 +824,8 @@ async function exportVideo(){
  const oldStatus=$("saveStatus").textContent;
  let timelineFinished=false,recordingFailure=null;
  try{
-  const size=getSelectedExportSize();
-  $("exportFpsInfo").textContent=(Number(project.fps)||30)+" FPS";
-  $("exportSizeInfo").textContent=size.width+" × "+size.height;
+  const size=getSelectedExportSize(),format=$("exportFormat").value,fps=getSelectedExportFps();
+  updateExportSummary();
   const hasSoundSources=exportClips.some(c=>c.type==="video"||c.type==="audio");
   const AudioContextClass=window.AudioContext||window.webkitAudioContext;
   if(hasSoundSources&&AudioContextClass){
@@ -849,20 +873,20 @@ async function exportVideo(){
     source.connect(gain);gain.connect(audioDestination);item.gain=gain;
    });
   }
-  const fps=Math.max(15,Math.min(60,Number(project.fps)||30));
   canvasStream=canvas.captureStream(fps);
   const tracks=[...canvasStream.getVideoTracks()];
   if(audioDestination)tracks.push(...audioDestination.stream.getAudioTracks());
   recordingStream=new MediaStream(tracks);
-  const mimeTypes=["video/webm;codecs=vp9,opus","video/webm;codecs=vp8,opus","video/webm"];
-  const mimeType=mimeTypes.find(type=>MediaRecorder.isTypeSupported(type));
-  if(!mimeType)throw new Error("WebM export is not supported by this browser. Please use the latest Google Chrome or Microsoft Edge.");
-  recorder=new MediaRecorder(recordingStream,{mimeType,videoBitsPerSecond:Math.min(8000000,Math.max(2500000,Math.round(size.width*size.height*1.2))),audioBitsPerSecond:128000});
+  const mimeType=supportedExportMime(format);
+  if(!mimeType)throw new Error(format.toUpperCase()+" export is not supported by this browser/device. Choose another format.");
+  const bitrates={small:1500000,standard:3500000,high:7000000};
+  const videoBitrate=bitrates[$("exportBitrate").value]||bitrates.standard;
+  recorder=new MediaRecorder(recordingStream,{mimeType,videoBitsPerSecond:videoBitrate,audioBitsPerSecond:128000});
   const recordingPromise=new Promise((resolve,reject)=>{
    recorder.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data);};
    recorder.onerror=e=>{recordingFailure=e.error||new Error("The browser stopped the export unexpectedly.");reject(recordingFailure);};
    recorder.onstop=()=>{
-    const blob=new Blob(chunks,{type:recorder.mimeType||"video/webm"});
+    const blob=new Blob(chunks,{type:recorder.mimeType||mimeType});
     if(exportController.cancelled){const error=new Error("Export cancelled by you.");error.name="AbortError";reject(error);}
     else if(recordingFailure)reject(recordingFailure);
     else if(!timelineFinished)reject(new Error("The recorder stopped before the whole timeline finished. Please retry using 720p quality."));
@@ -933,8 +957,9 @@ async function exportVideo(){
   const blob=await recordingPromise;
   if(!blob||blob.size<1000)throw new Error("The exported video is empty. Please try again with another media file.");
   lastExportBlob=blob;
-  lastExportFileName=(safeName(project.name).replace(/\s+/g,"-")||"trivexaai-video")+".webm";
-  setExportModalProgress(100,"Your video is ready!","The WebM export is complete. Download it now, or use Download again later in this window.");
+  const extension=format==="mp4"?"mp4":"webm";
+  lastExportFileName=(safeName(project.name).replace(/\s+/g,"-")||"trivexaai-video")+"."+extension;
+  setExportModalProgress(100,"Your video is ready!","The "+format.toUpperCase()+" export is complete. Download it now, or use Download again later in this window.");
   $("exportDialogTitle").textContent="Export complete";
   $("exportQualityRow").hidden=true;
   $("exportCancelBtn").hidden=true;
@@ -944,8 +969,8 @@ async function exportVideo(){
   link.href=url;link.download=lastExportFileName;
   document.body.append(link);link.click();link.remove();
   setTimeout(()=>URL.revokeObjectURL(url),60000);
-  status("Export complete · WebM");
-  notify("Export complete! Your video was downloaded as a WebM file.");
+  status("Export complete · "+format.toUpperCase());
+  notify("Export complete! Your "+format.toUpperCase()+" video was downloaded.");
  }catch(error){
   const cancelled=exportController?.cancelled||error?.name==="AbortError";
   status(cancelled?"Export cancelled":"Export failed");
@@ -1004,7 +1029,10 @@ $("exportCancelBtn").addEventListener("click",requestExportCancel);
 $("exportCloseBtn").addEventListener("click",hideExportModal);
 $("exportDownloadBtn").addEventListener("click",downloadLastExport);
 $("exportRetryBtn").addEventListener("click",()=>{hideExportModal();exportVideo();});
-$("exportResolution").addEventListener("change",()=>{const size=getSelectedExportSize();$("exportSizeInfo").textContent=size.width+" × "+size.height;});
+$("exportResolution").addEventListener("change",updateExportSummary);
+$("exportFps").addEventListener("change",updateExportSummary);
+$("exportBitrate").addEventListener("change",updateExportSummary);
+$("exportFormat").addEventListener("change",()=>{$("exportFormat").dataset.userChosen="1";updateExportSummary();});
 window.addEventListener("beforeunload",()=>{if(project&&db){clearTimeout(saveTimer);saveProject();}for(const u of urls.values())URL.revokeObjectURL(u);for(const a of audioNodes.values())a.pause();});
 initialise();
 </script>
