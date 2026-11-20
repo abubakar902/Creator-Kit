@@ -1371,7 +1371,7 @@ function closeShortcutsGuide(){
  modal.hidden=true;$("shortcutsBtn").focus();
 }
 function isTypingTarget(target){
- return !!(target&&(target.isContentEditable||target.closest("input,textarea,select,[contenteditable='true']")));
+ return !!(target&&(target.isContentEditable||(typeof target.closest==="function"&&target.closest("input,textarea,select,[contenteditable='true']"))));
 }
 function handleEditorShortcuts(event){
  if($("editorApp").hidden)return;
@@ -1388,7 +1388,7 @@ function handleEditorShortcuts(event){
   return;
  }
  if(event.shiftKey||event.ctrlKey||event.metaKey)return;
- if(event.target&&event.target.closest("button,a,[role='button']"))return;
+ if(event.target&&typeof event.target.closest==="function"&&event.target.closest("button,a,[role='button']"))return;
  if(key===" "){event.preventDefault();if(isPlaying)pause();else play();}
  else if(key==="s"){event.preventDefault();splitSelected();}
  else if(key==="delete"||key==="backspace"){if(!selectedId)return;event.preventDefault();deleteSelected();}
