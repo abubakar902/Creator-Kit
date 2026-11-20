@@ -614,7 +614,7 @@ function renderProjects(){
  }));
  list.querySelectorAll("[data-delete]").forEach(button=>button.addEventListener("click",()=>askDeleteProject(button.dataset.delete,button)));
 }
-function escapeHtml(s){function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 function setRatio(r){selectedRatio=r;document.querySelectorAll(".ratio").forEach(b=>{const on=b.dataset.ratio===r;b.classList.toggle("selected",on);b.setAttribute("aria-pressed",String(on));});$("customFields").classList.toggle("show",r==="custom");const size={"9:16":"1080x1920","4:5":"1080x1350","1:1":"1080x1080","16:9":"1920x1080"}[r];if(size){let option=[...$("resolution").options].find(o=>o.value===size);if(!option){option=document.createElement("option");option.value=size;option.textContent=size.replace("x"," × ")+" (Aspect preset)";$("resolution").append(option);}$("resolution").value=size;}}
 document.querySelectorAll(".ratio").forEach(b=>b.addEventListener("click",()=>setRatio(b.dataset.ratio)));
 const presets={youtube:{ratio:"16:9",resolution:"1920x1080",fps:"30"},shorts:{ratio:"9:16",resolution:"1080x1920",fps:"30"},square:{ratio:"1:1",resolution:"1080x1080",fps:"30"},portrait:{ratio:"4:5",resolution:"1080x1350",fps:"30"}};
