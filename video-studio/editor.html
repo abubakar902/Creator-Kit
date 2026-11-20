@@ -311,6 +311,13 @@ body{background:radial-gradient(ellipse at 48% -18%,rgba(126,79,190,.18),transpa
  .timeline-buttons .btn{font-size:8px;padding:6px}
 }
 
+
+/* Keep every project frame completely inside the available preview viewport. */
+#previewStage{flex:0 0 auto;max-width:100%;max-height:100%}
+@media(max-width:680px){
+ .center{min-height:min(72vh,560px)}
+ #previewArea{min-height:0;flex:1 1 auto;padding:10px}
+}
 </style>
 </head>
 <body>
@@ -447,7 +454,7 @@ body{background:radial-gradient(ellipse at 48% -18%,rgba(126,79,190,.18),transpa
 </aside>
 <main class="panel center">
 <div class="preview-toolbar"><span class="preview-heading"><i aria-hidden="true"></i>Preview <span id="previewResolution"></span></span><div class="preview-toolbar-actions"><button type="button" class="tool-btn" id="previewGuidesBtn" aria-pressed="false" title="Show safe-area and composition guides">Guides</button><label>Fit <select id="previewFit"><option value="contain">Fit</option><option value="cover">Fill</option></select></label></div></div>
-<div class="preview-area"><div class="stage" id="previewStage"><div class="preview-guides" id="previewGuides" hidden aria-hidden="true"><span>SAFE AREA</span></div>
+<div class="preview-area" id="previewArea"><div class="stage" id="previewStage"><div class="preview-guides" id="previewGuides" hidden aria-hidden="true"><span>SAFE AREA</span></div>
 <div class="stage-placeholder" id="previewPlaceholder"><span>▶</span>Your video preview will appear here</div>
 <video id="videoPreview" playsinline preload="auto"></video>
 <img id="imagePreview" alt="Current image clip">
@@ -871,6 +878,29 @@ function ensureStickerStagePosition(c,hasVideo){
  if(previewDraft&&previewDraft.id===c.id){previewDraft.x=real.x;previewDraft.y=real.y;previewDraft.keyframes=clone(real.keyframes||[]);previewDraft.imagePositionMode="stage";}
  scheduleSave();
 }
+let previewResizeObserver=null;
+function fitPreviewStage(){
+ const area=$("previewArea"),stage=$("previewStage");
+ if(!project||!area||!stage)return;
+ const output=exportCanvasSize();
+ const areaWidth=area.clientWidth,areaHeight=area.clientHeight;
+ if(areaWidth<=0||areaHeight<=0)return;
+ const areaStyle=getComputedStyle(area);
+ const padX=parseFloat(areaStyle.paddingLeft||0)+parseFloat(areaStyle.paddingRight||0);
+ const padY=parseFloat(areaStyle.paddingTop||0)+parseFloat(areaStyle.paddingBottom||0);
+ const availableWidth=Math.max(0,areaWidth-padX);
+ const availableHeight=Math.max(0,areaHeight-padY);
+ if(availableWidth<=0||availableHeight<=0)return;
+ const fitKey=[output.width,output.height,areaWidth,areaHeight,padX,padY].join(":");
+ if(stage.dataset.fitKey===fitKey)return;
+ const ratio=output.width/output.height;
+ const width=Math.min(850,availableWidth,availableHeight*ratio);
+ const height=width/ratio;
+ if(!Number.isFinite(width)||!Number.isFinite(height)||width<=0||height<=0)return;
+ stage.style.width=width.toFixed(2)+"px";
+ stage.style.height=height.toFixed(2)+"px";
+ stage.dataset.fitKey=fitKey;
+}
 function renderPreview(){
  const base=activeAt(playhead,"video"),over=activeAt(playhead,"overlay");
  const primary=over&&over.type==="video"?over:base,overlayImage=over&&over.type==="image"?over:null;
@@ -920,9 +950,11 @@ function renderPreview(){
   $("textPreview").append(span);
  });
  $("textPreview").style.display=texts.length?"block":"none";
- const dims=(project.ratio==="custom"?String(project.resolution||"1920x1080").split("x"):[]);
- const frame=project.ratio==="9:16"?"9 / 16":project.ratio==="1:1"?"1 / 1":project.ratio==="4:5"?"4 / 5":project.ratio==="custom"&&dims.length===2?dims[0]+" / "+dims[1]:"16 / 9";
- $("previewStage").style.aspectRatio=frame;video.style.objectFit=$("previewFit").value;img.style.objectFit="contain";
+ const outputSize=exportCanvasSize();
+ const frame=outputSize.width+" / "+outputSize.height,stage=$("previewStage");
+ if(stage.dataset.previewFrame!==frame){stage.dataset.previewFrame=frame;stage.style.aspectRatio=frame;}
+ video.style.objectFit=$("previewFit").value;img.style.objectFit="contain";
+ fitPreviewStage();
  updateStickerResizeHandle(overlayImage,img);
 }
 function updateStickerResizeHandle(c,img){
@@ -1893,6 +1925,8 @@ $("ruler").addEventListener("pointerdown",rulerSeek);
 $("playhead").addEventListener("pointerdown",playheadPointerDown);
 $("timelineScroll").addEventListener("click",e=>{if(e.target.classList.contains("track-content")||e.target.classList.contains("track-row")){const rect=e.currentTarget.getBoundingClientRect();const x=e.clientX-rect.left+e.currentTarget.scrollLeft-116;pause();setPlayhead(Math.max(0,x/scale));}});
 $("previewFit").addEventListener("change",renderPreview);
+if(typeof ResizeObserver==="function"){previewResizeObserver=new ResizeObserver(fitPreviewStage);previewResizeObserver.observe($("previewArea"));}
+window.addEventListener("resize",fitPreviewStage,{passive:true});
 $("previewStage").addEventListener("pointerdown",previewPointerDown);
 window.addEventListener("pointermove",previewPointerMove);
 window.addEventListener("pointerup",previewPointerUp);
