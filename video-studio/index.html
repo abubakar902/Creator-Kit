@@ -167,6 +167,59 @@
 </style>
 </head>
 <body>
+<div id="studioStartupLoading" role="status" aria-live="polite" aria-label="Loading TrivexaAI Video Studio"
+ style="position:fixed;inset:0;z-index:2147483646;display:grid;place-items:center;overflow:auto;padding:22px;background:radial-gradient(ellipse at 50% 20%,#39205b 0%,#160f28 48%,#090612 100%);color:#fff;font-family:Inter,ui-sans-serif,system-ui,Arial,sans-serif;opacity:1;visibility:visible;transition:opacity .4s ease,visibility .4s ease">
+ <div style="width:min(100%,440px);box-sizing:border-box;padding:34px 28px 28px;text-align:center;border:1px solid #64477e;border-radius:24px;background:linear-gradient(145deg,#241837,#120d20);box-shadow:0 28px 90px #000b,inset 0 1px 0 #ffffff10">
+  <div style="display:flex;align-items:center;justify-content:center;gap:11px;margin-bottom:25px;font-size:19px;font-weight:850;letter-spacing:-.4px">
+   <span style="width:40px;height:40px;display:grid;place-items:center;border:1px solid #b889e9;border-radius:13px;background:linear-gradient(145deg,#8d43c8,#4b3c9c)">▶</span>
+   <span style="text-align:left">TrivexaAI<small style="display:block;margin-top:2px;color:#bba8db;font-size:9px;letter-spacing:2px">VIDEO STUDIO</small></span>
+  </div>
+  <div style="width:82px;height:82px;display:grid;place-items:center;margin:0 auto 23px;border:3px solid #563c70;border-top-color:#d7a1ff;border-right-color:#a878e6;border-radius:50%;animation:studioDashboardSpin 1.05s linear infinite">
+   <span style="width:44px;height:44px;display:grid;place-items:center;border-radius:14px;background:linear-gradient(145deg,#7041a6,#4f3c91);color:#fff;font-size:20px">✦</span>
+  </div>
+  <h2 style="margin:0 0 8px;color:#fff;font-size:21px;letter-spacing:-.4px">Opening Video Studio</h2>
+  <p id="studioStartupMessage" style="margin:0;color:#c5b5da;font-size:12px;line-height:1.6">Checking your account and preparing your creative workspace…</p>
+  <div style="height:5px;margin:24px 4px 0;overflow:hidden;border-radius:99px;background:#392a4b">
+   <span style="display:block;width:40%;height:100%;border-radius:99px;background:linear-gradient(90deg,#9250d4,#d78cff,#f29bdc);animation:studioDashboardProgress 1.25s ease-in-out infinite"></span>
+  </div>
+  <p style="margin:14px 0 0;color:#8d7c9d;font-size:9px;font-weight:750;letter-spacing:1.4px">PLEASE WAIT · VIDEO STUDIO</p>
+  <div id="studioStartupRecovery" hidden style="margin-top:19px;gap:9px;justify-content:center;flex-wrap:wrap">
+   <button id="studioStartupRetry" type="button" style="border:0;border-radius:10px;padding:10px 16px;background:linear-gradient(100deg,#9839ef,#634dff);color:#fff;font-weight:800;cursor:pointer">Try Again</button>
+   <a href="../" style="display:inline-flex;align-items:center;border:1px solid #62477e;border-radius:10px;padding:10px 16px;background:#211837;color:#eee1ff;text-decoration:none;font-weight:700">Back to Website</a>
+  </div>
+ </div>
+</div>
+<style>
+@keyframes studioDashboardSpin{to{transform:rotate(360deg)}}
+@keyframes studioDashboardProgress{0%{margin-left:-40%}100%{margin-left:105%}}
+@media(prefers-reduced-motion:reduce){#studioStartupLoading *{animation:none!important}#studioStartupLoading{transition:opacity .15s ease,visibility .15s ease}}
+</style>
+<script>
+(function(){
+ var root=document.getElementById("studioStartupLoading");
+ if(!root)return;
+ var msg=document.getElementById("studioStartupMessage");
+ var recovery=document.getElementById("studioStartupRecovery");
+ var retry=document.getElementById("studioStartupRetry");
+ window.__setStudioStartupMessage=function(text){if(msg)msg.textContent=text;};
+ window.__hideStudioStartupLoading=function(){
+  if(!root.isConnected)return;
+  root.style.opacity="0";
+  root.style.visibility="hidden";
+  root.style.pointerEvents="none";
+  window.setTimeout(function(){if(root.isConnected)root.remove();},420);
+ };
+ window.setTimeout(function(){
+  var app=document.getElementById("app");
+  var locked=document.getElementById("locked");
+  if(root.isConnected&&app&&app.hidden&&(!locked||locked.hidden)){
+   if(msg)msg.textContent="Video Studio is taking longer than expected to open. Please try again.";
+   if(recovery){recovery.hidden=false;recovery.style.display="flex";}
+   if(retry)retry.addEventListener("click",function(){location.reload();},{once:true});
+  }
+ },18000);
+})();
+</script>
 <div id="editorLaunchLoading" hidden aria-live="polite" role="status" aria-label="Opening TrivexaAI Video Studio"
  style="position:fixed;inset:0;z-index:2147483647;display:none;place-items:center;overflow:auto;padding:22px;background:radial-gradient(ellipse at 50% 20%,#39205b 0%,#160f28 48%,#090612 100%);color:#fff;font-family:Inter,ui-sans-serif,system-ui,Arial,sans-serif">
  <div style="width:min(100%,440px);box-sizing:border-box;padding:34px 28px 28px;text-align:center;border:1px solid #64477e;border-radius:24px;background:linear-gradient(145deg,#241837,#120d20);box-shadow:0 28px 90px #000b,inset 0 1px 0 #ffffff10">
@@ -269,7 +322,36 @@ function applyPreset(key){const p=presets[key];setRatio(p.ratio);const option=[.
 document.querySelectorAll("[data-preset]").forEach(b=>b.addEventListener("click",()=>applyPreset(b.dataset.preset)));
 $("quickPreset").addEventListener("click",()=>applyPreset("youtube"));
 $("createProject").addEventListener("click",()=>{const name=$("projectName").value.trim();if(!name){toast("Please enter a project name.");$("projectName").focus();return;}let resolution=$("resolution").value;if(selectedRatio==="custom"){const w=Number($("customWidth").value),h=Number($("customHeight").value);if(!Number.isInteger(w)||!Number.isInteger(h)||w<240||h<240||w>3840||h>3840){toast("Custom width and height must be between 240 and 3840 pixels.");return;}resolution=w+"x"+h;}const [w,h]=resolution.split("x").map(Number);const ratioLabel=selectedRatio==="custom"?"Custom ("+w+":"+h+")":selectedRatio;const project={id:crypto.randomUUID?crypto.randomUUID():String(Date.now()),name,ratio:selectedRatio,ratioLabel,resolution,resolutionLabel:w+" × "+h,fps:Number($("fps").value),createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};projects=readProjects();projects.push(project);try{localStorage.setItem(storageKey,JSON.stringify(projects));renderProjects();openProjectEditor(project.id);}catch(e){toast("Could not save this project in your browser. Check available storage.");}});
-async function start(){await authReady;if(!auth?.currentUser){const next=location.href;location.replace("../auth/login.html?next="+encodeURIComponent(next));return;}try{const profile=await getAccountProfile();if(!profile?.access?.videoStudio){$("locked").hidden=false;return;}$("app").hidden=false;renderProjects();}catch(e){if(e.status===401){location.replace("../auth/login.html?next="+encodeURIComponent(location.href));return;}if(e.status===403||e.code==="ADVANCED_ACCESS_REQUIRED"||e.code==="VIDEO_STUDIO_ACCESS_REQUIRED"){$("locked").hidden=false;return;}$("locked").hidden=false;$("locked").querySelector("p").textContent="We could not verify your Video Studio access. Please refresh the page or contact support. ("+e.message+")";}}
+function setStudioStartupMessage(message){if(typeof window.__setStudioStartupMessage==="function")window.__setStudioStartupMessage(message);}
+function hideStudioStartupLoading(){if(typeof window.__hideStudioStartupLoading==="function")window.__hideStudioStartupLoading();}
+async function start(){
+ try{
+  setStudioStartupMessage("Checking your TrivexaAI account…");
+  await authReady;
+  if(!auth?.currentUser){const next=location.href;location.replace("../auth/login.html?next="+encodeURIComponent(next));return;}
+  setStudioStartupMessage("Verifying Video Studio access…");
+  const profile=await getAccountProfile();
+  if(!profile?.access?.videoStudio){
+   $("locked").hidden=false;
+   hideStudioStartupLoading();
+   return;
+  }
+  setStudioStartupMessage("Preparing your projects and creative workspace…");
+  renderProjects();
+  $("app").hidden=false;
+  hideStudioStartupLoading();
+ }catch(e){
+  if(e.status===401){location.replace("../auth/login.html?next="+encodeURIComponent(location.href));return;}
+  if(e.status===403||e.code==="ADVANCED_ACCESS_REQUIRED"||e.code==="VIDEO_STUDIO_ACCESS_REQUIRED"){
+   $("locked").hidden=false;
+   hideStudioStartupLoading();
+   return;
+  }
+  $("locked").hidden=false;
+  $("locked").querySelector("p").textContent="We could not verify your Video Studio access. Please refresh the page or contact support. ("+e.message+")";
+  hideStudioStartupLoading();
+ }
+}
 start();
 </script>
 </body>
