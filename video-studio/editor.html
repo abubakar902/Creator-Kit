@@ -146,6 +146,91 @@
 .editor-boot-orbit i{width:27px;height:27px;border:1px solid #9bc7ed;border-radius:9px;background:linear-gradient(145deg,#345b84,#4e4b89);box-shadow:0 0 20px #6e9fdc55}
 .editor-boot-orbit b{position:absolute;color:#e5f2ff;font-size:14px;font-weight:500}
 @keyframes editorBootOrbit{to{transform:rotate(360deg)}}
+
+/* Premium workspace finish: visual-only styling, scoped to the editor workspace. */
+body{background:radial-gradient(ellipse at 48% -18%,rgba(126,79,190,.18),transparent 48rem),#0b0718}
+.topbar{background:rgba(16,11,32,.94);backdrop-filter:blur(18px);border-bottom:1px solid rgba(170,126,222,.22);box-shadow:0 8px 28px rgba(0,0,0,.18)}
+.back{border-color:#49345f;background:linear-gradient(145deg,#211735,#171027);transition:background .18s,border-color .18s,transform .18s}
+.back:hover{border-color:#a77be1;background:#2a1c40;transform:translateY(-1px)}
+.brand img{filter:drop-shadow(0 0 10px rgba(174,104,255,.28))}
+.brand small{color:#c3a8e8}
+.project-title{transition:border-color .18s,background .18s}
+.project-title:hover{border-color:#49345f;background:#171027}
+.save-status{padding:6px 9px;border:1px solid rgba(144,111,181,.2);border-radius:99px;background:rgba(31,22,47,.65)}
+.btn{border-color:#50396d;background:linear-gradient(145deg,#261b3a,#1d142d);box-shadow:inset 0 1px 0 rgba(255,255,255,.035);transition:transform .16s,border-color .16s,background .16s,box-shadow .16s}
+.btn:hover:not(:disabled){border-color:#ac79e9;transform:translateY(-1px);box-shadow:0 5px 16px rgba(0,0,0,.18)}
+.btn.primary{background:linear-gradient(110deg,#a044ef,#7655ff);box-shadow:0 5px 18px rgba(133,65,229,.2)}
+.btn.primary:hover:not(:disabled){background:linear-gradient(110deg,#b45aff,#826bff);box-shadow:0 7px 22px rgba(145,80,239,.32)}
+.btn:focus-visible,.back:focus-visible,.tool-btn:focus-visible{outline:2px solid #d2a8ff;outline-offset:3px}
+.editor{background:linear-gradient(135deg,#49325f,#2b2042);gap:1px}
+.panel{background:linear-gradient(160deg,#151027,#100b1d)}
+.media-panel,.inspector{background:linear-gradient(165deg,#17112a,#100b1d)}
+.panel-title h2,.inspector h2{letter-spacing:.15px}
+.panel-title small{color:#c6acdf}
+.import-box{border-color:rgba(172,116,231,.56);background:radial-gradient(circle at 50% 0%,rgba(144,72,205,.2),transparent 78%),linear-gradient(145deg,#211633,#171027);box-shadow:inset 0 1px 0 rgba(255,255,255,.035);transition:border-color .2s,background .2s,transform .2s}
+.import-box:hover{border-color:#c28aff;background:radial-gradient(circle at 50% 0%,rgba(158,91,235,.26),transparent 78%),linear-gradient(145deg,#26183b,#19112b);transform:translateY(-1px)}
+.import-box .big{color:#d4adff;text-shadow:0 0 22px rgba(172,104,255,.35)}
+.assets-hint{color:#b5a6c8}
+.asset{border-color:#3d2d55;background:linear-gradient(145deg,#1d1530,#171025);transition:border-color .18s,background .18s,transform .18s}
+.asset:hover{border-color:#8f61bd;background:linear-gradient(145deg,#26183c,#1a122c);transform:translateY(-1px)}
+.asset-icon{border:1px solid rgba(181,135,235,.18);background:linear-gradient(145deg,#3b2857,#251939)}
+.asset-add{transition:background .16s,border-color .16s}
+.asset-add:hover{border-color:#c18aff;background:#493066}
+.preview-toolbar{height:48px;background:rgba(17,12,31,.82);border-bottom-color:#39284f}
+.preview-heading{display:flex;align-items:center;gap:8px;color:#eee3fa;font-weight:750}
+.preview-heading i{width:7px;height:7px;border-radius:50%;background:#9ee6c1;box-shadow:0 0 10px rgba(103,227,166,.65)}
+.preview-toolbar-actions{display:flex;align-items:center;gap:11px}
+.preview-toolbar-actions label{display:flex;align-items:center;gap:7px}
+.preview-toolbar select{border-color:#594071;background:#201632;padding:6px 9px}
+.tool-btn{border:1px solid #594071;border-radius:8px;padding:6px 10px;background:#211732;color:#d9c5f2;font-size:10px;font-weight:800;cursor:pointer;transition:all .18s}
+.tool-btn:hover,.tool-btn[aria-pressed="true"]{border-color:#b77de9;background:#38224f;color:#fff;box-shadow:0 0 0 2px rgba(173,112,231,.12)}
+.preview-area{background:radial-gradient(ellipse at 50% 48%,rgba(100,69,142,.28),transparent 66%),linear-gradient(135deg,#100b1c,#0c0917)}
+.stage{border:1px solid #60417f;border-radius:13px;box-shadow:0 20px 55px rgba(0,0,0,.48),0 0 0 1px rgba(211,164,255,.06),0 0 45px rgba(126,72,180,.11)}
+.stage::after{content:"";position:absolute;inset:0;border:1px solid rgba(255,255,255,.055);border-radius:inherit;pointer-events:none}
+.stage-placeholder{color:#b0a1c2}
+.stage-placeholder span{color:#d0a0ff;text-shadow:0 0 24px rgba(177,111,255,.4)}
+.stage-text{z-index:7}
+.preview-guides{position:absolute;z-index:12;inset:5%;border:1px dashed rgba(255,255,255,.72);pointer-events:none;box-shadow:0 0 0 1px rgba(12,8,20,.35)}
+.preview-guides[hidden]{display:none!important}
+.preview-guides:before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent calc(33.333% - .5px),rgba(255,255,255,.42) 33.333%,transparent calc(33.333% + .5px),transparent calc(66.666% - .5px),rgba(255,255,255,.42) 66.666%,transparent calc(66.666% + .5px)),linear-gradient(transparent calc(33.333% - .5px),rgba(255,255,255,.42) 33.333%,transparent calc(33.333% + .5px),transparent calc(66.666% - .5px),rgba(255,255,255,.42) 66.666%,transparent calc(66.666% + .5px))}
+.preview-guides:after{content:"SAFE AREA";position:absolute;top:6px;left:7px;padding:3px 6px;border:1px solid rgba(255,255,255,.28);border-radius:4px;background:rgba(9,7,17,.78);color:#fff;font-size:8px;font-weight:850;letter-spacing:1px}
+.transport{background:rgba(17,12,31,.88);border-top-color:#39284f}
+.transport button{transition:color .16s,transform .16s}
+.transport button:hover{color:#fff;transform:scale(1.08)}
+.transport .play{box-shadow:0 4px 16px rgba(143,69,238,.35)}
+.inspector{border-left:1px solid rgba(173,128,218,.1)}
+.inspector-hint{color:#b9a9ca}
+.property-group{border-color:#49365f;background:linear-gradient(145deg,#1b1430,#171027);box-shadow:inset 0 1px 0 rgba(255,255,255,.025);transition:border-color .18s}
+.property-group:hover{border-color:#654881}
+.property-group[open]{border-color:#755099;box-shadow:0 5px 18px rgba(0,0,0,.12)}
+.property-group>summary{color:#f0e5ff}
+.property-group>summary:after{transition:transform .18s}
+.group-body{background:rgba(12,8,22,.18)}
+.prop input:not([type="range"]),.prop select,.prop textarea{border-color:#49365f;background:linear-gradient(145deg,#211832,#1a122a);transition:border-color .16s,box-shadow .16s}
+.prop input:focus,.prop select:focus,.prop textarea:focus{outline:none;border-color:#a66be3;box-shadow:0 0 0 3px rgba(166,107,227,.13)}
+.timeline{background:linear-gradient(160deg,#130d22,#0e0a19);border-top-color:#60417f}
+.timeline-head{background:linear-gradient(90deg,#1c1430,#151027);border-bottom-color:#3e2c57}
+.timeline-head strong{font-size:13px;letter-spacing:.2px}
+.timeline-buttons .btn{border-color:#4c3865}
+.track-row{background:linear-gradient(90deg,#171027,#130e21);border-bottom-color:#342545}
+.track-label{background:linear-gradient(90deg,#211732,#1b132b);border-right-color:#48335f;color:#e5d7f5}
+.track-content{background-image:linear-gradient(90deg,rgba(177,141,212,.13) 1px,transparent 1px)}
+.clip{box-shadow:inset 0 1px 0 rgba(255,255,255,.13),0 2px 7px rgba(0,0,0,.16);transition:filter .15s,box-shadow .15s}
+.clip:hover{filter:brightness(1.16)}
+.clip.selected{outline-color:#e0b7ff;box-shadow:0 0 0 3px rgba(190,126,255,.15),0 4px 12px rgba(0,0,0,.24)}
+.clip.audio{background:linear-gradient(100deg,#17766d,#174a4c);border-color:#55b6a4}
+.clip.text{background:linear-gradient(100deg,#9858b3,#603c86);border-color:#d18cf0}
+.playhead:after{background:#ff709a;box-shadow:0 0 10px #ff4a8d}
+.timeline-footer{background:#100b1d;color:#a99abc}
+.fit-timeline-btn{white-space:nowrap}
+.media-panel,.inspector,.timeline-scroll{scrollbar-color:#674b82 #171027;scrollbar-width:thin}
+.media-panel::-webkit-scrollbar,.inspector::-webkit-scrollbar,.timeline-scroll::-webkit-scrollbar{width:9px;height:9px}
+.media-panel::-webkit-scrollbar-thumb,.inspector::-webkit-scrollbar-thumb,.timeline-scroll::-webkit-scrollbar-thumb{border:2px solid #171027;border-radius:99px;background:#614777}
+.media-panel::-webkit-scrollbar-track,.inspector::-webkit-scrollbar-track,.timeline-scroll::-webkit-scrollbar-track{background:#171027}
+@media(max-width:1050px){.editor{background:#34234b}.inspector{border-left:0}.timeline{border-top:1px solid #60417f}}
+@media(max-width:680px){.topbar{background:rgba(16,11,32,.98)}.save-status{display:none}.preview-toolbar{padding:0 10px}.preview-toolbar-actions{gap:7px}.preview-heading{font-size:10px}.tool-btn{padding:6px 8px}.stage{border-radius:9px}.timeline-buttons .fit-timeline-btn{padding:6px 7px}.timeline-footer{gap:8px}.timeline-footer span:first-child{max-width:72%;line-height:1.4}}
+@media(prefers-reduced-motion:reduce){.btn,.back,.asset,.import-box,.clip{transition:none!important}}
+
 </style>
 </head>
 <body>
@@ -281,8 +366,8 @@
 <div class="asset-list" id="assetList"><div class="empty">Import media to begin.</div></div>
 </aside>
 <main class="panel center">
-<div class="preview-toolbar"><span>Preview <span id="previewResolution"></span></span><label>Fit <select id="previewFit"><option value="contain">Fit</option><option value="cover">Fill</option></select></label></div>
-<div class="preview-area"><div class="stage" id="previewStage">
+<div class="preview-toolbar"><span class="preview-heading"><i aria-hidden="true"></i>Preview <span id="previewResolution"></span></span><div class="preview-toolbar-actions"><button type="button" class="tool-btn" id="previewGuidesBtn" aria-pressed="false" title="Show safe-area and composition guides">Guides</button><label>Fit <select id="previewFit"><option value="contain">Fit</option><option value="cover">Fill</option></select></label></div></div>
+<div class="preview-area"><div class="stage" id="previewStage"><div class="preview-guides" id="previewGuides" hidden aria-hidden="true"><span>SAFE AREA</span></div>
 <div class="stage-placeholder" id="previewPlaceholder"><span>▶</span>Your video preview will appear here</div>
 <video id="videoPreview" playsinline preload="auto"></video>
 <img id="imagePreview" alt="Current image clip">
@@ -386,7 +471,7 @@
 <button class="btn" type="button" id="splitBtn" disabled>Split at playhead</button>
 <button class="btn" type="button" id="deleteTimelineBtn" disabled>Delete</button>
 <button class="btn" type="button" id="shortcutsBtn" aria-haspopup="dialog" aria-controls="shortcutsModal">⌨ Shortcuts</button>
-<label class="zoom">Zoom <input id="zoomSlider" type="range" min="24" max="140" value="64" step="4"></label>
+<label class="zoom">Zoom <input id="zoomSlider" type="range" min="24" max="140" value="64" step="4"></label><button class="btn fit-timeline-btn" type="button" id="fitTimelineBtn" title="Zoom the timeline to fit the whole project">Fit All</button>
 </div>
 </div>
 <div class="timeline-scroll" id="timelineScroll">
@@ -536,6 +621,16 @@ function endOfTrack(track){return clips.filter(c=>c.track===track).reduce((m,c)=
 async function importFiles(files){for(const file of files){const type=assetType(file);if(!type){notify("This file type is not supported.");continue;}if(file.size>750*1024*1024){notify("This file is over 750 MB. Try a smaller file on this device.");continue;}const d=await measureDuration(file,type),a={id:uid(),projectId:project.id,name:file.name,type,mime:file.type,size:file.size,duration:d,blob:file,origin:"imported",createdAt:new Date().toISOString()};try{await dbRequest("assets","readwrite",s=>s.put(a));assets.push(a);urls.set(a.id,URL.createObjectURL(file));const track=type==="audio"?"audio":type==="video"?"video":"overlay";snapshot();clips.push({id:uid(),assetId:a.id,name:file.name,type,track,start:playhead,sourceStart:0,duration:Math.max(.2,d),volume:1});}catch(e){notify("Could not store "+file.name+". Check browser storage space.");}}renderAll();scheduleSave();}
 function renderAssets(){const list=$("assetList"),importedAssets=assets.filter(isImportedAsset);$("assetCount").textContent=importedAssets.length+" imported";list.replaceChildren();if(!importedAssets.length){const e=document.createElement("div");e.className="empty";e.textContent="No imported files yet. Import a video, audio file or image to get started.";list.append(e);return;}for(const a of importedAssets){const row=document.createElement("div");row.className="asset";const ico=document.createElement("div");ico.className="asset-icon";ico.textContent=a.type==="video"?"▶":a.type==="audio"?"♫":"▧";const info=document.createElement("div");info.className="asset-info";const name=document.createElement("strong");name.textContent=a.name;name.title=a.name;const meta=document.createElement("small");meta.textContent=a.type.toUpperCase()+" · "+(a.duration||5).toFixed(1)+"s";info.append(name,meta);const add=document.createElement("button");add.className="asset-add";add.textContent="Add";add.addEventListener("click",()=>{snapshot();const track=a.type==="audio"?"audio":a.type==="video"?"video":"overlay";clips.push({id:uid(),assetId:a.id,name:a.name,type:a.type,track,start:playhead,sourceStart:0,duration:Math.max(.2,a.duration||5),volume:1});selectedId=clips[clips.length-1].id;renderAll();scheduleSave();});row.append(ico,info,add);list.append(row);}}
 function renderRuler(width){const r=$("ruler");r.replaceChildren();r.style.width=width+"px";const step=scale>=100?1:scale>=48?2:5;for(let t=0;t<=width/scale;t+=step){const tick=document.createElement("div");tick.className="tick";tick.style.left=(116+t*scale)+"px";tick.textContent=t+"s";r.append(tick);}}
+function fitTimeline(){
+ const viewport=$("timelineScroll");
+ if(!viewport)return;
+ const totalSeconds=Math.max(18,duration()+5);
+ const usableWidth=Math.max(240,viewport.clientWidth-116);
+ scale=Math.max(24,Math.min(140,Math.floor(usableWidth/totalSeconds)));
+ $("zoomSlider").value=String(scale);
+ renderTimeline();
+ viewport.scrollLeft=0;
+}
 function renderTimeline(){
  const max=Math.max(18,duration()+5),width=Math.max($("timelineScroll").clientWidth,116+max*scale);
  $("timelineInner").style.width=width+"px";document.documentElement.style.setProperty("--scale",scale+"px");renderRuler(width);
@@ -1641,6 +1736,8 @@ $("undoBtn").addEventListener("click",undo);$("redoBtn").addEventListener("click
 $("saveBtn").addEventListener("click",saveProject);
 $("projectTitle").addEventListener("change",()=>{project.name=safeName($("projectTitle").value);$("projectTitle").value=project.name;scheduleSave();});
 $("zoomSlider").addEventListener("input",e=>{scale=Number(e.target.value);renderTimeline();});
+$("fitTimelineBtn").addEventListener("click",fitTimeline);
+$("previewGuidesBtn").addEventListener("click",()=>{const guides=$("previewGuides"),button=$("previewGuidesBtn"),show=guides.hidden;guides.hidden=!show;button.setAttribute("aria-pressed",String(show));button.textContent=show?"Hide guides":"Guides";});
 document.querySelectorAll('input[type="range"]').forEach(el=>{updateRangeFill(el);el.addEventListener("input",()=>updateRangeFill(el));});
 $("ruler").addEventListener("pointerdown",rulerSeek);
 $("playhead").addEventListener("pointerdown",playheadPointerDown);
