@@ -20,9 +20,22 @@ try{
  }
 }
 window.addEventListener("pageshow",function(event){
- if(event.persisted){
-  try{sessionStorage.removeItem("trivexaai_skip_studio_startup_once");}catch(e){}
+ if(!event.persisted)return;
+ // The dashboard was preserved by the browser while the editor was open.
+ // Hide the editor-launch overlay before the restored page becomes visible.
+ var editorLaunch=document.getElementById("editorLaunchLoading");
+ if(editorLaunch){
+  editorLaunch.hidden=true;
+  editorLaunch.style.display="none";
  }
+ var studioStartup=document.getElementById("studioStartupLoading");
+ if(studioStartup){
+  studioStartup.style.display="none";
+  studioStartup.style.visibility="hidden";
+  studioStartup.style.pointerEvents="none";
+ }
+ document.body.style.overflow="";
+ try{sessionStorage.removeItem("trivexaai_skip_studio_startup_once");}catch(e){}
 });
 </script>
 <style>
