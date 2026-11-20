@@ -231,6 +231,82 @@ body{background:radial-gradient(ellipse at 48% -18%,rgba(126,79,190,.18),transpa
 @media(max-width:680px){.topbar{background:rgba(16,11,32,.98)}.save-status{display:none}.preview-toolbar{padding:0 10px}.preview-toolbar-actions{gap:7px}.preview-heading{font-size:10px}.tool-btn{padding:6px 8px}.stage{border-radius:9px}.timeline-buttons .fit-timeline-btn{padding:6px 7px}.timeline-footer{gap:8px}.timeline-footer span:first-child{max-width:72%;line-height:1.4}}
 @media(prefers-reduced-motion:reduce){.btn,.back,.asset,.import-box,.clip{transition:none!important}}
 
+
+/* Editor finish pass 2: clearer hierarchy, responsive controls and magnetic snap feedback. */
+.topbar{gap:12px;padding-inline:clamp(10px,1.5vw,20px)}
+.project-title{font-size:13px;letter-spacing:.1px}
+.top-actions .btn{min-width:37px}
+.panel-title{padding-bottom:9px;border-bottom:1px solid rgba(180,139,220,.12)}
+.panel-title h2,.inspector-title h2{font-size:13px;letter-spacing:.2px}
+.panel-title small{font-size:9px;font-weight:800;letter-spacing:.45px;text-transform:uppercase}
+.inspector-title{margin-bottom:10px}
+.inspector-title small{padding:4px 7px;border:1px solid #49365f;border-radius:99px;background:#1d1530;color:#caa6ed}
+.import-box{position:relative;overflow:hidden}
+.import-box:before{content:"";position:absolute;inset:0 15% auto;height:1px;background:linear-gradient(90deg,transparent,#d6afff99,transparent)}
+.preview-toolbar{padding-inline:16px}
+.preview-heading{font-size:12px}
+.preview-guides{inset:5.5%}
+.preview-guides span{display:none}
+.timeline-head{min-width:0}
+.timeline-buttons{flex-wrap:wrap;justify-content:flex-end}
+.timeline-buttons .btn{min-height:30px}
+.snap-toggle-btn[aria-pressed="true"]{border-color:#3b9e8a;background:linear-gradient(145deg,#164b47,#173631);color:#bcffeb;box-shadow:inset 0 1px 0 #c8fff01c,0 0 12px #35bba31b}
+.snap-toggle-btn[aria-pressed="false"]{border-color:#55475f;background:#211a2b;color:#a99bb8}
+.timeline-snap-guide{position:absolute;z-index:7;top:29px;bottom:25px;width:2px;margin-left:-1px;background:#72ead2;box-shadow:0 0 0 1px #72ead222,0 0 12px #62e4cebb;pointer-events:none}
+.timeline-snap-guide[hidden]{display:none!important}
+.timeline-snap-guide:before{content:"";position:absolute;top:0;left:-4px;width:10px;height:8px;border-radius:0 0 5px 5px;background:#72ead2;box-shadow:0 0 9px #72ead2}
+.timeline-snap-guide span{position:absolute;top:9px;left:7px;white-space:nowrap;padding:3px 5px;border:1px solid #327f73;border-radius:4px;background:#12342f;color:#c8fff0;font-size:7px;font-weight:900;letter-spacing:.6px}
+#playhead{z-index:9}
+.track-row{transition:background .15s}
+.track-label{font-size:10px;letter-spacing:.12px}
+.clip{border-radius:7px}
+.clip .trim{width:8px}
+.clip-name{font-size:9px;font-weight:750}
+.timeline-footer{font-size:9px;letter-spacing:.05px}
+.toast{border-color:#8056a5;background:linear-gradient(145deg,#2b1d40,#1b1429);box-shadow:0 16px 42px #000b,0 0 22px #9e52e122}
+.export-dialog{border-color:#7a559c}
+.export-dialog-head{background:linear-gradient(100deg,rgba(139,76,193,.13),transparent)}
+.export-progress-track{box-shadow:inset 0 1px 3px #0008}
+.export-progress-fill{background:linear-gradient(90deg,#9b4cff,#d56bff,#ff9edc);box-shadow:0 0 18px #bc5aff99}
+@media(max-width:1050px){
+ .editor{grid-template-columns:minmax(190px,31%) minmax(0,1fr);grid-template-rows:minmax(320px,1fr) 275px auto}
+ .inspector{grid-column:1/3;display:block;padding:13px 15px;max-height:340px}
+ .inspector #clipInspector{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 12px}
+ .inspector #clipInspector.hidden{display:none!important}
+ .inspector #clipInspector>.property-group{align-self:start}
+ .inspector #clipInspector>.inspector-actions{grid-column:1/-1}
+ .timeline{grid-row:2}
+}
+@media(max-width:680px){
+ .topbar{gap:6px;padding:8px 9px}
+ .top-actions{gap:4px}
+ .top-actions .btn{min-width:32px;padding:7px 8px}
+ .brand{font-size:13px}
+ .project-title{font-size:12px}
+ .preview-toolbar{min-height:46px;height:auto;padding:7px 10px;gap:8px}
+ .preview-toolbar-actions{gap:6px}
+ .preview-toolbar select{max-width:76px}
+ .timeline-head{height:auto;min-height:48px;align-items:flex-start;flex-direction:column;padding:10px;gap:8px}
+ .timeline-buttons{width:100%;justify-content:flex-start;gap:5px}
+ .timeline-buttons .btn{padding:6px 8px;font-size:9px}
+ .timeline-buttons .fit-timeline-btn{padding:6px 8px}
+ .timeline-buttons .zoom{display:none}
+ .timeline-scroll{min-height:205px}
+ .inspector #clipInspector{display:block}
+ .inspector{max-height:none}
+ .timeline-footer{font-size:8px}
+ .timeline-footer span:first-child{max-width:69%}
+}
+@media(max-width:390px){
+ .brand small{font-size:7px;letter-spacing:1px}
+ .top-actions .btn{padding:6px}
+ .preview-heading{gap:5px}
+ .preview-heading span#previewResolution{font-size:8px}
+ .tool-btn{padding:5px 7px}
+ .timeline-buttons{gap:4px}
+ .timeline-buttons .btn{font-size:8px;padding:6px}
+}
+
 </style>
 </head>
 <body>
@@ -347,10 +423,10 @@ body{background:radial-gradient(ellipse at 48% -18%,rgba(126,79,190,.18),transpa
 <input id="projectTitle" class="project-title" value="Untitled project" aria-label="Project name">
 <div class="save-status" id="saveStatus">Loading project…</div>
 <div class="top-actions">
-<button class="btn" id="undoBtn" type="button" disabled>↶</button>
-<button class="btn" id="redoBtn" type="button" disabled>↷</button>
-<button class="btn" id="saveBtn" type="button">Save</button>
-<button class="btn primary" id="exportBtn" type="button">Export</button>
+<button class="btn" id="undoBtn" type="button" disabled title="Undo (Ctrl+Z)" aria-label="Undo">↶</button>
+<button class="btn" id="redoBtn" type="button" disabled title="Redo (Ctrl+Shift+Z)" aria-label="Redo">↷</button>
+<button class="btn" id="saveBtn" type="button" title="Save this project on your device">Save</button>
+<button class="btn primary" id="exportBtn" type="button" title="Choose your video export settings">Export</button>
 </div>
 </header>
 <div class="editor" id="editorApp" hidden>
@@ -362,7 +438,7 @@ body{background:radial-gradient(ellipse at 48% -18%,rgba(126,79,190,.18),transpa
 <button class="btn primary" id="importBtn" type="button">Choose files</button>
 <input id="fileInput" type="file" accept="video/*,image/*,audio/*" multiple hidden>
 </div>
-<div class="panel-title"><h2>Project Assets</h2><small>Local device</small></div>
+<div class="panel-title"><h2>Imported media</h2><small>Local device</small></div>
 <div class="asset-list" id="assetList"><div class="empty">Import media to begin.</div></div>
 </aside>
 <main class="panel center">
@@ -382,7 +458,7 @@ body{background:radial-gradient(ellipse at 48% -18%,rgba(126,79,190,.18),transpa
 </div>
 </main>
 <aside class="panel inspector">
-<h2>Properties</h2>
+<div class="panel-title inspector-title"><h2>Properties</h2><small>CLIP SETTINGS</small></div>
 <div class="inspector-hint" style="margin:-5px 0 12px;padding:7px 9px;border:1px solid #493365;border-radius:8px;background:#191129">Preview only — changes become permanent after you click <strong>Apply</strong>.</div>
 <div id="inspectorHint" class="inspector-hint">Select a clip on the timeline to edit its settings. Import media or add a text layer to get started.</div>
 <div id="clipInspector" class="hidden">
@@ -470,13 +546,15 @@ body{background:radial-gradient(ellipse at 48% -18%,rgba(126,79,190,.18),transpa
 <button class="btn" type="button" id="addTextBtn">＋ Text</button>
 <button class="btn" type="button" id="splitBtn" disabled>Split at playhead</button>
 <button class="btn" type="button" id="deleteTimelineBtn" disabled>Delete</button>
-<button class="btn" type="button" id="shortcutsBtn" aria-haspopup="dialog" aria-controls="shortcutsModal">⌨ Shortcuts</button>
+<button class="btn" type="button" id="shortcutsBtn" aria-haspopup="dialog" aria-controls="shortcutsModal" title="Show keyboard shortcuts">⌨ Shortcuts</button>
+<button class="btn snap-toggle-btn" type="button" id="snapToggleBtn" aria-pressed="true" title="Magnetic snapping is on">⌁ Snap On</button>
 <label class="zoom">Zoom <input id="zoomSlider" type="range" min="24" max="140" value="64" step="4"></label><button class="btn fit-timeline-btn" type="button" id="fitTimelineBtn" title="Zoom the timeline to fit the whole project">Fit All</button>
 </div>
 </div>
 <div class="timeline-scroll" id="timelineScroll">
 <div class="timeline-inner" id="timelineInner">
 <div class="ruler" id="ruler"></div>
+<div class="timeline-snap-guide" id="timelineSnapGuide" hidden aria-hidden="true"><span>SNAP</span></div>
 <div class="track-row" data-track="video"><div class="track-label">🎞 Main Video</div><div class="track-content"></div></div>
 <div class="track-row" data-track="overlay"><div class="track-label">▧ Overlay</div><div class="track-content"></div></div>
 <div class="track-row" data-track="text"><div class="track-label">T Text</div><div class="track-content"></div></div>
@@ -515,6 +593,7 @@ body{background:radial-gradient(ellipse at 48% -18%,rgba(126,79,190,.18),transpa
      <div class="shortcut-row"><span>Split selected clip</span><div class="shortcut-keys"><kbd>S</kbd></div></div>
      <div class="shortcut-row"><span>Delete selected clip</span><div class="shortcut-keys"><kbd>Delete</kbd></div></div>
      <div class="shortcut-row"><span>Duplicate selected clip</span><div class="shortcut-keys"><kbd>Ctrl</kbd><kbd>+</kbd><kbd>D</kbd></div></div>
+      <div class="shortcut-row"><span>Toggle timeline snapping</span><div class="shortcut-keys"><kbd>N</kbd></div></div>
     </section>
    </div>
    <p class="shortcuts-note">On Mac, use ⌘ instead of Ctrl. Shortcuts pause while you type in a text, number or other input field, and while a dialog is open.</p>
@@ -560,7 +639,7 @@ body{background:radial-gradient(ellipse at 48% -18%,rgba(126,79,190,.18),transpa
 import {authReady,auth,getAccountProfile} from "../auth/auth-client.js";
 const $=id=>document.getElementById(id);
 const projectKey="trivexaai_video_studio_projects_v1",dbName="trivexaai-video-studio",dbVersion=1,scaleDefault=64;
-let db=null,project=null,clips=[],assets=[],urls=new Map(),selectedId=null,scale=scaleDefault,playhead=0,isPlaying=false,raf=0,lastFrame=0,activeVideoId=null,activeImageId=null,audioNodes=new Map(),audioWaveforms=new Map(),audioWaveformPending=new Map(),audioWaveformUnavailable=new Set(),audioWaveformQueue=Promise.resolve(),saveTimer=0,undoStack=[],redoStack=[],dragState=null,playheadDrag=null,previewDraft=null,exportBusy=false,exportController=null,lastExportBlob=null,lastExportFileName="";
+let db=null,project=null,clips=[],assets=[],urls=new Map(),selectedId=null,scale=scaleDefault,playhead=0,isPlaying=false,raf=0,lastFrame=0,activeVideoId=null,activeImageId=null,audioNodes=new Map(),audioWaveforms=new Map(),audioWaveformPending=new Map(),audioWaveformUnavailable=new Set(),audioWaveformQueue=Promise.resolve(),saveTimer=0,undoStack=[],redoStack=[],dragState=null,playheadDrag=null,previewDraft=null,exportBusy=false,exportController=null,lastExportBlob=null,lastExportFileName="",snapEnabled=true;
 const params=new URLSearchParams(location.search),projectId=params.get("id");
 function notify(msg){const el=$("toast");el.textContent=msg;el.classList.add("show");clearTimeout(window.__editorToast);window.__editorToast=setTimeout(()=>el.classList.remove("show"),3600);}
 function uid(){return crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random().toString(16).slice(2);}
@@ -902,21 +981,81 @@ function timelineDropTarget(e,source,d){
 function clearSwapTarget(){
  document.querySelectorAll(".clip.swap-target").forEach(node=>node.classList.remove("swap-target"));
 }
+function nearestTimelineSnap(time,excludeId){
+ if(!snapEnabled)return null;
+ const candidates=[{time:0,label:"START"},{time:playhead,label:"PLAYHEAD"}];
+ for(const item of clips){
+  if(item.id===excludeId)continue;
+  candidates.push({time:item.start,label:"CLIP START"},{time:item.start+item.duration,label:"CLIP END"});
+ }
+ const gridStep=scale<40?1:.5;
+ candidates.push({time:Math.round(time/gridStep)*gridStep,label:"GRID"});
+ let best=null,bestDistance=Infinity;
+ for(const candidate of candidates){
+  if(!Number.isFinite(candidate.time))continue;
+  const distance=Math.abs(candidate.time-time)*scale;
+  if(distance<bestDistance){best=candidate;bestDistance=distance;}
+ }
+ const tolerance=Math.max(6,Math.min(10,scale*.17));
+ return best&&bestDistance<=tolerance?{...best,distance:bestDistance}:null;
+}
+function snapClipStart(rawStart,clip,excludeId){
+ const choices=[];
+ const startSnap=nearestTimelineSnap(rawStart,excludeId);
+ if(startSnap)choices.push({start:startSnap.time,target:startSnap});
+ const endSnap=nearestTimelineSnap(rawStart+clip.duration,excludeId);
+ if(endSnap)choices.push({start:endSnap.time-clip.duration,target:endSnap});
+ const valid=choices.filter(choice=>choice.start>=0);
+ valid.sort((a,b)=>Math.abs(a.start-rawStart)-Math.abs(b.start-rawStart));
+ return valid.length&&Math.abs(valid[0].start-rawStart)*scale<=10?valid[0]:null;
+}
+function setTimelineSnapGuide(time,label){
+ const guide=$("timelineSnapGuide");
+ if(!guide)return;
+ if(!snapEnabled||!Number.isFinite(time)){guide.hidden=true;return;}
+ guide.style.left=(116+time*scale)+"px";
+ const tag=guide.querySelector("span");if(tag)tag.textContent=label||"SNAP";
+ guide.hidden=false;
+}
+function clearTimelineSnapGuide(){const guide=$("timelineSnapGuide");if(guide)guide.hidden=true;}
+function toggleTimelineSnap(){
+ snapEnabled=!snapEnabled;
+ const button=$("snapToggleBtn");
+ button.setAttribute("aria-pressed",String(snapEnabled));
+ button.textContent=snapEnabled?"⌁ Snap On":"⌁ Snap Off";
+ button.title=snapEnabled?"Magnetic snapping is on":"Magnetic snapping is off";
+ if(!snapEnabled)clearTimelineSnapGuide();
+}
 function clipPointerMove(e){
  if(!dragState||dragState.kind!=="timeline")return;
  const d=dragState,c=clips.find(x=>x.id===d.id);if(!c)return;
  const delta=(e.clientX-d.startX)/scale;
+ d.snapTime=null;
  if(d.edge==="left"){
   const sourceLimited=c.type==="video"||c.type==="audio";
+  const minStart=sourceLimited?Math.max(0,d.orig.start-(d.orig.sourceStart||0)):0;
+  const maxStart=d.orig.start+d.orig.duration-.2;
   const allowedShift=sourceLimited?Math.max(-(d.orig.sourceStart||0),delta):delta;
-  const newStart=Math.max(0,d.orig.start+allowedShift),shift=newStart-d.orig.start;
+  let newStart=Math.max(minStart,Math.min(maxStart,d.orig.start+allowedShift));
+  const snap=nearestTimelineSnap(newStart,c.id);
+  if(snap&&snap.time>=minStart&&snap.time<=maxStart){newStart=snap.time;d.snapTime=snap.time;setTimelineSnapGuide(snap.time,snap.label);}
+  else clearTimelineSnapGuide();
+  const shift=newStart-d.orig.start;
   c.start=newStart;c.sourceStart=sourceLimited?Math.max(0,(d.orig.sourceStart||0)+shift):0;
   c.duration=Math.max(.2,d.orig.duration-shift);
  }else if(d.edge==="right"){
-  c.duration=Math.max(.2,d.orig.duration+delta);
-  const a=assetById(c.assetId);
-  if(a&&(c.type==="video"||c.type==="audio"))c.duration=Math.min(c.duration,Math.max(.2,a.duration-(c.sourceStart||0)));
- }else c.start=Math.max(0,d.orig.start+delta);
+  const asset=assetById(c.assetId);
+  const sourceMaxEnd=asset&&(c.type==="video"||c.type==="audio")?c.start+Math.max(.2,asset.duration-(c.sourceStart||0)):Infinity;
+  let newEnd=Math.min(sourceMaxEnd,Math.max(c.start+.2,d.orig.start+d.orig.duration+delta));
+  const snap=nearestTimelineSnap(newEnd,c.id);
+  if(snap&&snap.time>c.start+.2&&snap.time<=sourceMaxEnd){newEnd=snap.time;d.snapTime=snap.time;setTimelineSnapGuide(snap.time,snap.label);}
+  else clearTimelineSnapGuide();
+  c.duration=newEnd-c.start;
+ }else{
+  const rawStart=Math.max(0,d.orig.start+delta),snapped=snapClipStart(rawStart,d.orig,c.id);
+  if(snapped){c.start=snapped.start;d.snapTime=snapped.target.time;setTimelineSnapGuide(snapped.target.time,snapped.target.label);}
+  else{c.start=rawStart;clearTimelineSnapGuide();}
+ }
  d.changed=true;
  const el=e.currentTarget;
  el.style.left=(c.start*scale)+"px";el.style.width=Math.max(34,c.duration*scale)+"px";
@@ -944,7 +1083,7 @@ function clipPointerUp(e){
    target.start=d.orig.start;c.start=targetStart;swapped=true;
   }
  }
- clearSwapTarget();
+ clearSwapTarget();clearTimelineSnapGuide();
  if(d.changed&&c){
   undoStack.push(clips.map(item=>item.id===d.id?clone(d.orig):swapped&&item.id===d.swapTargetId?clone(d.swapOrig):clone(item)));
   redoStack=[];updateHistoryButtons();renderTimeline();renderPreview();scheduleSave();
@@ -1654,6 +1793,7 @@ function handleEditorShortcuts(event){
  if(event.target&&typeof event.target.closest==="function"&&event.target.closest("button,a,[role='button']"))return;
  if(key===" "){event.preventDefault();if(isPlaying)pause();else play();}
  else if(key==="s"){event.preventDefault();splitSelected();}
+ else if(key==="n"){event.preventDefault();toggleTimelineSnap();}
  else if(key==="delete"||key==="backspace"){if(!selectedId)return;event.preventDefault();deleteSelected();}
 }
 
@@ -1737,6 +1877,7 @@ $("saveBtn").addEventListener("click",saveProject);
 $("projectTitle").addEventListener("change",()=>{project.name=safeName($("projectTitle").value);$("projectTitle").value=project.name;scheduleSave();});
 $("zoomSlider").addEventListener("input",e=>{scale=Number(e.target.value);renderTimeline();});
 $("fitTimelineBtn").addEventListener("click",fitTimeline);
+$("snapToggleBtn").addEventListener("click",toggleTimelineSnap);
 $("previewGuidesBtn").addEventListener("click",()=>{const guides=$("previewGuides"),button=$("previewGuidesBtn"),show=guides.hidden;guides.hidden=!show;button.setAttribute("aria-pressed",String(show));button.textContent=show?"Hide guides":"Guides";});
 document.querySelectorAll('input[type="range"]').forEach(el=>{updateRangeFill(el);el.addEventListener("input",()=>updateRangeFill(el));});
 $("ruler").addEventListener("pointerdown",rulerSeek);
