@@ -528,6 +528,12 @@ body{background:radial-gradient(ellipse at 48% -18%,rgba(126,79,190,.18),transpa
 <div class="prop"><label for="propTextRotation">Text rotation (°)</label><input id="propTextRotation" type="range" min="-180" max="180" step="1" value="0"></div>
 </div>
 <div class="prop"><label for="propTextOpacity">Text opacity</label><input id="propTextOpacity" type="range" min="0" max="1" step="0.05" value="1"></div>
+<div class="prop-grid">
+<div class="prop"><label for="propTextEffect">Text effect</label><select id="propTextEffect"><option value="shadow">Soft shadow</option><option value="none">None</option><option value="glow">Glow</option><option value="neon">Neon</option><option value="outline">Bold outline</option></select></div>
+<div class="prop"><label for="propTextTransition">Entrance transition</label><select id="propTextTransition"><option value="none">None</option><option value="fade">Fade in</option><option value="pop">Pop in</option><option value="slide-up">Slide up</option><option value="bounce">Bounce in</option></select></div>
+</div>
+<div class="prop"><label for="propTextTransitionDuration">Transition duration (seconds)</label><input id="propTextTransitionDuration" type="number" min="0.1" max="2" step="0.1" value="0.4"></div>
+<p class="captions-help">Effects and entrance transitions are included in preview and exported video. Use Text scale and Font size to resize captions.</p>
 </div>
 </div></details>
 <details class="property-group" id="keyframeGroup"><summary>Keyframes &amp; Animation</summary><div class="group-body"><div class="keyframe-panel hidden" id="keyframeProps">
@@ -965,6 +971,9 @@ function renderInspector(){
   $("propTextScale").value=shown.scale??1;
   $("propTextRotation").value=shown.rotation??0;
   $("propTextOpacity").value=shown.opacity??1;
+  $("propTextEffect").value=shown.textEffect||"shadow";
+  $("propTextTransition").value=shown.textTransition||"none";
+  $("propTextTransitionDuration").value=shown.textTransitionDuration??.4;
  }
  refreshRangeFills();
  renderKeyframes();
@@ -1050,16 +1059,19 @@ function renderPreview(){
  texts.forEach(c=>{
   const span=document.createElement("div");span.textContent=c.text||"Text";span.dataset.clipId=c.id;
   span.style.position="absolute";span.style.pointerEvents="auto";span.style.touchAction="none";span.style.cursor="move";
-  const motion=animatedValues(c,playhead-c.start);
-  span.style.left=(50+motion.x)+"%";span.style.top=(50+motion.y)+"%";
-  span.style.transform="translate(-50%,-50%) scale("+motion.scale+") rotate("+motion.rotation+"deg)";
-  span.style.opacity=String(Math.max(0,Math.min(1,motion.opacity)));span.style.maxWidth="88%";span.style.boxSizing="border-box";
+  const local=playhead-c.start,motion=animatedValues(c,local),entrance=textEntranceValues(c,local);
+  span.style.left=(50+motion.x)+"%";span.style.top="calc("+(50+motion.y)+"% + "+entrance.y+"%)";
+  span.style.transform="translate(-50%,-50%) scale("+(motion.scale*entrance.scale)+") rotate("+motion.rotation+"deg)";
+  span.style.opacity=String(Math.max(0,Math.min(1,motion.opacity*entrance.opacity)));span.style.maxWidth="88%";span.style.boxSizing="border-box";
   span.style.color=c.color||"#ffffff";span.style.fontFamily=c.font||"Arial, sans-serif";
   span.style.fontSize=Math.max(10,Math.min(120,Number(c.fontSize)||42))+"px";span.style.fontWeight=String(c.weight||800);
   span.style.fontStyle=c.italic?"italic":"normal";span.style.textAlign=c.align||"center";span.style.lineHeight="1.12";
   span.style.whiteSpace="pre-wrap";span.style.overflowWrap="anywhere";
   span.style.padding=(Number(c.bgOpacity||0)>0?"8px 13px":"2px 4px");span.style.borderRadius="7px";if(c.track==="captions"){span.style.maxWidth="92%";span.style.fontSize=Math.max(10,Math.min(120,Number(c.fontSize)||40))+"px";span.style.padding="6px 12px";}
-  span.style.backgroundColor=hexRgba(c.bgColor||"#000000",Number(c.bgOpacity)||0);span.style.textShadow="0 3px 10px #000";
+  span.style.backgroundColor=hexRgba(c.bgColor||"#000000",Number(c.bgOpacity)||0);
+  const textEffect=c.textEffect||"shadow";
+  span.style.textShadow=textEffect==="glow"?"0 0 12px "+(c.color||"#fff")+", 0 0 26px "+(c.color||"#fff"):textEffect==="neon"?"0 0 8px "+(c.color||"#fff")+", 0 0 20px "+(c.color||"#fff"):textEffect==="none"?"none":"0 3px 10px #000";
+  span.style.webkitTextStroke=textEffect==="outline"?"1.5px #171020":textEffect==="neon"?"0.7px "+(c.color||"#fff"):"";
   $("textPreview").append(span);
  });
  $("textPreview").style.display=texts.length?"block":"none";
@@ -1522,7 +1534,7 @@ async function generateCaptions(){
   const created=[];
   allSegments.forEach((segment,index)=>{
    const start=sourceClip.start+segment.start,end=sourceClip.start+segment.end;
-   const caption={id:uid(),name:"Caption "+(index+1),type:"text",track:"captions",captionSourceClipId:sourceClip.id,text:segment.text,color:"#ffffff",fontSize:40,font:"Arial, sans-serif",weight:800,align:"center",bgColor:"#000000",bgOpacity:.76,x:0,y:35,scale:1,rotation:0,opacity:1,start,duration:Math.max(.12,end-start),sourceStart:0};
+   const caption={id:uid(),name:"Caption "+(index+1),type:"text",track:"captions",captionSourceClipId:sourceClip.id,text:segment.text,color:"#ffffff",fontSize:40,font:"Arial, sans-serif",weight:800,align:"center",bgColor:"#000000",bgOpacity:.76,x:0,y:35,scale:1,rotation:0,opacity:1,textEffect:"shadow",textTransition:"pop",textTransitionDuration:.35,start,duration:Math.max(.12,end-start),sourceStart:0};
    clips.push(caption);created.push(caption);
   });
   selectedId=created[0]?.id||null;
@@ -1670,6 +1682,9 @@ function readPropertiesDraft(c){
   d.weight=Number($("propWeight").value)||700;d.align=$("propTextAlign").value;d.bgColor=$("propBgColor").value;d.bgOpacity=Math.max(0,Math.min(1,Number($("propBgOpacity").value)||0));
   d.italic=$("propItalic").checked;
   d.scale=Math.max(.1,Math.min(3,Number($("propTextScale").value)||1));d.rotation=Math.max(-180,Math.min(180,Number($("propTextRotation").value)||0));d.opacity=Math.max(0,Math.min(1,Number($("propTextOpacity").value)||0));
+  d.textEffect=$("propTextEffect").value;
+  d.textTransition=$("propTextTransition").value;
+  d.textTransitionDuration=Math.max(.1,Math.min(2,dur,Number($("propTextTransitionDuration").value)||.4));
  }
  return d;
 }
@@ -1751,16 +1766,27 @@ function wrapExportText(ctx,text,maxWidth){
  });
  return output.length?output:[""];
 }
+function textEntranceValues(c,local){
+ const type=c.textTransition||"none",duration=Math.max(.1,Math.min(Number(c.textTransitionDuration)||.4,c.duration||.4));
+ const p=type==="none"?1:Math.max(0,Math.min(1,local/duration)),ease=1-Math.pow(1-p,3);
+ let opacity=1,scale=1,y=0;
+ if(type==="fade")opacity=p;
+ else if(type==="pop"){opacity=p;scale=.72+.28*ease;}
+ else if(type==="slide-up"){opacity=Math.min(1,p*1.5);y=(1-ease)*9;}
+ else if(type==="bounce"){opacity=Math.min(1,p*1.5);scale=.72+.28*ease+Math.sin(p*Math.PI)*.12;}
+ return {opacity,scale,y};
+}
 function drawExportText(ctx,c,time,width,height,fontScale){
- const local=time-c.start,motion=animatedValues(c,local);
+ const local=time-c.start,motion=animatedValues(c,local),entrance=textEntranceValues(c,local);
  const fontSize=Math.max(10,Math.min(120,Number(c.fontSize)||42))*fontScale;
  const maxWidth=width*.88,padX=13*fontScale,padY=8*fontScale,lineHeight=fontSize*1.12;
  const style=(c.italic?"italic ":"")+(Number(c.weight)||800)+" "+fontSize+"px "+(c.font||"Arial, sans-serif");
  ctx.save();
- ctx.translate(width*(.5+motion.x/100),height*(.5+motion.y/100));
+ ctx.translate(width*(.5+motion.x/100),height*(.5+(motion.y+entrance.y)/100));
  ctx.rotate((motion.rotation||0)*Math.PI/180);
- ctx.scale(Math.max(.1,Math.min(4,motion.scale||1)),Math.max(.1,Math.min(4,motion.scale||1)));
- ctx.globalAlpha=Math.max(0,Math.min(1,motion.opacity));
+ const finalScale=Math.max(.1,Math.min(4,motion.scale||1))*entrance.scale;
+ ctx.scale(finalScale,finalScale);
+ ctx.globalAlpha=Math.max(0,Math.min(1,motion.opacity*entrance.opacity));
  ctx.font=style;
  const lines=wrapExportText(ctx,c.text||"Text",maxWidth-padX*2);
  const widest=Math.max(1,...lines.map(line=>ctx.measureText(line).width));
@@ -1776,9 +1802,19 @@ function drawExportText(ctx,c,time,width,height,fontScale){
  ctx.fillStyle=c.color||"#ffffff";
  ctx.textAlign=c.align||"center";
  ctx.textBaseline="middle";
- ctx.shadowColor="rgba(0,0,0,.9)";ctx.shadowBlur=10*fontScale;ctx.shadowOffsetY=3*fontScale;
+ const effect=c.textEffect||"shadow";
+ ctx.shadowColor=(effect==="glow"||effect==="neon")?(c.color||"#ffffff"):"rgba(0,0,0,.9)";
+ ctx.shadowBlur=(effect==="glow"?20:effect==="neon"?26:effect==="none"?0:10)*fontScale;
+ ctx.shadowOffsetY=effect==="none"?0:3*fontScale;
  const textX=c.align==="left"?left+padX:c.align==="right"?left+boxWidth-padX:0;
- lines.forEach((line,index)=>ctx.fillText(line,textX,top+padY+lineHeight*(index+.5),maxWidth-padX*2));
+ lines.forEach((line,index)=>{
+  const y=top+padY+lineHeight*(index+.5);
+  if(effect==="outline"||effect==="neon"){
+   ctx.save();ctx.shadowBlur=0;ctx.strokeStyle=effect==="neon"?(c.color||"#ffffff"):"#171020";ctx.lineWidth=(effect==="neon"?2.5:3.5)*fontScale;ctx.lineJoin="round";
+   ctx.strokeText(line,textX,y,maxWidth-padX*2);ctx.restore();
+  }
+  ctx.fillText(line,textX,y,maxWidth-padX*2);
+ });
  ctx.restore();
 }
 function drawExportFrame(ctx,list,mediaById,time,width,height,fontScale,fit){
