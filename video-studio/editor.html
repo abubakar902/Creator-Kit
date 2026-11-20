@@ -657,7 +657,7 @@ body{background:radial-gradient(ellipse at 48% -18%,rgba(126,79,190,.18),transpa
    <div class="export-quality"><label for="captionsLanguage">Spoken language</label><select id="captionsLanguage"><option value="">Auto detect</option><option value="en">English</option><option value="ur">Urdu</option><option value="hi">Hindi</option><option value="ar">Arabic</option><option value="es">Spanish</option><option value="fr">French</option><option value="pt">Portuguese</option><option value="tr">Turkish</option><option value="de">German</option></select></div>
    <div class="captions-progress"><div class="captions-progress-fill" id="captionsProgressFill"></div></div>
    <div class="captions-status" id="captionsStatus" role="status" aria-live="polite">Ready to generate captions.</div>
-   <p class="captions-help">The selected clip's audio is sent securely to TrivexaAI's Cloudflare AI service for transcription. Captions are added to their own timeline track; you can edit each caption and export an SRT subtitle file. AI usage may be subject to your Cloudflare account's included allowance and billing.</p>
+   <p class="captions-help">The selected clip's audio is sent securely to TrivexaAI's Cloudflare AI service for transcription. Captions are added to their own timeline track; you can edit each caption and export an SRT subtitle file. Cloudflare currently lists this Whisper model at $0.000513 per audio minute. Check your account allowance and billing before use.</p>
   </div>
   <footer class="export-dialog-actions">
    <button class="btn" id="captionsDownloadBtn" type="button" hidden>Download SRT</button>
@@ -1051,7 +1051,7 @@ function renderPreview(){
   const span=document.createElement("div");span.textContent=c.text||"Text";span.dataset.clipId=c.id;
   span.style.position="absolute";span.style.pointerEvents="auto";span.style.touchAction="none";span.style.cursor="move";
   const motion=animatedValues(c,playhead-c.start);
-  span.style.left=(50+motion.x)+"%";span.style.top=(c.track==="captions"?85:50+motion.y)+"%";
+  span.style.left=(50+motion.x)+"%";span.style.top=(50+motion.y)+"%";
   span.style.transform="translate(-50%,-50%) scale("+motion.scale+") rotate("+motion.rotation+"deg)";
   span.style.opacity=String(Math.max(0,Math.min(1,motion.opacity)));span.style.maxWidth="88%";span.style.boxSizing="border-box";
   span.style.color=c.color||"#ffffff";span.style.fontFamily=c.font||"Arial, sans-serif";
