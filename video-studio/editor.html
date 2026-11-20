@@ -245,7 +245,8 @@
    <p class="export-modal-note">Keep this tab open until the export finishes. You can cancel safely at any time.</p>
   </div>
   <footer class="export-dialog-actions">
-   <button class="btn" id="exportCancelBtn" type="button">Cancel export</button>
+   <button class="btn" id="exportCancelBtn" type="button">Close</button>
+   <button class="btn primary" id="exportStartBtn" type="button">Start export</button>
    <button class="btn" id="exportRetryBtn" type="button" hidden>Try again</button>
    <button class="btn" id="exportDownloadBtn" type="button" hidden>Download again</button>
    <button class="btn primary" id="exportCloseBtn" type="button" disabled>Close</button>
@@ -767,11 +768,12 @@ function showExportModal(){
  $("exportDialogTitle").textContent="Export your video";
  $("exportQualityRow").hidden=false;
  $("exportCancelBtn").hidden=false;$("exportCancelBtn").disabled=false;
- $("exportCancelBtn").textContent="Cancel export";
+ $("exportCancelBtn").textContent="Close";
+ $("exportStartBtn").hidden=false;$("exportStartBtn").disabled=false;
  $("exportRetryBtn").hidden=true;$("exportDownloadBtn").hidden=true;
- $("exportCloseBtn").disabled=true;
+ $("exportCloseBtn").hidden=true;$("exportCloseBtn").disabled=true;
  configureExportOptions();
- setExportModalProgress(0,"Getting ready…","Choose your format, resolution, frame rate and quality.");
+ setExportModalProgress(0,"Choose your export settings","Your video will not start exporting until you press Start export.");
 }
 function hideExportModal(){
  if(exportBusy)return;
@@ -818,7 +820,13 @@ async function exportVideo(){
  const total=Math.max(0,...exportClips.map(c=>c.start+c.duration));
  if(total<=0){notify("There is nothing to export yet.");return;}
  exportBusy=true;exportController={cancelled:false,cancelWaiters:new Set(),stopRecording:null};lastExportBlob=null;lastExportFileName="";
- button.disabled=true;button.textContent="Preparing…";showExportModal();
+ button.disabled=true;button.textContent="Preparing…";
+ $("exportDialogTitle").textContent="Exporting your video";
+ $("exportQualityRow").hidden=true;
+ $("exportStartBtn").hidden=true;
+ $("exportCancelBtn").hidden=false;$("exportCancelBtn").disabled=false;$("exportCancelBtn").textContent="Cancel export";
+ $("exportCloseBtn").hidden=false;$("exportCloseBtn").disabled=true;
+ setExportModalProgress(5,"Preparing export…","Your selected settings are being applied.");
  let audioContext=null,canvasStream=null,recordingStream=null,recordingFrame=0,recorder=null,watchdog=0,stopTimer=0;
  const mediaItems=[],chunks=[];
  const oldStatus=$("saveStatus").textContent;
@@ -962,9 +970,10 @@ async function exportVideo(){
   setExportModalProgress(100,"Your video is ready!","The "+format.toUpperCase()+" export is complete. Download it now, or use Download again later in this window.");
   $("exportDialogTitle").textContent="Export complete";
   $("exportQualityRow").hidden=true;
+  $("exportStartBtn").hidden=true;
   $("exportCancelBtn").hidden=true;
   $("exportDownloadBtn").hidden=false;
-  $("exportCloseBtn").disabled=false;
+  $("exportCloseBtn").hidden=false;$("exportCloseBtn").disabled=false;
   const url=URL.createObjectURL(blob),link=document.createElement("a");
   link.href=url;link.download=lastExportFileName;
   document.body.append(link);link.click();link.remove();
@@ -977,10 +986,11 @@ async function exportVideo(){
   setExportModalProgress(0,cancelled?"Export cancelled":"Export could not finish",cancelled?"You cancelled this export. Your project is safe.":(error&&error.message?error.message:"Please try again. Choose 720p if your project is large."));
   $("exportDialogTitle").textContent=cancelled?"Export cancelled":"Export needs another try";
   $("exportQualityRow").hidden=false;
+  $("exportStartBtn").hidden=true;
   $("exportCancelBtn").hidden=true;
   $("exportRetryBtn").hidden=false;
   $("exportDownloadBtn").hidden=!(lastExportBlob instanceof Blob);
-  $("exportCloseBtn").disabled=false;
+  $("exportCloseBtn").hidden=false;$("exportCloseBtn").disabled=false;
   notify(cancelled?"Export cancelled. Your project is safe.":"Export failed: "+(error&&error.message?error.message:"Please try again."));
  }finally{
   cancelAnimationFrame(recordingFrame);
@@ -1024,11 +1034,12 @@ $("previewStage").addEventListener("pointerdown",previewPointerDown);
 window.addEventListener("pointermove",previewPointerMove);
 window.addEventListener("pointerup",previewPointerUp);
 window.addEventListener("pointercancel",previewPointerUp);
-$("exportBtn").addEventListener("click",exportVideo);
-$("exportCancelBtn").addEventListener("click",requestExportCancel);
+$("exportBtn").addEventListener("click",showExportModal);
+$("exportStartBtn").addEventListener("click",exportVideo);
+$("exportCancelBtn").addEventListener("click",()=>{if(exportBusy)requestExportCancel();else hideExportModal();});
 $("exportCloseBtn").addEventListener("click",hideExportModal);
 $("exportDownloadBtn").addEventListener("click",downloadLastExport);
-$("exportRetryBtn").addEventListener("click",()=>{hideExportModal();exportVideo();});
+$("exportRetryBtn").addEventListener("click",exportVideo);
 $("exportResolution").addEventListener("change",updateExportSummary);
 $("exportFps").addEventListener("change",updateExportSummary);
 $("exportBitrate").addEventListener("change",updateExportSummary);
