@@ -5,7 +5,7 @@ let firebaseKeys = null;
 let firebaseKeysExpiry = 0;
 const ADVANCED_ACTIONS = new Set([
   "generate_image", "generate_voice", "video_studio", "video_studio_create",
-  "video_studio_export", "video_studio_ai_assistant", "ai_editing_assistant",
+  "video_studio_export", "video_studio_ai_assistant", "transcribe_audio", "ai_editing_assistant",
   "advanced_feature"
 ]);
 function b64u(s) {
@@ -774,6 +774,59 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
         }
 
         return reply(result);
+      }
+
+      // AI AUTO CAPTIONS — timestamped speech-to-text via Cloudflare Workers AI Whisper
+      if (body.action === "transcribe_audio") {
+        if (!env.AI) {
+          return reply({ error: "Cloudflare Workers AI is not configured for transcription." }, 500);
+        }
+        if (
+          typeof body.audioBase64 !== "string" ||
+          body.audioBase64.length < 500 ||
+          body.audioBase64.length > 4000000 ||
+          !/^[A-Za-z0-9+/]+={0,2}$/.test(body.audioBase64)
+        ) {
+          return reply({ error: "The audio chunk is invalid or too large. Please try again with a shorter clip." }, 400);
+        }
+        const mimeType = String(body.mimeType || "").split(";")[0].trim().toLowerCase();
+        if (!["audio/webm", "audio/ogg"].includes(mimeType)) {
+          return reply({ error: "Unsupported audio format. Please use a current version of Chrome or Edge." }, 400);
+        }
+        const language = typeof body.language === "string" ? body.language.trim().slice(0, 12) : "";
+        try {
+          const result = await env.AI.run("@cf/openai/whisper-large-v3-turbo", {
+            audio: body.audioBase64,
+            task: "transcribe",
+            ...(language ? { language } : {}),
+            vad_filter: true,
+            condition_on_previous_text: false
+          });
+          const segments = Array.isArray(result?.segments)
+            ? result.segments.map(item => ({
+                start: Number(item.start),
+                end: Number(item.end),
+                text: String(item.text || "").trim().slice(0, 500)
+              })).filter(item =>
+                Number.isFinite(item.start) &&
+                Number.isFinite(item.end) &&
+                item.start >= 0 &&
+                item.end > item.start &&
+                item.text
+              )
+            : [];
+          return reply({
+            text: String(result?.text || ""),
+            language: result?.transcription_info?.language || "",
+            segments
+          });
+        } catch (transcriptionError) {
+          console.error("AI captions transcription error:", transcriptionError);
+          return reply({
+            error: "AI transcription could not finish. Please try a shorter clip or try again later.",
+            details: transcriptionError?.message || "Workers AI transcription failed."
+          }, 502);
+        }
       }
 
       // EXISTING GEMINI AI TOOLS
