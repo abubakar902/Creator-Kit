@@ -687,7 +687,8 @@ async function detachAudioFromVideo(){
  if(!sourceClip||sourceClip.type!=="video")return;
  const existing=clips.find(c=>c.type==="audio"&&c.detachedFromVideoId===sourceClip.id);
  if(existing){selectedId=existing.id;renderAll();notify("Audio is already detached. Select the Audio track clip to edit it.");return;}
- const sourceAsset=assetById(sourceClip.assetId);
+ const sourceSnapshot={id:sourceClip.id,assetId:sourceClip.assetId,start:sourceClip.start,sourceStart:Number(sourceClip.sourceStart)||0,duration:sourceClip.duration};
+ const sourceAsset=assetById(sourceSnapshot.assetId);
  if(!sourceAsset?.blob){notify("The original video file could not be found.");return;}
  if(sourceClip.duration>600||Number(sourceAsset.size||sourceAsset.blob.size)>300*1024*1024){
   notify("For safe audio extraction on this device, use a video clip under 10 minutes and 300 MB.");return;
@@ -703,9 +704,9 @@ async function detachAudioFromVideo(){
   video=document.createElement("video");video.preload="auto";video.playsInline=true;
   video.src=assetUrl(sourceClip.assetId);video.load();
   await waitForExportMedia(video,"loadeddata",sourceClip.name||"video");
-  const sourceStart=Math.max(0,Number(sourceClip.sourceStart)||0);
+  const sourceStart=sourceSnapshot.sourceStart;
   const available=Math.max(0,(Number(video.duration)||0)-sourceStart);
-  const captureDuration=Math.min(sourceClip.duration,available);
+  const captureDuration=Math.min(sourceSnapshot.duration,available);
   if(captureDuration<.2)throw new Error("The selected video segment has no playable duration.");
   if(sourceStart>0){
    await new Promise((resolve,reject)=>{
@@ -757,14 +758,18 @@ async function detachAudioFromVideo(){
   const audioBlob=await recordingPromise;
   if(peakRms<.00008)throw new Error("No audible audio was detected in this video segment.");
   if(!audioBlob||audioBlob.size<1000)throw new Error("The extracted audio file is empty. Please try another video segment.");
+  const currentSourceClip=clips.find(item=>item.id===sourceSnapshot.id);
+  if(!currentSourceClip||currentSourceClip.assetId!==sourceSnapshot.assetId||currentSourceClip.start!==sourceSnapshot.start||currentSourceClip.sourceStart!==sourceSnapshot.sourceStart||currentSourceClip.duration!==sourceSnapshot.duration){
+   throw new Error("The video clip changed during extraction. Please select it again and retry.");
+  }
   const audioId=uid(),audioDuration=Number(captureDuration.toFixed(3));
   const audioAsset={id:audioId,projectId:project.id,name:(sourceClip.name||"Video")+" — extracted audio.webm",type:"audio",mime:audioBlob.type,size:audioBlob.size,duration:audioDuration,blob:audioBlob,createdAt:new Date().toISOString(),sourceVideoAssetId:sourceClip.assetId};
   await dbRequest("assets","readwrite",store=>store.put(audioAsset));
   assets.push(audioAsset);urls.set(audioId,URL.createObjectURL(audioBlob));
   snapshot();
-  const originalVolume=sourceClip.volume??1;
-  sourceClip.volume=0;
-  const audioClip={id:uid(),assetId:audioId,name:(sourceClip.name||"Video")+" — Audio",type:"audio",track:"audio",start:sourceClip.start,sourceStart:0,duration:audioDuration,volume:originalVolume,fadeIn:0,fadeOut:0,detachedFromVideoId:sourceClip.id,detachedOriginalVideoVolume:originalVolume};
+  const originalVolume=currentSourceClip.volume??1;
+  currentSourceClip.volume=0;
+  const audioClip={id:uid(),assetId:audioId,name:(currentSourceClip.name||"Video")+" — Audio",type:"audio",track:"audio",start:sourceSnapshot.start,sourceStart:0,duration:audioDuration,volume:originalVolume,fadeIn:0,fadeOut:0,detachedFromVideoId:sourceSnapshot.id,detachedOriginalVideoVolume:originalVolume};
   clips.push(audioClip);selectedId=audioClip.id;previewDraft=null;
   renderAll();scheduleSave();status("Audio detached · Auto-save on");
   notify("Audio separated into the Audio track. The original video sound is muted. Select the new audio clip to edit its volume, fades, timing or trim.");
