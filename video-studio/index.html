@@ -164,6 +164,10 @@
   #projects .project-item{align-items:flex-start;flex-direction:column}
 }
 
+
+@keyframes studioDashboardSpin{to{transform:rotate(360deg)}}
+@keyframes studioDashboardProgress{0%{margin-left:-40%}100%{margin-left:105%}}
+@media(prefers-reduced-motion:reduce){#studioStartupLoading *{animation:none!important}#studioStartupLoading{transition:opacity .15s ease,visibility .15s ease}}
 </style>
 </head>
 <body>
@@ -189,11 +193,6 @@
   </div>
  </div>
 </div>
-<style>
-@keyframes studioDashboardSpin{to{transform:rotate(360deg)}}
-@keyframes studioDashboardProgress{0%{margin-left:-40%}100%{margin-left:105%}}
-@media(prefers-reduced-motion:reduce){#studioStartupLoading *{animation:none!important}#studioStartupLoading{transition:opacity .15s ease,visibility .15s ease}}
-</style>
 <script>
 (function(){
  var root=document.getElementById("studioStartupLoading");
@@ -201,13 +200,19 @@
  var msg=document.getElementById("studioStartupMessage");
  var recovery=document.getElementById("studioStartupRecovery");
  var retry=document.getElementById("studioStartupRetry");
+ window.__studioStartupAt=Date.now();
  window.__setStudioStartupMessage=function(text){if(msg)msg.textContent=text;};
  window.__hideStudioStartupLoading=function(){
   if(!root.isConnected)return;
-  root.style.opacity="0";
-  root.style.visibility="hidden";
-  root.style.pointerEvents="none";
-  window.setTimeout(function(){if(root.isConnected)root.remove();},420);
+  var elapsed=Date.now()-window.__studioStartupAt;
+  var wait=Math.max(0,1200-elapsed);
+  window.setTimeout(function(){
+   if(!root.isConnected)return;
+   root.style.opacity="0";
+   root.style.visibility="hidden";
+   root.style.pointerEvents="none";
+   window.setTimeout(function(){if(root.isConnected)root.remove();},420);
+  },wait);
  };
  window.setTimeout(function(){
   var app=document.getElementById("app");
