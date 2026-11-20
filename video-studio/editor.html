@@ -93,48 +93,101 @@
 @media(max-width:480px){.shortcuts-modal{padding:10px}.shortcuts-head{padding:16px}.shortcuts-body{padding:13px 16px 16px}.shortcuts-grid{grid-template-columns:1fr}.shortcuts-dialog{max-height:90vh}}
 
 
-/* Branded startup screen shown while authentication and the project are prepared. */
-.editor-loading{position:fixed;inset:0;z-index:5000;display:grid;place-items:center;padding:24px;overflow:hidden;background:radial-gradient(ellipse at 50% 18%,rgba(111,50,174,.25),transparent 42%),radial-gradient(ellipse at 88% 88%,rgba(67,64,150,.16),transparent 38%),#0b0718;opacity:1;visibility:visible;transition:opacity .42s ease,visibility .42s ease}
-.editor-loading.is-exiting{opacity:0;visibility:hidden;pointer-events:none}
-.editor-loading:before,.editor-loading:after{content:"";position:absolute;width:min(76vw,680px);aspect-ratio:1;border:1px solid rgba(164,111,218,.075);border-radius:50%;pointer-events:none}
-.editor-loading:after{width:min(58vw,500px);border-color:rgba(164,111,218,.055)}
-.editor-loading-card{position:relative;z-index:1;width:min(100%,440px);padding:35px 30px 30px;border:1px solid rgba(153,111,197,.26);border-radius:25px;background:linear-gradient(145deg,rgba(34,23,53,.90),rgba(17,12,31,.92));box-shadow:0 28px 90px rgba(0,0,0,.48),inset 0 1px 0 rgba(255,255,255,.055),0 0 70px rgba(119,61,173,.10);text-align:center;backdrop-filter:blur(18px)}
-.editor-loading-brand{display:flex;align-items:center;justify-content:center;gap:11px;margin-bottom:29px;color:#fff;font-size:19px;font-weight:850;letter-spacing:-.45px}
-.editor-loading-brand small{display:block;margin-top:2px;color:#bba8db;font-size:9px;font-weight:750;letter-spacing:2px;text-align:left}
-.editor-loading-logo{width:39px;height:39px;display:grid;place-items:center;border:1px solid rgba(211,160,255,.60);border-radius:13px;background:linear-gradient(145deg,#8d43c8,#4b3c9c);color:#fff;font-size:15px;padding-left:2px;box-shadow:0 7px 24px rgba(153,74,218,.32)}
-.editor-loader-orbit{position:relative;width:104px;height:104px;display:grid;place-items:center;margin:0 auto 24px}
-.editor-loader-orbit:before,.editor-loader-orbit:after{content:"";position:absolute;inset:0;border:2px solid transparent;border-top-color:#c58aff;border-right-color:rgba(166,105,225,.30);border-radius:50%;animation:editorLoaderSpin 1.35s linear infinite}
-.editor-loader-orbit:after{inset:11px;border-top-color:#ed8de8;border-left-color:rgba(193,126,239,.30);border-right-color:transparent;animation-direction:reverse;animation-duration:1.8s}
-.editor-loader-core{width:53px;height:53px;display:grid;place-items:center;border:1px solid rgba(190,144,239,.45);border-radius:17px;background:linear-gradient(145deg,#34204f,#201532);color:#e5c7ff;font-size:21px;box-shadow:0 0 34px rgba(148,82,218,.26),inset 0 1px 0 rgba(255,255,255,.08);animation:editorLoaderPulse 1.65s ease-in-out infinite}
-.editor-loading-card h1{margin:0 0 8px;color:#fff;font-size:21px;font-weight:800;letter-spacing:-.55px}
-.editor-loading-message{min-height:20px;margin:0;color:#b9a9ce;font-size:12px;line-height:1.6}
-.editor-loading-progress{position:relative;height:5px;margin:25px 5px 0;border-radius:99px;overflow:hidden;background:#342644}
-.editor-loading-progress span{position:absolute;top:0;bottom:0;left:-38%;width:38%;border-radius:99px;background:linear-gradient(90deg,#9250d4,#d78cff,#f29bdc);box-shadow:0 0 18px rgba(194,119,255,.58);animation:editorLoaderProgress 1.35s ease-in-out infinite}
-.editor-loading-foot{margin:15px 0 0;color:#817294;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase}
-@keyframes editorLoaderSpin{to{transform:rotate(360deg)}}
-@keyframes editorLoaderPulse{0%,100%{transform:scale(.96);box-shadow:0 0 22px rgba(148,82,218,.20)}50%{transform:scale(1.04);box-shadow:0 0 38px rgba(181,112,245,.40)}}
-@keyframes editorLoaderProgress{0%{left:-38%}100%{left:100%}}
-@media(max-width:480px){.editor-loading{padding:16px}.editor-loading-card{padding:29px 20px 24px;border-radius:21px}.editor-loading-brand{margin-bottom:25px}.editor-loading-card h1{font-size:19px}}
-@media(prefers-reduced-motion:reduce){.editor-loader-orbit:before,.editor-loader-orbit:after,.editor-loader-core,.editor-loading-progress span{animation:none}.editor-loading-progress span{left:30%;width:40%;opacity:.8}.editor-loading{transition:opacity .15s ease,visibility .15s ease}}
 
+/* Distinct editor boot screen: a miniature timeline workspace, separate from the Video Studio dashboard loader. */
+.editor-loading{position:fixed;inset:0;z-index:5000;display:grid;place-items:center;padding:22px;overflow:auto;background:radial-gradient(ellipse at 50% 12%,rgba(67,111,173,.24),transparent 42%),radial-gradient(ellipse at 90% 88%,rgba(91,67,177,.18),transparent 38%),#080c16;opacity:1;visibility:visible;transition:opacity .42s ease,visibility .42s ease}
+.editor-loading.is-exiting{opacity:0;visibility:hidden;pointer-events:none}
+.editor-loading .editor-boot-shell{width:min(100%,650px);box-sizing:border-box;padding:clamp(21px,4vw,34px);border:1px solid rgba(130,157,204,.22);border-radius:27px;background:linear-gradient(145deg,rgba(22,31,49,.97),rgba(12,18,31,.98));box-shadow:0 30px 100px #0009,inset 0 1px 0 #ffffff0d,0 0 80px #4964a01c}
+.editor-boot-top{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:27px}
+.editor-boot-brand{display:flex;align-items:center;gap:10px;color:#fff;font-size:18px;font-weight:850;letter-spacing:-.45px}
+.editor-boot-brand small{display:block;margin-top:2px;color:#98aac8;font-size:8px;font-weight:800;letter-spacing:2px}
+.editor-boot-logo{width:38px;height:38px;display:grid;place-items:center;border:1px solid #8bb8ed;border-radius:12px;background:linear-gradient(145deg,#3a79ad,#6250a8);box-shadow:0 7px 24px #4f83c34a;color:#fff;font-size:14px;padding-left:2px}
+.editor-boot-live{display:inline-flex;align-items:center;gap:7px;padding:7px 10px;border:1px solid #426b73;border-radius:99px;background:#10252b;color:#9ee8d7;font-size:8px;font-weight:850;letter-spacing:1.1px;white-space:nowrap}
+.editor-boot-live i{width:6px;height:6px;border-radius:50%;background:#65e1c3;box-shadow:0 0 10px #65e1c3;animation:editorBootBlink 1.2s ease-in-out infinite}
+.editor-boot-heading{text-align:center;margin-bottom:20px}
+.editor-boot-kicker{color:#8fa9d0;font-size:9px;font-weight:850;letter-spacing:2px}
+.editor-boot-heading h1{margin:8px 0 7px;color:#fff;font-size:clamp(20px,4vw,25px);font-weight:820;letter-spacing:-.65px}
+.editor-boot-heading p{min-height:20px;margin:0;color:#aab8cf;font-size:12px;line-height:1.55}
+.editor-boot-preview{overflow:hidden;border:1px solid #35445d;border-radius:15px;background:#0a111e;box-shadow:0 12px 38px #0005}
+.editor-boot-windowbar{height:29px;display:flex;align-items:center;gap:5px;padding:0 11px;border-bottom:1px solid #26344a;background:#111b2b}
+.editor-boot-windowbar>span{width:6px;height:6px;border-radius:50%;background:#657b98}
+.editor-boot-windowbar>b{margin-left:auto;color:#778ba8;font-size:7px;letter-spacing:1.5px}
+.editor-boot-stage{position:relative;height:clamp(92px,18vw,142px);display:grid;place-items:center;overflow:hidden;background:radial-gradient(ellipse at 50% 55%,#1e3450 0%,#111d31 52%,#0a111e 100%)}
+.editor-boot-stage:before,.editor-boot-stage:after{content:"";position:absolute;width:210px;height:210px;border:1px solid #a4c9ff18;border-radius:50%}
+.editor-boot-stage:after{width:290px;height:290px}
+.editor-boot-stage-glow{position:absolute;width:105px;height:105px;border-radius:50%;background:#649de51b;filter:blur(17px)}
+.editor-boot-play{position:relative;z-index:1;width:43px;height:43px;display:grid;place-items:center;padding-left:3px;border:1px solid #a5c9f4a6;border-radius:14px;background:linear-gradient(145deg,#416e9d,#5650a0);box-shadow:0 0 36px #76a7e64d;color:#fff;font-size:15px}
+.editor-boot-stage-label{position:absolute;bottom:10px;left:12px;color:#7287a6;font-size:7px;font-weight:800;letter-spacing:1.4px}
+.editor-boot-timeline{position:relative;padding:12px 13px 13px;background:#0d1523}
+.editor-boot-track{display:grid;grid-template-columns:43px 1fr;align-items:center;gap:9px;height:17px;margin:4px 0}
+.editor-boot-track>b{color:#7d91ad;font-size:7px;letter-spacing:1px}
+.editor-boot-trackline{position:relative;height:11px;overflow:hidden;border:1px solid #2b3b53;border-radius:4px;background:#111d2f}
+.editor-boot-clip,.editor-boot-textclip{position:absolute;top:1px;bottom:1px;border-radius:3px}
+.editor-boot-clip.clip-one{left:2%;width:35%;background:linear-gradient(90deg,#477ea9,#6b8dc8)}
+.editor-boot-clip.clip-two{left:40%;width:24%;background:linear-gradient(90deg,#6b65b1,#8d79c9)}
+.editor-boot-wave{position:absolute;inset:1px 4% 1px 2%;border-radius:3px;background:repeating-linear-gradient(90deg,#5dbaa2 0 2px,transparent 2px 5px);opacity:.85}
+.editor-boot-textclip{left:16%;width:22%;background:linear-gradient(90deg,#bd8b65,#d2ae78)}
+.editor-boot-playhead{position:absolute;top:8px;bottom:8px;left:39%;width:2px;background:#d8eaff;box-shadow:0 0 9px #a6d5ff;animation:editorBootPlayhead 2.4s ease-in-out infinite alternate}
+.editor-boot-status{display:flex;justify-content:center;gap:clamp(12px,5vw,34px);margin:20px 0 16px}
+.editor-boot-status span{display:flex;align-items:center;gap:7px;color:#c2cfe2;font-size:10px;font-weight:750}
+.editor-boot-status i{width:20px;height:20px;display:grid;place-items:center;border:1px solid #405978;border-radius:7px;background:#18283b;color:#9cc9ee;font-size:8px;font-style:normal}
+.editor-boot-progress{height:4px;overflow:hidden;border-radius:99px;background:#27364b}
+.editor-boot-progress span{display:block;width:38%;height:100%;border-radius:99px;background:linear-gradient(90deg,#4b9bc1,#8d8ce5,#74d6c2);box-shadow:0 0 13px #73cbe48a;animation:editorBootProgress 1.5s ease-in-out infinite}
+.editor-boot-foot{display:flex;justify-content:space-between;gap:10px;margin-top:13px;color:#71839d;font-size:7px;font-weight:800;letter-spacing:1.25px}
+@keyframes editorBootBlink{50%{opacity:.35}}
+@keyframes editorBootPlayhead{from{left:18%}to{left:82%}}
+@keyframes editorBootProgress{0%{margin-left:-40%}100%{margin-left:105%}}
+@media(max-width:480px){.editor-loading{padding:13px}.editor-loading .editor-boot-shell{padding:19px 15px;border-radius:21px}.editor-boot-top{margin-bottom:22px}.editor-boot-brand{font-size:16px}.editor-boot-live{font-size:7px;padding:6px 8px}.editor-boot-status{gap:10px}.editor-boot-status span{font-size:9px}.editor-boot-foot{font-size:6px;letter-spacing:.8px}}
+@media(prefers-reduced-motion:reduce){.editor-loading *{animation:none!important}}
 </style>
 </head>
 <body>
 
-<div class="editor-loading" id="editorLoading" role="status" aria-live="polite" aria-label="Loading Video Studio editor" style="position:fixed;inset:0;z-index:2147483647;display:grid;place-items:center;padding:24px;overflow:auto;background:#0b0718;color:#ffffff">
-  <div class="editor-loading-card" style="position:relative;z-index:1;width:min(100%,440px);padding:35px 30px 30px;border:1px solid #65458a;border-radius:25px;background:linear-gradient(145deg,#221735,#110c1f);box-shadow:0 28px 90px #000b;text-align:center">
-    <div class="editor-loading-brand"><span class="editor-loading-logo" aria-hidden="true" style="width:39px;height:39px;display:grid;place-items:center;border:1px solid #b889e9;border-radius:13px;background:linear-gradient(145deg,#8d43c8,#4b3c9c);color:#fff">▶</span><span>TrivexaAI<small>VIDEO STUDIO</small></span></div>
-    <div class="editor-loader-orbit" aria-hidden="true"><div class="editor-loader-core">✦</div></div>
-    <h1>Preparing your workspace</h1>
-    <p class="editor-loading-message" id="editorLoadingMessage">Getting your editor ready…</p>
-    <div class="editor-loading-progress" aria-hidden="true"><span></span></div>
-    <p class="editor-loading-foot">Your creative space is almost ready</p>
 
-    <div id="editorStartupRecovery" hidden style="margin-top:20px;gap:9px;justify-content:center;flex-wrap:wrap">
-      <button type="button" id="editorStartupRetry" style="border:0;border-radius:10px;padding:10px 16px;background:linear-gradient(100deg,#9839ef,#634dff);color:#fff;font-weight:800;cursor:pointer">Try Again</button>
-      <a href="./" style="display:inline-flex;align-items:center;border:1px solid #62477e;border-radius:10px;padding:10px 16px;background:#211837;color:#eee1ff;text-decoration:none;font-weight:700">Back to Studio</a>
-    </div>
+<div class="editor-loading" id="editorLoading" role="status" aria-live="polite" aria-label="Preparing the TrivexaAI video editor">
+ <div class="editor-boot-shell">
+  <div class="editor-boot-top">
+   <div class="editor-boot-brand">
+    <span class="editor-boot-logo" aria-hidden="true">▶</span>
+    <span>TrivexaAI<small>CREATIVE EDITOR</small></span>
+   </div>
+   <span class="editor-boot-live"><i></i> STARTING EDITOR</span>
   </div>
+  <div class="editor-boot-heading">
+   <span class="editor-boot-kicker">YOUR PROJECT · ALMOST THERE</span>
+   <h1>Building your editing space</h1>
+   <p class="editor-loading-message" id="editorLoadingMessage">Getting your editor ready…</p>
+  </div>
+  <div class="editor-boot-preview" aria-hidden="true">
+   <div class="editor-boot-windowbar"><span></span><span></span><span></span><b>TRIVEXAAI / TIMELINE</b></div>
+   <div class="editor-boot-stage">
+    <div class="editor-boot-stage-glow"></div>
+    <div class="editor-boot-play">▶</div>
+    <span class="editor-boot-stage-label">PREVIEW CANVAS</span>
+   </div>
+   <div class="editor-boot-timeline">
+    <div class="editor-boot-track">
+     <b>VIDEO</b><div class="editor-boot-trackline"><i class="editor-boot-clip clip-one"></i><i class="editor-boot-clip clip-two"></i></div>
+    </div>
+    <div class="editor-boot-track">
+     <b>AUDIO</b><div class="editor-boot-trackline"><i class="editor-boot-wave"></i></div>
+    </div>
+    <div class="editor-boot-track">
+     <b>TEXT</b><div class="editor-boot-trackline"><i class="editor-boot-textclip"></i></div>
+    </div>
+    <span class="editor-boot-playhead"></span>
+   </div>
+  </div>
+  <div class="editor-boot-status">
+   <span><i>01</i> Project</span><span><i>02</i> Media</span><span><i>03</i> Timeline</span>
+  </div>
+  <div class="editor-boot-progress"><span></span></div>
+  <div class="editor-boot-foot"><span>PREPARING YOUR WORKSPACE</span><span>TRIVEXAAI VIDEO EDITOR</span></div>
+  <div id="editorStartupRecovery" hidden style="margin-top:20px;gap:9px;justify-content:center;flex-wrap:wrap">
+   <button type="button" id="editorStartupRetry" style="border:0;border-radius:10px;padding:10px 16px;background:linear-gradient(100deg,#477ea9,#6250a8);color:#fff;font-weight:800;cursor:pointer">Try Again</button>
+   <a href="./" style="display:inline-flex;align-items:center;border:1px solid #45617e;border-radius:10px;padding:10px 16px;background:#142033;color:#e2edff;text-decoration:none;font-weight:700">Back to Studio</a>
+  </div>
+ </div>
 </div>
 
 <script>
