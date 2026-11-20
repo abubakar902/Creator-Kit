@@ -702,13 +702,21 @@ async function detachAudioFromVideo(){
  let video=null,audioContext=null,recorder=null,sampleTimer=0,watchdog=0;
  try{
   video=document.createElement("video");video.preload="auto";video.playsInline=true;
-  video.src=assetUrl(sourceClip.assetId);video.load();
+  audioContext=new AudioContextClass();
+  const resumePromise=audioContext.resume();
+  const source=audioContext.createMediaElementSource(video);
+  const analyser=audioContext.createAnalyser();analyser.fftSize=2048;
+  const destination=audioContext.createMediaStreamDestination();
+  source.connect(analyser);analyser.connect(destination);
+  video.src=assetUrl(sourceSnapshot.assetId);video.load();
+  const playbackStart=video.play().catch(error=>{throw new Error("The browser could not start this video for audio extraction: "+error.message);});
   await waitForExportMedia(video,"loadeddata",sourceClip.name||"video");
+  await Promise.all([resumePromise,playbackStart]);
   const sourceStart=sourceSnapshot.sourceStart;
   const available=Math.max(0,(Number(video.duration)||0)-sourceStart);
   const captureDuration=Math.min(sourceSnapshot.duration,available);
   if(captureDuration<.2)throw new Error("The selected video segment has no playable duration.");
-  if(sourceStart>0){
+  if(Math.abs(video.currentTime-sourceStart)>.04){
    await new Promise((resolve,reject)=>{
     let settled=false;const finish=error=>{if(settled)return;settled=true;clearTimeout(seekTimer);video.removeEventListener("seeked",onSeeked);video.removeEventListener("error",onError);error?reject(error):resolve();};
     const onSeeked=()=>finish();const onError=()=>finish(new Error("Could not seek to this video clip's start."));
@@ -717,11 +725,6 @@ async function detachAudioFromVideo(){
     try{video.currentTime=sourceStart;}catch(error){finish(error);}
    });
   }
-  audioContext=new AudioContextClass();await audioContext.resume();
-  const source=audioContext.createMediaElementSource(video);
-  const analyser=audioContext.createAnalyser();analyser.fftSize=2048;
-  const destination=audioContext.createMediaStreamDestination();
-  source.connect(analyser);analyser.connect(destination);
   const mimeType=["audio/webm;codecs=opus","audio/webm"].find(type=>MediaRecorder.isTypeSupported(type));
   if(!mimeType)throw new Error("This browser cannot create an audio-only WebM clip. Update Chrome or Edge and try again.");
   recorder=new MediaRecorder(destination.stream,{mimeType,audioBitsPerSecond:128000});
@@ -751,7 +754,7 @@ async function detachAudioFromVideo(){
    watchdog=setTimeout(()=>finish(new Error("Audio extraction took too long. Try a shorter video clip.")),Math.max(45000,captureDuration*2500+20000));
    video.addEventListener("timeupdate",checkTime);video.addEventListener("ended",checkTime);
    video.addEventListener("error",onError,{once:true});
-   video.play().then(checkTime).catch(error=>finish(new Error("The browser could not play this video for audio extraction: "+error.message)));
+   checkTime();
   });
   video.pause();
   if(recorder.state!=="inactive")recorder.stop();
