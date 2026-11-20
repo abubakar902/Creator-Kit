@@ -8,10 +8,17 @@
 <title>Video Studio · TrivexaAI</title>
 <script>
 try{
+ var cameBackFromEditor=new URLSearchParams(location.search).get("fromEditor")==="1"||
+  sessionStorage.getItem("trivexaai_skip_studio_startup_once")==="1";
+ if(cameBackFromEditor){
+  sessionStorage.removeItem("trivexaai_skip_studio_startup_once");
+  document.documentElement.classList.add("studio-returning-from-editor");
+ }
+}catch(e){
  if(new URLSearchParams(location.search).get("fromEditor")==="1"){
   document.documentElement.classList.add("studio-returning-from-editor");
  }
-}catch(e){}
+}
 </script>
 <style>
 :root{color-scheme:dark;--bg:#0b0718;--panel:#151027;--panel2:#1b1432;--line:#342454;--muted:#b9accf;--text:#fbf8ff;--purple:#9a4dff;--pink:#d45cff;--blue:#526cff}
