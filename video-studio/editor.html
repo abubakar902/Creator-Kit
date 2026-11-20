@@ -729,7 +729,7 @@ function renderAssets(){
    const proxy=document.createElement("button");proxy.className="asset-proxy";proxy.type="button";
    const proxyAsset=assetById(a.proxyAssetId);
    if(proxyAsset){proxy.textContent=a.useProxy===false?"Use proxy":"Use original";proxy.title=a.useProxy===false?"Switch preview to the lightweight proxy":"Switch preview back to the original video";proxy.addEventListener("click",()=>toggleProxyUse(a.id));}
-   else{proxy.textContent="Create proxy";proxy.title="Create a lightweight 540p preview copy";proxy.disabled=proxyBusy;proxy.addEventListener("click",()=>createVideoProxy(a.id,proxy));}
+   else{proxy.textContent="Create proxy";proxy.title="Create a lightweight preview copy (maximum 960px on the longest edge)";proxy.disabled=proxyBusy;proxy.addEventListener("click",()=>createVideoProxy(a.id,proxy));}
    actions.append(proxy);
   }
   const add=document.createElement("button");add.className="asset-add";add.textContent="Add";
@@ -739,9 +739,9 @@ function renderAssets(){
 }
 async function toggleProxyUse(assetId){
  const asset=assetById(assetId),proxy=assetById(asset?.proxyAssetId);if(!asset||!proxy)return;
- asset.useProxy=asset.useProxy===false;
+ const previous=asset.useProxy;asset.useProxy=asset.useProxy===false;
  try{await dbRequest("assets","readwrite",store=>store.put(asset));renderAssets();renderPreview();notify(asset.useProxy?"Proxy preview enabled. Original video is still used for export.":"Original preview enabled.");}
- catch(error){notify("Could not update the preview setting. Please try again.");}
+ catch(error){asset.useProxy=previous;notify("Could not update the preview setting. Please try again.");}
 }
 async function createVideoProxy(assetId,button){
  const asset=assetById(assetId);if(!asset||asset.type!=="video"||proxyBusy)return;
@@ -755,7 +755,7 @@ async function createVideoProxy(assetId,button){
   const duration=Number(video.duration)||Number(asset.duration)||0;
   if(!Number.isFinite(duration)||duration<=0)throw new Error("The video duration could not be read.");
   const sourceWidth=video.videoWidth||1280,sourceHeight=video.videoHeight||720;
-  const width=Math.min(960,sourceWidth),height=Math.max(2,Math.round((sourceHeight*width/sourceWidth)/2)*2);
+  const proxyScale=Math.min(1,960/Math.max(sourceWidth,sourceHeight)),width=Math.max(2,Math.round(sourceWidth*proxyScale/2)*2),height=Math.max(2,Math.round(sourceHeight*proxyScale/2)*2);
   const canvas=document.createElement("canvas");canvas.width=width;canvas.height=height;
   const ctx=canvas.getContext("2d",{alpha:false});if(!ctx)throw new Error("Could not prepare the proxy canvas.");
   canvasStream=canvas.captureStream(24);
