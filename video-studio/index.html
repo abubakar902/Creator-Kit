@@ -6,6 +6,13 @@
 <meta name="theme-color" content="#0b0718">
 <meta name="robots" content="noindex,nofollow">
 <title>Video Studio · TrivexaAI</title>
+<script>
+try{
+ if(new URLSearchParams(location.search).get("fromEditor")==="1"){
+  document.documentElement.classList.add("studio-returning-from-editor");
+ }
+}catch(e){}
+</script>
 <style>
 :root{color-scheme:dark;--bg:#0b0718;--panel:#151027;--panel2:#1b1432;--line:#342454;--muted:#b9accf;--text:#fbf8ff;--purple:#9a4dff;--pink:#d45cff;--blue:#526cff}
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 70% -15%,#35115f 0,transparent 38%),var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Arial,sans-serif;min-height:100vh}button,input,select{font:inherit}button,a{ -webkit-tap-highlight-color:transparent}a{color:inherit;text-decoration:none}.app{min-height:100vh}.topbar{height:78px;border-bottom:1px solid #281b40;display:flex;align-items:center;justify-content:space-between;padding:0 30px 0 26px;background:#0b0718eF;position:sticky;top:0;z-index:5;backdrop-filter:blur(16px)}.brand{display:flex;align-items:center;gap:12px;font-size:22px;font-weight:850;letter-spacing:-.6px}.brand img{width:42px;height:42px;object-fit:contain}.brand small{display:block;color:#bba8db;font-size:12px;font-weight:600;letter-spacing:1.5px;margin-top:-3px}.brand span{color:#c16cff}.top-actions{display:flex;align-items:center;gap:12px}.top-link,.top-pill{border:1px solid var(--line);border-radius:999px;padding:10px 15px;color:#e9ddff;background:#17102a;font-size:13px}.top-pill{color:#ffd36b}.layout{display:grid;grid-template-columns:220px minmax(0,1fr);min-height:calc(100vh - 78px)}.sidebar{border-right:1px solid #281b40;padding:22px 14px;display:flex;flex-direction:column;gap:7px;background:#0e0a1c}.nav{display:flex;align-items:center;gap:13px;padding:12px 14px;border-radius:12px;color:#c8bddb;font-size:14px;transition:.2s}.nav:hover,.nav.active{background:linear-gradient(100deg,#6124ad55,#32145b55);color:white}.nav.active{box-shadow:inset 3px 0 #bd69ff}.nav .ico{width:21px;text-align:center;font-size:17px}.side-note{margin-top:auto;padding:17px 14px;border:1px solid #40245e;border-radius:16px;background:linear-gradient(145deg,#28134b,#17102b)}.side-note b{display:block;font-size:13px;margin-bottom:6px}.side-note p{font-size:12px;color:#c5b5df;line-height:1.5;margin:0 0 13px}.side-note a{display:inline-block;font-size:12px;color:#e7caff;border:1px solid #7540b0;border-radius:9px;padding:8px 10px}.main{padding:28px clamp(18px,3vw,42px) 42px;max-width:1600px;width:100%;margin:0 auto}.hero{position:relative;overflow:hidden;border:1px solid #43246a;border-radius:22px;padding:35px 38px;min-height:190px;background:radial-gradient(ellipse at 78% 50%,#7a25dc66,transparent 36%),linear-gradient(110deg,#17102d,#100a20 65%,#1b0c37);display:flex;align-items:center;justify-content:space-between;gap:24px}.hero:after{content:"▶";position:absolute;right:9%;top:50%;transform:translateY(-50%) rotate(-8deg);font-size:150px;color:#a84dff1c;text-shadow:0 0 55px #a238ff}.hero-copy{position:relative;z-index:1}.eyebrow{color:#d39cff;text-transform:uppercase;font-size:11px;font-weight:800;letter-spacing:2px}.hero h1{font-size:clamp(27px,3.4vw,42px);letter-spacing:-1.5px;margin:10px 0 7px}.gradient{background:linear-gradient(90deg,#b66aff,#ed75df);-webkit-background-clip:text;background-clip:text;color:transparent}.hero p{margin:0;color:#c7b8dc;font-size:14px}.hero-mark{position:relative;z-index:1;font-size:90px;color:#a84aff;text-shadow:0 0 35px #a84aff99;padding-right:5%}.section-head{display:flex;justify-content:space-between;align-items:end;gap:15px;margin:27px 0 14px}.section-head h2{font-size:20px;margin:0 0 5px}.section-head p{font-size:13px;color:var(--muted);margin:0}.panel{background:linear-gradient(145deg,#1b1432,#130e25);border:1px solid #3a285a;border-radius:19px;padding:24px;box-shadow:0 16px 50px #0002}.create-grid{display:grid;grid-template-columns:minmax(230px,.8fr) minmax(0,1.45fr);gap:25px;align-items:stretch}.preview-art{border-radius:15px;min-height:270px;position:relative;overflow:hidden;background:radial-gradient(ellipse at 50% 60%,#8e32ff66,transparent 50%),linear-gradient(145deg,#211341,#100a20);display:flex;align-items:center;justify-content:center;border:1px solid #412761}.preview-art:before,.preview-art:after{content:"";position:absolute;border:1px solid #a95bff55;border-radius:50%;width:230px;height:95px;transform:rotate(-24deg);box-shadow:0 0 25px #9a4dff44}.preview-art:after{transform:rotate(28deg);width:190px;height:75px}.screen-icon{z-index:1;width:135px;height:94px;border:2px solid #b47aff;border-radius:12px;background:linear-gradient(145deg,#34205b,#110c20);box-shadow:0 0 35px #8b36ff66;display:grid;place-items:center;font-size:42px;color:#d4a5ff}.clapper{position:absolute;z-index:2;bottom:33px;right:22px;font-size:44px;filter:drop-shadow(0 0 12px #a74dff)}.form-area{min-width:0}.form-title{display:flex;align-items:center;gap:11px;margin-bottom:20px}.form-title .magic{font-size:25px;color:#c477ff}.form-title h3{margin:0;font-size:20px}.form-title p{margin:4px 0 0;color:var(--muted);font-size:13px}.field-label{display:block;font-size:13px;font-weight:700;margin:0 0 9px}.field{width:100%;height:48px;border-radius:11px;border:1px solid #443264;background:#100b20;color:#fff;padding:0 14px;outline:none}.field:focus{border-color:#a65bff;box-shadow:0 0 0 3px #a65bff22}.field-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px}.ratio-wrap{margin-top:19px}.ratios{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px}.ratio{min-height:92px;border:1px solid #3b2b58;background:#211936;border-radius:12px;color:#d9cbed;cursor:pointer;padding:10px 5px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;transition:.18s}.ratio:hover{border-color:#9c55ef;transform:translateY(-2px)}.ratio.selected{border-color:#bb6aff;background:linear-gradient(160deg,#5920a9,#28134b);box-shadow:0 0 20px #933cff2b;color:white}.ratio .shape{font-size:23px}.ratio strong{font-size:13px}.ratio small{font-size:10px;color:#c5b3dc}.custom-fields{display:none;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}.custom-fields.show{display:grid}.form-bottom{display:grid;grid-template-columns:1fr 1fr auto;gap:14px;align-items:end;margin-top:18px}.select-wrap label{display:block;font-size:12px;font-weight:700;margin-bottom:8px}.primary{height:49px;border:0;border-radius:12px;padding:0 22px;color:white;font-weight:800;cursor:pointer;background:linear-gradient(100deg,#a32fff,#6a43ff 70%,#3678ff);box-shadow:0 8px 24px #7936e955;white-space:nowrap;transition:.2s}.primary:hover{filter:brightness(1.12);transform:translateY(-1px)}.secondary{height:42px;border:1px solid #7143a5;border-radius:10px;padding:0 14px;background:#211438;color:#e8d7ff;cursor:pointer;font-weight:650}.lower-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:22px}.lower-panel{min-height:190px;position:relative;overflow:hidden}.lower-panel h3{margin:0 0 6px;font-size:17px}.lower-panel p{margin:0 0 18px;color:var(--muted);font-size:13px}.lower-panel .decor{position:absolute;right:20px;bottom:0;font-size:72px;opacity:.32;filter:drop-shadow(0 0 18px #a44cff)}.project-list{display:grid;gap:10px;margin-top:17px}.project-item{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px;border:1px solid #3a2a55;background:#120d22;border-radius:12px}.project-item strong{font-size:13px}.project-item small{display:block;color:#a99abf;font-size:11px;margin-top:4px}.project-item button{border:1px solid #62418a;background:#25163d;color:#eadcff;border-radius:8px;padding:7px 10px;cursor:pointer;font-size:12px}.empty{color:#a99cba;font-size:13px;padding:15px 0}.template-chips{display:flex;flex-wrap:wrap;gap:8px}.template-chips button{border:1px solid #50336f;background:#211637;color:#e7d7fb;border-radius:10px;padding:9px 12px;cursor:pointer;font-size:12px}.template-chips button:hover{border-color:#b96aff}.toast{position:fixed;right:22px;bottom:22px;z-index:10;background:#211638;border:1px solid #9b59d5;color:white;border-radius:12px;padding:13px 17px;box-shadow:0 12px 35px #0008;max-width:min(420px,calc(100vw - 44px));display:none;font-size:13px}.toast.show{display:block;animation:pop .2s ease}@keyframes pop{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}.locked{max-width:600px;margin:70px auto;text-align:center}.locked h2{margin:10px 0}.locked p{color:var(--muted);line-height:1.6}.locked a{display:inline-block;margin-top:10px}.footer-note{text-align:center;color:#76698e;font-size:11px;margin-top:25px}
@@ -168,28 +175,71 @@
 @keyframes studioDashboardSpin{to{transform:rotate(360deg)}}
 @keyframes studioDashboardProgress{0%{margin-left:-40%}100%{margin-left:105%}}
 @media(prefers-reduced-motion:reduce){#studioStartupLoading *{animation:none!important}#studioStartupLoading{transition:opacity .15s ease,visibility .15s ease}}
+
+.studio-startup-loading{position:fixed;inset:0;z-index:2147483646;display:grid;place-items:center;overflow:auto;padding:22px;box-sizing:border-box;background:radial-gradient(ellipse at 50% 8%,rgba(117,61,190,.28),transparent 42%),radial-gradient(ellipse at 85% 90%,rgba(73,64,159,.18),transparent 35%),#080611;color:#fff;font-family:Inter,ui-sans-serif,system-ui,Arial,sans-serif;opacity:1;visibility:visible;transition:opacity .4s ease,visibility .4s ease}
+html.studio-returning-from-editor #studioStartupLoading{display:none!important;visibility:hidden!important}
+.studio-startup-card{position:relative;width:min(100%,490px);box-sizing:border-box;padding:clamp(23px,4vw,34px);overflow:hidden;border:1px solid rgba(179,133,226,.34);border-radius:27px;background:linear-gradient(145deg,rgba(35,24,55,.97),rgba(15,11,27,.98));box-shadow:0 30px 100px #000b,inset 0 1px 0 #ffffff10,0 0 75px rgba(145,76,211,.13)}
+.studio-startup-card:before{content:"";position:absolute;top:0;left:12%;right:12%;height:1px;background:linear-gradient(90deg,transparent,#d9b0ff,transparent);opacity:.9}
+.studio-startup-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:22px}
+.studio-startup-brand{display:flex;align-items:center;gap:10px;color:#fff;font-size:18px;font-weight:850;letter-spacing:-.45px}
+.studio-startup-brand small{display:block;margin-top:2px;color:#bba8db;font-size:8px;font-weight:800;letter-spacing:2px}
+.studio-startup-logo{width:39px;height:39px;display:grid;place-items:center;border:1px solid #c89aff;border-radius:13px;background:linear-gradient(145deg,#9b54d4,#5944a7);box-shadow:0 7px 25px #9847d94d;color:#fff;font-size:14px;padding-left:2px}
+.studio-startup-badge{display:inline-flex;align-items:center;gap:7px;padding:7px 10px;border:1px solid #6e4c83;border-radius:999px;background:#271a38;color:#e7c9ff;font-size:8px;font-weight:850;letter-spacing:1px;white-space:nowrap}
+.studio-startup-badge i{width:6px;height:6px;border-radius:50%;background:#b88aff;box-shadow:0 0 12px #c28cff;animation:studioBadgePulse 1.4s ease-in-out infinite}
+.studio-startup-orbit{position:relative;width:124px;height:124px;display:grid;place-items:center;margin:2px auto 19px}
+.studio-startup-ring{position:absolute;inset:0;border:2px solid transparent;border-radius:50%}
+.studio-startup-ring.ring-one{border-top-color:#e1b7ff;border-right-color:#9c62d5;filter:drop-shadow(0 0 7px #b879f7);animation:studioDashboardSpin 1.25s linear infinite}
+.studio-startup-ring.ring-two{inset:10px;border-bottom-color:#ed8ddc;border-left-color:#8a69df;opacity:.85;animation:studioDashboardSpin 1.8s linear infinite reverse}
+.studio-startup-ring.ring-three{inset:21px;border:1px dashed rgba(205,168,255,.46);animation:studioDashboardSpin 8s linear infinite}
+.studio-startup-core{width:54px;height:54px;display:grid;place-items:center;border:1px solid rgba(222,183,255,.65);border-radius:18px;background:radial-gradient(circle at 30% 20%,#7951a8,#2a1d43 75%);box-shadow:0 0 35px rgba(173,107,241,.35),inset 0 1px 0 #ffffff25;color:#f2ddff;font-size:23px;animation:studioCorePulse 1.8s ease-in-out infinite}
+.studio-startup-orbit-dot{position:absolute;width:9px;height:9px;border:2px solid #fff;border-radius:50%;background:#bd83ff;box-shadow:0 0 13px #ce9bff}
+.studio-startup-orbit-dot.dot-one{top:5px;right:21px;animation:studioDashboardSpin 2s linear infinite;transform-origin:-29px 57px}
+.studio-startup-orbit-dot.dot-two{bottom:15px;left:12px;width:6px;height:6px;background:#f29be0;border-color:#f8d7ff;animation:studioDashboardSpin 2.8s linear infinite reverse;transform-origin:51px -45px}
+.studio-startup-copy{text-align:center}
+.studio-startup-kicker{color:#c08cf0;font-size:8px;font-weight:850;letter-spacing:1.8px}
+.studio-startup-copy h2{margin:8px 0 7px;color:#fff;font-size:22px;font-weight:830;letter-spacing:-.5px}
+.studio-startup-copy p{min-height:20px;margin:0;color:#c6b6d9;font-size:12px;line-height:1.65}
+.studio-startup-progress{height:5px;margin:24px 3px 0;overflow:hidden;border:1px solid #4a355d;border-radius:99px;background:#21172f}
+.studio-startup-progress span{display:block;width:38%;height:100%;border-radius:99px;background:linear-gradient(90deg,#9950d6,#e2a1ff,#f29bdc);box-shadow:0 0 15px #d38afa99;animation:studioDashboardProgress 1.35s ease-in-out infinite}
+.studio-startup-footer{display:flex;justify-content:space-between;gap:10px;margin-top:13px;color:#89789d;font-size:7px;font-weight:850;letter-spacing:1.2px}
+.studio-startup-recovery{display:flex;gap:9px;justify-content:center;flex-wrap:wrap;margin-top:19px}
+.studio-startup-recovery button,.studio-startup-recovery a{display:inline-flex;align-items:center;justify-content:center;border:1px solid #77539a;border-radius:10px;padding:10px 15px;background:linear-gradient(100deg,#8342c0,#5945a8);color:#fff;font-size:12px;font-weight:800;text-decoration:none;cursor:pointer}
+.studio-startup-recovery a{background:#211837;color:#eee1ff}
+@keyframes studioBadgePulse{50%{opacity:.42}}
+@keyframes studioCorePulse{0%,100%{transform:scale(.96);box-shadow:0 0 22px rgba(173,107,241,.24)}50%{transform:scale(1.045);box-shadow:0 0 42px rgba(205,140,255,.47)}}
+@media(max-width:480px){.studio-startup-loading{padding:14px}.studio-startup-card{padding:22px 18px;border-radius:22px}.studio-startup-top{align-items:flex-start}.studio-startup-brand{font-size:16px}.studio-startup-badge{font-size:7px;padding:6px 8px}.studio-startup-footer{font-size:6px;letter-spacing:.8px}}
+@media(prefers-reduced-motion:reduce){.studio-startup-loading *,#editorLaunchLoading *{animation:none!important}.studio-startup-loading{transition:opacity .15s ease,visibility .15s ease}}
 </style>
 </head>
 <body>
-<div id="studioStartupLoading" role="status" aria-live="polite" aria-label="Loading TrivexaAI Video Studio"
- style="position:fixed;inset:0;z-index:2147483646;display:grid;place-items:center;overflow:auto;padding:22px;background:radial-gradient(ellipse at 50% 20%,#39205b 0%,#160f28 48%,#090612 100%);color:#fff;font-family:Inter,ui-sans-serif,system-ui,Arial,sans-serif;opacity:1;visibility:visible;transition:opacity .4s ease,visibility .4s ease">
- <div style="width:min(100%,440px);box-sizing:border-box;padding:34px 28px 28px;text-align:center;border:1px solid #64477e;border-radius:24px;background:linear-gradient(145deg,#241837,#120d20);box-shadow:0 28px 90px #000b,inset 0 1px 0 #ffffff10">
-  <div style="display:flex;align-items:center;justify-content:center;gap:11px;margin-bottom:25px;font-size:19px;font-weight:850;letter-spacing:-.4px">
-   <span style="width:40px;height:40px;display:grid;place-items:center;border:1px solid #b889e9;border-radius:13px;background:linear-gradient(145deg,#8d43c8,#4b3c9c)">▶</span>
-   <span style="text-align:left">TrivexaAI<small style="display:block;margin-top:2px;color:#bba8db;font-size:9px;letter-spacing:2px">VIDEO STUDIO</small></span>
+
+<div id="studioStartupLoading" class="studio-startup-loading" role="status" aria-live="polite" aria-label="Loading TrivexaAI Video Studio">
+ <div class="studio-startup-card">
+  <div class="studio-startup-top">
+   <div class="studio-startup-brand">
+    <span class="studio-startup-logo" aria-hidden="true">▶</span>
+    <span>TrivexaAI<small>VIDEO STUDIO</small></span>
+   </div>
+   <span class="studio-startup-badge"><i></i> CREATIVE SPACE</span>
   </div>
-  <div style="width:82px;height:82px;display:grid;place-items:center;margin:0 auto 23px;border:3px solid #563c70;border-top-color:#d7a1ff;border-right-color:#a878e6;border-radius:50%;animation:studioDashboardSpin 1.05s linear infinite">
-   <span style="width:44px;height:44px;display:grid;place-items:center;border-radius:14px;background:linear-gradient(145deg,#7041a6,#4f3c91);color:#fff;font-size:20px">✦</span>
+  <div class="studio-startup-orbit" aria-hidden="true">
+   <span class="studio-startup-ring ring-one"></span>
+   <span class="studio-startup-ring ring-two"></span>
+   <span class="studio-startup-ring ring-three"></span>
+   <span class="studio-startup-orbit-dot dot-one"></span>
+   <span class="studio-startup-orbit-dot dot-two"></span>
+   <span class="studio-startup-core">✦</span>
   </div>
-  <h2 style="margin:0 0 8px;color:#fff;font-size:21px;letter-spacing:-.4px">Opening Video Studio</h2>
-  <p id="studioStartupMessage" style="margin:0;color:#c5b5da;font-size:12px;line-height:1.6">Checking your account and preparing your creative workspace…</p>
-  <div style="height:5px;margin:24px 4px 0;overflow:hidden;border-radius:99px;background:#392a4b">
-   <span style="display:block;width:40%;height:100%;border-radius:99px;background:linear-gradient(90deg,#9250d4,#d78cff,#f29bdc);animation:studioDashboardProgress 1.25s ease-in-out infinite"></span>
+  <div class="studio-startup-copy">
+   <span class="studio-startup-kicker">YOUR NEXT CREATION STARTS HERE</span>
+   <h2>Opening Video Studio</h2>
+   <p id="studioStartupMessage">Checking your account and preparing your creative workspace…</p>
   </div>
-  <p style="margin:14px 0 0;color:#8d7c9d;font-size:9px;font-weight:750;letter-spacing:1.4px">PLEASE WAIT · VIDEO STUDIO</p>
-  <div id="studioStartupRecovery" hidden style="margin-top:19px;gap:9px;justify-content:center;flex-wrap:wrap">
-   <button id="studioStartupRetry" type="button" style="border:0;border-radius:10px;padding:10px 16px;background:linear-gradient(100deg,#9839ef,#634dff);color:#fff;font-weight:800;cursor:pointer">Try Again</button>
-   <a href="../" style="display:inline-flex;align-items:center;border:1px solid #62477e;border-radius:10px;padding:10px 16px;background:#211837;color:#eee1ff;text-decoration:none;font-weight:700">Back to Website</a>
+  <div class="studio-startup-progress"><span></span></div>
+  <div class="studio-startup-footer"><span>SECURE WORKSPACE</span><span>TRIVEXAAI · VIDEO STUDIO</span></div>
+  <div id="studioStartupRecovery" hidden class="studio-startup-recovery">
+   <button id="studioStartupRetry" type="button">Try Again</button>
+   <a href="../">Back to Website</a>
   </div>
  </div>
 </div>
@@ -237,6 +287,7 @@
   </div>
   <div class="editor-boot-heading">
    <span class="editor-boot-kicker">YOUR PROJECT · ALMOST THERE</span>
+   <span class="editor-boot-orbit" aria-hidden="true"><i></i><b>✦</b></span>
    <h2>Building your editing space</h2>
    <p id="editorLaunchMessage">Getting your editing workspace ready…</p>
   </div>
@@ -311,6 +362,13 @@
 @keyframes editorBootProgress{0%{margin-left:-40%}100%{margin-left:105%}}
 @media(max-width:480px){#editorLaunchLoading{padding:13px}.editor-boot-shell{padding:19px 15px;border-radius:21px}.editor-boot-top{margin-bottom:22px}.editor-boot-brand{font-size:16px}.editor-boot-live{font-size:7px;padding:6px 8px}.editor-boot-status{gap:10px}.editor-boot-status span{font-size:9px}.editor-boot-foot{font-size:6px;letter-spacing:.8px}}
 @media(prefers-reduced-motion:reduce){#editorLaunchLoading *{animation:none!important}}
+
+.editor-boot-orbit{position:relative;width:54px;height:54px;display:grid;place-items:center;margin:10px auto 12px}
+.editor-boot-orbit:before,.editor-boot-orbit:after{content:"";position:absolute;inset:0;border:2px solid transparent;border-top-color:#a9d7ff;border-right-color:#6c9bd0;border-radius:50%;filter:drop-shadow(0 0 7px #80b9ed);animation:editorBootOrbit 1.15s linear infinite}
+.editor-boot-orbit:after{inset:7px;border-bottom-color:#a99aff;border-left-color:#7d74c8;animation-duration:1.7s;animation-direction:reverse}
+.editor-boot-orbit i{width:27px;height:27px;border:1px solid #9bc7ed;border-radius:9px;background:linear-gradient(145deg,#345b84,#4e4b89);box-shadow:0 0 20px #6e9fdc55}
+.editor-boot-orbit b{position:absolute;color:#e5f2ff;font-size:14px;font-weight:500}
+@keyframes editorBootOrbit{to{transform:rotate(360deg)}}
 </style>
 <div class="app" id="app" hidden>
 <header class="topbar">
