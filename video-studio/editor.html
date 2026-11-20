@@ -1442,7 +1442,7 @@ const editorLoadingStartedAt=Date.now();
 function setEditorLoadingMessage(message){const target=$("editorLoadingMessage");if(target)target.textContent=message;}
 async function finishEditorLoading(){
  const elapsed=Date.now()-editorLoadingStartedAt;
- const remaining=Math.max(0,720-elapsed);
+ const remaining=Math.max(0,2400-elapsed);
  if(remaining)await new Promise(resolve=>setTimeout(resolve,remaining));
  const overlay=$("editorLoading");
  if(!overlay)return;
