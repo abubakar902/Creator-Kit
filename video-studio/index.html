@@ -379,7 +379,7 @@ function openProjectEditor(projectId){
   screen.style.display="grid";
   document.body.style.overflow="hidden";
  }
- const destination="editor.html?id="+encodeURIComponent(projectId)+"&v=20261120-loader3";
+ const destination="editor.html?id="+encodeURIComponent(projectId)+"&v=20261120-loader4";
  requestAnimationFrame(()=>requestAnimationFrame(()=>setTimeout(()=>{location.assign(destination);},650)));
 }
 function renderProjects(){projects=readProjects();const list=$("projectList");if(!projects.length){list.innerHTML='<div class="empty">No projects yet. Create your first video project above.</div>';return;}list.innerHTML=projects.slice().reverse().map(p=>'<div class="project-item"><div><strong>'+escapeHtml(p.name)+'</strong><small>'+escapeHtml(p.ratioLabel)+' · '+escapeHtml(p.resolutionLabel)+' · '+escapeHtml(String(p.fps))+' FPS</small></div><button type="button" data-open="'+escapeHtml(p.id)+'">Open Editor</button></div>').join("");list.querySelectorAll("[data-open]").forEach(b=>b.addEventListener("click",()=>{const p=projects.find(x=>x.id===b.dataset.open);if(p)openProjectEditor(p.id);}));}
