@@ -566,11 +566,14 @@ async function confirmProjectDeletion(){
  if(!projectId)return;
  const button=$("confirmDeleteProject");
  const originalLabel=button.textContent;
+ const previousProjects=readProjects();
+ const remaining=previousProjects.filter(p=>p.id!==projectId);
  button.disabled=true;button.textContent="Deleting…";
+ let listUpdated=false;
  try{
-  await deleteProjectData(projectId);
-  const remaining=readProjects().filter(p=>p.id!==projectId);
   localStorage.setItem(storageKey,JSON.stringify(remaining));
+  listUpdated=true;
+  await deleteProjectData(projectId);
   pendingDeleteProjectId=null;
   const target=deleteReturnFocus;deleteReturnFocus=null;
   $("projectDeleteModal").hidden=true;
@@ -580,12 +583,13 @@ async function confirmProjectDeletion(){
   const focusTarget=$("projectList").querySelector("[data-open]")||$("createProject");
   if(target&&target.isConnected)target.focus();else focusTarget?.focus();
  }catch(error){
+  if(listUpdated){try{localStorage.setItem(storageKey,JSON.stringify(previousProjects));}catch(rollbackError){}}
   toast("Could not delete this project. Your saved project has been kept. "+(error?.message||"Please try again."));
  }finally{
   button.disabled=false;button.textContent=originalLabel;
  }
 }
-function openProjectEditor(projectId){function openProjectEditor(projectId){
+function openProjectEditor(projectId){
  const screen=$("editorLaunchLoading");
  const message=$("editorLaunchMessage");
  if(screen){
