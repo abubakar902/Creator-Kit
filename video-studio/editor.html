@@ -42,7 +42,7 @@
 .group-body .prop:first-child{margin-top:2px}.group-body .prop:last-child{margin-bottom:2px}
 #previewStage video,#previewStage img{pointer-events:auto;touch-action:none;cursor:move}
 #textPreview>[data-clip-id]{pointer-events:auto;touch-action:none;cursor:move;user-select:none}
-#previewStage.is-dragging{outline:2px solid #a75cff;outline-offset:2px}
+#previewStage.is-dragging{outline:2px solid #a75cff;outline-offset:2px}.sticker-resize-handle[hidden]{display:none!important}.sticker-resize-handle{position:absolute;z-index:18;width:25px;height:25px;padding:0;border:2px solid #fff;border-radius:50%;background:linear-gradient(145deg,#b45dff,#6944ff);color:#fff;font-size:15px;font-weight:900;line-height:1;display:grid;place-items:center;transform:translate(-50%,-50%);box-shadow:0 2px 12px #000b,0 0 0 2px #a45cff66;cursor:nwse-resize;touch-action:none;user-select:none}
 @media(max-width:680px){.property-group>summary{padding:12px;font-size:12px}.group-body{padding:9px}}
 
 .export-modal{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(5,3,13,.78);backdrop-filter:blur(14px)}
@@ -105,6 +105,7 @@
 <div class="stage-placeholder" id="previewPlaceholder"><span>▶</span>Your video preview will appear here</div>
 <video id="videoPreview" playsinline preload="auto"></video>
 <img id="imagePreview" alt="Current image clip">
+<button type="button" id="stickerResizeHandle" class="sticker-resize-handle" hidden title="Drag to resize sticker" aria-label="Resize sticker">↘</button>
 <div id="textPreview" class="stage-text"></div>
 </div></div>
 <div class="transport">
@@ -189,6 +190,7 @@
 </div></details>
 <div class="inspector-actions">
 <button class="btn" id="applyProps" type="button">Apply</button>
+<button class="btn" id="detachAudioBtn" type="button" hidden>Detach Audio</button>
 <button class="btn" id="duplicateBtn" type="button">Duplicate</button>
 <button class="btn" id="deleteBtn" type="button">Delete</button>
 </div>
@@ -391,6 +393,7 @@ function updateRangeFill(el){
 function refreshRangeFills(){document.querySelectorAll('input[type="range"]').forEach(updateRangeFill);}
 function renderInspector(){
  const c=selectedClip();
+ $("detachAudioBtn").hidden=!c||c.type!=="video";
  if(previewDraft&&previewDraft.id!==c?.id)previewDraft=null;
  $("inspectorHint").classList.toggle("hidden",!!c);
  $("clipInspector").classList.toggle("hidden",!c);
@@ -448,7 +451,14 @@ function hexRgba(hex,alpha){const h=String(hex||"#000000").replace("#","");const
 function clipEnvelope(c,local){let g=1;const fi=Math.max(0,Number(c.fadeIn)||0),fo=Math.max(0,Number(c.fadeOut)||0);if(fi>0)g=Math.min(g,Math.max(0,Math.min(1,local/fi)));if(fo>0)g=Math.min(g,Math.max(0,Math.min(1,(c.duration-local)/fo)));return g;}
 function visualFilter(c,extraBlur=0){const b=c.brightness??1,co=c.contrast??1,s=c.saturation??1,bl=Math.max(0,(c.blur||0)+extraBlur),h=c.hue||0;return "brightness("+b+") contrast("+co+") saturate("+s+") blur("+bl+"px) hue-rotate("+h+"deg)";}
 function applyVisualStyle(el,c,local){const motion=animatedValues(c,local),type=c.transition||"none",dur=Math.max(.1,Math.min(Number(c.transitionDuration)||.6,c.duration||.6)),p=type==="none"?1:Math.max(0,Math.min(1,local/dur));let x=motion.x,scale=Math.max(.1,Math.min(4,motion.scale)),opacity=motion.opacity,mask="inset(0 0 0 0)",extraBlur=0;if(type==="fade")opacity*=p;else if(type==="zoom"){opacity*=p;scale*=.82+.18*p;}else if(type==="slide-left"){x+=(1-p)*18;opacity*=Math.min(1,p*1.4);}else if(type==="wipe-left"){mask="inset(0 "+(100-p*100)+"% 0 0)";}else if(type==="blur-reveal"){extraBlur=(1-p)*14;opacity*=Math.min(1,p*1.5);}el.style.transform="translate("+x+"%, "+motion.y+"%) scale("+scale+") rotate("+motion.rotation+"deg)";el.style.opacity=String(Math.max(0,Math.min(1,opacity)));el.style.clipPath=mask;el.style.filter=visualFilter(c,extraBlur);el.style.transformOrigin="center center";}
-function renderPreview(){const base=activeAt(playhead,"video"),over=activeAt(playhead,"overlay"),primary=over&&over.type==="video"?over:base,overlayImage=over&&over.type==="image"?over:null,video=$("videoPreview"),img=$("imagePreview"),placeholder=$("previewPlaceholder");placeholder.style.display="none";if(primary&&primary.type==="video"){video.style.display="block";const local=playhead-primary.start;applyVisualStyle(video,primary,local);video.dataset.clipId=primary.id;video.volume=Math.max(0,Math.min(1,(primary.volume??1)*clipEnvelope(primary,local)));const url=assetUrl(primary.assetId);if(activeVideoId!==primary.id){video.pause();video.src=url;activeVideoId=primary.id;video.load();}const ct=primary.sourceStart+Math.max(0,local);try{if(video.readyState>=1&&Math.abs(video.currentTime-ct)>.65)video.currentTime=Math.min(ct,Math.max(0,primary.duration));}catch(e){}if(isPlaying){if(video.paused)video.play().catch(()=>{});}else video.pause();if(overlayImage){img.style.display="block";img.classList.add("is-overlay");img.style.width="48%";img.style.height="48%";img.style.inset="auto 4% 4% auto";applyVisualStyle(img,overlayImage,playhead-overlayImage.start);img.dataset.clipId=overlayImage.id;if(activeImageId!==overlayImage.id){img.src=assetUrl(overlayImage.assetId);activeImageId=overlayImage.id;}}else{img.style.display="none";img.classList.remove("is-overlay");activeImageId=null;}}else if(overlayImage){if(activeVideoId!==null){video.pause();video.removeAttribute("src");activeVideoId=null;}video.style.display="none";img.style.display="block";img.classList.remove("is-overlay");img.style.width="100%";img.style.height="100%";img.style.inset="0";applyVisualStyle(img,overlayImage,playhead-overlayImage.start);img.dataset.clipId=overlayImage.id;if(activeImageId!==overlayImage.id){img.src=assetUrl(overlayImage.assetId);activeImageId=overlayImage.id;}}else{if(activeVideoId!==null){video.pause();video.removeAttribute("src");activeVideoId=null;}video.style.display="none";img.style.display="none";activeImageId=null;placeholder.style.display="block";}const texts=clips.map(effectiveClip).filter(c=>c.track==="text"&&playhead>=c.start&&playhead<c.start+c.duration);$("textPreview").replaceChildren();texts.forEach(c=>{const span=document.createElement("div");span.textContent=c.text||"Text";span.dataset.clipId=c.id;span.style.position="absolute";span.style.pointerEvents="auto";span.style.touchAction="none";span.style.cursor="move";const motion=animatedValues(c,playhead-c.start);span.style.left=(50+motion.x)+"%";span.style.top=(50+motion.y)+"%";span.style.transform="translate(-50%,-50%) scale("+motion.scale+") rotate("+motion.rotation+"deg)";span.style.opacity=String(Math.max(0,Math.min(1,motion.opacity)));span.style.maxWidth="88%";span.style.boxSizing="border-box";span.style.color=c.color||"#ffffff";span.style.fontFamily=c.font||"Arial, sans-serif";span.style.fontSize=Math.max(10,Math.min(120,Number(c.fontSize)||42))+"px";span.style.fontWeight=String(c.weight||800);span.style.fontStyle=c.italic?"italic":"normal";span.style.textAlign=c.align||"center";span.style.lineHeight="1.12";span.style.whiteSpace="pre-wrap";span.style.overflowWrap="anywhere";span.style.padding=(Number(c.bgOpacity||0)>0?"8px 13px":"2px 4px");span.style.borderRadius="7px";span.style.backgroundColor=hexRgba(c.bgColor||"#000000",Number(c.bgOpacity)||0);span.style.textShadow="0 3px 10px #000";$("textPreview").append(span);});$("textPreview").style.display=texts.length?"block":"none";const dims=(project.ratio==="custom"?String(project.resolution||"1920x1080").split("x"):[]),frame=project.ratio==="9:16"?"9 / 16":project.ratio==="1:1"?"1 / 1":project.ratio==="4:5"?"4 / 5":project.ratio==="custom"&&dims.length===2?dims[0]+" / "+dims[1]:"16 / 9";$("previewStage").style.aspectRatio=frame;video.style.objectFit=$("previewFit").value;img.style.objectFit="contain";}function syncAudio(){const active=clips.map(effectiveClip).filter(c=>c.type==="audio"&&playhead>=c.start&&playhead<c.start+c.duration);const keep=new Set(active.map(c=>c.id));for(const [id,node] of audioNodes){if(!keep.has(id)){node.pause();node.removeAttribute("src");audioNodes.delete(id);}}for(const c of active){let node=audioNodes.get(c.id);if(!node){node=new Audio(assetUrl(c.assetId));audioNodes.set(c.id,node);}const local=playhead-c.start;node.volume=Math.max(0,Math.min(1,(c.volume??1)*clipEnvelope(c,local)));const ct=c.sourceStart+local;if(Math.abs(node.currentTime-ct)>.5){try{node.currentTime=ct;}catch(e){}}if(isPlaying)node.play().catch(()=>{});else node.pause();}}
+function renderPreview(){const base=activeAt(playhead,"video"),over=activeAt(playhead,"overlay"),primary=over&&over.type==="video"?over:base,overlayImage=over&&over.type==="image"?over:null,video=$("videoPreview"),img=$("imagePreview"),placeholder=$("previewPlaceholder");placeholder.style.display="none";if(primary&&primary.type==="video"){video.style.display="block";const local=playhead-primary.start;applyVisualStyle(video,primary,local);video.dataset.clipId=primary.id;video.volume=Math.max(0,Math.min(1,(primary.volume??1)*clipEnvelope(primary,local)));const url=assetUrl(primary.assetId);if(activeVideoId!==primary.id){video.pause();video.src=url;activeVideoId=primary.id;video.load();}const ct=primary.sourceStart+Math.max(0,local);try{if(video.readyState>=1&&Math.abs(video.currentTime-ct)>.65)video.currentTime=Math.min(ct,Math.max(0,primary.duration));}catch(e){}if(isPlaying){if(video.paused)video.play().catch(()=>{});}else video.pause();if(overlayImage){img.style.display="block";img.classList.add("is-overlay");img.style.width="48%";img.style.height="48%";img.style.inset="auto 4% 4% auto";applyVisualStyle(img,overlayImage,playhead-overlayImage.start);img.dataset.clipId=overlayImage.id;if(activeImageId!==overlayImage.id){img.src=assetUrl(overlayImage.assetId);activeImageId=overlayImage.id;}}else{img.style.display="none";img.classList.remove("is-overlay");activeImageId=null;}}else if(overlayImage){if(activeVideoId!==null){video.pause();video.removeAttribute("src");activeVideoId=null;}video.style.display="none";img.style.display="block";img.classList.remove("is-overlay");img.style.width="100%";img.style.height="100%";img.style.inset="0";applyVisualStyle(img,overlayImage,playhead-overlayImage.start);img.dataset.clipId=overlayImage.id;if(activeImageId!==overlayImage.id){img.src=assetUrl(overlayImage.assetId);activeImageId=overlayImage.id;}}else{if(activeVideoId!==null){video.pause();video.removeAttribute("src");activeVideoId=null;}video.style.display="none";img.style.display="none";activeImageId=null;placeholder.style.display="block";}const texts=clips.map(effectiveClip).filter(c=>c.track==="text"&&playhead>=c.start&&playhead<c.start+c.duration);$("textPreview").replaceChildren();texts.forEach(c=>{const span=document.createElement("div");span.textContent=c.text||"Text";span.dataset.clipId=c.id;span.style.position="absolute";span.style.pointerEvents="auto";span.style.touchAction="none";span.style.cursor="move";const motion=animatedValues(c,playhead-c.start);span.style.left=(50+motion.x)+"%";span.style.top=(50+motion.y)+"%";span.style.transform="translate(-50%,-50%) scale("+motion.scale+") rotate("+motion.rotation+"deg)";span.style.opacity=String(Math.max(0,Math.min(1,motion.opacity)));span.style.maxWidth="88%";span.style.boxSizing="border-box";span.style.color=c.color||"#ffffff";span.style.fontFamily=c.font||"Arial, sans-serif";span.style.fontSize=Math.max(10,Math.min(120,Number(c.fontSize)||42))+"px";span.style.fontWeight=String(c.weight||800);span.style.fontStyle=c.italic?"italic":"normal";span.style.textAlign=c.align||"center";span.style.lineHeight="1.12";span.style.whiteSpace="pre-wrap";span.style.overflowWrap="anywhere";span.style.padding=(Number(c.bgOpacity||0)>0?"8px 13px":"2px 4px");span.style.borderRadius="7px";span.style.backgroundColor=hexRgba(c.bgColor||"#000000",Number(c.bgOpacity)||0);span.style.textShadow="0 3px 10px #000";$("textPreview").append(span);});$("textPreview").style.display=texts.length?"block":"none";const dims=(project.ratio==="custom"?String(project.resolution||"1920x1080").split("x"):[]),frame=project.ratio==="9:16"?"9 / 16":project.ratio==="1:1"?"1 / 1":project.ratio==="4:5"?"4 / 5":project.ratio==="custom"&&dims.length===2?dims[0]+" / "+dims[1]:"16 / 9";$("previewStage").style.aspectRatio=frame;video.style.objectFit=$("previewFit").value;img.style.objectFit="contain";updateStickerResizeHandle(overlayImage,img);}function updateStickerResizeHandle(c,img){
+ const handle=$("stickerResizeHandle"),stage=$("previewStage");
+ if(!c||c.type!=="image"||c.id!==selectedId||img.style.display==="none"){handle.hidden=true;return;}
+ const rect=img.getBoundingClientRect(),stageRect=stage.getBoundingClientRect();
+ handle.style.left=Math.max(12,Math.min(stageRect.width-12,rect.right-stageRect.left))+"px";
+ handle.style.top=Math.max(12,Math.min(stageRect.height-12,rect.bottom-stageRect.top))+"px";
+ handle.dataset.clipId=c.id;handle.hidden=false;
+}function syncAudio(){const active=clips.map(effectiveClip).filter(c=>c.type==="audio"&&playhead>=c.start&&playhead<c.start+c.duration);const keep=new Set(active.map(c=>c.id));for(const [id,node] of audioNodes){if(!keep.has(id)){node.pause();node.removeAttribute("src");audioNodes.delete(id);}}for(const c of active){let node=audioNodes.get(c.id);if(!node){node=new Audio(assetUrl(c.assetId));audioNodes.set(c.id,node);}const local=playhead-c.start;node.volume=Math.max(0,Math.min(1,(c.volume??1)*clipEnvelope(c,local)));const ct=c.sourceStart+local;if(Math.abs(node.currentTime-ct)>.5){try{node.currentTime=ct;}catch(e){}}if(isPlaying)node.play().catch(()=>{});else node.pause();}}
 function setPlayhead(t){playhead=Math.max(0,Math.min(duration(),t));$("playhead").style.left=(116+playhead*scale)+"px";$("currentTime").textContent=fmt(playhead);$("totalTime").textContent=fmt(duration());renderPreview();syncAudio();}
 function frame(now){if(!isPlaying)return;if(!lastFrame)lastFrame=now;playhead+=(now-lastFrame)/1000;lastFrame=now;if(playhead>=duration()){playhead=duration();pause();}setPlayhead(playhead);raf=requestAnimationFrame(frame);}
 function play(){if(isPlaying)return;if(playhead>=duration())playhead=0;isPlaying=true;lastFrame=0;$("playBtn").textContent="Ⅱ";renderPreview();syncAudio();raf=requestAnimationFrame(frame);}
@@ -590,8 +600,11 @@ function addKeyframe(){
 }
 
 function previewPointerDown(e){
- const target=e.target.closest("[data-clip-id]");if(!target||isPlaying)return;
- const c=clips.find(item=>item.id===target.dataset.clipId);if(!c||!(c.type==="video"||c.type==="image"||c.type==="text"))return;
+ const resizeHandle=e.target.closest("#stickerResizeHandle");
+ const target=resizeHandle?$("imagePreview"):e.target.closest("[data-clip-id]");
+ if(!target||isPlaying)return;
+ const c=clips.find(item=>item.id===(resizeHandle?resizeHandle.dataset.clipId:target.dataset.clipId));
+ if(!c||!(c.type==="video"||c.type==="image"||c.type==="text")||(resizeHandle&&c.type!=="image"))return;
  e.preventDefault();
  const stage=$("previewStage"),targetRect=target.getBoundingClientRect(),stageRect=stage.getBoundingClientRect();
  try{stage.setPointerCapture(e.pointerId);}catch{}
@@ -599,7 +612,7 @@ function previewPointerDown(e){
  if(selectedId!==c.id){selectedId=c.id;renderTimeline();renderInspector();}
  snapshot();
  const local=Math.max(0,Math.min(c.duration,playhead-c.start)),motion=animatedValues(c,local);
- dragState={kind:"preview",id:c.id,pointerId:e.pointerId,startX:e.clientX,startY:e.clientY,rect:targetRect,stageRect,local,base:motion,orig:clone(c),moved:false};
+ dragState={kind:resizeHandle?"preview-resize":"preview",id:c.id,pointerId:e.pointerId,startX:e.clientX,startY:e.clientY,rect:targetRect,stageRect,local,base:motion,orig:clone(c),moved:false};
  stage.classList.add("is-dragging");
 }
 function setPreviewPosition(c,local,x,y){
@@ -615,9 +628,30 @@ function setPreviewPosition(c,local,x,y){
  if(exact){exact.values={...(exact.values||{}),x,y};return "updated";}
  c.x=x;c.y=y;return "position";
 }
+function setPreviewScale(c,local,scale){
+ c.keyframes=Array.isArray(c.keyframes)?c.keyframes:[];
+ const frames=c.keyframes,time=Number(Math.max(0,Math.min(c.duration,local)).toFixed(3));
+ const exact=frames.find(k=>Math.abs(k.time-time)<.04);
+ if(c.autoNextKeyframe){
+  if(exact){exact.values={...(exact.values||{}),scale};c.autoNextKeyframe=false;return "updated";}
+  frames.push({time,values:{...animatedValues(c,local),scale}});frames.sort((a,b)=>a.time-b.time);c.autoNextKeyframe=false;return "created";
+ }
+ if(exact){exact.values={...(exact.values||{}),scale};return "updated";}
+ c.scale=scale;return "size";
+}
 function previewPointerMove(e){
- const d=dragState;if(!d||d.kind!=="preview"||e.pointerId!==d.pointerId)return;
+ const d=dragState;if(!d||(d.kind!=="preview"&&d.kind!=="preview-resize")||e.pointerId!==d.pointerId)return;
  const c=clips.find(item=>item.id===d.id);if(!c)return;
+ if(d.kind==="preview-resize"){
+  const dx=e.clientX-d.startX,dy=e.clientY-d.startY;
+  const ratio=Math.sqrt(Math.max(12,d.rect.width+dx)*Math.max(12,d.rect.height+dy)/(Math.max(12,d.rect.width)*Math.max(12,d.rect.height)));
+  const nextScale=Math.max(.1,Math.min(4,Number((d.base.scale*ratio).toFixed(3))));
+  const result=setPreviewScale(c,d.local,nextScale);
+  if(result==="created")d.keyframeCreated=true;
+  if(result==="updated")d.keyframeUpdated=true;
+  if(previewDraft&&previewDraft.id===c.id){previewDraft.scale=c.scale??previewDraft.scale;previewDraft.keyframes=clone(c.keyframes||[]);}
+  d.moved=true;renderPreview();renderKeyframes();return;
+ }
  const width=Math.max(1,d.rect.width),height=Math.max(1,d.rect.height);
  let dx=e.clientX-d.startX,dy=e.clientY-d.startY;
  let x=d.base.x+dx/width*100,y=d.base.y+dy/height*100;
@@ -634,17 +668,125 @@ function previewPointerMove(e){
  renderPreview();renderKeyframes();
 }
 function previewPointerUp(e){
- const d=dragState;if(!d||d.kind!=="preview"||e.pointerId!==d.pointerId)return;
+ const d=dragState;if(!d||(d.kind!=="preview"&&d.kind!=="preview-resize")||e.pointerId!==d.pointerId)return;
  $("previewStage").classList.remove("is-dragging");
- if(d.moved){renderInspector();renderTimeline();scheduleSave();notify(d.keyframeCreated?"Position saved and a new keyframe created.":d.keyframeUpdated?"Position saved and existing keyframe updated.":"Position saved.");}
- else{undoStack.pop();updateHistoryButtons();}
+ if(d.moved){
+  renderInspector();renderTimeline();scheduleSave();
+  const action=d.kind==="preview-resize"?"Sticker size":"Position";
+  notify(d.keyframeCreated?action+" saved and a new keyframe created.":d.keyframeUpdated?action+" saved and existing keyframe updated.":action+" saved.");
+ }else{undoStack.pop();updateHistoryButtons();}
  dragState=null;
 }
 
 function addText(){const text=prompt("Enter the text for your video:","Your title here");if(!text||!text.trim())return;snapshot();clips.push({id:uid(),name:"Text overlay",type:"text",track:"text",text:text.trim().slice(0,180),color:"#ffffff",fontSize:42,font:"Arial, sans-serif",weight:800,align:"center",bgColor:"#000000",bgOpacity:0,x:0,y:0,start:playhead,duration:5,sourceStart:0});selectClip(clips[clips.length-1].id);renderAll();scheduleSave();}
 function splitSelected(){const c=selectedClip();if(!c||playhead<=c.start+.15||playhead>=c.start+c.duration-.15){notify("Move the playhead inside the selected clip before splitting.");return;}snapshot();const first=playhead-c.start,second={...clone(c),id:uid(),name:c.name+" (split)",start:playhead,sourceStart:(c.sourceStart||0)+first,duration:c.duration-first};if(Array.isArray(c.keyframes)){second.keyframes=c.keyframes.filter(k=>k.time>=first).map(k=>({...k,time:Number((k.time-first).toFixed(3))}));c.keyframes=c.keyframes.filter(k=>k.time<first);}c.duration=first;clips.push(second);selectClip(second.id);renderAll();scheduleSave();}
-function deleteSelected(){const c=selectedClip();if(!c)return;snapshot();clips=clips.filter(x=>x.id!==c.id);selectedId=null;renderAll();scheduleSave();}
+function deleteSelected(){const c=selectedClip();if(!c)return;snapshot();clips=clips.filter(x=>x.id!==c.id);if(c.type==="audio"&&c.detachedFromVideoId&&!clips.some(x=>x.type==="audio"&&x.detachedFromVideoId===c.detachedFromVideoId)){const source=clips.find(x=>x.id===c.detachedFromVideoId);if(source)source.volume=c.detachedOriginalVideoVolume??1;}selectedId=null;renderAll();scheduleSave();}
 function duplicateSelected(){const c=selectedClip();if(!c)return;snapshot();const copy={...clone(c),id:uid(),name:c.name+" copy",start:c.start+c.duration};clips.push(copy);selectClip(copy.id);renderAll();scheduleSave();}
+async function detachAudioFromVideo(){
+ const sourceClip=selectedClip();
+ if(!sourceClip||sourceClip.type!=="video")return;
+ const existing=clips.find(c=>c.type==="audio"&&c.detachedFromVideoId===sourceClip.id);
+ if(existing){selectedId=existing.id;renderAll();notify("Audio is already detached. Select the Audio track clip to edit it.");return;}
+ const sourceSnapshot={id:sourceClip.id,assetId:sourceClip.assetId,start:sourceClip.start,sourceStart:Number(sourceClip.sourceStart)||0,duration:sourceClip.duration};
+ const sourceAsset=assetById(sourceSnapshot.assetId);
+ if(!sourceAsset?.blob){notify("The original video file could not be found.");return;}
+ if(sourceClip.duration>600||Number(sourceAsset.size||sourceAsset.blob.size)>300*1024*1024){
+  notify("For safe audio extraction on this device, use a video clip under 10 minutes and 300 MB.");return;
+ }
+ const AudioContextClass=window.AudioContext||window.webkitAudioContext;
+ if(!AudioContextClass||typeof MediaRecorder==="undefined"){
+  notify("Audio extraction needs an updated Chrome or Edge browser with audio recording support.");return;
+ }
+ const button=$("detachAudioBtn"),originalLabel=button.textContent;
+ button.disabled=true;button.textContent="Extracting…";status("Extracting audio from video…");
+ let video=null,audioContext=null,recorder=null,sampleTimer=0,watchdog=0;
+ try{
+  video=document.createElement("video");video.preload="auto";video.playsInline=true;
+  audioContext=new AudioContextClass();
+  const resumePromise=audioContext.resume();
+  const source=audioContext.createMediaElementSource(video);
+  const analyser=audioContext.createAnalyser();analyser.fftSize=2048;
+  const destination=audioContext.createMediaStreamDestination();
+  source.connect(analyser);analyser.connect(destination);
+  video.src=assetUrl(sourceSnapshot.assetId);video.load();
+  const playbackStart=video.play().catch(error=>{throw new Error("The browser could not start this video for audio extraction: "+error.message);});
+  await waitForExportMedia(video,"loadeddata",sourceClip.name||"video");
+  await Promise.all([resumePromise,playbackStart]);
+  const sourceStart=sourceSnapshot.sourceStart;
+  const available=Math.max(0,(Number(video.duration)||0)-sourceStart);
+  const captureDuration=Math.min(sourceSnapshot.duration,available);
+  if(captureDuration<.2)throw new Error("The selected video segment has no playable duration.");
+  if(Math.abs(video.currentTime-sourceStart)>.04){
+   await new Promise((resolve,reject)=>{
+    let settled=false;const finish=error=>{if(settled)return;settled=true;clearTimeout(seekTimer);video.removeEventListener("seeked",onSeeked);video.removeEventListener("error",onError);error?reject(error):resolve();};
+    const onSeeked=()=>finish();const onError=()=>finish(new Error("Could not seek to this video clip's start."));
+    const seekTimer=setTimeout(()=>finish(new Error("Seeking the source video timed out.")),15000);
+    video.addEventListener("seeked",onSeeked,{once:true});video.addEventListener("error",onError,{once:true});
+    try{video.currentTime=sourceStart;}catch(error){finish(error);}
+   });
+  }
+  const mimeType=["audio/webm;codecs=opus","audio/webm"].find(type=>MediaRecorder.isTypeSupported(type));
+  if(!mimeType)throw new Error("This browser cannot create an audio-only WebM clip. Update Chrome or Edge and try again.");
+  recorder=new MediaRecorder(destination.stream,{mimeType,audioBitsPerSecond:128000});
+  const chunks=[];
+  const recordingPromise=new Promise((resolve,reject)=>{
+   recorder.ondataavailable=event=>{if(event.data&&event.data.size)chunks.push(event.data);};
+   recorder.onerror=event=>reject(event.error||new Error("The browser could not record the video's audio."));
+   recorder.onstop=()=>resolve(new Blob(chunks,{type:recorder.mimeType||mimeType}));
+  });
+  let peakRms=0;const samples=new Float32Array(analyser.fftSize);
+  sampleTimer=setInterval(()=>{
+   analyser.getFloatTimeDomainData(samples);let sum=0;
+   for(let i=0;i<samples.length;i++)sum+=samples[i]*samples[i];
+   peakRms=Math.max(peakRms,Math.sqrt(sum/samples.length));
+  },180);
+  recorder.start(250);
+  const endAt=sourceStart+captureDuration;
+  await new Promise((resolve,reject)=>{
+   let settled=false;
+   const finish=error=>{
+    if(settled)return;settled=true;clearTimeout(watchdog);
+    video.removeEventListener("timeupdate",checkTime);video.removeEventListener("ended",checkTime);video.removeEventListener("error",onError);
+    error?reject(error):resolve();
+   };
+   const checkTime=()=>{if(video.currentTime>=endAt-.06||video.ended)finish();};
+   const onError=()=>finish(new Error("The source video stopped while extracting its audio."));
+   watchdog=setTimeout(()=>finish(new Error("Audio extraction took too long. Try a shorter video clip.")),Math.max(45000,captureDuration*2500+20000));
+   video.addEventListener("timeupdate",checkTime);video.addEventListener("ended",checkTime);
+   video.addEventListener("error",onError,{once:true});
+   checkTime();
+  });
+  video.pause();
+  if(recorder.state!=="inactive")recorder.stop();
+  const audioBlob=await recordingPromise;
+  if(peakRms<.00008)throw new Error("No audible audio was detected in this video segment.");
+  if(!audioBlob||audioBlob.size<1000)throw new Error("The extracted audio file is empty. Please try another video segment.");
+  const currentSourceClip=clips.find(item=>item.id===sourceSnapshot.id);
+  if(!currentSourceClip||currentSourceClip.assetId!==sourceSnapshot.assetId||currentSourceClip.start!==sourceSnapshot.start||(Number(currentSourceClip.sourceStart)||0)!==sourceSnapshot.sourceStart||currentSourceClip.duration!==sourceSnapshot.duration){
+   throw new Error("The video clip changed during extraction. Please select it again and retry.");
+  }
+  const audioId=uid(),audioDuration=Number(captureDuration.toFixed(3));
+  const audioAsset={id:audioId,projectId:project.id,name:(sourceClip.name||"Video")+" — extracted audio.webm",type:"audio",mime:audioBlob.type,size:audioBlob.size,duration:audioDuration,blob:audioBlob,createdAt:new Date().toISOString(),sourceVideoAssetId:sourceClip.assetId};
+  await dbRequest("assets","readwrite",store=>store.put(audioAsset));
+  assets.push(audioAsset);urls.set(audioId,URL.createObjectURL(audioBlob));
+  snapshot();
+  const originalVolume=currentSourceClip.volume??1;
+  currentSourceClip.volume=0;
+  const audioClip={id:uid(),assetId:audioId,name:(currentSourceClip.name||"Video")+" — Audio",type:"audio",track:"audio",start:sourceSnapshot.start,sourceStart:0,duration:audioDuration,volume:originalVolume,fadeIn:0,fadeOut:0,detachedFromVideoId:sourceSnapshot.id,detachedOriginalVideoVolume:originalVolume};
+  clips.push(audioClip);selectedId=audioClip.id;previewDraft=null;
+  renderAll();scheduleSave();status("Audio detached · Auto-save on");
+  notify("Audio separated into the Audio track. The original video sound is muted. Select the new audio clip to edit its volume, fades, timing or trim.");
+ }catch(error){
+  notify(error?.message||"Could not extract audio from this video.");
+  status("Ready · Auto-save on");
+ }finally{
+  clearInterval(sampleTimer);clearTimeout(watchdog);
+  if(recorder&&recorder.state!=="inactive"){try{recorder.stop();}catch(error){}}
+  if(video){try{video.pause();video.removeAttribute("src");video.load();}catch(error){}}
+  if(audioContext){try{await audioContext.close();}catch(error){}}
+  button.disabled=false;button.textContent=originalLabel;
+ }
+}
 function readPropertiesDraft(c){
  const start=Math.max(0,Number($("propStart").value)||0);
  let dur=Math.max(.2,Number($("propDuration").value)||.2);
@@ -1098,6 +1240,7 @@ $("splitBtn").addEventListener("click",splitSelected);
 $("deleteTimelineBtn").addEventListener("click",deleteSelected);
 $("deleteBtn").addEventListener("click",deleteSelected);
 $("duplicateBtn").addEventListener("click",duplicateSelected);
+$("detachAudioBtn").addEventListener("click",detachAudioFromVideo);
 $("propFilterPreset").addEventListener("change",()=>{const presets={none:[1,1,1,0,0],cinematic:[.98,1.18,.82,0,0],vivid:[1.04,1.12,1.45,0,0],warm:[1.06,1.08,1.12,0,8],cool:[1,1.08,1.02,0,-8],noir:[.96,1.28,0,0,0],vintage:[1.04,.92,.78,.3,-5]};const v=presets[$("propFilterPreset").value]||presets.none;["propBrightness","propContrast","propSaturation","propBlur","propHue"].forEach((id,i)=>$(id).value=v[i]);refreshRangeFills();});
 $("addKeyframeBtn").addEventListener("click",addKeyframe);
 $("clipInspector").addEventListener("input",previewProperties);$("clipInspector").addEventListener("change",previewProperties);
