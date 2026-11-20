@@ -120,7 +120,7 @@
 <div class="inspector-hint" style="margin:-5px 0 12px;padding:7px 9px;border:1px solid #493365;border-radius:8px;background:#191129">Preview only — changes become permanent after you click <strong>Apply</strong>.</div>
 <div id="inspectorHint" class="inspector-hint">Select a clip on the timeline to edit its settings. Import media or add a text layer to get started.</div>
 <div id="clipInspector" class="hidden">
-<p class="inspector-hint" id="detachedAudioHint" hidden>Original video audio is muted. Change the separate Audio track clip to update playback and the final export.</p>
+<p class="inspector-hint" id="detachedAudioHint" hidden>This video's built-in sound is disabled. Edit its separate Audio track clip to change the sound in playback and the final export.</p>
 <details class="property-group" id="nameGroup"><summary>Name &amp; Timing</summary><div class="group-body"><div class="prop"><label for="propName">Clip name</label><input id="propName" type="text"></div>
 <div class="prop-grid">
 <div class="prop"><label for="propStart">Start (seconds)</label><input id="propStart" type="number" min="0" step="0.1"></div>
@@ -756,7 +756,7 @@ function previewPointerUp(e){
 
 function addText(){const text=prompt("Enter the text for your video:","Your title here");if(!text||!text.trim())return;snapshot();clips.push({id:uid(),name:"Text overlay",type:"text",track:"text",text:text.trim().slice(0,180),color:"#ffffff",fontSize:42,font:"Arial, sans-serif",weight:800,align:"center",bgColor:"#000000",bgOpacity:0,x:0,y:0,start:playhead,duration:5,sourceStart:0});selectClip(clips[clips.length-1].id);renderAll();scheduleSave();}
 function splitSelected(){const c=selectedClip();if(!c||playhead<=c.start+.15||playhead>=c.start+c.duration-.15){notify("Move the playhead inside the selected clip before splitting.");return;}snapshot();const first=playhead-c.start,second={...clone(c),id:uid(),name:c.name+" (split)",start:playhead,sourceStart:(c.sourceStart||0)+first,duration:c.duration-first};if(Array.isArray(c.keyframes)){second.keyframes=c.keyframes.filter(k=>k.time>=first).map(k=>({...k,time:Number((k.time-first).toFixed(3))}));c.keyframes=c.keyframes.filter(k=>k.time<first);}c.duration=first;clips.push(second);selectClip(second.id);renderAll();scheduleSave();}
-function deleteSelected(){const c=selectedClip();if(!c)return;snapshot();clips=clips.filter(x=>x.id!==c.id);selectedId=null;renderAll();scheduleSave();}
+function deleteSelected(){const c=selectedClip();if(!c)return;snapshot();clips=clips.filter(x=>x.id!==c.id);if(c.type==="audio"&&c.detachedFromVideoId){const source=clips.find(x=>x.id===c.detachedFromVideoId);if(source){source.audioDetached=true;source.volume=0;}}selectedId=null;renderAll();scheduleSave();}
 function duplicateSelected(){const c=selectedClip();if(!c)return;snapshot();const copy={...clone(c),id:uid(),name:c.name+" copy",start:c.start+c.duration};clips.push(copy);selectClip(copy.id);renderAll();scheduleSave();}
 async function detachAudioFromVideo(){
  const sourceClip=selectedClip();
