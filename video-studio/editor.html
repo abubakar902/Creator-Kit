@@ -719,8 +719,10 @@ function previewPointerMove(e){
  const d=dragState;if(!d||(d.kind!=="preview"&&d.kind!=="preview-resize")||e.pointerId!==d.pointerId)return;
  const c=clips.find(item=>item.id===d.id);if(!c)return;
  if(d.kind==="preview-resize"){
-  const dx=e.clientX-d.startX,dy=e.clientY-d.startY;
-  const ratio=Math.sqrt(Math.max(12,d.rect.width+dx)*Math.max(12,d.rect.height+dy)/(Math.max(12,d.rect.width)*Math.max(12,d.rect.height)));
+  const anchorX=d.rect.left,anchorY=d.rect.top;
+  const startDistance=Math.max(1,Math.hypot(d.startX-anchorX,d.startY-anchorY));
+  const currentDistance=Math.max(1,Math.hypot(e.clientX-anchorX,e.clientY-anchorY));
+  const ratio=currentDistance/startDistance;
   const nextScale=Math.max(.1,Math.min(4,Number((d.base.scale*ratio).toFixed(3))));
   const result=setPreviewScale(c,d.local,nextScale);
   if(result==="created")d.keyframeCreated=true;
