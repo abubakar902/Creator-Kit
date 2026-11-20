@@ -650,7 +650,7 @@ body{background:radial-gradient(ellipse at 48% -18%,rgba(126,79,190,.18),transpa
 import {authReady,auth,getAccountProfile} from "../auth/auth-client.js";
 const $=id=>document.getElementById(id);
 const projectKey="trivexaai_video_studio_projects_v1",dbName="trivexaai-video-studio",dbVersion=1,scaleDefault=64;
-let db=null,project=null,clips=[],assets=[],urls=new Map(),selectedId=null,scale=scaleDefault,playhead=0,isPlaying=false,raf=0,lastFrame=0,activeVideoId=null,activeImageId=null,audioNodes=new Map(),audioWaveforms=new Map(),audioWaveformPending=new Map(),audioWaveformUnavailable=new Set(),audioWaveformQueue=Promise.resolve(),saveTimer=0,undoStack=[],redoStack=[],dragState=null,playheadDrag=null,previewDraft=null,exportBusy=false,exportController=null,lastExportBlob=null,lastExportFileName="",snapEnabled=true;
+let db=null,project=null,clips=[],assets=[],urls=new Map(),selectedId=null,scale=scaleDefault,playhead=0,isPlaying=false,raf=0,lastFrame=0,activeVideoId=null,activeImageId=null,audioNodes=new Map(),audioWaveforms=new Map(),audioWaveformPending=new Map(),audioWaveformUnavailable=new Set(),audioWaveformQueue=Promise.resolve(),saveTimer=0,saveQueue=Promise.resolve(),saveRevision=0,savedRevision=0,undoStack=[],redoStack=[],dragState=null,playheadDrag=null,previewDraft=null,exportBusy=false,exportController=null,lastExportBlob=null,lastExportFileName="",snapEnabled=true;
 const params=new URLSearchParams(location.search),projectId=params.get("id");
 function notify(msg){const el=$("toast");el.textContent=msg;el.classList.add("show");clearTimeout(window.__editorToast);window.__editorToast=setTimeout(()=>el.classList.remove("show"),3600);}
 function uid(){return crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random().toString(16).slice(2);}
@@ -659,13 +659,16 @@ function fmt(t){t=Math.max(0,Number(t)||0);const m=Math.floor(t/60),s=t%60;retur
 function duration(){return Math.max(10,...clips.map(c=>c.start+c.duration),0);}
 function safeName(n){return String(n||"Untitled").replace(/[<>]/g,"").slice(0,60);}
 function openDB(){return new Promise((resolve,reject)=>{const req=indexedDB.open(dbName,dbVersion);req.onupgradeneeded=()=>{const d=req.result;if(!d.objectStoreNames.contains("projects"))d.createObjectStore("projects",{keyPath:"id"});if(!d.objectStoreNames.contains("assets"))d.createObjectStore("assets",{keyPath:"id"});};req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);});}
-function dbRequest(store,mode,fn){return new Promise((resolve,reject)=>{const tx=db.transaction(store,mode),s=tx.objectStore(store);let req;try{req=fn(s);}catch(e){reject(e);return;}req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);tx.onabort=()=>reject(tx.error||new Error("Database operation failed"));});}
+function dbRequest(store,mode,fn){return new Promise((resolve,reject)=>{const tx=db.transaction(store,mode),s=tx.objectStore(store);let req,result;try{req=fn(s);}catch(e){reject(e);return;}if(req){req.onsuccess=()=>{result=req.result;};req.onerror=()=>reject(req.error||new Error("Database request failed"));}tx.oncomplete=()=>resolve(result);tx.onerror=()=>reject(tx.error||new Error("Database transaction failed"));tx.onabort=()=>reject(tx.error||new Error("Database transaction was aborted"));});}
 function projectFromLocal(){try{return (JSON.parse(localStorage.getItem(projectKey)||"[]")).find(p=>p.id===projectId)||null;}catch{return null;}}
 function status(t){$("saveStatus").textContent=t;}
 function snapshot(){undoStack.push(clone(clips));if(undoStack.length>40)undoStack.shift();redoStack=[];updateHistoryButtons();}
 function updateHistoryButtons(){$("undoBtn").disabled=!undoStack.length;$("redoBtn").disabled=!redoStack.length;}
-function scheduleSave(){status("Saving…");clearTimeout(saveTimer);saveTimer=setTimeout(saveProject,450);}
-async function saveProject(){if(!project||!db)return;project.name=safeName($("projectTitle").value||project.name);project.clips=clone(clips);project.updatedAt=new Date().toISOString();try{await dbRequest("projects","readwrite",s=>s.put(project));const list=JSON.parse(localStorage.getItem(projectKey)||"[]");const i=list.findIndex(p=>p.id===project.id);if(i>=0){list[i].name=project.name;list[i].updatedAt=project.updatedAt;localStorage.setItem(projectKey,JSON.stringify(list));}status("Saved on this device");}catch(e){status("Save failed");notify("Project save failed. Your browser storage may be full.");}}
+function recoveryKey(){return "trivexaai_video_studio_recovery_"+projectId;}
+function writeRecoveryDraft(){if(!project)return;try{localStorage.setItem(recoveryKey(),JSON.stringify({projectId:project.id,name:safeName($("projectTitle").value||project.name),clips:clone(clips),updatedAt:new Date().toISOString()}));}catch(error){status("Recovery backup unavailable · saving to device…");}}
+function readRecoveryDraft(){try{const raw=localStorage.getItem(recoveryKey());if(!raw)return null;const draft=JSON.parse(raw);return draft&&draft.projectId===projectId&&Array.isArray(draft.clips)&&Number.isFinite(Date.parse(draft.updatedAt))?draft:null;}catch(error){return null;}}
+function scheduleSave(){saveRevision++;writeRecoveryDraft();status("Saving…");clearTimeout(saveTimer);saveTimer=setTimeout(()=>{saveProject();},450);}
+function saveProject(){if(!project||!db)return Promise.resolve();clearTimeout(saveTimer);if(savedRevision>=saveRevision)saveRevision++;saveQueue=saveQueue.catch(()=>{}).then(async()=>{while(savedRevision<saveRevision){const revision=saveRevision,snapshot={...project,name:safeName($("projectTitle").value||project.name),clips:clone(clips),updatedAt:new Date().toISOString()};await dbRequest("projects","readwrite",s=>s.put(snapshot));project.name=snapshot.name;project.clips=clone(snapshot.clips);project.updatedAt=snapshot.updatedAt;const list=JSON.parse(localStorage.getItem(projectKey)||"[]"),i=list.findIndex(p=>p.id===project.id);if(i>=0){list[i].name=snapshot.name;list[i].updatedAt=snapshot.updatedAt;localStorage.setItem(projectKey,JSON.stringify(list));}savedRevision=revision;const draft=readRecoveryDraft();if(draft&&Date.parse(draft.updatedAt)<=Date.parse(snapshot.updatedAt)){try{localStorage.removeItem(recoveryKey());}catch(error){}}}status("Saved on this device");}).catch(error=>{status("Save failed · recovery backup kept");notify("Project save failed. Your recovery backup is kept on this device. Check browser storage space.");throw error;});return saveQueue;}
 function assetUrl(id){return urls.get(id)||"";}
 function assetById(id){return assets.find(a=>a.id===id);}
 function isImportedAsset(asset){
@@ -1878,13 +1881,17 @@ async function initialise(){
   }
   project.name=project.name||meta?.name||"Untitled project";
   clips=Array.isArray(project.clips)?project.clips:[];
+  const recoveryDraft=readRecoveryDraft();
   $("projectTitle").value=project.name;
   $("previewResolution").textContent=" · "+(project.resolutionLabel||project.resolution||"1920 × 1080")+" · "+(project.fps||30)+" FPS";
   assets=await dbRequest("assets","readonly",s=>s.getAll());
   assets=assets.filter(a=>a.projectId===project.id);
+  let restoredRecovery=false;
+  if(recoveryDraft&&Date.parse(recoveryDraft.updatedAt)>Date.parse(project.updatedAt||0)){const availableAssets=new Set(assets.map(a=>a.id));const safeDraft=recoveryDraft.clips.every(c=>!c.assetId||availableAssets.has(c.assetId));if(safeDraft){clips=recoveryDraft.clips;project.name=safeName(recoveryDraft.name||project.name);$("projectTitle").value=project.name;project.clips=clone(clips);restoredRecovery=true;}}
   for(const a of assets)urls.set(a.id,URL.createObjectURL(a.blob));
   $("editorApp").hidden=false;
   renderAll();
+  if(restoredRecovery){scheduleSave();await saveProject();notify("Recovered your latest unsaved project changes.");}
   status("Ready · Auto-save on");
   setEditorLoadingMessage("Your editor is ready!");
   await finishEditorLoading();
@@ -1941,7 +1948,9 @@ $("exportResolution").addEventListener("change",updateExportSummary);
 $("exportFps").addEventListener("change",updateExportSummary);
 $("exportBitrate").addEventListener("change",updateExportSummary);
 $("exportFormat").addEventListener("change",()=>{$("exportFormat").dataset.userChosen="1";updateExportSummary();});
-window.addEventListener("beforeunload",()=>{if(project&&db){clearTimeout(saveTimer);saveProject();}for(const u of urls.values())URL.revokeObjectURL(u);for(const a of audioNodes.values())a.pause();});
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden"&&project&&db){writeRecoveryDraft();saveProject().catch(()=>{});}});
+window.addEventListener("pagehide",()=>{if(project&&db){writeRecoveryDraft();saveProject().catch(()=>{});}});
+window.addEventListener("beforeunload",()=>{if(project&&db){writeRecoveryDraft();saveProject().catch(()=>{});}for(const u of urls.values())URL.revokeObjectURL(u);for(const a of audioNodes.values())a.pause();});
 initialise();
 </script>
 </body>
