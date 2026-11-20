@@ -783,7 +783,7 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
         }
         if (
           typeof body.audioBase64 !== "string" ||
-          body.audioBase64.length < 1000 ||
+          body.audioBase64.length < 500 ||
           body.audioBase64.length > 4000000 ||
           !/^[A-Za-z0-9+/]+={0,2}$/.test(body.audioBase64)
         ) {
