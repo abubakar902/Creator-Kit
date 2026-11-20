@@ -42,6 +42,7 @@
 .group-body .prop:first-child{margin-top:2px}.group-body .prop:last-child{margin-bottom:2px}
 #previewStage video,#previewStage img{pointer-events:auto;touch-action:none;cursor:move}
 #textPreview>[data-clip-id]{pointer-events:auto;touch-action:none;cursor:move;user-select:none}
+.text-resize-handle{z-index:20}
 #previewStage.is-dragging{outline:2px solid #a75cff;outline-offset:2px}.sticker-resize-handle[hidden]{display:none!important}.sticker-resize-handle{position:absolute;z-index:18;width:25px;height:25px;padding:0;border:2px solid #fff;border-radius:50%;background:linear-gradient(145deg,#b45dff,#6944ff);color:#fff;font-size:15px;font-weight:900;line-height:1;display:grid;place-items:center;transform:translate(-50%,-50%);box-shadow:0 2px 12px #000b,0 0 0 2px #a45cff66;cursor:nwse-resize;touch-action:none;user-select:none}
 @media(max-width:680px){.property-group>summary{padding:12px;font-size:12px}.group-body{padding:9px}}
 
@@ -460,6 +461,7 @@ body{background:radial-gradient(ellipse at 48% -18%,rgba(126,79,190,.18),transpa
 <img id="imagePreview" alt="Current image clip">
 <button type="button" id="stickerResizeHandle" class="sticker-resize-handle" hidden title="Drag to resize sticker" aria-label="Resize sticker">↘</button>
 <div id="textPreview" class="stage-text"></div>
+<button type="button" id="textResizeHandle" class="sticker-resize-handle text-resize-handle" hidden title="Drag to resize text or caption" aria-label="Resize text or caption">↘</button>
 </div></div>
 <div class="transport">
 <span class="timecode" id="currentTime">00:00.0</span>
@@ -523,10 +525,7 @@ body{background:radial-gradient(ellipse at 48% -18%,rgba(126,79,190,.18),transpa
 </div>
 <div class="prop"><label for="propBgOpacity">Background opacity</label><input id="propBgOpacity" type="range" min="0" max="1" step="0.05" value="0"></div>
 <div class="prop"><label for="propItalic"><input id="propItalic" type="checkbox" style="width:auto;vertical-align:middle"> Italic text</label></div>
-<div class="prop-grid">
-<div class="prop"><label for="propTextScale">Text scale</label><input id="propTextScale" type="range" min="0.1" max="3" step="0.05" value="1"></div>
 <div class="prop"><label for="propTextRotation">Text rotation (°)</label><input id="propTextRotation" type="range" min="-180" max="180" step="1" value="0"></div>
-</div>
 <div class="prop"><label for="propTextOpacity">Text opacity</label><input id="propTextOpacity" type="range" min="0" max="1" step="0.05" value="1"></div>
 <div class="prop-grid">
 <div class="prop"><label for="propTextEffect">Text effect</label><select id="propTextEffect"><option value="shadow">Soft shadow</option><option value="none">None</option><option value="glow">Glow</option><option value="neon">Neon</option><option value="outline">Bold outline</option></select></div>
@@ -968,7 +967,6 @@ function renderInspector(){
   $("propBgColor").value=shown.bgColor||"#000000";
   $("propBgOpacity").value=shown.bgOpacity??0;
   $("propItalic").checked=!!shown.italic;
-  $("propTextScale").value=shown.scale??1;
   $("propTextRotation").value=shown.rotation??0;
   $("propTextOpacity").value=shown.opacity??1;
   $("propTextEffect").value=shown.textEffect||"shadow";
@@ -1081,6 +1079,18 @@ function renderPreview(){
  video.style.objectFit=$("previewFit").value;img.style.objectFit="contain";
  fitPreviewStage();
  updateStickerResizeHandle(overlayImage,img);
+ updateTextResizeHandle(texts);
+}
+function updateTextResizeHandle(texts){
+ const handle=$("textResizeHandle"),stage=$("previewStage");
+ const clip=(texts||[]).find(item=>item.id===selectedId&&item.type==="text");
+ if(!clip){handle.hidden=true;return;}
+ const span=[...$("textPreview").children].find(item=>item.dataset.clipId===clip.id);
+ if(!span){handle.hidden=true;return;}
+ const rect=span.getBoundingClientRect(),stageRect=stage.getBoundingClientRect();
+ handle.style.left=Math.max(12,Math.min(stageRect.width-12,rect.right-stageRect.left))+"px";
+ handle.style.top=Math.max(12,Math.min(stageRect.height-12,rect.bottom-stageRect.top))+"px";
+ handle.dataset.clipId=clip.id;handle.hidden=false;
 }
 function updateStickerResizeHandle(c,img){
  const handle=$("stickerResizeHandle"),stage=$("previewStage");
@@ -1278,7 +1288,7 @@ function addKeyframe(){
  const motion=animatedValues(c,Math.max(0,Math.min(c.duration,playhead-c.start)));
  const values=isText?{
   x:motion.x,y:motion.y,
-  scale:Number($("propTextScale").value)||1,rotation:Number($("propTextRotation").value)||0,
+  scale:motion.scale,rotation:Number($("propTextRotation").value)||0,
   opacity:Number($("propTextOpacity").value)
  }:{
   x:Number($("propX").value)||0,y:Number($("propY").value)||0,
@@ -1297,11 +1307,13 @@ function addKeyframe(){
 }
 
 function previewPointerDown(e){
- const resizeHandle=e.target.closest("#stickerResizeHandle");
- const target=resizeHandle?$("imagePreview"):e.target.closest("[data-clip-id]");
+ const stickerHandle=e.target.closest("#stickerResizeHandle");
+ const textHandle=e.target.closest("#textResizeHandle");
+ const resizeHandle=stickerHandle||textHandle;
+ const target=stickerHandle?$("imagePreview"):textHandle?[...$("textPreview").children].find(item=>item.dataset.clipId===textHandle.dataset.clipId):e.target.closest("[data-clip-id]");
  if(!target||isPlaying)return;
  const c=clips.find(item=>item.id===(resizeHandle?resizeHandle.dataset.clipId:target.dataset.clipId));
- if(!c||!(c.type==="video"||c.type==="image"||c.type==="text")||(resizeHandle&&c.type!=="image"))return;
+ if(!c||!(c.type==="video"||c.type==="image"||c.type==="text")||(stickerHandle&&c.type!=="image")||(textHandle&&c.type!=="text"))return;
  e.preventDefault();
  const stage=$("previewStage"),targetRect=target.getBoundingClientRect(),stageRect=stage.getBoundingClientRect();
  try{stage.setPointerCapture(e.pointerId);}catch{}
@@ -1309,7 +1321,7 @@ function previewPointerDown(e){
  if(selectedId!==c.id){selectedId=c.id;renderTimeline();renderInspector();}
  snapshot();
  const local=Math.max(0,Math.min(c.duration,playhead-c.start)),motion=animatedValues(c,local);
- dragState={kind:resizeHandle?"preview-resize":"preview",id:c.id,pointerId:e.pointerId,startX:e.clientX,startY:e.clientY,rect:targetRect,stageRect,local,base:motion,orig:clone(c),moved:false};
+ dragState={kind:stickerHandle?"preview-resize":textHandle?"preview-resize-text":"preview",id:c.id,pointerId:e.pointerId,startX:e.clientX,startY:e.clientY,anchorX:textHandle?targetRect.left+targetRect.width/2:targetRect.left,anchorY:textHandle?targetRect.top+targetRect.height/2:targetRect.top,rect:targetRect,stageRect,local,base:motion,orig:clone(c),moved:false};
  stage.classList.add("is-dragging");
 }
 function setPreviewPosition(c,local,x,y){
@@ -1337,10 +1349,10 @@ function setPreviewScale(c,local,scale){
  c.scale=scale;return "size";
 }
 function previewPointerMove(e){
- const d=dragState;if(!d||(d.kind!=="preview"&&d.kind!=="preview-resize")||e.pointerId!==d.pointerId)return;
+ const d=dragState;if(!d||(d.kind!=="preview"&&d.kind!=="preview-resize"&&d.kind!=="preview-resize-text")||e.pointerId!==d.pointerId)return;
  const c=clips.find(item=>item.id===d.id);if(!c)return;
- if(d.kind==="preview-resize"){
-  const anchorX=d.rect.left,anchorY=d.rect.top;
+ if(d.kind==="preview-resize"||d.kind==="preview-resize-text"){
+  const anchorX=d.anchorX??d.rect.left,anchorY=d.anchorY??d.rect.top;
   const startDistance=Math.max(1,Math.hypot(d.startX-anchorX,d.startY-anchorY));
   const currentDistance=Math.max(1,Math.hypot(e.clientX-anchorX,e.clientY-anchorY));
   const ratio=currentDistance/startDistance;
@@ -1355,7 +1367,7 @@ function previewPointerMove(e){
  let dx=e.clientX-d.startX,dy=e.clientY-d.startY;
  let x=d.base.x+dx/width*100,y=d.base.y+dy/height*100;
  if(c.type==="text"||c.type==="image"){x=d.base.x+dx/Math.max(1,d.stageRect.width)*100;y=d.base.y+dy/Math.max(1,d.stageRect.height)*100;}
- const limit=c.type==="text"?45:100;x=Math.max(-limit,Math.min(limit,x));y=Math.max(-limit,Math.min(limit,y));
+ const limit=c.type==="text"?50:100;x=Math.max(-limit,Math.min(limit,x));y=Math.max(-limit,Math.min(limit,y));
  const positionResult=setPreviewPosition(c,d.local,Number(x.toFixed(2)),Number(y.toFixed(2)));
   if(positionResult==="created")d.keyframeCreated=true;
   if(positionResult==="updated")d.keyframeUpdated=true;
@@ -1367,11 +1379,11 @@ function previewPointerMove(e){
  renderPreview();renderKeyframes();
 }
 function previewPointerUp(e){
- const d=dragState;if(!d||(d.kind!=="preview"&&d.kind!=="preview-resize")||e.pointerId!==d.pointerId)return;
+ const d=dragState;if(!d||(d.kind!=="preview"&&d.kind!=="preview-resize"&&d.kind!=="preview-resize-text")||e.pointerId!==d.pointerId)return;
  $("previewStage").classList.remove("is-dragging");
  if(d.moved){
   renderInspector();renderTimeline();scheduleSave();
-  const action=d.kind==="preview-resize"?"Sticker size":"Position";
+  const action=d.kind==="preview-resize"?"Sticker size":d.kind==="preview-resize-text"?"Text size":"Position";
   notify(d.keyframeCreated?action+" saved and a new keyframe created.":d.keyframeUpdated?action+" saved and existing keyframe updated.":action+" saved.");
  }else{undoStack.pop();updateHistoryButtons();}
  dragState=null;
@@ -1681,7 +1693,7 @@ function readPropertiesDraft(c){
   d.text=$("propText").value.slice(0,180);d.color=$("propTextColor").value;d.fontSize=Math.max(10,Math.min(120,Number($("propFontSize").value)||42));d.font=$("propFont").value;
   d.weight=Number($("propWeight").value)||700;d.align=$("propTextAlign").value;d.bgColor=$("propBgColor").value;d.bgOpacity=Math.max(0,Math.min(1,Number($("propBgOpacity").value)||0));
   d.italic=$("propItalic").checked;
-  d.scale=Math.max(.1,Math.min(3,Number($("propTextScale").value)||1));d.rotation=Math.max(-180,Math.min(180,Number($("propTextRotation").value)||0));d.opacity=Math.max(0,Math.min(1,Number($("propTextOpacity").value)||0));
+  d.rotation=Math.max(-180,Math.min(180,Number($("propTextRotation").value)||0));d.opacity=Math.max(0,Math.min(1,Number($("propTextOpacity").value)||0));
   d.textEffect=$("propTextEffect").value;
   d.textTransition=$("propTextTransition").value;
   d.textTransitionDuration=Math.max(.1,Math.min(2,dur,Number($("propTextTransitionDuration").value)||.4));
