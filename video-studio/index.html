@@ -234,6 +234,40 @@ html.studio-returning-from-editor #studioStartupLoading{display:none!important;v
 @keyframes studioCorePulse{0%,100%{transform:scale(.96);box-shadow:0 0 22px rgba(173,107,241,.24)}50%{transform:scale(1.045);box-shadow:0 0 42px rgba(205,140,255,.47)}}
 @media(max-width:480px){.studio-startup-loading{padding:14px}.studio-startup-card{padding:22px 18px;border-radius:22px}.studio-startup-top{align-items:flex-start}.studio-startup-brand{font-size:16px}.studio-startup-badge{font-size:7px;padding:6px 8px}.studio-startup-footer{font-size:6px;letter-spacing:.8px}}
 @media(prefers-reduced-motion:reduce){.studio-startup-loading *,#editorLaunchLoading *{animation:none!important}.studio-startup-loading{transition:opacity .15s ease,visibility .15s ease}}
+
+/* Safe project deletion: visible action + branded confirmation dialog. */
+#projects .project-item-actions{display:flex;align-items:center;gap:7px;flex:none}
+#projects .project-item button.project-delete-button{border-color:rgba(190,91,119,.52);background:linear-gradient(135deg,#482238,#32192d);color:#ffdce5;box-shadow:inset 0 1px 0 rgba(255,255,255,.035),0 4px 13px rgba(50,10,26,.18)}
+#projects .project-item button.project-delete-button:hover{border-color:#db7898;background:linear-gradient(135deg,#643047,#421f36);box-shadow:0 7px 17px rgba(105,35,63,.28)}
+#projects .project-item button.project-delete-button:focus-visible{outline:2px solid #ffb2c8;outline-offset:3px}
+.project-delete-modal{position:fixed;inset:0;z-index:2147483645;display:grid;place-items:center;padding:18px;background:rgba(6,4,13,.78);backdrop-filter:blur(12px)}
+.project-delete-modal[hidden]{display:none!important}
+.project-delete-card{position:relative;width:min(100%,440px);padding:28px;border:1px solid rgba(194,116,151,.5);border-radius:22px;background:radial-gradient(ellipse at 100% 0%,rgba(148,57,98,.2),transparent 45%),linear-gradient(150deg,#25172b,#151020 72%);box-shadow:0 28px 90px #000b,inset 0 1px 0 rgba(255,255,255,.055)}
+.project-delete-icon{width:46px;height:46px;display:grid;place-items:center;margin-bottom:17px;border:1px solid #a85e79;border-radius:14px;background:linear-gradient(145deg,#613149,#321b2c);color:#ffdce5;font-size:22px;box-shadow:0 7px 24px rgba(158,58,94,.18)}
+.project-delete-kicker{color:#e7a1b7;font-size:9px;font-weight:850;letter-spacing:1.5px}
+.project-delete-copy h2{margin:8px 0;color:#fff;font-size:22px;letter-spacing:-.5px}
+.project-delete-copy p{margin:0;color:#c7b5c7;font-size:12px;line-height:1.7}
+.project-delete-name{display:block;margin-top:13px;padding:10px 12px;overflow-wrap:anywhere;border:1px solid rgba(175,128,159,.28);border-radius:10px;background:rgba(13,9,20,.55);color:#f7e6f0;font-size:12px}
+.project-delete-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:23px}
+.project-delete-actions button{min-height:40px;padding:9px 14px;border-radius:10px;font-size:11px;font-weight:800;cursor:pointer;transition:transform .16s,filter .16s,border-color .16s}
+.project-delete-actions button:hover:not(:disabled){transform:translateY(-1px);filter:brightness(1.1)}
+.project-delete-actions button:focus-visible{outline:2px solid #f6c9ff;outline-offset:3px}
+.project-keep-button{border:1px solid #654878;background:linear-gradient(145deg,#2b203d,#21172f);color:#eadcf6}
+.project-confirm-button{border:1px solid #b85a7b;background:linear-gradient(110deg,#a33b63,#783050);color:#fff;box-shadow:0 6px 18px rgba(145,45,81,.2)}
+.project-confirm-button:disabled{opacity:.55;cursor:wait}
+@media(max-width:760px){
+ #projects .project-item-actions{width:100%}
+ #projects .project-item-actions button{flex:1}
+ .project-delete-card{padding:23px 19px;border-radius:19px}
+}
+@media(max-width:390px){
+ #projects .project-item-actions{gap:8px}
+ #projects .project-item-actions button{width:50%;flex:none}
+ .project-delete-actions{flex-direction:column-reverse}
+ .project-delete-actions button{width:100%}
+}
+@media(prefers-reduced-motion:reduce){.project-delete-actions button{transition:none!important}}
+
 </style>
 </head>
 <body>
@@ -444,6 +478,22 @@ html.studio-returning-from-editor #studioStartupLoading{display:none!important;v
 </main>
 </div>
 </div>
+
+<div class="project-delete-modal" id="projectDeleteModal" hidden role="dialog" aria-modal="true" aria-labelledby="projectDeleteTitle" aria-describedby="projectDeleteMessage">
+ <section class="project-delete-card">
+  <div class="project-delete-icon" aria-hidden="true">⌫</div>
+  <div class="project-delete-copy">
+   <span class="project-delete-kicker">PROJECT MANAGEMENT</span>
+   <h2 id="projectDeleteTitle">Delete this project?</h2>
+   <p id="projectDeleteMessage">This will permanently delete this project and its imported media saved on this device. This action cannot be undone.</p>
+   <strong class="project-delete-name" id="projectDeleteName"></strong>
+  </div>
+  <div class="project-delete-actions">
+   <button type="button" class="project-keep-button" id="cancelDeleteProject">Keep Project</button>
+   <button type="button" class="project-confirm-button" id="confirmDeleteProject">Delete Project</button>
+  </div>
+ </section>
+</div>
 <section class="panel locked" id="locked" hidden><div style="font-size:42px">🔒</div><h2>Video Studio access required</h2><p>Your account needs Video Studio approval to open this workspace. You can check your access status or redeem an invite from your account page.</p><a class="primary" style="display:inline-flex;align-items:center" href="../auth/account.html">Go to My Account →</a></section>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script type="module">
@@ -453,6 +503,92 @@ const storageKey="trivexaai_video_studio_projects_v1";
 let selectedRatio="16:9",projects=[];
 function toast(message){const el=$("toast");el.textContent=message;el.classList.add("show");clearTimeout(window.__studioToast);window.__studioToast=setTimeout(()=>el.classList.remove("show"),3800);}
 function readProjects(){try{const data=JSON.parse(localStorage.getItem(storageKey)||"[]");return Array.isArray(data)?data:[]}catch{return[]}}
+let pendingDeleteProjectId=null,deleteReturnFocus=null,deletePreviousOverflow="";
+function openStudioDatabase(){
+ return new Promise((resolve,reject)=>{
+  const request=indexedDB.open("trivexaai-video-studio",1);
+  request.onupgradeneeded=()=>{
+   const database=request.result;
+   if(!database.objectStoreNames.contains("projects"))database.createObjectStore("projects",{keyPath:"id"});
+   if(!database.objectStoreNames.contains("assets"))database.createObjectStore("assets",{keyPath:"id"});
+  };
+  request.onsuccess=()=>resolve(request.result);
+  request.onerror=()=>reject(request.error||new Error("Could not open project storage."));
+  request.onblocked=()=>reject(new Error("Project storage is busy. Please close other Video Studio tabs and try again."));
+ });
+}
+async function deleteProjectData(projectId){
+ const database=await openStudioDatabase();
+ try{
+  await new Promise((resolve,reject)=>{
+   let transaction;
+   try{
+    transaction=database.transaction(["projects","assets"],"readwrite");
+    const projectStore=transaction.objectStore("projects");
+    const assetStore=transaction.objectStore("assets");
+    projectStore.delete(projectId);
+    const request=assetStore.getAll();
+    request.onsuccess=()=>{
+     for(const asset of request.result||[]){
+      if(asset.projectId===projectId)assetStore.delete(asset.id);
+     }
+    };
+    request.onerror=()=>reject(request.error||new Error("Could not read project media."));
+    transaction.oncomplete=()=>resolve();
+    transaction.onerror=()=>reject(transaction.error||new Error("Project deletion failed."));
+    transaction.onabort=()=>reject(transaction.error||new Error("Project deletion was cancelled."));
+   }catch(error){reject(error);}
+  });
+ }finally{database.close();}
+}
+function closeProjectDeleteModal(){
+ const modal=$("projectDeleteModal");
+ if(modal)modal.hidden=true;
+ document.body.style.overflow=deletePreviousOverflow;
+ pendingDeleteProjectId=null;
+ const target=deleteReturnFocus;
+ deleteReturnFocus=null;
+ if(target&&target.isConnected)target.focus();
+}
+function askDeleteProject(projectId,sourceButton){
+ const item=readProjects().find(p=>p.id===projectId);
+ if(!item)return;
+ pendingDeleteProjectId=projectId;
+ deleteReturnFocus=sourceButton||null;
+ deletePreviousOverflow=document.body.style.overflow;
+ $("projectDeleteName").textContent=item.name||"Untitled project";
+ $("projectDeleteModal").hidden=false;
+ document.body.style.overflow="hidden";
+ $("cancelDeleteProject").focus();
+}
+async function confirmProjectDeletion(){
+ const projectId=pendingDeleteProjectId;
+ if(!projectId)return;
+ const button=$("confirmDeleteProject");
+ const originalLabel=button.textContent;
+ const previousProjects=readProjects();
+ const remaining=previousProjects.filter(p=>p.id!==projectId);
+ button.disabled=true;button.textContent="Deleting…";
+ let listUpdated=false;
+ try{
+  localStorage.setItem(storageKey,JSON.stringify(remaining));
+  listUpdated=true;
+  await deleteProjectData(projectId);
+  pendingDeleteProjectId=null;
+  const target=deleteReturnFocus;deleteReturnFocus=null;
+  $("projectDeleteModal").hidden=true;
+  document.body.style.overflow=deletePreviousOverflow;
+  projects=remaining;renderProjects();
+  toast("Project and its saved media were deleted from this device.");
+  const focusTarget=$("projectList").querySelector("[data-open]")||$("createProject");
+  if(target&&target.isConnected)target.focus();else focusTarget?.focus();
+ }catch(error){
+  if(listUpdated){try{localStorage.setItem(storageKey,JSON.stringify(previousProjects));}catch(rollbackError){}}
+  toast("Could not delete this project. Your saved project has been kept. "+(error?.message||"Please try again."));
+ }finally{
+  button.disabled=false;button.textContent=originalLabel;
+ }
+}
 function openProjectEditor(projectId){
  const screen=$("editorLaunchLoading");
  const message=$("editorLaunchMessage");
@@ -465,7 +601,19 @@ function openProjectEditor(projectId){
  const destination="editor.html?id="+encodeURIComponent(projectId)+"&v=20261120-loader4";
  requestAnimationFrame(()=>requestAnimationFrame(()=>setTimeout(()=>{location.assign(destination);},650)));
 }
-function renderProjects(){projects=readProjects();const list=$("projectList");if(!projects.length){list.innerHTML='<div class="empty">No projects yet. Create your first video project above.</div>';return;}list.innerHTML=projects.slice().reverse().map(p=>'<div class="project-item"><div><strong>'+escapeHtml(p.name)+'</strong><small>'+escapeHtml(p.ratioLabel)+' · '+escapeHtml(p.resolutionLabel)+' · '+escapeHtml(String(p.fps))+' FPS</small></div><button type="button" data-open="'+escapeHtml(p.id)+'">Open Editor</button></div>').join("");list.querySelectorAll("[data-open]").forEach(b=>b.addEventListener("click",()=>{const p=projects.find(x=>x.id===b.dataset.open);if(p)openProjectEditor(p.id);}));}
+function renderProjects(){
+ projects=readProjects();const list=$("projectList");
+ if(!projects.length){list.innerHTML='<div class="empty">No projects yet. Create your first video project above.</div>';return;}
+ list.innerHTML=projects.slice().reverse().map(p=>{
+  const id=escapeHtml(p.id),name=escapeHtml(p.name||"Untitled project");
+  const details=escapeHtml(p.ratioLabel||"")+' · '+escapeHtml(p.resolutionLabel||"")+' · '+escapeHtml(String(p.fps||30))+' FPS';
+  return '<div class="project-item"><div><strong>'+name+'</strong><small>'+details+'</small></div><div class="project-item-actions"><button type="button" data-open="'+id+'">Open Editor</button><button type="button" class="project-delete-button" data-delete="'+id+'" aria-label="Delete project '+name+'">Delete</button></div></div>';
+ }).join("");
+ list.querySelectorAll("[data-open]").forEach(button=>button.addEventListener("click",()=>{
+  const item=projects.find(p=>p.id===button.dataset.open);if(item)openProjectEditor(item.id);
+ }));
+ list.querySelectorAll("[data-delete]").forEach(button=>button.addEventListener("click",()=>askDeleteProject(button.dataset.delete,button)));
+}
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 function setRatio(r){selectedRatio=r;document.querySelectorAll(".ratio").forEach(b=>{const on=b.dataset.ratio===r;b.classList.toggle("selected",on);b.setAttribute("aria-pressed",String(on));});$("customFields").classList.toggle("show",r==="custom");const size={"9:16":"1080x1920","4:5":"1080x1350","1:1":"1080x1080","16:9":"1920x1080"}[r];if(size){let option=[...$("resolution").options].find(o=>o.value===size);if(!option){option=document.createElement("option");option.value=size;option.textContent=size.replace("x"," × ")+" (Aspect preset)";$("resolution").append(option);}$("resolution").value=size;}}
 document.querySelectorAll(".ratio").forEach(b=>b.addEventListener("click",()=>setRatio(b.dataset.ratio)));
@@ -474,6 +622,10 @@ function applyPreset(key){const p=presets[key];setRatio(p.ratio);const option=[.
 document.querySelectorAll("[data-preset]").forEach(b=>b.addEventListener("click",()=>applyPreset(b.dataset.preset)));
 $("quickPreset").addEventListener("click",()=>applyPreset("youtube"));
 $("createProject").addEventListener("click",()=>{const name=$("projectName").value.trim();if(!name){toast("Please enter a project name.");$("projectName").focus();return;}let resolution=$("resolution").value;if(selectedRatio==="custom"){const w=Number($("customWidth").value),h=Number($("customHeight").value);if(!Number.isInteger(w)||!Number.isInteger(h)||w<240||h<240||w>3840||h>3840){toast("Custom width and height must be between 240 and 3840 pixels.");return;}resolution=w+"x"+h;}const [w,h]=resolution.split("x").map(Number);const ratioLabel=selectedRatio==="custom"?"Custom ("+w+":"+h+")":selectedRatio;const project={id:crypto.randomUUID?crypto.randomUUID():String(Date.now()),name,ratio:selectedRatio,ratioLabel,resolution,resolutionLabel:w+" × "+h,fps:Number($("fps").value),createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};projects=readProjects();projects.push(project);try{localStorage.setItem(storageKey,JSON.stringify(projects));renderProjects();openProjectEditor(project.id);}catch(e){toast("Could not save this project in your browser. Check available storage.");}});
+$("cancelDeleteProject").addEventListener("click",closeProjectDeleteModal);
+$("confirmDeleteProject").addEventListener("click",confirmProjectDeletion);
+$("projectDeleteModal").addEventListener("click",event=>{if(event.target===$("projectDeleteModal"))closeProjectDeleteModal();});
+window.addEventListener("keydown",event=>{if(event.key==="Escape"&&!$("projectDeleteModal").hidden&&!$("confirmDeleteProject").disabled){event.preventDefault();closeProjectDeleteModal();}});
 function setStudioStartupMessage(message){if(typeof window.__setStudioStartupMessage==="function")window.__setStudioStartupMessage(message);}
 function hideStudioStartupLoading(){if(typeof window.__hideStudioStartupLoading==="function")window.__hideStudioStartupLoading();}
 async function start(){
