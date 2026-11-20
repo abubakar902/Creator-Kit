@@ -1006,7 +1006,12 @@ function snapClipStart(rawStart,clip,excludeId){
  const endSnap=nearestTimelineSnap(rawStart+clip.duration,excludeId);
  if(endSnap)choices.push({start:endSnap.time-clip.duration,target:endSnap});
  const valid=choices.filter(choice=>choice.start>=0);
- valid.sort((a,b)=>Math.abs(a.start-rawStart)-Math.abs(b.start-rawStart));
+ valid.sort((a,b)=>{
+  const distance=Math.abs(a.start-rawStart)-Math.abs(b.start-rawStart);
+  if(Math.abs(distance)>.0001)return distance;
+  const aGrid=a.target.label==="GRID"?1:0,bGrid=b.target.label==="GRID"?1:0;
+  return aGrid-bGrid;
+ });
  return valid.length&&Math.abs(valid[0].start-rawStart)*scale<=10?valid[0]:null;
 }
 function setTimelineSnapGuide(time,label){
