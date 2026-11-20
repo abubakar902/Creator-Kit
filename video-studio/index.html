@@ -167,6 +167,29 @@
 </style>
 </head>
 <body>
+<div id="editorLaunchLoading" hidden aria-live="polite" role="status" aria-label="Opening TrivexaAI Video Studio"
+ style="position:fixed;inset:0;z-index:2147483647;display:none;place-items:center;overflow:auto;padding:22px;background:radial-gradient(ellipse at 50% 20%,#39205b 0%,#160f28 48%,#090612 100%);color:#fff;font-family:Inter,ui-sans-serif,system-ui,Arial,sans-serif">
+ <div style="width:min(100%,440px);box-sizing:border-box;padding:34px 28px 28px;text-align:center;border:1px solid #64477e;border-radius:24px;background:linear-gradient(145deg,#241837,#120d20);box-shadow:0 28px 90px #000b,inset 0 1px 0 #ffffff10">
+  <div style="display:flex;align-items:center;justify-content:center;gap:11px;margin-bottom:25px;font-size:19px;font-weight:850;letter-spacing:-.4px">
+   <span style="width:40px;height:40px;display:grid;place-items:center;border:1px solid #b889e9;border-radius:13px;background:linear-gradient(145deg,#8d43c8,#4b3c9c)">▶</span>
+   <span style="text-align:left">TrivexaAI<small style="display:block;margin-top:2px;color:#bba8db;font-size:9px;letter-spacing:2px">VIDEO STUDIO</small></span>
+  </div>
+  <div style="width:82px;height:82px;display:grid;place-items:center;margin:0 auto 23px;border:3px solid #563c70;border-top-color:#d7a1ff;border-right-color:#a878e6;border-radius:50%;animation:studioLaunchSpin 1.05s linear infinite">
+   <span style="width:44px;height:44px;display:grid;place-items:center;border-radius:14px;background:linear-gradient(145deg,#7041a6,#4f3c91);color:#fff;font-size:20px">✦</span>
+  </div>
+  <h2 style="margin:0 0 8px;color:#fff;font-size:21px;letter-spacing:-.4px">Opening your project</h2>
+  <p id="editorLaunchMessage" style="margin:0;color:#c5b5da;font-size:12px;line-height:1.6">Getting your editing workspace ready…</p>
+  <div style="height:5px;margin:24px 4px 0;overflow:hidden;border-radius:99px;background:#392a4b">
+   <span style="display:block;width:40%;height:100%;border-radius:99px;background:linear-gradient(90deg,#9250d4,#d78cff,#f29bdc);animation:studioLaunchProgress 1.25s ease-in-out infinite"></span>
+  </div>
+  <p style="margin:14px 0 0;color:#8d7c9d;font-size:9px;font-weight:750;letter-spacing:1.4px">PLEASE WAIT · VIDEO STUDIO</p>
+ </div>
+</div>
+<style>
+@keyframes studioLaunchSpin{to{transform:rotate(360deg)}}
+@keyframes studioLaunchProgress{0%{margin-left:-40%}100%{margin-left:105%}}
+@media(prefers-reduced-motion:reduce){#editorLaunchLoading *{animation:none!important}}
+</style>
 <div class="app" id="app" hidden>
 <header class="topbar">
 <a class="brand" href="../" aria-label="TrivexaAI home"><img src="../trivexaai-icon.png" alt=""><span>Trivexa<span>AI</span><small>VIDEO STUDIO</small></span></a>
@@ -225,7 +248,19 @@ const storageKey="trivexaai_video_studio_projects_v1";
 let selectedRatio="16:9",projects=[];
 function toast(message){const el=$("toast");el.textContent=message;el.classList.add("show");clearTimeout(window.__studioToast);window.__studioToast=setTimeout(()=>el.classList.remove("show"),3800);}
 function readProjects(){try{const data=JSON.parse(localStorage.getItem(storageKey)||"[]");return Array.isArray(data)?data:[]}catch{return[]}}
-function renderProjects(){projects=readProjects();const list=$("projectList");if(!projects.length){list.innerHTML='<div class="empty">No projects yet. Create your first video project above.</div>';return;}list.innerHTML=projects.slice().reverse().map(p=>'<div class="project-item"><div><strong>'+escapeHtml(p.name)+'</strong><small>'+escapeHtml(p.ratioLabel)+' · '+escapeHtml(p.resolutionLabel)+' · '+escapeHtml(String(p.fps))+' FPS</small></div><button type="button" data-open="'+escapeHtml(p.id)+'">Open Editor</button></div>').join("");list.querySelectorAll("[data-open]").forEach(b=>b.addEventListener("click",()=>{const p=projects.find(x=>x.id===b.dataset.open);if(p)location.href="editor.html?id="+encodeURIComponent(p.id)+"&v=20261120-loader2";}));}
+function openProjectEditor(projectId){
+ const screen=$("editorLaunchLoading");
+ const message=$("editorLaunchMessage");
+ if(screen){
+  if(message)message.textContent="Opening your project and preparing the editor…";
+  screen.hidden=false;
+  screen.style.display="grid";
+  document.body.style.overflow="hidden";
+ }
+ const destination="editor.html?id="+encodeURIComponent(projectId)+"&v=20261120-loader3";
+ requestAnimationFrame(()=>requestAnimationFrame(()=>setTimeout(()=>{location.assign(destination);},650)));
+}
+function renderProjects(){projects=readProjects();const list=$("projectList");if(!projects.length){list.innerHTML='<div class="empty">No projects yet. Create your first video project above.</div>';return;}list.innerHTML=projects.slice().reverse().map(p=>'<div class="project-item"><div><strong>'+escapeHtml(p.name)+'</strong><small>'+escapeHtml(p.ratioLabel)+' · '+escapeHtml(p.resolutionLabel)+' · '+escapeHtml(String(p.fps))+' FPS</small></div><button type="button" data-open="'+escapeHtml(p.id)+'">Open Editor</button></div>').join("");list.querySelectorAll("[data-open]").forEach(b=>b.addEventListener("click",()=>{const p=projects.find(x=>x.id===b.dataset.open);if(p)openProjectEditor(p.id);}));}
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 function setRatio(r){selectedRatio=r;document.querySelectorAll(".ratio").forEach(b=>{const on=b.dataset.ratio===r;b.classList.toggle("selected",on);b.setAttribute("aria-pressed",String(on));});$("customFields").classList.toggle("show",r==="custom");const size={"9:16":"1080x1920","4:5":"1080x1350","1:1":"1080x1080","16:9":"1920x1080"}[r];if(size){let option=[...$("resolution").options].find(o=>o.value===size);if(!option){option=document.createElement("option");option.value=size;option.textContent=size.replace("x"," × ")+" (Aspect preset)";$("resolution").append(option);}$("resolution").value=size;}}
 document.querySelectorAll(".ratio").forEach(b=>b.addEventListener("click",()=>setRatio(b.dataset.ratio)));
@@ -233,7 +268,7 @@ const presets={youtube:{ratio:"16:9",resolution:"1920x1080",fps:"30"},shorts:{ra
 function applyPreset(key){const p=presets[key];setRatio(p.ratio);const option=[...$("resolution").options].find(o=>o.value===p.resolution);if(option)$("resolution").value=p.resolution;else{const o=document.createElement("option");o.value=p.resolution;o.textContent=p.resolution.replace("x"," × ")+" (Preset)";$("resolution").append(o);$("resolution").value=p.resolution;}$("fps").value=p.fps;toast("Preset applied. You can adjust any setting.");}
 document.querySelectorAll("[data-preset]").forEach(b=>b.addEventListener("click",()=>applyPreset(b.dataset.preset)));
 $("quickPreset").addEventListener("click",()=>applyPreset("youtube"));
-$("createProject").addEventListener("click",()=>{const name=$("projectName").value.trim();if(!name){toast("Please enter a project name.");$("projectName").focus();return;}let resolution=$("resolution").value;if(selectedRatio==="custom"){const w=Number($("customWidth").value),h=Number($("customHeight").value);if(!Number.isInteger(w)||!Number.isInteger(h)||w<240||h<240||w>3840||h>3840){toast("Custom width and height must be between 240 and 3840 pixels.");return;}resolution=w+"x"+h;}const [w,h]=resolution.split("x").map(Number);const ratioLabel=selectedRatio==="custom"?"Custom ("+w+":"+h+")":selectedRatio;const project={id:crypto.randomUUID?crypto.randomUUID():String(Date.now()),name,ratio:selectedRatio,ratioLabel,resolution,resolutionLabel:w+" × "+h,fps:Number($("fps").value),createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};projects=readProjects();projects.push(project);try{localStorage.setItem(storageKey,JSON.stringify(projects));renderProjects();location.href="editor.html?id="+encodeURIComponent(project.id)+"&v=20261120-loader2";}catch(e){toast("Could not save this project in your browser. Check available storage.");}});
+$("createProject").addEventListener("click",()=>{const name=$("projectName").value.trim();if(!name){toast("Please enter a project name.");$("projectName").focus();return;}let resolution=$("resolution").value;if(selectedRatio==="custom"){const w=Number($("customWidth").value),h=Number($("customHeight").value);if(!Number.isInteger(w)||!Number.isInteger(h)||w<240||h<240||w>3840||h>3840){toast("Custom width and height must be between 240 and 3840 pixels.");return;}resolution=w+"x"+h;}const [w,h]=resolution.split("x").map(Number);const ratioLabel=selectedRatio==="custom"?"Custom ("+w+":"+h+")":selectedRatio;const project={id:crypto.randomUUID?crypto.randomUUID():String(Date.now()),name,ratio:selectedRatio,ratioLabel,resolution,resolutionLabel:w+" × "+h,fps:Number($("fps").value),createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};projects=readProjects();projects.push(project);try{localStorage.setItem(storageKey,JSON.stringify(projects));renderProjects();openProjectEditor(project.id);}catch(e){toast("Could not save this project in your browser. Check available storage.");}});
 async function start(){await authReady;if(!auth?.currentUser){const next=location.href;location.replace("../auth/login.html?next="+encodeURIComponent(next));return;}try{const profile=await getAccountProfile();if(!profile?.access?.videoStudio){$("locked").hidden=false;return;}$("app").hidden=false;renderProjects();}catch(e){if(e.status===401){location.replace("../auth/login.html?next="+encodeURIComponent(location.href));return;}if(e.status===403||e.code==="ADVANCED_ACCESS_REQUIRED"||e.code==="VIDEO_STUDIO_ACCESS_REQUIRED"){$("locked").hidden=false;return;}$("locked").hidden=false;$("locked").querySelector("p").textContent="We could not verify your Video Studio access. Please refresh the page or contact support. ("+e.message+")";}}
 start();
 </script>
