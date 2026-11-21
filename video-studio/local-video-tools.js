@@ -157,9 +157,17 @@ export function renderPersonCutoutFrame(source, cacheKey) {
   if (!sourceWidth || !sourceHeight) return null;
   const key = String(cacheKey || "person-cutout");
   let entry = personFrameCache.get(key);
-  if (!entry) {
+  if (entry) {
+    personFrameCache.delete(key);
+    personFrameCache.set(key, entry);
+  } else {
     entry = { canvas: document.createElement("canvas"), mask: null, lastInference: 0, lastVideoTime: -1 };
     personFrameCache.set(key, entry);
+    // Keep only a few clip canvases alive on low-memory devices.
+    while (personFrameCache.size > 4) {
+      const oldestKey = personFrameCache.keys().next().value;
+      personFrameCache.delete(oldestKey);
+    }
   }
   const now = performance.now();
   const needsInference = !entry.mask || now - entry.lastInference >= 125 && Math.abs((Number(source.currentTime) || 0) - entry.lastVideoTime) >= 0.035;
