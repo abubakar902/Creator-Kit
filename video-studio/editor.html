@@ -47,7 +47,7 @@
 #previewStage video,#previewStage img{pointer-events:auto;touch-action:none;cursor:move}
 #textPreview>[data-clip-id]{pointer-events:auto;touch-action:none;cursor:move;user-select:none}
 .text-resize-handle{z-index:20}
-#previewStage.is-dragging{outline:2px solid #a75cff;outline-offset:2px}.sticker-resize-handle[hidden]{display:none!important}.sticker-resize-handle{position:absolute;z-index:18;width:25px;height:25px;padding:0;border:2px solid #fff;border-radius:50%;background:linear-gradient(145deg,#b45dff,#6944ff);color:#fff;font-size:15px;font-weight:900;line-height:1;display:grid;place-items:center;transform:translate(-50%,-50%);box-shadow:0 2px 12px #000b,0 0 0 2px #a45cff66;cursor:nwse-resize;touch-action:none;user-select:none}
+#overlayStickerLayer{position:absolute;inset:0;z-index:4;pointer-events:none;overflow:hidden}#overlayStickerLayer .overlay-sticker-item{pointer-events:auto;background:transparent}#previewStage.is-dragging{outline:2px solid #a75cff;outline-offset:2px}.sticker-resize-handle[hidden]{display:none!important}.sticker-resize-handle{position:absolute;z-index:18;width:25px;height:25px;padding:0;border:2px solid #fff;border-radius:50%;background:linear-gradient(145deg,#b45dff,#6944ff);color:#fff;font-size:15px;font-weight:900;line-height:1;display:grid;place-items:center;transform:translate(-50%,-50%);box-shadow:0 2px 12px #000b,0 0 0 2px #a45cff66;cursor:nwse-resize;touch-action:none;user-select:none}
 @media(max-width:680px){.property-group>summary{padding:12px;font-size:12px}.group-body{padding:9px}}
 
 .export-modal{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(5,3,13,.78);backdrop-filter:blur(14px)}
@@ -467,7 +467,7 @@ body{background:radial-gradient(ellipse at 48% -18%,rgba(126,79,190,.18),transpa
 <img id="baseImagePreview" alt="Main image clip" draggable="false">
 <video id="overlayVideoPreview" playsinline preload="auto"></video>
 <canvas id="overlayChromaPreview" class="video-chroma-preview" aria-label="Overlay chroma key preview"></canvas>
-<img id="imagePreview" alt="Current image clip" draggable="false">
+<img id="imagePreview" alt="Current image clip" draggable="false"><div id="overlayStickerLayer" aria-label="Sticker and shape overlays"></div>
 <div id="maskGuideLayer" class="mask-guide-layer" hidden><button type="button" class="mask-guide-line top" id="maskTopGuide" data-mask-edge="top" aria-label="Move top mask line"><span>TOP</span></button><button type="button" class="mask-guide-line center" id="maskCenterGuide" data-mask-edge="center" aria-label="Move both mask lines"><span>↕</span></button><button type="button" class="mask-guide-line bottom" id="maskBottomGuide" data-mask-edge="bottom" aria-label="Move bottom mask line"><span>BOTTOM</span></button><button type="button" class="mask-rotate-handle" id="maskRotateHandle" data-mask-edge="rotate" title="Drag to rotate mask" aria-label="Rotate horizontal mask">↻</button></div>
 <button type="button" id="stickerResizeHandle" class="sticker-resize-handle" hidden title="Drag to resize sticker" aria-label="Resize sticker">↘</button>
 <div id="textPreview" class="stage-text"></div>
@@ -637,7 +637,7 @@ body{background:radial-gradient(ellipse at 48% -18%,rgba(126,79,190,.18),transpa
 <div class="timeline-head">
 <strong>Timeline</strong>
 <div class="timeline-buttons">
-<button class="btn" type="button" id="addTextBtn">＋ Text</button><button class="btn" type="button" id="autoCaptionsBtn" title="Generate timed captions from the selected video or audio clip">✦ Auto Captions</button>
+<button class="btn" type="button" id="addTextBtn">＋ Text</button><button class="btn" type="button" id="openStickerModalBtn">✦ Stickers &amp; Shapes</button><button class="btn" type="button" id="autoCaptionsBtn" title="Generate timed captions from the selected video or audio clip">✦ Auto Captions</button>
 <button class="btn" type="button" id="splitBtn" disabled>Split at playhead</button>
 <button class="btn" type="button" id="deleteTimelineBtn" disabled>Delete</button>
 <button class="btn" type="button" id="shortcutsBtn" aria-haspopup="dialog" aria-controls="shortcutsModal" title="Show keyboard shortcuts">⌨ Shortcuts</button>
@@ -755,12 +755,25 @@ body{background:radial-gradient(ellipse at 48% -18%,rgba(126,79,190,.18),transpa
   </footer>
  </section>
 </div>
+<div class="export-modal" id="stickerModal" hidden role="dialog" aria-modal="true" aria-labelledby="stickerDialogTitle">
+ <section class="export-dialog">
+  <header class="export-dialog-head"><div class="export-dialog-icon" aria-hidden="true">✦</div><div><h2 id="stickerDialogTitle">Stickers &amp; Shapes</h2><p>Add a graphic to the timeline at the playhead</p></div></header>
+  <div class="export-dialog-body">
+   <div class="export-quality"><label for="stickerPreset">Choose a sticker or shape</label><select id="stickerPreset">
+    <option value="star">Star</option><option value="heart">Heart</option><option value="circle">Circle</option><option value="rectangle">Rounded rectangle</option><option value="arrow">Arrow</option><option value="speech">Speech bubble</option><option value="lightning">Lightning bolt</option><option value="check">Check mark</option><option value="emoji-star">⭐ Star emoji</option><option value="emoji-fire">🔥 Fire emoji</option><option value="emoji-heart">❤️ Heart emoji</option><option value="emoji-clap">👏 Clapping emoji</option><option value="emoji-target">🎯 Target emoji</option>
+   </select></div>
+   <div class="export-quality"><label for="stickerColor">Colour</label><input id="stickerColor" type="color" value="#b56cff" aria-label="Sticker colour"></div>
+   <p class="export-modal-note">The sticker is added to the Overlay track. Drag it in Preview to move it, use the corner handle to resize it, and export to include it in your video.</p>
+  </div>
+  <footer class="export-dialog-actions"><button class="btn" id="stickerCloseBtn" type="button">Close</button><button class="btn primary" id="stickerAddBtn" type="button">Add to timeline</button></footer>
+ </section>
+</div>
 <script type="module">
 import {authReady,auth,getAccountProfile} from "../auth/auth-client.js";
 import {createLocalVideoTools,renderPersonCutoutFrame} from "./local-video-tools.js";
 const $=id=>document.getElementById(id);
 const projectKey="trivexaai_video_studio_projects_v1",dbName="trivexaai-video-studio",dbVersion=1,scaleDefault=64;
-let db=null,project=null,clips=[],assets=[],urls=new Map(),selectedId=null,scale=scaleDefault,playhead=0,isPlaying=false,raf=0,lastFrame=0,activeVideoId=null,activeOverlayVideoId=null,activeBaseImageId=null,activeImageId=null,audioNodes=new Map(),audioGraphs=new Map(),previewAudioContext=null,audioWaveforms=new Map(),audioWaveformPending=new Map(),audioWaveformUnavailable=new Set(),audioWaveformQueue=Promise.resolve(),saveTimer=0,saveQueue=Promise.resolve(),saveRevision=0,savedRevision=0,undoStack=[],redoStack=[],dragState=null,playheadDrag=null,previewDraft=null,exportBusy=false,exportController=null,lastExportBlob=null,lastExportFileName="",snapEnabled=true,proxyBusy=false,captionsBusy=false,copiedKeyframe=null,activeKeyframeTime=null,exportQueue=[],exportQueueRunning=false,queuedExportClipsSnapshot=null;
+let db=null,project=null,clips=[],assets=[],urls=new Map(),selectedId=null,scale=scaleDefault,playhead=0,isPlaying=false,raf=0,lastFrame=0,activeVideoId=null,activeOverlayVideoId=null,activeBaseImageId=null,activeImageId=null,previewStickerElements=new Map(),audioNodes=new Map(),audioGraphs=new Map(),previewAudioContext=null,audioWaveforms=new Map(),audioWaveformPending=new Map(),audioWaveformUnavailable=new Set(),audioWaveformQueue=Promise.resolve(),saveTimer=0,saveQueue=Promise.resolve(),saveRevision=0,savedRevision=0,undoStack=[],redoStack=[],dragState=null,playheadDrag=null,previewDraft=null,exportBusy=false,exportController=null,lastExportBlob=null,lastExportFileName="",snapEnabled=true,proxyBusy=false,captionsBusy=false,copiedKeyframe=null,activeKeyframeTime=null,exportQueue=[],exportQueueRunning=false,queuedExportClipsSnapshot=null;
 const chromaCanvasCache=new WeakMap();
 let localVideoTools=null,backgroundPreviewWarningShown=false;
 const horizontalMaskCanvasCache=new WeakMap();
@@ -1271,17 +1284,32 @@ function fitPreviewStage(){
  stage.dataset.fitKey=fitKey;
 }
 function renderPreview(){
- const base=activeAt(playhead,"video"),over=activeAt(playhead,"overlay");
+ const base=activeAt(playhead,"video");
  const baseVideo=base&&base.type==="video"?base:null,baseImage=base&&base.type==="image"?base:null;
- const overlayVideo=over&&over.type==="video"?over:null,overlayImage=over&&over.type==="image"?over:null;
- const video=$("videoPreview"),overlayVideoEl=$("overlayVideoPreview"),baseImg=$("baseImagePreview"),img=$("imagePreview");
- const hasVisual=!!(baseVideo||baseImage||overlayVideo||overlayImage);
+ const overlayVideo=clips.map(effectiveClip).filter(c=>c.track==="overlay"&&c.type==="video"&&playhead>=c.start&&playhead<c.start+c.duration).sort((a,b)=>a.start-b.start).at(-1)||null;
+ const overlayImages=clips.map(effectiveClip).filter(c=>c.track==="overlay"&&c.type==="image"&&playhead>=c.start&&playhead<c.start+c.duration).sort((a,b)=>a.start-b.start);
+ const video=$("videoPreview"),overlayVideoEl=$("overlayVideoPreview"),baseImg=$("baseImagePreview"),legacyImg=$("imagePreview"),stickerLayer=$("overlayStickerLayer");
+ const hasVisual=!!(baseVideo||baseImage||overlayVideo||overlayImages.length);
  $("previewPlaceholder").style.display=hasVisual?"none":"block";
  activeVideoId=renderPreviewVideoLayer(baseVideo,video,"chromaPreview",activeVideoId);
  activeOverlayVideoId=renderPreviewVideoLayer(overlayVideo,overlayVideoEl,"overlayChromaPreview",activeOverlayVideoId);
  activeBaseImageId=renderPreviewImageLayer(baseImage,baseImg,activeBaseImageId,false,false);
- activeImageId=renderPreviewImageLayer(overlayImage,img,activeImageId,true,!!(baseVideo||baseImage));
- if(!overlayImage)img.classList.remove("is-overlay");
+ activeImageId=renderPreviewImageLayer(null,legacyImg,activeImageId);
+ const activeStickerIds=new Set(overlayImages.map(c=>c.id));
+ for(const [id,element] of previewStickerElements){
+  if(!activeStickerIds.has(id)){element.remove();previewStickerElements.delete(id);}
+ }
+ for(const clip of overlayImages){
+  let element=previewStickerElements.get(clip.id);
+  if(!element){
+   element=document.createElement("img");element.className="overlay-sticker-item";element.alt=clip.name||"Sticker";element.draggable=false;
+   previewStickerElements.set(clip.id,element);
+  }
+  element.alt=clip.name||"Sticker";
+  stickerLayer.append(element);
+  const nextKey=renderPreviewImageLayer(clip,element,element.dataset.activeKey||null,true,!!(baseVideo||baseImage||overlayVideo));
+  element.dataset.activeKey=nextKey||"";
+ }
  const texts=clips.map(effectiveClip).filter(c=>(c.track==="text"||c.track==="captions")&&playhead>=c.start&&playhead<c.start+c.duration);
  $("textPreview").replaceChildren();
  texts.forEach(c=>{
@@ -1305,9 +1333,11 @@ function renderPreview(){
  $("textPreview").style.display=texts.length?"block":"none";
  const outputSize=exportCanvasSize(),frame=outputSize.width+" / "+outputSize.height,stage=$("previewStage");
  if(stage.dataset.previewFrame!==frame){stage.dataset.previewFrame=frame;stage.style.aspectRatio=frame;}
- video.style.objectFit=$("previewFit").value;overlayVideoEl.style.objectFit=$("previewFit").value;baseImg.style.objectFit=$("previewFit").value;img.style.objectFit="contain";
+ video.style.objectFit=$("previewFit").value;overlayVideoEl.style.objectFit=$("previewFit").value;baseImg.style.objectFit=$("previewFit").value;
  fitPreviewStage();
- const activeSticker=[overlayImage,baseImage].find(item=>item&&item.id===selectedId),stickerElement=activeSticker&&activeSticker.id===overlayImage?.id?img:baseImg;updateStickerResizeHandle(activeSticker,stickerElement);
+ const activeSticker=overlayImages.find(item=>item.id===selectedId)||(baseImage&&baseImage.id===selectedId?baseImage:null);
+ const stickerElement=activeSticker?(activeSticker.track==="overlay"?previewStickerElements.get(activeSticker.id):baseImg):null;
+ updateStickerResizeHandle(activeSticker,stickerElement);
  updateTextResizeHandle(texts);updateMaskGuides();
 }
 function updateTextResizeHandle(texts){
@@ -1333,7 +1363,8 @@ function updateMaskGuides(){
  const layer=$("maskGuideLayer"),c=selectedClip(),stage=$("previewStage");
  if(!layer)return;
  const shown=previewDraft&&previewDraft.id===c?.id?previewDraft:c;
- if(!shown||!(shown.type==="video"||shown.type==="image")||shown.maskShape!=="horizontal"||playhead<shown.start||playhead>=shown.start+shown.duration||activeAt(playhead,shown.track)?.id!==shown.id){layer.hidden=true;return;}
+ const isShownActive=shown&&shown.track==="overlay"?clips.some(item=>item.id===shown.id&&playhead>=item.start&&playhead<item.start+item.duration):activeAt(playhead,shown?.track)?.id===shown?.id;
+ if(!shown||!(shown.type==="video"||shown.type==="image")||shown.maskShape!=="horizontal"||playhead<shown.start||playhead>=shown.start+shown.duration||!isShownActive){layer.hidden=true;return;}
  const top=Math.max(0,Math.min(95,Number(shown.maskTop??25))),bottom=Math.max(top+5,Math.min(100,Number(shown.maskBottom??75)));
  const angle=Math.max(-90,Math.min(90,Number(shown.maskAngle)||0)),rad=angle*Math.PI/180,sin=Math.sin(rad),cos=Math.cos(rad);
  const width=Math.max(1,stage.clientWidth),height=Math.max(1,stage.clientHeight);
@@ -1802,6 +1833,43 @@ function previewPointerUp(e){
  dragState=null;
 }
 
+function openStickerModal(){$("stickerModal").hidden=false;}
+function closeStickerModal(){$("stickerModal").hidden=true;}
+function makeStickerSvg(preset,color){
+ const safeColor=/^#[0-9a-f]{6}$/i.test(String(color||""))?color:"#b56cff";
+ const paths={
+  star:'<path d="M128 12 157 91 242 94 176 148 198 235 128 185 58 235 80 148 14 94 99 91Z"/>',
+  heart:'<path d="M128 224 34 132C-8 87 24 24 79 30c22 2 39 15 49 33 10-18 27-31 49-33 55-6 87 57 45 102Z"/>',
+  circle:'<circle cx="128" cy="128" r="104"/>',
+  rectangle:'<rect x="20" y="48" width="216" height="160" rx="26"/>',
+  arrow:'<path d="M18 91h130V35l90 93-90 93v-56H18Z"/>',
+  speech:'<path d="M30 34h196a16 16 0 0 1 16 16v116a16 16 0 0 1-16 16h-88l-58 42v-42H30a16 16 0 0 1-16-16V50a16 16 0 0 1 16-16Z"/>',
+  lightning:'<path d="M145 8 38 145h71l-7 103 116-151h-76Z"/>',
+  check:'<path d="m22 132 31-31 49 49L204 48l31 31-133 135Z"/>'
+ };
+ const emojis={"emoji-star":"⭐","emoji-fire":"🔥","emoji-heart":"❤️","emoji-clap":"👏","emoji-target":"🎯"};
+ const content=emojis[preset]
+  ?'<text x="128" y="190" text-anchor="middle" font-size="184" font-family="Arial, Segoe UI Emoji, sans-serif">'+emojis[preset]+'</text>'
+  :'<g fill="'+safeColor+'" stroke="#ffffff" stroke-width="7" stroke-linejoin="round">'+(paths[preset]||paths.star)+'</g>';
+ return '<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 256 256">'+content+'</svg>';
+}
+async function addStickerToTimeline(){
+ const button=$("stickerAddBtn");if(button.disabled)return;
+ const preset=$("stickerPreset").value,color=$("stickerColor").value;
+ const labels={star:"Star",heart:"Heart",circle:"Circle",rectangle:"Rounded rectangle",arrow:"Arrow",speech:"Speech bubble",lightning:"Lightning bolt",check:"Check mark","emoji-star":"Star emoji","emoji-fire":"Fire emoji","emoji-heart":"Heart emoji","emoji-clap":"Clapping emoji","emoji-target":"Target emoji"};
+ const name=labels[preset]||"Sticker";
+ button.disabled=true;button.textContent="Adding…";
+ try{
+  const blob=new Blob([makeStickerSvg(preset,color)],{type:"image/svg+xml"});
+  const asset={id:uid(),projectId:project.id,name:"TrivexaAI "+name+".svg",type:"image",mime:"image/svg+xml",size:blob.size,duration:5,blob,origin:"generated",createdAt:new Date().toISOString()};
+  await dbRequest("assets","readwrite",store=>store.put(asset));
+  assets.push(asset);urls.set(asset.id,URL.createObjectURL(blob));snapshot();
+  const clip={id:uid(),assetId:asset.id,name,type:"image",track:"overlay",start:playhead,sourceStart:0,duration:5,volume:1,scale:.55,x:0,y:0,opacity:1,rotation:0,imagePositionMode:"stage",framingMode:"contain"};
+  clips.push(clip);selectedId=clip.id;previewDraft=null;renderAll();scheduleSave();closeStickerModal();
+  notify(name+" added to the Overlay track. Drag it in Preview to position it.");
+ }catch(error){notify("Could not add this sticker: "+(error?.message||"Please try again."));}
+ finally{button.disabled=false;button.textContent="Add to timeline";}
+}
 function addText(){const text=prompt("Enter the text for your video:","Your title here");if(!text||!text.trim())return;snapshot();clips.push({id:uid(),name:"Text overlay",type:"text",track:"text",text:text.trim().slice(0,180),color:"#ffffff",fontSize:42,font:"Arial, sans-serif",weight:800,align:"center",bgColor:"#000000",bgOpacity:0,x:0,y:0,start:playhead,duration:5,sourceStart:0});selectClip(clips[clips.length-1].id);renderAll();scheduleSave();}
 
 function openCaptionsModal(){
@@ -2341,9 +2409,10 @@ function drawExportText(ctx,c,time,width,height,fontScale){
 }
 function drawExportFrame(ctx,list,mediaById,time,width,height,fontScale,fit){
  ctx.fillStyle="#05040a";ctx.fillRect(0,0,width,height);
- const base=exportActiveAt(list,time,"video"),over=exportActiveAt(list,time,"overlay");
+ const base=exportActiveAt(list,time,"video");
  const baseVideo=base&&base.type==="video"?base:null,baseImage=base&&base.type==="image"?base:null;
- const overlayVideo=over&&over.type==="video"?over:null,overlayImage=over&&over.type==="image"?over:null;
+ const overlayVideo=list.filter(c=>c.track==="overlay"&&c.type==="video"&&time>=c.start&&time<c.start+c.duration).sort((a,b)=>a.start-b.start).at(-1)||null;
+ const overlayImages=list.filter(c=>c.track==="overlay"&&c.type==="image"&&time>=c.start&&time<c.start+c.duration).sort((a,b)=>a.start-b.start);
  if(baseVideo){
   const item=mediaById.get(baseVideo.id),source=item&&item.media;
   if(source&&source.readyState>=2)drawExportMedia(ctx,source,baseVideo,time-baseVideo.start,width,height,fit,{x:0,y:0,width,height});
@@ -2355,13 +2424,15 @@ function drawExportFrame(ctx,list,mediaById,time,width,height,fontScale,fit){
   const item=mediaById.get(overlayVideo.id),source=item&&item.media;
   if(source&&source.readyState>=2)drawExportMedia(ctx,source,overlayVideo,time-overlayVideo.start,width,height,fit,{x:0,y:0,width,height});
  }
- if(overlayImage){
-  const item=mediaById.get(overlayImage.id),image=item&&item.media;
+ overlayImages.forEach(sticker=>{
+  const item=mediaById.get(sticker.id),image=item&&item.media;
   if(image&&image.complete){
-   const box=baseVideo||baseImage||overlayVideo?{x:width*.48,y:height*.48,width:width*.48,height:height*.48}:{x:0,y:0,width,height};
-   drawExportMedia(ctx,image,overlayImage,time-overlayImage.start,width,height,"contain",box);
+   // Preview stickers occupy 44% of the stage; scale the full-frame export
+   // context by the same amount so position and size stay consistent.
+   const exportSticker={...sticker,scale:(Number(sticker.scale)||1)*.44};
+   drawExportMedia(ctx,image,exportSticker,time-sticker.start,width,height,"contain",{x:0,y:0,width,height});
   }
- }
+ });
  list.filter(c=>(c.track==="text"||c.track==="captions")&&time>=c.start&&time<c.start+c.duration).forEach(c=>drawExportText(ctx,c,time,width,height,fontScale));
 }
 function waitForExportMedia(element,eventName,label){
@@ -3057,7 +3128,7 @@ $("shortcutsModal").addEventListener("click",event=>{if(event.target===$("shortc
 window.addEventListener("keydown",handleEditorShortcuts);
 $("importBtn").addEventListener("click",()=>$("fileInput").click());
 $("fileInput").addEventListener("change",async e=>{if(e.target.files?.length)await importFiles([...e.target.files]);e.target.value="";});
-$("addTextBtn").addEventListener("click",addText);$("autoCaptionsBtn").addEventListener("click",openCaptionsModal);$("captionsCloseBtn").addEventListener("click",closeCaptionsModal);$("captionsGenerateBtn").addEventListener("click",generateCaptions);$("captionsDownloadBtn").addEventListener("click",downloadCaptionsSrt);$("captionsModal").addEventListener("click",event=>{if(event.target===$("captionsModal")&&!captionsBusy)closeCaptionsModal();});
+$("addTextBtn").addEventListener("click",addText);$("openStickerModalBtn").addEventListener("click",openStickerModal);$("stickerCloseBtn").addEventListener("click",closeStickerModal);$("stickerAddBtn").addEventListener("click",addStickerToTimeline);$("stickerModal").addEventListener("click",event=>{if(event.target===$("stickerModal"))closeStickerModal();});$("autoCaptionsBtn").addEventListener("click",openCaptionsModal);$("captionsCloseBtn").addEventListener("click",closeCaptionsModal);$("captionsGenerateBtn").addEventListener("click",generateCaptions);$("captionsDownloadBtn").addEventListener("click",downloadCaptionsSrt);$("captionsModal").addEventListener("click",event=>{if(event.target===$("captionsModal")&&!captionsBusy)closeCaptionsModal();});
 $("playBtn").addEventListener("click",()=>isPlaying?pause():play());
 $("stopBtn").addEventListener("click",()=>{pause();setPlayhead(0);});
 $("splitBtn").addEventListener("click",splitSelected);
