@@ -163,6 +163,23 @@ const legacyWorker = {
         return reply({ error: "Send a valid JSON request." }, 400);
       }
 
+      // Retry transient Gemini network/server failures so a temporary 503 does not instantly fail the editor.
+      const fetchGeminiWithRetry = async (url, options) => {
+        let lastError;
+        for (let attempt = 0; attempt < 3; attempt++) {
+          try {
+            const response = await fetch(url, options);
+            if (![500, 502, 503, 504].includes(response.status) || attempt === 2) return response;
+          } catch (error) {
+            lastError = error;
+            if (attempt === 2) throw error;
+          }
+          await new Promise(resolve => setTimeout(resolve, 350 * (attempt + 1)));
+        }
+        if (lastError) throw lastError;
+        throw new Error("Gemini temporary service failure. Please try again.");
+      };
+
       // PER-TOOL RATE LIMITING
       // The frontend can send toolId, tool, toolName, or tool_name.
       // If none is supplied, requests are separated by their Worker action.
@@ -920,7 +937,7 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
 
         let geminiResponse;
         try {
-          geminiResponse = await fetch(
+          geminiResponse = await fetchGeminiWithRetry(
             "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent",
             {
               method: "POST",
@@ -1572,7 +1589,7 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
         ].join("\n");
         let geminiResponse;
         try {
-          geminiResponse = await fetch(
+          geminiResponse = await fetchGeminiWithRetry(
             "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent",
             {
               method: "POST",
@@ -1741,10 +1758,22 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
 export default {
  async fetch(request, env) {
   const origin=request.headers.get("Origin");
-  const origins=String(env.ALLOWED_ORIGINS||"https://abubakar902.github.io").split(",").map(x=>x.trim()).filter(Boolean);
-  const allowed=!origin||origins.includes(origin);
+  const normalizeAllowedOrigin=value=>{
+   let candidate=String(value||"").trim();
+   if(!candidate)return "";
+   if(!/^https?:\/\//i.test(candidate))candidate="https://"+candidate;
+   try{
+    const parsed=new URL(candidate);
+    return parsed.protocol==="https:"||parsed.protocol==="http:"?parsed.origin:"";
+   }catch(error){return "";}
+  };
+  const origins=String(env.ALLOWED_ORIGINS||"https://abubakar902.github.io")
+   .split(",").map(normalizeAllowedOrigin).filter(Boolean);
+  let requestOrigin="";
+  try{requestOrigin=origin?new URL(origin).origin:"";}catch(error){}
+  const allowed=!origin||origins.includes(requestOrigin);
   const cors={
-   ...(origin&&allowed?{"Access-Control-Allow-Origin":origin}:{}),
+   ...(origin&&allowed?{"Access-Control-Allow-Origin":requestOrigin}:{}),
    "Access-Control-Allow-Methods":"POST, OPTIONS",
    "Access-Control-Allow-Headers":"Content-Type, Authorization",
    "Access-Control-Expose-Headers":"Content-Disposition",
