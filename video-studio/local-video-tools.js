@@ -721,16 +721,53 @@ async function enhanceSelectedAudio(api, token) {
 
 export function createLocalVideoTools(api) {
   const busy = new Map();
+  const toolLabels = {
+    reverseClipBtn: "Preparing…",
+    motionTrackBtn: "Tracking…",
+    autoReframeBtn: "Reframing…",
+    removeVideoBgBtn: "Loading person model…",
+    enhanceAudioBtn: "Loading RNNoise…"
+  };
+  const toolActions = {
+    reverseClipBtn: token => reverseSelectedClip(api, token),
+    motionTrackBtn: async token => {
+      const clip = api.getSelectedClip();
+      const points = await analyseClip(api, clip, "track", token);
+      api.applyClipKeyframes(clip.id, points, {});
+      api.notify("Motion tracking complete. The selected clip now follows the detected subject.");
+    },
+    autoReframeBtn: async token => {
+      const clip = api.getSelectedClip();
+      const points = await analyseClip(api, clip, "reframe", token);
+      api.applyClipKeyframes(clip.id, points, { framingMode: "fill" });
+      api.notify("Auto Reframe complete. The person is now kept near the centre of the frame.");
+    },
+    removeVideoBgBtn: async token => {
+      const clip = api.getSelectedClip();
+      if (!clip || clip.type !== "video") throw new Error("Select a video clip on the timeline first.");
+      if (clip.bgRemoveEnabled) {
+        api.setClipBackgroundRemoval(clip.id, false);
+        api.notify("Person background removal is off for this clip.");
+        return;
+      }
+      api.pause();
+      await ensurePersonSegmenter();
+      checkCancelled(token);
+      api.setClipBackgroundRemoval(clip.id, true);
+      api.notify("Person background removal is on. The model runs locally; use a short clip for smoother export.");
+    },
+    enhanceAudioBtn: token => enhanceSelectedAudio(api, token)
+  };
   const run = async (id, workingText, action) => {
     const button = byId(id);
-    if (!button) return;
+    if (!button || typeof action !== "function") return false;
     const active = busy.get(id);
     if (active) {
       active.cancelled = true;
       if (typeof active.cancel === "function") active.cancel();
       button.disabled = true;
       button.textContent = "Cancelling…";
-      return;
+      return false;
     }
     const token = { cancelled: false, cancel: null };
     const oldText = button.textContent, oldTitle = button.title;
@@ -741,10 +778,12 @@ export function createLocalVideoTools(api) {
     try {
       await action(token);
       checkCancelled(token);
+      return true;
     } catch (error) {
       if (token.cancelled || error && error.name === "AbortError") api.notify("Cancelled. Your original media and project are safe.");
       else api.notify(readableToolError(error));
       api.setStatus("Ready · Auto-save on");
+      return false;
     } finally {
       busy.delete(id);
       button.disabled = false;
@@ -755,35 +794,16 @@ export function createLocalVideoTools(api) {
   };
   return {
     convertWebMToMp4,
+    runTool(id) {
+      if (!Object.prototype.hasOwnProperty.call(toolActions, id)) {
+        return Promise.reject(new Error("This local Video Studio tool is not available."));
+      }
+      return run(id, toolLabels[id], toolActions[id]);
+    },
     bind() {
-      byId("reverseClipBtn")?.addEventListener("click", () => run("reverseClipBtn", "Preparing…", token => reverseSelectedClip(api, token)));
-      byId("motionTrackBtn")?.addEventListener("click", () => run("motionTrackBtn", "Tracking…", async token => {
-        const clip = api.getSelectedClip();
-        const points = await analyseClip(api, clip, "track", token);
-        api.applyClipKeyframes(clip.id, points, {});
-        api.notify("Motion tracking complete. The selected clip now follows the detected subject.");
-      }));
-      byId("autoReframeBtn")?.addEventListener("click", () => run("autoReframeBtn", "Reframing…", async token => {
-        const clip = api.getSelectedClip();
-        const points = await analyseClip(api, clip, "reframe", token);
-        api.applyClipKeyframes(clip.id, points, { framingMode: "fill" });
-        api.notify("Auto Reframe complete. The person is now kept near the centre of the frame.");
-      }));
-      byId("removeVideoBgBtn")?.addEventListener("click", () => run("removeVideoBgBtn", "Loading person model…", async token => {
-        const clip = api.getSelectedClip();
-        if (!clip || clip.type !== "video") throw new Error("Select a video clip on the timeline first.");
-        if (clip.bgRemoveEnabled) {
-          api.setClipBackgroundRemoval(clip.id, false);
-          api.notify("Person background removal is off for this clip.");
-          return;
-        }
-        api.pause();
-        await ensurePersonSegmenter();
-        checkCancelled(token);
-        api.setClipBackgroundRemoval(clip.id, true);
-        api.notify("Person background removal is on. The model runs locally; use a short clip for smoother export.");
-      }));
-      byId("enhanceAudioBtn")?.addEventListener("click", () => run("enhanceAudioBtn", "Loading RNNoise…", token => enhanceSelectedAudio(api, token)));
+      Object.keys(toolActions).forEach(id => {
+        byId(id)?.addEventListener("click", () => runTool(id));
+      });
     },
     prepareBackgroundRemoval: ensurePersonSegmenter,
     hasBackgroundRemovalModel: () => !!imageSegmenter
