@@ -3331,7 +3331,7 @@ async function callVideoStudioAi(prompt){
 const AI_VIDEO_TOOLS = new Set([
  "scene_detection","beat_sync","remove_silence","ai_colour_correction",
  "caption_translation","auto_captions","reverse_video","motion_tracking",
- "enhance_audio","remove_person_background","auto_reframe","ai_voice_over","add_sticker"
+ "enhance_audio","remove_person_background","auto_reframe","detach_audio","ai_voice_over","add_sticker"
 ]);
 const AI_VOICE_IDS = new Set(["angus","asteria","arcas","orion","orpheus","athena","luna","zeus","perseus","helios","hera","stella"]);
 const AI_LANGUAGES = new Set(["English","Urdu","Hindi","Arabic","Spanish","French","German","Portuguese","Turkish","Bengali","Chinese (Simplified)","Japanese"]);
@@ -3582,7 +3582,7 @@ function aiValidatePlan(raw){
      const types={
       scene_detection:["video"],beat_sync:["audio","video"],remove_silence:["audio","video"],ai_colour_correction:["video","image"],
       auto_captions:["video","audio"],reverse_video:["video"],motion_tracking:["video"],enhance_audio:["audio"],
-      remove_person_background:["video"],auto_reframe:["video"]
+      remove_person_background:["video"],auto_reframe:["video"],detach_audio:["video"]
      };
      clip=requireClip(item.clipId||selectedId,types[item.tool]);
     }
@@ -3633,7 +3633,7 @@ function aiOperationLabel(operation){
   ai_colour_correction:"Analyse and correct selected clip colours",caption_translation:"Translate existing captions into "+operation.language,
   auto_captions:"Generate AI captions from the selected clip",reverse_video:"Reverse the selected video clip",motion_tracking:"Track "+operation.target+" movement in the selected video",
   enhance_audio:"Enhance the selected audio",remove_person_background:"Remove the person background from the selected video",
-  auto_reframe:"Reframe the selected video around the subject",ai_voice_over:"Generate an AI voice-over clip",add_sticker:"Add a "+operation.preset+" sticker"
+  auto_reframe:"Reframe the selected video around the subject",detach_audio:"Extract the selected video's audio to a new Audio track",ai_voice_over:"Generate an AI voice-over clip",add_sticker:"Add a "+operation.preset+" sticker"
  };
  return names[operation.tool]||"Run "+operation.tool;
 }
@@ -3828,6 +3828,9 @@ async function aiExecuteTool(operation){
  }else if(tool==="auto_reframe"){
   const success=await localVideoTools.runTool("autoReframeBtn");
   if(!success)throw new Error("Auto Reframe complete nahi ho saka.");
+ }else if(tool==="detach_audio"){
+  await detachAudioFromVideo();
+  if(clips.length<1||!clips.some(c=>c.type==="audio"&&c.detachedFromVideoId===clipId))throw new Error("Audio extraction complete nahi ho saki.");
  }
  const changed=JSON.stringify(clips)!==before||assets.length!==assetsBefore;
  if(!changed)throw new Error("Selected tool ne is clip par koi change nahi banaya. Original preview restore ki ja rahi hai.");
