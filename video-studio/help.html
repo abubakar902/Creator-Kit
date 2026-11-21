@@ -104,9 +104,20 @@ kbd{display:inline-block;padding:3px 7px;border:1px solid #5a4273;border-bottom-
 .no-results.show{display:block}
 .footer{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:26px;padding-top:15px;border-top:1px solid rgba(151,116,187,.17);color:#827391;font-size:9px}
 .footer a{color:#c9a4f2;text-decoration:underline;text-underline-offset:3px}
+/* Readable help text on desktop and mobile */
+.sidebar a{font-size:12px}
+.intro-row p{font-size:12px}
+.step b{font-size:13px}
+.step p{font-size:11px}
+.entry-body p{font-size:12px;line-height:1.72}
+.entry-body ol,.entry-body ul{font-size:11px;line-height:1.85}
+.entry-body .tip{font-size:10.5px;line-height:1.7}
+.entry-body .limit,.entry-body .privacy{font-size:10px;line-height:1.7}
+.trouble-row p{font-size:11px;line-height:1.72}
+.support-card p{font-size:12px;line-height:1.75}
 @media(max-width:980px){.layout{grid-template-columns:205px minmax(0,1fr);gap:14px}.quick-start{grid-template-columns:repeat(2,minmax(0,1fr))}.entry-grid{grid-template-columns:1fr}}
 @media(max-width:720px){.topbar{height:62px;padding:0 12px}.brand{font-size:14px}.brand img{width:30px;height:30px}.top-link{min-height:33px;padding:0 9px;font-size:9px}.shell{padding:18px 12px 45px}.hero{padding:23px 18px;border-radius:18px}.hero h1{font-size:32px}.hero p{font-size:12px}.hero:after{right:1%;font-size:130px}.search-panel{margin:-15px 7px 19px}.layout{display:block}.sidebar{position:relative;top:auto;display:flex;gap:4px;max-height:none;overflow-x:auto;margin-bottom:20px;padding:8px;white-space:nowrap}.sidebar-title{display:none}.sidebar a{flex:none;margin:0;padding:9px 10px;font-size:9px}.sidebar a span{width:auto}.sidebar .sidebar-feedback{margin:0}.quick-start{grid-template-columns:repeat(2,minmax(0,1fr))}.step{min-height:115px;padding:12px}.section-heading h2{font-size:14px}.intro-row h2{font-size:18px}.support-card{padding:18px}.footer{align-items:flex-start;flex-direction:column}}
-@media(max-width:390px){.top-actions .top-link.secondary{display:none}.hero h1{font-size:28px}.quick-start{grid-template-columns:1fr 1fr;gap:7px}.step p{font-size:9px}.guide-entry summary{font-size:11px}.entry-body p{font-size:10px}}
+@media(max-width:390px){.top-actions .top-link.secondary{display:none}.hero h1{font-size:28px}.quick-start{grid-template-columns:1fr 1fr;gap:7px}.step p{font-size:10px}.guide-entry summary{font-size:11px}.entry-body p{font-size:11px}.entry-body ol,.entry-body ul{font-size:10.5px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -206,7 +217,7 @@ kbd{display:inline-block;padding:3px 7px;border:1px solid #5a4273;border-bottom-
       <summary><span class="entry-icon">▥</span>Timeline Tracks & Clip Controls</summary>
       <div class="entry-body">
        <p><b>What it does:</b> Controls when each video, image, text, audio or caption appears.</p>
-       <ul><li><b>Video / Image:</b> Main video clips and image clips.</li><li><b>Overlay:</b> Extra videos, images and stickers placed above the main picture. Use it for picture-in-picture.</li><li><b>Text:</b> Text layers and titles.</li><li><b>Audio:</b> Music, sound effects, detached video audio and generated voice-over clips.</li><li><b>Captions:</b> Timed subtitles created by Auto Captions.</li></ul>
+       <ul><li><b>Video / Image:</b> Main video clips and image clips.</li><li><b>Overlay:</b> Extra videos, images and stickers placed above the main picture. For picture-in-picture, add a second video or image here, then resize and position it in Preview or Properties.</li><li><b>Text:</b> Text layers and titles.</li><li><b>Audio:</b> Music, sound effects, detached video audio and generated voice-over clips.</li><li><b>Captions:</b> Timed subtitles created by Auto Captions.</li></ul>
        <ol><li>Drag a clip to move it along the timeline.</li><li>Drag either end of a clip to trim its duration.</li><li>Drag the pink playhead to seek. Click the ruler to move to a time.</li><li>Click a clip to open its Properties.</li><li>Use <b>Split at playhead</b> to cut the selected clip at the pink line.</li><li>Use Duplicate or Delete for the selected clip.</li></ol>
       </div>
      </details>
@@ -414,7 +425,7 @@ kbd{display:inline-block;padding:3px 7px;border:1px solid #5a4273;border-bottom-
    <section class="support-card" id="get-help">
     <span class="eyebrow">Need a hand?</span>
     <h2>Still not sure how to use a tool?</h2>
-    <p>Open the TrivexaAI feedback form and choose <b>Report a problem</b>. Video Studio will already be selected. Tell us the tool name, what you clicked, what you expected, what happened and any error message. A screenshot can make the issue easier to understand. Never include your password or private account details.</p>
+    <p>Open the TrivexaAI feedback form. Choose a star rating, select <b>Report a problem</b> and choose the problem type. <b>Video Studio</b> will already be selected. Tell us the tool name, what you clicked, what you expected, what happened and any error message. A screenshot can make the issue easier to understand. Never include your password or private account details.</p>
     <div class="support-actions"><a href="../feedback.html?tool=video-studio">Get help / Report an issue ↗</a><a class="secondary" href="./">Back to Video Studio</a></div>
    </section>
    <div class="footer"><span>TrivexaAI Video Studio Help Center</span><span>Need another answer? <a href="../feedback.html?tool=video-studio">Send feedback</a></span></div>
