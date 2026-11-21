@@ -1415,11 +1415,11 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
               break;
             }
             case "duplicate_clip":
-              requireClip(item.clipId);
+              resolveClipTarget(item);
               checkNum(item, "start", 0, 7200);
               break;
             case "delete_clip":
-              requireClip(item.clipId);
+              resolveClipTarget(item);
               break;
             case "add_text_overlay":
               if (typeof item.text !== "string" || !item.text.trim() || item.text.length > 180) throw new Error("Text overlay content is invalid.");
