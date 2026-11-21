@@ -2365,7 +2365,8 @@ function getSelectedExportSize(){
 }
 async function exportVideo(){
  if(exportBusy)return;
- if(!clips.length){notify("Add at least one clip before exporting.");return;}
+ lastExportBlob=null;lastExportFileName="";
+ if(!(queuedExportClipsSnapshot||clips).length){notify("Add at least one clip before exporting.");return;}
  if(typeof MediaRecorder==="undefined"||!HTMLCanvasElement.prototype.captureStream){
   notify("This browser does not support video export. Please use an updated Chrome or Edge browser.");return;
  }
