@@ -416,22 +416,24 @@ async function reverseSelectedClip(api, token) {
     await ffmpeg.exec(["-hide_banner", "-encoders"]);
     const encoderText = logLines.join("\n");
     let videoCodec = "mpeg4", outputName = "trivexa-reversed.mp4", mime = "video/mp4";
-    let videoArgs = ["-c:v", "mpeg4", "-q:v", "5"];
-    if (encoderText.includes("libx264")) videoArgs = ["-c:v", "libx264", "-preset", "ultrafast", "-crf", "28"];
+    let videoArgs = ["-c:v", "mpeg4", "-q:v", "5", "-threads", "1"];
+    if (encoderText.includes("libx264")) videoArgs = ["-c:v", "libx264", "-preset", "ultrafast", "-crf", "28", "-threads", "1"];
     else if (encoderText.includes("libvpx")) {
       videoCodec = "libvpx";
       outputName = "trivexa-reversed.webm";
       mime = "video/webm";
-      videoArgs = ["-c:v", "libvpx", "-deadline", "realtime", "-cpu-used", "8", "-b:v", "900k"];
+      videoArgs = ["-c:v", "libvpx", "-deadline", "realtime", "-cpu-used", "8", "-b:v", "900k", "-threads", "1"];
     }
     const audioArgs = videoCodec === "libvpx"
       ? (encoderText.includes("libopus") ? ["-c:a", "libopus", "-b:a", "96k"] : ["-an"])
       : ["-c:a", "aac", "-b:a", "128k"];
     checkCancelled(token);
     const result = await ffmpeg.exec([
-      "-i", inputName,
+      // Restrict the input range before applying reverse, so only the
+      // selected timeline segment is buffered by FFmpeg's reverse filter.
       "-ss", String(Math.max(0, api.getClipSourceTime(clip, 0)).toFixed(3)),
       "-t", String(sourceDuration.toFixed(3)),
+      "-i", inputName,
       "-map", "0:v:0",
       "-map", "0:a?",
       "-vf", "scale='min(720,iw)':-2,reverse",
