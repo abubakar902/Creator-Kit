@@ -2986,6 +2986,50 @@ $("translateCaptionsBtn").addEventListener("click",translateCaptionTrack);
 $("silenceThreshold").addEventListener("input",()=>{$("silenceThresholdValue").textContent=Number($("silenceThreshold").value)+" dB";});
 $("addExportQueueBtn").addEventListener("click",addCurrentExportToQueue);
 $("startExportQueueBtn").addEventListener("click",startExportQueue);
+localVideoTools=createLocalVideoTools({
+ getSelectedClip:selectedClip,
+ getAsset:assetById,
+ getAssetUrl:assetUrl,
+ getClipSourceTime:clipSourceTime,
+ getClipSourceElapsed:clipSourceElapsed,
+ getAnimatedValues:animatedValues,
+ pause,
+ setStatus:status,
+ notify,
+ async addDerivedAsset(blob,name,type,durationHint){
+  const measured=Number(durationHint)>0?Number(durationHint):await measureDuration(blob,type);
+  const asset={id:uid(),projectId:project.id,name:String(name||"Processed media").slice(0,120),type,mime:blob.type||"",size:blob.size,duration:Math.max(.2,measured),blob,origin:"derived",createdAt:new Date().toISOString()};
+  await dbRequest("assets","readwrite",store=>store.put(asset));
+  assets.push(asset);urls.set(asset.id,URL.createObjectURL(blob));renderAssets();
+  return asset;
+ },
+ replaceClipAsset(clipId,assetId,sourceDuration,label){
+  const clip=clips.find(item=>item.id===clipId);if(!clip)throw new Error("The selected clip is no longer on the timeline.");
+  snapshot();clip.assetId=assetId;clip.sourceStart=0;clip.speedSourceDuration=Math.max(.001,Number(sourceDuration)||clip.duration);
+  clip.name=(clip.name||"Video")+" ("+String(label||"Processed")+")";
+  renderAll();scheduleSave();
+ },
+ replaceAudioWithEnhanced(clipId,assetId,sourceDuration,label){
+  const clip=clips.find(item=>item.id===clipId);if(!clip||clip.type!=="audio")throw new Error("The selected audio clip is no longer on the timeline.");
+  snapshot();clip.assetId=assetId;clip.sourceStart=0;clip.speedSourceDuration=Math.max(.001,Number(sourceDuration)||clip.duration);
+  clip.name=(clip.name||"Audio")+" ("+String(label||"Enhanced")+")";
+  renderAll();scheduleSave();
+ },
+ applyClipKeyframes(clipId,frames,options){
+  const clip=clips.find(item=>item.id===clipId);if(!clip)throw new Error("The selected clip is no longer on the timeline.");
+  if(!Array.isArray(frames)||frames.length<2)throw new Error("The tracking model did not return enough keyframes.");
+  snapshot();clip.keyframes=frames.map(frame=>({time:Number(frame.time)||0,values:{...(frame.values||{})}})).sort((a,b)=>a.time-b.time);
+  clip.autoNextKeyframe=false;clip.trackingApplied=true;
+  if(options&&options.framingMode)clip.framingMode=options.framingMode;
+  renderAll();scheduleSave();
+ },
+ setClipBackgroundRemoval(clipId,enabled){
+  const clip=clips.find(item=>item.id===clipId);if(!clip)throw new Error("The selected clip is no longer on the timeline.");
+  snapshot();clip.bgRemoveEnabled=!!enabled;renderAll();scheduleSave();
+  const button=$("removeVideoBgBtn");if(button&&clipId===selectedId)button.textContent=enabled?"✓ Person BG On":"✂ Remove Person BG";
+ }
+});
+localVideoTools.bind();
 renderExportQueue();
 $("exportCancelBtn").addEventListener("click",()=>{if(exportBusy)requestExportCancel();else hideExportModal();});
 $("exportCloseBtn").addEventListener("click",hideExportModal);
