@@ -364,6 +364,10 @@ async function loadFFmpeg() {
         URL.revokeObjectURL(wasmURL);
         throw error;
       }
+      // The worker has copied both files into its own runtime; release the
+      // temporary main-thread object URLs on successful initialisation.
+      URL.revokeObjectURL(coreURL);
+      URL.revokeObjectURL(wasmURL);
       ffmpegInstance = instance;
       return instance;
     })().catch(error => {
