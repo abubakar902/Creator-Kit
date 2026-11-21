@@ -610,7 +610,7 @@ body{background:radial-gradient(ellipse at 48% -18%,rgba(126,79,190,.18),transpa
 <div class="timeline-inner" id="timelineInner">
 <div class="ruler" id="ruler"></div>
 <div class="timeline-snap-guide" id="timelineSnapGuide" hidden aria-hidden="true"><span>SNAP</span></div>
-<div class="track-row" data-track="video"><div class="track-label">🎞 Main Video</div><div class="track-content"></div></div>
+<div class="track-row" data-track="video"><div class="track-label" title="Drag video or image clips between this track and Overlay">🎞 Video / Image</div><div class="track-content"></div></div>
 <div class="track-row" data-track="overlay"><div class="track-label">▧ Overlay</div><div class="track-content"></div></div>
 <div class="track-row" data-track="text"><div class="track-label">T Text</div><div class="track-content"></div></div>
 <div class="track-row" data-track="audio"><div class="track-label">♫ Audio</div><div class="track-content"></div></div><div class="track-row" data-track="captions"><div class="track-label">CC Captions</div><div class="track-content"></div></div>
@@ -1240,7 +1240,7 @@ function updateMaskGuides(){
  const layer=$("maskGuideLayer"),c=selectedClip();
  if(!layer)return;
  const shown=previewDraft&&previewDraft.id===c?.id?previewDraft:c;
- if(!shown||!(shown.type==="video"||shown.type==="image")||shown.maskShape!=="horizontal"||playhead<shown.start||playhead>=shown.start+shown.duration){layer.hidden=true;return;}
+ if(!shown||!(shown.type==="video"||shown.type==="image")||shown.maskShape!=="horizontal"||playhead<shown.start||playhead>=shown.start+shown.duration||activeAt(playhead,shown.track)!==shown){layer.hidden=true;return;}
  const top=Math.max(0,Math.min(95,Number(shown.maskTop??25))),bottom=Math.max(top+5,Math.min(100,Number(shown.maskBottom??75)));
  $("maskTopGuide").style.top=top+"%";$("maskBottomGuide").style.top=bottom+"%";$("maskCenterGuide").style.top=((top+bottom)/2)+"%";
  layer.hidden=false;
@@ -2006,7 +2006,7 @@ function readPropertiesDraft(c){
 }
 function previewProperties(){
  const c=selectedClip();if(!c)return;
- previewDraft=readPropertiesDraft(c);$("horizontalMaskControls").classList.toggle("hidden",previewDraft.maskShape!=="horizontal");renderPreview();syncAudio();
+ previewDraft=readPropertiesDraft(c);$("horizontalMaskControls").classList.toggle("hidden",previewDraft.maskShape!=="horizontal");if(c.type==="video"||c.type==="image"){$("propMaskTop").value=String(previewDraft.maskTop);$("propMaskBottom").value=String(previewDraft.maskBottom);$("propMaskFeather").value=String(previewDraft.maskFeather);}renderPreview();syncAudio();
 }
 function applyProperties(){
  const c=selectedClip();if(!c)return;
