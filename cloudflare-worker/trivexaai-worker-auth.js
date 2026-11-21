@@ -1759,7 +1759,7 @@ export default {
  async fetch(request, env) {
   const origin=request.headers.get("Origin");
   const normalizeAllowedOrigin=value=>{
-   let candidate=String(value||"").trim();
+   let candidate=String(value||"").trim().replace(/^["']|["']$/g,"");
    if(!candidate)return "";
    if(!/^https?:\/\//i.test(candidate))candidate="https://"+candidate;
    try{
@@ -1767,11 +1767,15 @@ export default {
     return parsed.protocol==="https:"||parsed.protocol==="http:"?parsed.origin:"";
    }catch(error){return "";}
   };
-  const origins=String(env.ALLOWED_ORIGINS||"https://abubakar902.github.io")
-   .split(",").map(normalizeAllowedOrigin).filter(Boolean);
+  // Always trust the official TrivexaAI GitHub Pages origin. ALLOWED_ORIGINS
+  // may add extra origins, but a missing/misformatted variable must never
+  // accidentally lock the primary website out of its own Worker.
+  const configuredOrigins=String(env.ALLOWED_ORIGINS||"")
+   .split(/[,;\n\r]+/).map(normalizeAllowedOrigin).filter(Boolean);
+  const origins=new Set(["https://abubakar902.github.io",...configuredOrigins]);
   let requestOrigin="";
   try{requestOrigin=origin?new URL(origin).origin:"";}catch(error){}
-  const allowed=!origin||origins.includes(requestOrigin);
+  const allowed=!origin||origins.has(requestOrigin);
   const cors={
    ...(origin&&allowed?{"Access-Control-Allow-Origin":requestOrigin}:{}),
    "Access-Control-Allow-Methods":"POST, OPTIONS",
