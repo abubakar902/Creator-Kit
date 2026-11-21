@@ -454,17 +454,17 @@ async function reverseSelectedClip(api, token) {
     } else {
       throw new Error("This browser's free FFmpeg build has no compatible video encoder. Try again on an updated Chrome or Edge browser.");
     }
-    let audioArgs = [];
-    if (videoCodec === "libvpx") {
+    // The default output is silent so speech is never played backwards.
+    // Users can opt in to reversed audio for creative sound effects.
+    const reverseAudioToo = !!byId("reverseAudioToo")?.checked;
+    let audioArgs = ["-an"];
+    if (reverseAudioToo && videoCodec === "libvpx") {
       if (encoderText.includes("libopus")) audioArgs = ["-c:a", "libopus", "-b:a", "96k"];
       else if (encoderText.includes("libvorbis")) audioArgs = ["-c:a", "libvorbis", "-q:a", "4"];
-      else audioArgs = ["-an"];
-    } else if (encoderText.includes("aac")) {
+    } else if (reverseAudioToo && encoderText.includes("aac")) {
       audioArgs = ["-c:a", "aac", "-b:a", "128k"];
-    } else {
-      audioArgs = ["-an"];
     }
-    const audioFilterArgs = audioArgs[0] === "-an" ? [] : ["-af", "areverse"];
+    const audioFilterArgs = reverseAudioToo && audioArgs[0] !== "-an" ? ["-af", "areverse"] : [];
     checkCancelled(token);
     const result = await ffmpeg.exec([
       // Restrict the input range before applying reverse, so only the
@@ -473,7 +473,8 @@ async function reverseSelectedClip(api, token) {
       "-t", String(sourceDuration.toFixed(3)),
       "-i", inputName,
       "-map", "0:v:0",
-      "-map", "0:a?",
+      // Do not map source audio at all unless the advanced option is enabled.
+      ...(reverseAudioToo ? ["-map", "0:a?"] : []),
       "-vf", "scale='min(720,iw)':-2,reverse",
       ...audioFilterArgs,
       ...videoArgs,
