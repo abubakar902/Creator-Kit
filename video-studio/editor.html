@@ -1255,7 +1255,7 @@ function playheadPointerUp(e){
  window.removeEventListener("pointercancel",playheadPointerUp);
 }
 
-function clipPointerDown(e){const el=e.currentTarget,c=clips.find(x=>x.id===el.dataset.id);if(!c)return;e.preventDefault();e.stopPropagation();selectedId=c.id;document.querySelectorAll(".clip").forEach(node=>node.classList.toggle("selected",node.dataset.id===c.id));renderInspector();renderPreview();const edge=e.target.dataset.edge||"move";dragState={kind:"timeline",id:c.id,edge,startX:e.clientX,orig:clone(c),changed:false,swapTargetId:null,swapOrig:null};try{el.setPointerCapture(e.pointerId);}catch{}el.addEventListener("pointermove",clipPointerMove);el.addEventListener("pointerup",clipPointerUp,{once:true});el.addEventListener("pointercancel",clipPointerUp,{once:true});}
+function clipPointerDown(e){const el=e.currentTarget,c=clips.find(x=>x.id===el.dataset.id);if(!c)return;e.preventDefault();e.stopPropagation();selectedId=c.id;document.querySelectorAll(".clip").forEach(node=>node.classList.toggle("selected",node.dataset.id===c.id));renderInspector();renderPreview();const edge=e.target.dataset.edge||"move";dragState={kind:"timeline",id:c.id,edge,startX:e.clientX,orig:clone(c),origLinkedAudio:c.type==="video"?clone(clips.find(item=>item.type==="audio"&&item.detachedFromVideoId===c.id)||null):null,changed:false,swapTargetId:null,swapOrig:null};try{el.setPointerCapture(e.pointerId);}catch{}el.addEventListener("pointermove",clipPointerMove);el.addEventListener("pointerup",clipPointerUp,{once:true});el.addEventListener("pointercancel",clipPointerUp,{once:true});}
 function timelineDropTarget(e,source,d){
  if(!source||d.edge!=="move")return null;
  const hit=document.elementFromPoint(e.clientX,e.clientY);
@@ -1402,7 +1402,7 @@ function clipPointerUp(e){
    const linkedAudio=clips.find(item=>item.type==="audio"&&item.detachedFromVideoId===c.id);
    if(linkedAudio){if(d.edge==="left")linkedAudio.sourceStart=Math.max(0,(linkedAudio.sourceStart||0)+(Number(c.sourceStart||0)-Number(d.orig.sourceStart||0)));linkedAudio.start=c.start;linkedAudio.duration=c.duration;linkedAudio.speedStart=c.speedStart??1;linkedAudio.speedEnd=c.speedEnd??1;if(Number(c.speedSourceDuration)>0)linkedAudio.speedSourceDuration=c.speedSourceDuration;else delete linkedAudio.speedSourceDuration;}
   }
-  undoStack.push(clips.map(item=>item.id===d.id?clone(d.orig):swapped&&item.id===d.swapTargetId?clone(d.swapOrig):clone(item)));
+  undoStack.push(clips.map(item=>item.id===d.id?clone(d.orig):d.origLinkedAudio&&item.id===d.origLinkedAudio.id?clone(d.origLinkedAudio):swapped&&item.id===d.swapTargetId?clone(d.swapOrig):clone(item)));
   redoStack=[];updateHistoryButtons();renderTimeline();renderPreview();scheduleSave();
   notify(swapped?"Clips swapped places.":d.edge==="move"?"Clip position saved.":"Clip trim saved.");
  }
