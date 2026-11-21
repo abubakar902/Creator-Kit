@@ -348,7 +348,8 @@ async function loadFFmpeg() {
       const coreURL = await fetchBlobUrl(FFMPEG_CORE + "/ffmpeg-core.js", "text/javascript");
       const wasmURL = await fetchBlobUrl(FFMPEG_CORE + "/ffmpeg-core.wasm", "application/wasm");
       try {
-        await instance.load({ coreURL, wasmURL });
+        const classWorkerURL = new URL("./ffmpeg-worker-bootstrap.js", window.location.href).href;
+        await instance.load({ coreURL, wasmURL, classWorkerURL });
       } catch (error) {
         URL.revokeObjectURL(coreURL);
         URL.revokeObjectURL(wasmURL);
