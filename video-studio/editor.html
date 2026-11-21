@@ -4138,16 +4138,27 @@ async function aiExecuteTool(operation){
  const changed=JSON.stringify(clips)!==before||assets.length!==assetsBefore;
  if(!changed)throw new Error("Selected tool ne is clip par koi change nahi banaya. Original preview restore ki ja rahi hai.");
 }
-async function aiExecuteOperation(operation){
+async function aiExecuteOperation(operation,previewContext={}){
+ const splitSegments=previewContext.splitSegments||new Map(),splitPoints=previewContext.splitPoints||new Map();
  if(operation.type==="set_clip_properties"){
   const clip=clips.find(c=>c.id===operation.clipId);if(!clip)throw new Error("Preview ke dauran selected clip nahi mila.");
   aiWriteClipChanges(clip,operation.changes);return;
  }
  if(operation.type==="split_clip"){
-  const clip=clips.find(c=>c.id===operation.clipId);if(!clip)throw new Error("Split karne wala clip nahi mila.");
+  const lineage=splitSegments.get(operation.clipId)||[operation.clipId];
+  const clip=lineage.map(id=>clips.find(c=>c.id===id)).find(c=>c&&operation.atSeconds>c.start+.151&&operation.atSeconds<c.start+c.duration-.151);
+  if(!clip)throw new Error("Split position "+operation.atSeconds.toFixed(1)+"s par original clip ka matching segment nahi mila.");
   selectedId=clip.id;playhead=operation.atSeconds;
-  const before=clips.length,hasLinkedAudio=clips.some(item=>item.type==="audio"&&item.detachedFromVideoId===clip.id);splitSelected();
-  const expectedIncrease=hasLinkedAudio?2:1;if(clips.length!==before+expectedIncrease)throw new Error("Clip split nahi ho saka. Original project restore hoga.");return;
+  const beforeIds=new Set(clips.map(item=>item.id)),before=clips.length,hasLinkedAudio=clips.some(item=>item.type==="audio"&&item.detachedFromVideoId===clip.id);
+  splitSelected();
+  const expectedIncrease=hasLinkedAudio?2:1;if(clips.length!==before+expectedIncrease)throw new Error("Clip split nahi ho saka. Original project restore hoga.");
+  const created=clips.filter(item=>!beforeIds.has(item.id));
+  const videoSegment=created.find(item=>item.type===clip.type&&item.assetId===clip.assetId&&Math.abs(item.start-operation.atSeconds)<.02);
+  if(!videoSegment)throw new Error("Split ke baad naya segment identify nahi ho saka.");
+  if(!splitSegments.has(operation.clipId))splitSegments.set(operation.clipId,[operation.clipId]);
+  splitSegments.get(operation.clipId).push(videoSegment.id);
+  const points=splitPoints.get(operation.clipId)||[];points.push(operation.atSeconds);splitPoints.set(operation.clipId,points);
+  return;
  }
  if(operation.type==="move_clip"){
   const clip=clips.find(c=>c.id===operation.clipId);if(!clip)throw new Error("Move karne wala clip nahi mila.");
@@ -4172,8 +4183,21 @@ async function aiExecuteOperation(operation){
   const copy={...clone(original),id:uid(),name:(original.name||"Clip")+" copy",start:operation.start};if(copy.type==="video")delete copy.audioDetached;clips.push(copy);selectedId=copy.id;return;
  }
  if(operation.type==="delete_clip"){
-  const index=clips.findIndex(c=>c.id===operation.clipId);if(index<0)throw new Error("Delete karne wala clip nahi mila.");
-  clips.splice(index,1);if(selectedId===operation.clipId)selectedId=null;return;
+  const points=splitPoints.get(operation.clipId)||[];
+  let targetId=operation.clipId;
+  if(points.length>=2){
+   const lower=Math.min(points[points.length-2],points[points.length-1]),upper=Math.max(points[points.length-2],points[points.length-1]);
+   const lineage=splitSegments.get(operation.clipId)||[operation.clipId];
+   const middle=lineage.map(id=>clips.find(c=>c.id===id)).find(c=>c&&Math.abs(c.start-lower)<.03&&Math.abs(c.start+c.duration-upper)<.03);
+   if(middle)targetId=middle.id;
+  }
+  const index=clips.findIndex(c=>c.id===targetId);if(index<0)throw new Error("Delete karne wala clip segment nahi mila.");
+  const removed=clips[index];clips.splice(index,1);
+  if(removed.type==="video"){
+   const linkedIndex=clips.findIndex(c=>c.type==="audio"&&c.detachedFromVideoId===removed.id);
+   if(linkedIndex>=0)clips.splice(linkedIndex,1);
+  }
+  if(selectedId===targetId)selectedId=null;return;
  }
  if(operation.type==="add_text_overlay"){
   const clip={id:uid(),name:"AI Text Overlay",type:"text",track:"text",text:operation.text,color:"#ffffff",fontSize:42,font:"Arial, sans-serif",weight:800,align:"center",bgColor:"#000000",bgOpacity:0,x:0,y:0,start:operation.start,duration:operation.duration,sourceStart:0,scale:1,rotation:0,opacity:1};
@@ -4337,8 +4361,9 @@ async function previewAiEditorPlan(){
  $("aiPreviewPlanBtn").hidden=true;$("aiApplyPlanBtn").hidden=true;$("aiCancelPreviewBtn").hidden=false;$("aiPreviewState").hidden=false;
  aiSetBusy(true);aiSetStatus("Temporary preview tayyar ho raha hai. Project aur media abhi save nahi honge.");
  try{
+  const splitSegments=new Map(),splitPoints=new Map();
   for(let index=0;index<aiCurrentPlan.operations.length;index++){
-   const operation=aiCurrentPlan.operations[index];aiSetStatus("Step "+(index+1)+" / "+aiCurrentPlan.operations.length+": "+aiOperationLabel(operation));await aiExecuteOperation(operation);
+   const operation=aiCurrentPlan.operations[index];aiSetStatus("Step "+(index+1)+" / "+aiCurrentPlan.operations.length+": "+aiOperationLabel(operation));await aiExecuteOperation(operation,{splitSegments,splitPoints});
   }
   if(!aiPreviewHasChanges())throw new Error("Is plan se koi visible change nahi bana.");
   renderAll();setPlayhead(Math.min(playhead,duration()));
