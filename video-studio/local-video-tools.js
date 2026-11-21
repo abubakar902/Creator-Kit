@@ -396,9 +396,9 @@ async function loadFFmpeg() {
 async function convertWebMToMp4(blob,options={}){
  const duration=Number(options.duration)||0,width=Number(options.width)||0,height=Number(options.height)||0;
  if(!(blob instanceof Blob)||!blob.size)throw new Error("The temporary WebM recording is missing.");
- if(duration<=0||duration>120)throw new Error("Local MP4 conversion supports clips up to 2 minutes on this PC. Choose WebM or shorten the timeline.");
- if(Math.max(width,height)>1280||!width||!height)throw new Error("Local MP4 conversion is limited to 720p on this 4 GB PC. Choose 720p and try again.");
- if(blob.size>100*1024*1024)throw new Error("The temporary WebM file is larger than the 100 MB safety limit for this PC. Choose 720p or use WebM.");
+ if(duration<=0||duration>120)throw new Error("Local MP4 conversion supports projects up to 2 minutes. Choose WebM or shorten the timeline.");
+ if(Math.max(width,height)>1280||!width||!height)throw new Error("Local MP4 conversion supports up to 720p. Choose 720p and try again.");
+ if(blob.size>100*1024*1024)throw new Error("The temporary file exceeds the 100 MB limit for local MP4 conversion. Choose 720p or use WebM.");
  const isCancelled=()=>typeof options.isCancelled==="function"&&options.isCancelled();
  if(isCancelled()){const error=new Error("MP4 conversion cancelled.");error.name="AbortError";throw error;}
  const ffmpeg=await loadFFmpeg();
@@ -426,10 +426,10 @@ async function convertWebMToMp4(blob,options={}){
   await ffmpeg.writeFile(inputName,new Uint8Array(await blob.arrayBuffer()));
   checkCancel();
   const scanResult=await ffmpeg.exec(["-hide_banner","-encoders"]);
-  if(scanResult!==0)throw new Error("The local video engine could not inspect its MP4 encoders.");
+  if(scanResult!==0)throw new Error("MP4 conversion is not available in this browser. Choose WebM instead.");
   const encoderText=logLines.join("\n");
-  if(!encoderText.includes("libx264"))throw new Error("This free FFmpeg build does not include the H.264 encoder needed for MP4 on this device.");
-  if(!encoderText.includes("aac"))throw new Error("This free FFmpeg build does not include the AAC audio encoder. Your video has not been downloaded as a silent MP4.");
+  if(!encoderText.includes("libx264"))throw new Error("MP4 conversion is not available in this browser. Choose WebM instead.");
+  if(!encoderText.includes("aac"))throw new Error("MP4 conversion cannot preserve audio in this browser. Choose WebM instead.");
   checkCancel();
   const result=await ffmpeg.exec([
    "-y","-hide_banner","-i",inputName,"-t",String(duration.toFixed(3)),
@@ -442,7 +442,7 @@ async function convertWebMToMp4(blob,options={}){
   checkCancel();
   if(result!==0){
    const details=logLines.slice(-8).join(" | ").replace(/\s+/g," ").slice(-520);
-   throw new Error("The local H.264/AAC conversion could not finish. "+(details?"FFmpeg details: "+details:"Try a shorter 720p video or export WebM."));
+   throw new Error("MP4 conversion could not finish. Try a shorter 720p video or export WebM.");
   }
   const output=await ffmpeg.readFile(outputName);
   checkCancel();
@@ -473,13 +473,13 @@ async function reverseSelectedClip(api, token) {
   const asset = api.getAsset(clip.assetId);
   if (!asset || !asset.blob) throw new Error("The original video file is unavailable.");
   const sourceDuration = api.getClipSourceElapsed(clip, clip.duration);
-  if (sourceDuration > 30) throw new Error("For this free low-memory version on a 4 GB PC, first split the video so the selected clip is 30 seconds or shorter.");
-  if (Number(asset.size || asset.blob.size) > 50 * 1024 * 1024) throw new Error("For this free low-memory version, use a source file smaller than 50 MB on this PC.");
+  if (sourceDuration > 30) throw new Error("Reverse Video supports clips up to 30 seconds. Split the clip and try again.");
+  if (Number(asset.size || asset.blob.size) > 50 * 1024 * 1024) throw new Error("Reverse Video supports source files up to 50 MB. Choose a smaller file and try again.");
   if (!sourceDuration || sourceDuration < 0.2) throw new Error("The selected clip has an invalid duration.");
   api.pause();
   const button = byId("reverseClipBtn");
-  button.textContent = "Loading video engine…";
-  api.setStatus("Downloading FFmpeg.wasm · first use is about 31 MB…");
+  button.textContent = "Preparing…";
+  api.setStatus("Preparing local video processing…");
   const ffmpeg = await loadFFmpeg();
   checkCancelled(token);
   const inputName = "trivexa-input." + extensionForAsset(asset);
@@ -501,7 +501,7 @@ async function reverseSelectedClip(api, token) {
     const scanResult = await ffmpeg.exec(["-hide_banner", "-encoders"]);
     if (scanResult !== 0) {
       const scanDetails = logLines.slice(-5).join(" | ").slice(-260);
-      throw new Error("The video engine could not inspect its available encoders." + (scanDetails ? " Details: " + scanDetails : ""));
+      throw new Error("This browser could not prepare the video for reversing. Please try another MP4 file.");
     }
     const encoderText = logLines.join("\n");
     let videoCodec = "", outputName = "trivexa-reversed.mp4", mime = "video/mp4";
@@ -518,7 +518,7 @@ async function reverseSelectedClip(api, token) {
       videoCodec = "mpeg4";
       videoArgs = ["-c:v", "mpeg4", "-q:v", "5", "-threads", "1"];
     } else {
-      throw new Error("This browser's free FFmpeg build has no compatible video encoder. Try again on an updated Chrome or Edge browser.");
+      throw new Error("This browser cannot reverse this video format. Try an MP4 file in the latest Chrome or Edge.");
     }
     // The default output is silent so speech is never played backwards.
     // Users can opt in to reversed audio for creative sound effects.
@@ -550,8 +550,7 @@ async function reverseSelectedClip(api, token) {
     ]);
     if (result !== 0) {
       const diagnostic = logLines.slice(-8).join(" | ").replace(/\s+/g, " ").slice(-420);
-      throw new Error("The free video engine could not reverse this file. " +
-        (diagnostic ? "FFmpeg details: " + diagnostic : "Try a shorter MP4 clip."));
+      throw new Error("This video could not be reversed. Try a shorter MP4 clip.");
     }
     const output = await ffmpeg.readFile(outputName);
     if (!output || output.length < 1000) throw new Error("The reversed video file was empty. Try a shorter clip.");
@@ -633,14 +632,14 @@ async function loadRNNoise() {
 }
 async function enhanceSelectedAudio(api, token) {
   const clip = api.getSelectedClip();
-  if (!clip || clip.type !== "audio") throw new Error("Select an audio clip on the audio track first. For video sound, detach its audio and select that audio clip.");
+  if (!clip || clip.type !== "audio") throw new Error("Select an Audio clip. To enhance video sound, choose Detach Audio first.");
   const asset = api.getAsset(clip.assetId);
   if (!asset || !asset.blob) throw new Error("The selected audio file is unavailable.");
-  if (Number(asset.size || asset.blob.size) > 80 * 1024 * 1024) throw new Error("For this free low-memory version, choose an audio file smaller than 80 MB.");
+  if (Number(asset.size || asset.blob.size) > 80 * 1024 * 1024) throw new Error("Audio enhancement supports files up to 80 MB. Choose a smaller file and try again.");
   const sourceStart = api.getClipSourceTime(clip, 0);
   const sourceDuration = api.getClipSourceElapsed(clip, clip.duration);
   if (sourceDuration > 120 || Number(asset.duration) > 180) {
-    throw new Error("For this free low-memory version, choose an audio source under 3 minutes and a selected section of 120 seconds or less.");
+    throw new Error("Audio enhancement supports source files up to 3 minutes and selected sections up to 2 minutes.");
   }
   api.pause();
   const AudioContextClass = window.AudioContext || window.webkitAudioContext;
