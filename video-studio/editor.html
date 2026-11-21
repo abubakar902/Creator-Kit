@@ -637,7 +637,7 @@ body{background:radial-gradient(ellipse at 48% -18%,rgba(126,79,190,.18),transpa
 <div class="timeline-head">
 <strong>Timeline</strong>
 <div class="timeline-buttons">
-<button class="btn" type="button" id="addTextBtn">＋ Text</button><button class="btn" type="button" id="openStickerModalBtn">✦ Stickers &amp; Shapes</button><button class="btn" type="button" id="openVoiceoverModalBtn">♫ AI Voice-over</button><button class="btn" type="button" id="autoCaptionsBtn" title="Generate timed captions from the selected video or audio clip">✦ Auto Captions</button>
+<button class="btn" type="button" id="addTextBtn">＋ Text</button><button class="btn" type="button" id="openStickerModalBtn">✦ Stickers &amp; Shapes</button><button class="btn" type="button" id="autoCaptionsBtn" title="Generate timed captions from the selected video or audio clip">✦ Auto Captions</button>
 <button class="btn" type="button" id="splitBtn" disabled>Split at playhead</button>
 <button class="btn" type="button" id="deleteTimelineBtn" disabled>Delete</button>
 <button class="btn" type="button" id="shortcutsBtn" aria-haspopup="dialog" aria-controls="shortcutsModal" title="Show keyboard shortcuts">⌨ Shortcuts</button>
@@ -1303,9 +1303,10 @@ function renderPreview(){
   let element=previewStickerElements.get(clip.id);
   if(!element){
    element=document.createElement("img");element.className="overlay-sticker-item";element.alt=clip.name||"Sticker";element.draggable=false;
-   stickerLayer.append(element);previewStickerElements.set(clip.id,element);
+   previewStickerElements.set(clip.id,element);
   }
   element.alt=clip.name||"Sticker";
+  stickerLayer.append(element);
   const nextKey=renderPreviewImageLayer(clip,element,element.dataset.activeKey||null,true,!!(baseVideo||baseImage||overlayVideo));
   element.dataset.activeKey=nextKey||"";
  }
