@@ -36,6 +36,20 @@ function checkCancelled(token) {
     throw error;
   }
 }
+function readableToolError(error) {
+  let message = "";
+  if (typeof error === "string") message = error;
+  else if (error && typeof error.message === "string") message = error.message;
+  else if (error !== undefined && error !== null) {
+    try { message = String(error); } catch (ignored) {}
+  }
+  message = String(message || "").trim();
+  if (!message || message === "[object Object]") {
+    return "This local tool could not finish. Please try again.";
+  }
+  // FFmpeg worker errors can arrive as strings instead of Error objects.
+  return message.replace(/^Error:\s*/i, "").slice(0, 420);
+}
 function waitForPaint() {
   return new Promise(resolve => requestAnimationFrame(() => resolve()));
 }
@@ -417,7 +431,11 @@ async function reverseSelectedClip(api, token) {
   };
   try {
     await ffmpeg.writeFile(inputName, new Uint8Array(await asset.blob.arrayBuffer()));
-    await ffmpeg.exec(["-hide_banner", "-encoders"]);
+    const scanResult = await ffmpeg.exec(["-hide_banner", "-encoders"]);
+    if (scanResult !== 0) {
+      const scanDetails = logLines.slice(-5).join(" | ").slice(-260);
+      throw new Error("The video engine could not inspect its available encoders." + (scanDetails ? " Details: " + scanDetails : ""));
+    }
     const encoderText = logLines.join("\n");
     let videoCodec = "", outputName = "trivexa-reversed.mp4", mime = "video/mp4";
     let videoArgs = [];
@@ -462,7 +480,11 @@ async function reverseSelectedClip(api, token) {
       ...(mime === "video/mp4" ? ["-movflags", "+faststart"] : []),
       outputName
     ]);
-    if (result !== 0) throw new Error("The free video engine could not reverse this file. Try converting it to MP4 first.");
+    if (result !== 0) {
+      const diagnostic = logLines.slice(-8).join(" | ").replace(/\s+/g, " ").slice(-420);
+      throw new Error("The free video engine could not reverse this file. " +
+        (diagnostic ? "FFmpeg details: " + diagnostic : "Try a shorter MP4 clip."));
+    }
     const output = await ffmpeg.readFile(outputName);
     if (!output || output.length < 1000) throw new Error("The reversed video file was empty. Try a shorter clip.");
     checkCancelled(token);
@@ -654,7 +676,7 @@ export function createLocalVideoTools(api) {
       checkCancelled(token);
     } catch (error) {
       if (token.cancelled || error && error.name === "AbortError") api.notify("Cancelled. Your original media and project are safe.");
-      else api.notify(error && error.message ? error.message : "This local tool could not finish. Please try again.");
+      else api.notify(readableToolError(error));
       api.setStatus("Ready · Auto-save on");
     } finally {
       busy.delete(id);
