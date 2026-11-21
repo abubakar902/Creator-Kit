@@ -612,10 +612,17 @@ body{background:radial-gradient(ellipse at 48% -18%,rgba(126,79,190,.18),transpa
 <div class="keyframe-list" id="keyframeList"></div>
 </div>
 </div></details>
-<details class="property-group" id="audioGroup"><summary>Audio &amp; Volume</summary><div class="group-body"><div class="prop" id="volumeProp"><label for="propVolume">Volume</label><input id="propVolume" type="range" min="0" max="1" step="0.05"></div>
+<details class="property-group" id="audioGroup"><summary>Audio Editor</summary><div class="group-body"><div class="prop" id="volumeProp"><label for="propVolume">Volume</label><input id="propVolume" type="range" min="0" max="1" step="0.05"></div>
 <div id="fadeProps" class="prop-grid hidden">
 <div class="prop"><label for="propFadeIn">Fade in (sec)</label><input id="propFadeIn" type="number" min="0" step="0.1" value="0"></div>
 <div class="prop"><label for="propFadeOut">Fade out (sec)</label><input id="propFadeOut" type="number" min="0" step="0.1" value="0"></div>
+</div>
+<div id="audioEffectProps" class="hidden">
+<div class="prop"><label for="propAudioBass">Bass (dB)</label><input id="propAudioBass" type="range" min="-12" max="12" step="1" value="0"></div>
+<div class="prop"><label for="propAudioMid">Mid (dB)</label><input id="propAudioMid" type="range" min="-12" max="12" step="1" value="0"></div>
+<div class="prop"><label for="propAudioTreble">Treble (dB)</label><input id="propAudioTreble" type="range" min="-12" max="12" step="1" value="0"></div>
+<div class="prop"><label for="propAudioPan">Balance (Left / Right)</label><input id="propAudioPan" type="range" min="-100" max="100" step="5" value="0"></div>
+<p class="advanced-effects-note">EQ and stereo balance are previewed while playing and included in video export.</p>
 </div>
 </div></details>
 <div class="inspector-actions">
@@ -753,7 +760,7 @@ import {authReady,auth,getAccountProfile} from "../auth/auth-client.js";
 import {createLocalVideoTools,renderPersonCutoutFrame} from "./local-video-tools.js";
 const $=id=>document.getElementById(id);
 const projectKey="trivexaai_video_studio_projects_v1",dbName="trivexaai-video-studio",dbVersion=1,scaleDefault=64;
-let db=null,project=null,clips=[],assets=[],urls=new Map(),selectedId=null,scale=scaleDefault,playhead=0,isPlaying=false,raf=0,lastFrame=0,activeVideoId=null,activeOverlayVideoId=null,activeBaseImageId=null,activeImageId=null,audioNodes=new Map(),audioWaveforms=new Map(),audioWaveformPending=new Map(),audioWaveformUnavailable=new Set(),audioWaveformQueue=Promise.resolve(),saveTimer=0,saveQueue=Promise.resolve(),saveRevision=0,savedRevision=0,undoStack=[],redoStack=[],dragState=null,playheadDrag=null,previewDraft=null,exportBusy=false,exportController=null,lastExportBlob=null,lastExportFileName="",snapEnabled=true,proxyBusy=false,captionsBusy=false,copiedKeyframe=null,activeKeyframeTime=null,exportQueue=[],exportQueueRunning=false,queuedExportClipsSnapshot=null;
+let db=null,project=null,clips=[],assets=[],urls=new Map(),selectedId=null,scale=scaleDefault,playhead=0,isPlaying=false,raf=0,lastFrame=0,activeVideoId=null,activeOverlayVideoId=null,activeBaseImageId=null,activeImageId=null,audioNodes=new Map(),audioGraphs=new Map(),previewAudioContext=null,audioWaveforms=new Map(),audioWaveformPending=new Map(),audioWaveformUnavailable=new Set(),audioWaveformQueue=Promise.resolve(),saveTimer=0,saveQueue=Promise.resolve(),saveRevision=0,savedRevision=0,undoStack=[],redoStack=[],dragState=null,playheadDrag=null,previewDraft=null,exportBusy=false,exportController=null,lastExportBlob=null,lastExportFileName="",snapEnabled=true,proxyBusy=false,captionsBusy=false,copiedKeyframe=null,activeKeyframeTime=null,exportQueue=[],exportQueueRunning=false,queuedExportClipsSnapshot=null;
 const chromaCanvasCache=new WeakMap();
 let localVideoTools=null,backgroundPreviewWarningShown=false;
 const horizontalMaskCanvasCache=new WeakMap();
@@ -1020,6 +1027,11 @@ function renderInspector(){
  $("fadeProps").classList.toggle("hidden",c.type!=="audio");
  $("propFadeIn").value=shown.fadeIn??0;
  $("propFadeOut").value=shown.fadeOut??0;
+ $("audioEffectProps").classList.toggle("hidden",c.type!=="audio");
+ $("propAudioBass").value=shown.audioBass??0;
+ $("propAudioMid").value=shown.audioMid??0;
+ $("propAudioTreble").value=shown.audioTreble??0;
+ $("propAudioPan").value=shown.audioPan??0;
  $("transformProps").classList.toggle("hidden",!media);
  $("effectProps").classList.toggle("hidden",!media);
  $("transitionProps").classList.toggle("hidden",!media);
@@ -1341,13 +1353,54 @@ function renderPreviewImageLayer(c,img,activeId,stageRelative=false,hasVideo=fal
  if(activeId!==c.id){img.src=assetUrl(c.assetId);activeId=c.id;img.onload=()=>{if(img.dataset.clipId===c.id)updateStickerResizeHandle(c,img);};}
  return activeId;
 }
+function ensurePreviewAudioGraph(clipId,node){
+ let graph=audioGraphs.get(clipId);
+ if(graph)return graph;
+ const AudioContextClass=window.AudioContext||window.webkitAudioContext;
+ if(!AudioContextClass)return null;
+ try{
+  if(!previewAudioContext)previewAudioContext=new AudioContextClass();
+  const source=previewAudioContext.createMediaElementSource(node);
+  const bass=previewAudioContext.createBiquadFilter();bass.type="lowshelf";bass.frequency.value=180;
+  const mid=previewAudioContext.createBiquadFilter();mid.type="peaking";mid.frequency.value=1000;mid.Q.value=.8;
+  const treble=previewAudioContext.createBiquadFilter();treble.type="highshelf";treble.frequency.value=4200;
+  const panner=previewAudioContext.createStereoPanner();
+  const gain=previewAudioContext.createGain();
+  source.connect(bass);bass.connect(mid);mid.connect(treble);treble.connect(panner);panner.connect(gain);gain.connect(previewAudioContext.destination);
+  graph={source,bass,mid,treble,panner,gain};audioGraphs.set(clipId,graph);
+  return graph;
+ }catch(error){return null;}
+}
+function applyAudioClipGraph(graph,clip,local){
+ if(!graph)return;
+ graph.bass.gain.value=Math.max(-12,Math.min(12,Number(clip.audioBass)||0));
+ graph.mid.gain.value=Math.max(-12,Math.min(12,Number(clip.audioMid)||0));
+ graph.treble.gain.value=Math.max(-12,Math.min(12,Number(clip.audioTreble)||0));
+ graph.panner.pan.value=Math.max(-1,Math.min(1,(Number(clip.audioPan)||0)/100));
+ graph.gain.gain.value=Math.max(0,Math.min(1,(clip.volume??1)*clipEnvelope(clip,local)));
+}
 function syncAudio(){
  const active=clips.map(effectiveClip).filter(c=>c.type==="audio"&&playhead>=c.start&&playhead<c.start+c.duration);
  const keep=new Set(active.map(c=>c.id));
- for(const [id,node] of audioNodes){if(!keep.has(id)){node.pause();node.removeAttribute("src");audioNodes.delete(id);}}
+ for(const [id,node] of audioNodes){
+  if(!keep.has(id)){
+   node.pause();node.removeAttribute("src");
+   const graph=audioGraphs.get(id);
+   if(graph){try{graph.source.disconnect();graph.bass.disconnect();graph.mid.disconnect();graph.treble.disconnect();graph.panner.disconnect();graph.gain.disconnect();}catch(error){}audioGraphs.delete(id);}
+   audioNodes.delete(id);
+  }
+ }
  for(const c of active){
-  let node=audioNodes.get(c.id);if(!node){node=new Audio(assetUrl(c.assetId));audioNodes.set(c.id,node);}
-  const local=playhead-c.start;node.volume=Math.max(0,Math.min(1,(c.volume??1)*clipEnvelope(c,local)));
+  let node=audioNodes.get(c.id);
+  if(!node){node=new Audio(assetUrl(c.assetId));node.preload="auto";audioNodes.set(c.id,node);}
+  const local=playhead-c.start;
+  let graph=audioGraphs.get(c.id);
+  if(isPlaying){
+   graph=ensurePreviewAudioGraph(c.id,node);
+   if(graph){applyAudioClipGraph(graph,c,local);node.volume=1;previewAudioContext.resume().catch(()=>{});}
+   else node.volume=Math.max(0,Math.min(1,(c.volume??1)*clipEnvelope(c,local)));
+  }else if(graph)applyAudioClipGraph(graph,c,local);
+  else node.volume=Math.max(0,Math.min(1,(c.volume??1)*clipEnvelope(c,local)));
   try{node.playbackRate=clipPlaybackRate(c,local);}catch(e){}
   const ct=clipSourceTime(c,local);
   if(Math.abs(node.currentTime-ct)>.5){try{node.currentTime=ct;}catch(e){}}
@@ -2073,7 +2126,13 @@ function readPropertiesDraft(c){
  if(asset&&c.type!=="text"){const sourceAvailable=Math.max(.2,asset.duration-(c.sourceStart||0));dur=Math.min(dur,c.type==="video"?sourceAvailable/requestedAverageSpeed:sourceAvailable);}
  const d={...c,name:$("propName").value.trim()||c.name,start,duration:dur};
  if(c.type==="video"||c.type==="audio")d.volume=(c.type==="video"&&c.audioDetached)?0:Math.max(0,Math.min(1,Number($("propVolume").value)||0));
- if(c.type==="audio"){d.fadeIn=Math.max(0,Math.min(dur,Number($("propFadeIn").value)||0));d.fadeOut=Math.max(0,Math.min(dur,Number($("propFadeOut").value)||0));}
+ if(c.type==="audio"){
+  d.fadeIn=Math.max(0,Math.min(dur,Number($("propFadeIn").value)||0));d.fadeOut=Math.max(0,Math.min(dur,Number($("propFadeOut").value)||0));
+  d.audioBass=Math.max(-12,Math.min(12,Number($("propAudioBass").value)||0));
+  d.audioMid=Math.max(-12,Math.min(12,Number($("propAudioMid").value)||0));
+  d.audioTreble=Math.max(-12,Math.min(12,Number($("propAudioTreble").value)||0));
+  d.audioPan=Math.max(-100,Math.min(100,Number($("propAudioPan").value)||0));
+ }
  if(c.type==="video"||c.type==="image"){
   d.scale=Math.max(.1,Math.min(4,Number($("propScale").value)||1));d.rotation=Math.max(-180,Math.min(180,Number($("propRotation").value)||0));
   d.x=Math.max(-100,Math.min(100,Number($("propX").value)||0));d.y=Math.max(-100,Math.min(100,Number($("propY").value)||0));d.opacity=Math.max(0,Math.min(1,Number($("propOpacity").value)||0));d.flipX=$("propFlipX").checked;d.flipY=$("propFlipY").checked;d.framingMode=$("propFramingMode").value;
@@ -2473,8 +2532,18 @@ async function exportVideo(){
    audioDestination=audioContext.createMediaStreamDestination();
    audioItems.forEach(item=>{
     const source=audioContext.createMediaElementSource(item.media);
+    const bass=audioContext.createBiquadFilter();bass.type="lowshelf";bass.frequency.value=180;
+    const mid=audioContext.createBiquadFilter();mid.type="peaking";mid.frequency.value=1000;mid.Q.value=.8;
+    const treble=audioContext.createBiquadFilter();treble.type="highshelf";treble.frequency.value=4200;
+    const panner=audioContext.createStereoPanner();
     const gain=audioContext.createGain();
-    source.connect(gain);gain.connect(audioDestination);item.gain=gain;
+    const c=item.clip;
+    bass.gain.value=c.type==="audio"?Math.max(-12,Math.min(12,Number(c.audioBass)||0)):0;
+    mid.gain.value=c.type==="audio"?Math.max(-12,Math.min(12,Number(c.audioMid)||0)):0;
+    treble.gain.value=c.type==="audio"?Math.max(-12,Math.min(12,Number(c.audioTreble)||0)):0;
+    panner.pan.value=c.type==="audio"?Math.max(-1,Math.min(1,(Number(c.audioPan)||0)/100)):0;
+    source.connect(bass);bass.connect(mid);mid.connect(treble);treble.connect(panner);panner.connect(gain);gain.connect(audioDestination);
+    item.gain=gain;
    });
   }
   canvasStream=canvas.captureStream(fps);
