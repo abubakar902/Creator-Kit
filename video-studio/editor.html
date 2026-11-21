@@ -3930,7 +3930,7 @@ async function generateAiPrompt(){
  if(!auth?.currentUser){aiSetPromptWriterStatus("Google sign-in session expire ho gaya. Dobara sign-in karein.");return;}
  aiPromptWriterBusy=true;
  $("aiPromptWriterGenerateBtn").textContent="Gemini prompt bana raha hai…";
- $("aiPromptWriterResultWrap").hidden=true;
+
  $("aiPromptWriterQuestion").hidden=true;
  aiSetPromptWriterStatus("Gemini aapki Roman Urdu request ko supported Video Studio prompt mein badal raha hai…");
  aiSetBusy(false);
@@ -3963,7 +3963,6 @@ async function generateAiPrompt(){
    $("aiPromptWriterResult").value=prompt;
    $("aiPromptWriterResultWrap").hidden=false;
    aiSetPromptWriterStatus("Prompt neeche tayyar hai. Pehle prompt check karein, phir Use in AI Editor dabayein. Abhi video mein koi edit nahi hui.");
-   $("aiPromptWriterResultWrap").scrollIntoView({behavior:"smooth",block:"nearest"});
   }
  }catch(error){
   aiSetPromptWriterStatus(error?.message||"Prompt Writer se rabta nahi ho saka.");
@@ -3995,8 +3994,6 @@ function aiUseGeneratedPrompt(){
  if(!value)return;
  $("aiEditPrompt").value=value;
  $("aiPromptCount").textContent=value.length+" / 1,400";
- $("aiEditPrompt").focus();
- $("aiEditPrompt").scrollIntoView({behavior:"smooth",block:"center"});
  aiSetStatus("Step 1 ka prompt Step 2 mein aa gaya. Ab Understand & create edit plan dabayein.");
 }
 function aiUseRefinedPrompt(){
@@ -4416,7 +4413,6 @@ function wireAiEditorAssistant(){
  $("aiPromptWriterUseBtn").addEventListener("click",aiUseGeneratedPrompt);
  $("aiPromptWriterInput").addEventListener("input",()=>{
   $("aiPromptWriterCount").textContent=$("aiPromptWriterInput").value.length+" / 2,000";
-  $("aiPromptWriterResultWrap").hidden=true;
   $("aiPromptWriterQuestion").hidden=true;
   aiSetPromptWriterStatus("Request update ho gayi. Naya prompt generate karein.");
  });
