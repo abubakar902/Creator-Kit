@@ -466,8 +466,6 @@ body{background:radial-gradient(ellipse at 48% -18%,rgba(126,79,190,.18),transpa
 <img id="baseImagePreview" alt="Main image clip">
 <video id="overlayVideoPreview" playsinline preload="auto"></video>
 <canvas id="overlayChromaPreview" class="video-chroma-preview" aria-label="Overlay chroma key preview"></canvas>
-<video id="overlayVideoPreview" playsinline preload="auto"></video>
-<canvas id="overlayChromaPreview" class="video-chroma-preview" aria-label="Overlay chroma key preview"></canvas>
 <img id="imagePreview" alt="Current image clip">
 <div id="maskGuideLayer" class="mask-guide-layer" hidden><button type="button" class="mask-guide-line top" id="maskTopGuide" data-mask-edge="top" aria-label="Move top mask line"><span>TOP</span></button><button type="button" class="mask-guide-line center" id="maskCenterGuide" data-mask-edge="center" aria-label="Move horizontal mask"><span>↕</span></button><button type="button" class="mask-guide-line bottom" id="maskBottomGuide" data-mask-edge="bottom" aria-label="Move bottom mask line"><span>BOTTOM</span></button></div>
 <button type="button" id="stickerResizeHandle" class="sticker-resize-handle" hidden title="Drag to resize sticker" aria-label="Resize sticker">↘</button>
@@ -2008,7 +2006,7 @@ function readPropertiesDraft(c){
 }
 function previewProperties(){
  const c=selectedClip();if(!c)return;
- previewDraft=readPropertiesDraft(c);renderPreview();syncAudio();
+ previewDraft=readPropertiesDraft(c);$("horizontalMaskControls").classList.toggle("hidden",previewDraft.maskShape!=="horizontal");renderPreview();syncAudio();
 }
 function applyProperties(){
  const c=selectedClip();if(!c)return;
