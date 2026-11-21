@@ -13,10 +13,10 @@ The following optional components are downloaded by the browser only when the us
 
 ## EfficientDet-Lite0 Object Detector
 
-- Model asset: `efficientdet_lite0/int8/1/efficientdet_lite0.tflite`
+- Model asset: `efficientdet_lite0/float32/1/efficientdet_lite0.tflite`
 - Purpose: detect common COCO objects (including people) for tracking and reframing.
 - Upstream asset information and license: https://huggingface.co/litert-community/MediaPipe-ObjectDetector-EfficientDet-Lite0
-- Google-hosted model URL: https://storage.googleapis.com/mediapipe-models/object_detector/efficientdet_lite0/int8/1/efficientdet_lite0.tflite
+- Google-hosted model URL: https://storage.googleapis.com/mediapipe-models/object_detector/efficientdet_lite0/float32/1/efficientdet_lite0.tflite
 
 ## MediaPipe Selfie Segmenter (Landscape)
 
