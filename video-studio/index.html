@@ -668,6 +668,13 @@ async function start(){
   renderProjects();
   $("app").hidden=false;
   hideStudioStartupLoading();
+  const aiDeleteProjectId=new URLSearchParams(location.search).get("aiDeleteProject");
+  if(aiDeleteProjectId){
+   const target=readProjects().find(item=>item.id===aiDeleteProjectId);
+   try{history.replaceState(null,"",location.pathname+location.hash);}catch(error){}
+   if(target)requestAnimationFrame(()=>askDeleteProject(aiDeleteProjectId,null));
+   else toast("The project requested by AI is no longer available. Nothing was deleted.");
+  }
  }catch(e){
   if(e.status===401){location.replace("../auth/login.html?next="+encodeURIComponent(location.href));return;}
   if(e.status===403||e.code==="ADVANCED_ACCESS_REQUIRED"||e.code==="VIDEO_STUDIO_ACCESS_REQUIRED"){
