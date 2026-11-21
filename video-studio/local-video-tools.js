@@ -498,8 +498,15 @@ function writeWav(channels, sampleRate) {
 async function loadRNNoise() {
   if (!rnnoisePromise) {
     rnnoisePromise = (async () => {
-      await appendScript(RNNOISE_SCRIPT, () => typeof window.createRNNWasmModule === "function");
-      const module = await window.createRNNWasmModule();
+      // The upstream file is an ES module (it ends with "export default"),
+      // so load it with import() rather than inserting it as a classic script.
+      const packageRoot = "https://cdn.jsdelivr.net/npm/@jitsi/rnnoise-wasm@0.2.1/dist/";
+      const imported = await import(packageRoot + "rnnoise.js");
+      const factory = imported && imported.default;
+      if (typeof factory !== "function") throw new Error("The free RNNoise WebAssembly module could not be loaded.");
+      const module = await factory({
+        locateFile: path => new URL(path, packageRoot).href
+      });
       if (!module || !module._rnnoise_create || !module._rnnoise_process_frame || !module.HEAPF32) {
         throw new Error("The free RNNoise model could not initialise in this browser.");
       }
@@ -518,6 +525,11 @@ async function enhanceSelectedAudio(api, token) {
   const asset = api.getAsset(clip.assetId);
   if (!asset || !asset.blob) throw new Error("The selected audio file is unavailable.");
   if (Number(asset.size || asset.blob.size) > 80 * 1024 * 1024) throw new Error("For this free low-memory version, choose an audio file smaller than 80 MB.");
+  const sourceStart = api.getClipSourceTime(clip, 0);
+  const sourceDuration = api.getClipSourceElapsed(clip, clip.duration);
+  if (sourceDuration > 120 || Number(asset.duration) > 180) {
+    throw new Error("For this free low-memory version, choose an audio source under 3 minutes and a selected section of 120 seconds or less.");
+  }
   api.pause();
   const AudioContextClass = window.AudioContext || window.webkitAudioContext;
   if (!AudioContextClass) throw new Error("Audio enhancement needs an updated Chrome or Edge browser.");
@@ -529,9 +541,6 @@ async function enhanceSelectedAudio(api, token) {
     try { await context.close(); } catch (error) {}
   }
   checkCancelled(token);
-  const sourceStart = api.getClipSourceTime(clip, 0);
-  const sourceDuration = api.getClipSourceElapsed(clip, clip.duration);
-  if (sourceDuration > 120) throw new Error("For this free low-memory version, first split the audio so the selected clip is 120 seconds or shorter.");
   const sampleStart = Math.max(0, Math.floor(sourceStart * decoded.sampleRate));
   const sampleEnd = Math.min(decoded.length, Math.ceil((sourceStart + sourceDuration) * decoded.sampleRate));
   if (sampleEnd <= sampleStart) throw new Error("The selected audio range is outside the source file.");
