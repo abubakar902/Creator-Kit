@@ -489,7 +489,7 @@ async function loadRNNoise() {
       if (!module || !module._rnnoise_create || !module._rnnoise_process_frame || !module.HEAPF32) {
         throw new Error("The free RNNoise model could not initialise in this browser.");
       }
-      module._rnnoise_init();
+      // rnnoise_create(NULL) calls rnnoise_init internally for each state.
       return module;
     })().catch(error => {
       rnnoisePromise = null;
@@ -532,6 +532,7 @@ async function enhanceSelectedAudio(api, token) {
     outputPointer = module._malloc(frameSize * 4);
     if (!inputPointer || !outputPointer) throw new Error("Not enough memory to start local audio enhancement.");
     const inputIndex = inputPointer >>> 2, outputIndex = outputPointer >>> 2;
+    const frameBuffer = new Float32Array(frameSize);
     for (let channel = 0; channel < channelCount; channel++) {
       const original = decoded.getChannelData(channel).subarray(sampleStart, sampleEnd);
       const resampled = resampleLinear(original, decoded.sampleRate, 48000);
@@ -543,10 +544,10 @@ async function enhanceSelectedAudio(api, token) {
         for (let frame = 0; frame < frameCount; frame++) {
           checkCancelled(token);
           const from = frame * frameSize;
-          const buffer = new Float32Array(frameSize);
+          frameBuffer.fill(0);
           const available = Math.min(frameSize, resampled.length - from);
-          for (let i = 0; i < available; i++) buffer[i] = resampled[from + i] * 32768;
-          module.HEAPF32.set(buffer, inputIndex);
+          for (let i = 0; i < available; i++) frameBuffer[i] = resampled[from + i] * 32768;
+          module.HEAPF32.set(frameBuffer, inputIndex);
           module._rnnoise_process_frame(state, outputPointer, inputPointer);
           const processed = module.HEAPF32.subarray(outputIndex, outputIndex + frameSize);
           denoised.set(processed.subarray(0, available), from);
