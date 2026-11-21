@@ -3402,8 +3402,19 @@ function aiEditorContext(){
   });
   return {id:String(clip.id),name:String(clip.name||clip.type||"Clip").slice(0,100),type:clip.type,track:clip.track,start:Number(clip.start)||0,duration:Number(clip.duration)||0,properties};
  });
+ if(selectedId&&!contextClips.some(item=>item.id===selectedId)){
+  const selected=clips.find(item=>item.id===selectedId);
+  if(selected&&contextClips.length>=40)contextClips.pop();
+  if(selected)contextClips.push({
+   id:String(selected.id),name:String(selected.name||selected.type||"Clip").slice(0,100),type:selected.type,track:selected.track,
+   start:Number(selected.start)||0,duration:Number(selected.duration)||0,
+   properties:Object.fromEntries(allowed.filter(key=>selected[key]!==undefined).map(key=>[key,typeof selected[key]==="string"?selected[key].slice(0,180):selected[key]]))
+  });
+ }
  return {
   project:{name:String(project.name||"Untitled project"),resolution:String(project.resolution||""),fps:Number(project.fps)||30,duration:Number(duration())||0},
+  clipCount:clips.length,
+  clipsTruncated:clips.length>contextClips.length,
   selectedClipId:selectedId||"",
   playhead:Number(playhead)||0,
   clips:contextClips
@@ -3730,26 +3741,41 @@ function aiSyncDerivedClip(clip){
 async function aiExecuteTool(operation){
  const tool=operation.tool,clipId=operation.clipId;
  if(tool==="caption_translation"){
-  const before=JSON.stringify(clips);
-  $("translateLanguage").value=operation.language;
-  await translateCaptionTrack();
-  if(JSON.stringify(clips)===before)throw new Error("Caption translation ne koi confirmed change nahi banaya. Original captions restore kiye ja rahe hain.");
+  const previousLanguage=$("translateLanguage").value,before=JSON.stringify(clips);
+  try{
+   $("translateLanguage").value=operation.language;
+   await translateCaptionTrack();
+   if(JSON.stringify(clips)===before)throw new Error("Caption translation ne koi confirmed change nahi banaya.");
+  }finally{$("translateLanguage").value=previousLanguage;}
   return;
  }
  if(tool==="add_sticker"){
-  $("stickerPreset").value=operation.preset;$("stickerColor").value=operation.color;
-  const before=clips.length;
-  await addStickerToTimeline();
-  if(clips.length===before)throw new Error("Sticker add nahi ho saka. Project state unchanged rakhi gayi.");
+  const previousPreset=$("stickerPreset").value,previousColor=$("stickerColor").value,before=clips.length;
+  try{
+   $("stickerPreset").value=operation.preset;$("stickerColor").value=operation.color;
+   await addStickerToTimeline();
+   if(clips.length!==before+1)throw new Error("Sticker add nahi ho saka.");
+  }finally{$("stickerPreset").value=previousPreset;$("stickerColor").value=previousColor;}
   return;
  }
  if(tool==="ai_voice_over"){
   const beforeClipCount=clips.length,beforeAssetCount=assets.length;
-  $("voiceoverText").value=operation.text;$("voiceoverVoice").value=operation.voiceId;
-  $("voiceoverCounter").textContent=operation.text.length+" / 2,000";
-  $("voiceoverConsent").checked=true;$("voiceoverGenerateBtn").disabled=false;
-  await generateVoiceover();
-  if(clips.length!==beforeClipCount+1||assets.length!==beforeAssetCount+1)throw new Error("Voice-over generate nahi hua. Quota ya connection check karein.");
+  const previous={
+   text:$("voiceoverText").value,voice:$("voiceoverVoice").value,consent:$("voiceoverConsent").checked,
+   counter:$("voiceoverCounter").textContent,status:$("voiceoverStatus").textContent,
+   disabled:$("voiceoverGenerateBtn").disabled,modalHidden:$("voiceoverModal").hidden
+  };
+  try{
+   $("voiceoverText").value=operation.text;$("voiceoverVoice").value=operation.voiceId;
+   $("voiceoverCounter").textContent=operation.text.length+" / 2,000";
+   $("voiceoverConsent").checked=true;$("voiceoverGenerateBtn").disabled=false;
+   await generateVoiceover();
+   if(clips.length!==beforeClipCount+1||assets.length!==beforeAssetCount+1)throw new Error("Voice-over generate nahi hua. Quota ya connection check karein.");
+  }finally{
+   $("voiceoverText").value=previous.text;$("voiceoverVoice").value=previous.voice;$("voiceoverConsent").checked=previous.consent;
+   $("voiceoverCounter").textContent=previous.counter;$("voiceoverStatus").textContent=previous.status;
+   $("voiceoverGenerateBtn").disabled=previous.disabled;$("voiceoverModal").hidden=previous.modalHidden;
+  }
   return;
  }
  selectedId=clipId;
@@ -3759,18 +3785,35 @@ async function aiExecuteTool(operation){
  else if(tool==="remove_silence")await removeSilenceFromSelected();
  else if(tool==="ai_colour_correction")await applyAiColourCorrection();
  else if(tool==="auto_captions"){
-  $("captionsLanguage").value=operation.language||"";
-  openCaptionsModal();
-  await generateCaptions();
-  $("captionsModal").hidden=true;
+  const previousLanguage=$("captionsLanguage").value;
+  const previous={
+   hidden:$("captionsModal").hidden,title:$("captionsGenerateBtn").textContent,disabled:$("captionsGenerateBtn").disabled,
+   status:$("captionsStatus").textContent,progress:$("captionsProgressFill").style.width,
+   downloadHidden:$("captionsDownloadBtn").hidden
+  };
+  try{
+   $("captionsLanguage").value=operation.language||"";
+   openCaptionsModal();
+   await generateCaptions();
+   if(JSON.stringify(clips)===before)throw new Error("Auto Captions ne koi subtitle clip create nahi ki.");
+  }finally{
+   $("captionsLanguage").value=previousLanguage;
+   $("captionsModal").hidden=previous.hidden;
+   $("captionsGenerateBtn").textContent=previous.title;$("captionsGenerateBtn").disabled=previous.disabled;
+   $("captionsStatus").textContent=previous.status;$("captionsProgressFill").style.width=previous.progress;
+   $("captionsDownloadBtn").hidden=previous.downloadHidden;
+  }
  }else if(tool==="reverse_video"){
-  $("reverseAudioToo").checked=operation.alsoReverseAudio===true;
-  const success=await localVideoTools.runTool("reverseClipBtn");
-  $("reverseAudioToo").checked=false;
+  const previousReverseAudio=$("reverseAudioToo").checked;
+  let success=false;
+  try{$("reverseAudioToo").checked=operation.alsoReverseAudio===true;success=await localVideoTools.runTool("reverseClipBtn");}
+  finally{$("reverseAudioToo").checked=previousReverseAudio;}
   if(!success)throw new Error("Reverse Video tool complete nahi ho saka.");
  }else if(tool==="motion_tracking"){
-  $("motionTrackTarget").value=operation.target;
-  const success=await localVideoTools.runTool("motionTrackBtn");
+  const previousTarget=$("motionTrackTarget").value;
+  let success=false;
+  try{$("motionTrackTarget").value=operation.target;success=await localVideoTools.runTool("motionTrackBtn");}
+  finally{$("motionTrackTarget").value=previousTarget;}
   if(!success)throw new Error("Motion Tracking complete nahi ho saki.");
  }else if(tool==="enhance_audio"){
   const success=await localVideoTools.runTool("enhanceAudioBtn");
