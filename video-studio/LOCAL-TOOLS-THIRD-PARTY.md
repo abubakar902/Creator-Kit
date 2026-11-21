@@ -45,5 +45,6 @@ The following optional components are downloaded by the browser only when the us
 
 - These tools do not call a paid AI API or the TrivexaAI Cloudflare Worker.
 - First use requires an internet connection to fetch the relevant open-source runtime/model files from their upstream CDNs or Google-hosted model storage.
+- Google's MediaPipe privacy notice says input media is processed on-device and is not sent to Google, but the Tasks APIs send performance/utilization metrics. TrivexaAI should disclose that telemetry in its product privacy information where required.
 - After the browser has cached those files, repeat use may avoid downloading them again; browser cache policies can still clear or refresh them.
 - "Free" refers to the absence of a per-request TrivexaAI API charge. Upstream hosting, browser support, licence terms and service availability remain governed by each provider.
