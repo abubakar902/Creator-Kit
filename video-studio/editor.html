@@ -3318,6 +3318,623 @@ async function callVideoStudioAi(prompt){
  if(typeof data.text!=="string"||!data.text.trim())throw new Error("No AI suggestion was returned. Please try again.");
  return data.text.trim();
 }
+
+const AI_VIDEO_TOOLS = new Set([
+ "scene_detection","beat_sync","remove_silence","ai_colour_correction",
+ "caption_translation","auto_captions","reverse_video","motion_tracking",
+ "enhance_audio","remove_person_background","auto_reframe","ai_voice_over","add_sticker"
+]);
+const AI_VOICE_IDS = new Set(["angus","asteria","arcas","orion","orpheus","athena","luna","zeus","perseus","helios","hera","stella"]);
+const AI_LANGUAGES = new Set(["English","Urdu","Hindi","Arabic","Spanish","French","German","Portuguese","Turkish","Bengali","Chinese (Simplified)","Japanese"]);
+const AI_PROPERTY_FIELDS = {
+ video:new Set(["name","start","duration","scale","rotation","x","y","opacity","flipX","flipY","framingMode","filterPreset","brightness","contrast","saturation","blur","hue","transition","transitionDuration","volume","speedStart","speedEnd","chromaEnabled","chromaColor","chromaTolerance","chromaSoftness","maskShape","maskTop","maskBottom","maskFeather","maskAngle"]),
+ image:new Set(["name","start","duration","scale","rotation","x","y","opacity","flipX","flipY","framingMode","filterPreset","brightness","contrast","saturation","blur","hue","transition","transitionDuration","maskShape","maskTop","maskBottom","maskFeather","maskAngle"]),
+ audio:new Set(["name","start","duration","volume","fadeIn","fadeOut","audioBass","audioMid","audioTreble","audioPan"]),
+ text:new Set(["name","start","duration","text","color","fontSize","font","weight","align","bgColor","bgOpacity","italic","rotation","opacity","textEffect","textTransition","textTransitionDuration","x","y","scale"])
+};
+const AI_FIELD_CONTROLS = {
+ name:"propName",start:"propStart",duration:"propDuration",scale:"propScale",rotation:"propRotation",x:"propX",y:"propY",opacity:"propOpacity",
+ flipX:"propFlipX",flipY:"propFlipY",framingMode:"propFramingMode",filterPreset:"propFilterPreset",brightness:"propBrightness",contrast:"propContrast",
+ saturation:"propSaturation",blur:"propBlur",hue:"propHue",transition:"propTransition",transitionDuration:"propTransitionDuration",volume:"propVolume",
+ speedStart:"propSpeedStart",speedEnd:"propSpeedEnd",chromaEnabled:"propChromaEnabled",chromaColor:"propChromaColor",chromaTolerance:"propChromaTolerance",
+ chromaSoftness:"propChromaSoftness",maskShape:"propMaskShape",maskTop:"propMaskTop",maskBottom:"propMaskBottom",maskFeather:"propMaskFeather",maskAngle:"propMaskAngle",
+ fadeIn:"propFadeIn",fadeOut:"propFadeOut",audioBass:"propAudioBass",audioMid:"propAudioMid",audioTreble:"propAudioTreble",audioPan:"propAudioPan",
+ text:"propText",color:"propTextColor",fontSize:"propFontSize",font:"propFont",weight:"propWeight",align:"propTextAlign",bgColor:"propBgColor",
+ bgOpacity:"propBgOpacity",italic:"propItalic",textEffect:"propTextEffect",textTransition:"propTextTransition",textTransitionDuration:"propTextTransitionDuration"
+};
+function aiSetStatus(message){$("aiAssistantStatus").textContent=String(message||"");}
+function aiSetBusy(busy){
+ aiPlanBusy=!!busy;
+ $("aiGeneratePlanBtn").disabled=aiPlanBusy||aiPreviewActive;
+ $("aiPreviewPlanBtn").disabled=aiPlanBusy||aiPreviewActive||!aiCurrentPlan||aiCurrentPlan.needsClarification||(!aiCloudConsentIsReady());
+ $("aiApplyPlanBtn").disabled=aiPlanBusy||!aiPreviewActive;
+ $("aiCancelPreviewBtn").disabled=aiPlanBusy&&!aiPreviewActive;
+}
+function aiCloudConsentIsReady(){
+ return !$("aiCloudConsentRow").hidden && aiCurrentPlan && aiCurrentPlan.requiresCloudConsent
+  ? $("aiCloudConsent").checked
+  : true;
+}
+function aiUpdateContextLabel(){
+ const count=clips.length,selected=selectedClip();
+ const selectedLabel=selected?(selected.name||selected.type):"No clip selected";
+ $("aiAssistantContext").replaceChildren();
+ const spark=document.createElement("span");spark.className="ai-assistant-spark";spark.textContent="✦";
+ const label=document.createElement("span");label.textContent=(project?.name||"Current project")+" · "+count+" timeline clips · "+selectedLabel;
+ $("aiAssistantContext").append(spark,label);
+}
+function openAiEditorAssistant(){
+ if(!auth?.currentUser){notify("Please sign in with Google to use the AI Editor.");return;}
+ if(!project||!Array.isArray(clips)){notify("Open a Video Studio project before using the AI Editor.");return;}
+ if(aiPreviewActive){$("aiAssistantOverlay").hidden=false;return;}
+ aiAssistantOpen=true;
+ $("aiAssistantOverlay").hidden=false;
+ document.body.classList.add("ai-assistant-open");
+ aiUpdateContextLabel();
+ $("aiAssistantStatus").textContent="Ready. Describe one edit or a set of related edits for this project.";
+ $("aiEditPrompt").focus();
+}
+async function closeAiEditorAssistant(){
+ if(aiPlanBusy)return;
+ if(aiPreviewActive)await cancelAiEditorPreview(true);
+ aiAssistantOpen=false;
+ $("aiAssistantOverlay").hidden=true;
+ document.body.classList.remove("ai-assistant-open","ai-preview-active");
+}
+function aiEditorContext(){
+ const allowed=["name","start","duration","scale","rotation","x","y","opacity","volume","flipX","flipY","framingMode","filterPreset","brightness","contrast","saturation","blur","hue","transition","transitionDuration","speedStart","speedEnd","chromaEnabled","chromaColor","chromaTolerance","chromaSoftness","maskShape","maskTop","maskBottom","maskFeather","maskAngle","fadeIn","fadeOut","audioBass","audioMid","audioTreble","audioPan","text","fontSize","font","weight","align","bgColor","bgOpacity","italic","textEffect","textTransition","textTransitionDuration","bgRemoveEnabled"];
+ const contextClips=clips.slice(0,40).map(clip=>{
+  const properties={};
+  allowed.forEach(key=>{
+   if(clip[key]!==undefined){
+    const value=clip[key];
+    if(typeof value==="string")properties[key]=value.slice(0,180);
+    else if(typeof value==="boolean"||Number.isFinite(value))properties[key]=value;
+   }
+  });
+  return {id:String(clip.id),name:String(clip.name||clip.type||"Clip").slice(0,100),type:clip.type,track:clip.track,start:Number(clip.start)||0,duration:Number(clip.duration)||0,properties};
+ });
+ return {
+  project:{name:String(project.name||"Untitled project"),resolution:String(project.resolution||""),fps:Number(project.fps)||30,duration:Number(duration())||0},
+  selectedClipId:selectedId||"",
+  playhead:Number(playhead)||0,
+  clips:contextClips
+ };
+}
+function aiParsePlan(source){
+ let value=String(source||"").trim().replace(/^\x60{3}(?:json)?\s*/i,"").replace(/\s*\x60{3}$/,"").trim();
+ const first=value.indexOf("{"),last=value.lastIndexOf("}");
+ if(first<0||last<=first)throw new Error("AI ka jawab valid edit plan JSON mein nahi tha. Dobara try karein.");
+ return JSON.parse(value.slice(first,last+1));
+}
+function aiFinite(value,label){
+ if(typeof value!=="number"||!Number.isFinite(value))throw new Error(label+" ki value valid number nahi hai.");
+ return value;
+}
+function aiClamp(value,min,max,label){
+ const number=aiFinite(value,label);
+ if(number<min||number>max)throw new Error(label+" ki value "+min+" se "+max+" ke darmiyan honi chahiye.");
+ return number;
+}
+function aiValidateChanges(clipType,changes){
+ if(!changes||typeof changes!=="object"||Array.isArray(changes))throw new Error("AI edit mein clip settings missing hain.");
+ const allowed=AI_PROPERTY_FIELDS[clipType];
+ if(!allowed)throw new Error("Is clip type ki editing AI se supported nahi.");
+ const keys=Object.keys(changes);
+ if(!keys.length||keys.length>22)throw new Error("AI edit mein settings ki tadaad valid nahi.");
+ const result={};
+ const numericRanges={
+  start:[0,7200],duration:[.2,7200],scale:[.1,4],rotation:[-180,180],x:[-100,100],y:[-100,100],opacity:[0,1],volume:[0,1],
+  brightness:[.5,1.8],contrast:[.5,1.8],saturation:[0,2],blur:[0,12],hue:[-45,45],transitionDuration:[.1,2.5],
+  speedStart:[.25,4],speedEnd:[.25,4],chromaTolerance:[20,220],chromaSoftness:[0,160],
+  maskTop:[0,95],maskBottom:[5,100],maskFeather:[0,20],maskAngle:[-90,90],
+  fadeIn:[0,7200],fadeOut:[0,7200],audioBass:[-12,12],audioMid:[-12,12],audioTreble:[-12,12],audioPan:[-100,100],
+  fontSize:[10,120],bgOpacity:[0,1],textTransitionDuration:[.1,2]
+ };
+ const enums={
+  framingMode:new Set(["project","fit","fill","stretch"]),
+  filterPreset:new Set(["none","cinematic","vivid","warm","cool","noir","vintage"]),
+  transition:new Set(["none","fade","slide","slide-up","slide-down","zoom","wipe","blur","pop"]),
+  maskShape:new Set(["none","horizontal"]),
+  align:new Set(["left","center","right"]),
+  textEffect:new Set(["none","shadow","glow","neon","outline"]),
+  textTransition:new Set(["none","fade","pop","slide-up","bounce"]),
+  font:new Set(["Arial, sans-serif","Inter, sans-serif","Georgia, serif","Impact, sans-serif","system-ui, sans-serif"]),
+  weight:new Set([500,700,900])
+ };
+ const booleans=new Set(["flipX","flipY","chromaEnabled","italic"]);
+ const strings=new Set(["name","text","color","bgColor","chromaColor"]);
+ for(const key of keys){
+  if(!allowed.has(key))throw new Error("AI ne unsupported setting '"+key+"' change karne ki koshish ki. Is edit ko roka gaya.");
+  const value=changes[key];
+  if(Object.prototype.hasOwnProperty.call(numericRanges,key)){
+   const [min,max]=numericRanges[key];result[key]=aiClamp(value,min,max,key);
+   if(key==="weight"&&!enums.weight.has(result[key]))throw new Error("Text weight supported option se match nahi karta.");
+  }else if(booleans.has(key)){
+   if(typeof value!=="boolean")throw new Error(key+" ka value true ya false hona chahiye.");
+   result[key]=value;
+  }else if(enums[key]){
+   if(!enums[key].has(value))throw new Error(key+" ka option editor mein available nahi hai.");
+   result[key]=value;
+  }else if(strings.has(key)){
+   if(typeof value!=="string")throw new Error(key+" ka value text hona chahiye.");
+   const max=key==="text"?180:key==="name"?80:16;
+   const textValue=value.trim().slice(0,max);
+   if(key==="color"||key==="bgColor"||key==="chromaColor"){
+    if(!/^#[0-9a-f]{6}$/i.test(textValue))throw new Error(key+" ke liye valid HEX colour use karein.");
+   }
+   if((key==="text"||key==="name")&&!textValue)throw new Error(key+" khaali nahi ho sakta.");
+   result[key]=textValue;
+  }else{
+   throw new Error("AI edit mein ek unsupported setting aa gayi.");
+  }
+ }
+ if(result.maskTop!==undefined||result.maskBottom!==undefined){
+  const top=result.maskTop??0,bottom=result.maskBottom??100;
+  if(bottom<top+5)throw new Error("Mask ki top aur bottom lines ke darmiyan kam az kam 5% gap hona chahiye.");
+ }
+ return result;
+}
+function aiValidatePlan(raw){
+ if(!raw||typeof raw!=="object"||Array.isArray(raw))throw new Error("AI edit plan ka format valid nahi.");
+ const plan={
+  understoodRequest:String(raw.understoodRequest||"").trim().slice(0,500),
+  message:String(raw.message||"").trim().slice(0,700),
+  needsClarification:raw.needsClarification===true,
+  operations:[],
+  requiresCloudConsent:false
+ };
+ if(plan.needsClarification)return plan;
+ if(!plan.understoodRequest)throw new Error("AI ne aapki request ko clear words mein confirm nahi kiya.");
+ if(!Array.isArray(raw.operations)||raw.operations.length<1||raw.operations.length>8)throw new Error("AI plan mein 1 se 8 relevant actions hone chahiye.");
+ const ids=new Set(clips.map(clip=>clip.id));
+ const requireClip=(id,typeList)=>{
+  if(typeof id!=="string"||!ids.has(id))throw new Error("AI ne current project mein na-mojood clip select ki. Please target clip dobara select karein.");
+  const clip=clips.find(item=>item.id===id);
+  if(typeList&&!typeList.includes(clip.type))throw new Error("Selected clip par yeh tool supported nahi. Sahi media type select karein.");
+  return clip;
+ };
+ for(const item of raw.operations){
+  if(!item||typeof item!=="object"||Array.isArray(item)||typeof item.type!=="string")throw new Error("AI plan mein ek action ka format valid nahi.");
+  const reason=String(item.reason||item.type.replace(/_/g," ")).slice(0,220);
+  let operation;
+  switch(item.type){
+   case "set_clip_properties":{
+    const clip=requireClip(item.clipId);
+    operation={type:item.type,clipId:clip.id,changes:aiValidateChanges(clip.type,item.changes),reason};
+    break;
+   }
+   case "split_clip":{
+    const clip=requireClip(item.clipId,["video","audio","image","text"]);
+    const atSeconds=aiClamp(item.atSeconds,clip.start+.151,clip.start+clip.duration-.151,"Split position");
+    operation={type:item.type,clipId:clip.id,atSeconds,reason};
+    break;
+   }
+   case "move_clip":{
+    const clip=requireClip(item.clipId);
+    operation={type:item.type,clipId:clip.id,start:aiClamp(item.start,0,7200,"New clip start"),reason};
+    break;
+   }
+   case "duplicate_clip":{
+    const clip=requireClip(item.clipId);
+    operation={type:item.type,clipId:clip.id,start:aiClamp(item.start,0,7200,"Duplicate start"),reason};
+    break;
+   }
+   case "delete_clip":{
+    const clip=requireClip(item.clipId);
+    operation={type:item.type,clipId:clip.id,reason};
+    break;
+   }
+   case "add_text_overlay":{
+    if(typeof item.text!=="string"||!item.text.trim()||item.text.length>180)throw new Error("Text overlay 1 se 180 characters ka hona chahiye.");
+    const start=aiClamp(item.start,0,7200,"Text start"),durationValue=aiClamp(item.duration??5,.2,600,"Text duration");
+    const changes=aiValidateChanges("text",{...(item.changes||{}),text:item.text.trim().slice(0,180),start,duration:durationValue});
+    operation={type:item.type,text:item.text.trim().slice(0,180),start,duration:durationValue,changes,reason};
+    break;
+   }
+   case "set_keyframes":{
+    const clip=requireClip(item.clipId,["video","image","text"]);
+    if(!Array.isArray(item.keyframes)||item.keyframes.length<2||item.keyframes.length>20)throw new Error("Keyframe edit mein 2 se 20 keyframes required hain.");
+    const frames=item.keyframes.map(frame=>{
+     if(!frame||typeof frame!=="object"||!frame.values||typeof frame.values!=="object"||Array.isArray(frame.values))throw new Error("AI keyframe ka format valid nahi.");
+     const values={};
+     for(const [key,value] of Object.entries(frame.values)){
+      if(key==="x"||key==="y")values[key]=aiClamp(value,-100,100,key);
+      else if(key==="scale")values[key]=aiClamp(value,.1,4,key);
+      else if(key==="rotation")values[key]=aiClamp(value,-180,180,key);
+      else if(key==="opacity")values[key]=aiClamp(value,0,1,key);
+      else throw new Error("Keyframe mein unsupported property di gayi hai.");
+     }
+     if(!Object.keys(values).length)throw new Error("Keyframe mein koi valid transform nahi diya gaya.");
+     return {time:aiClamp(frame.time,0,clip.duration,"Keyframe time"),values};
+    }).sort((a,b)=>a.time-b.time);
+    if(frames[0].time!==0||frames[frames.length-1].time>clip.duration)throw new Error("Keyframes ko clip ke start aur duration ke andar rehna chahiye.");
+    operation={type:item.type,clipId:clip.id,keyframes:frames,reason};
+    break;
+   }
+   case "run_tool":{
+    if(!AI_VIDEO_TOOLS.has(item.tool))throw new Error("AI ne koi aisa tool choose kiya jo editor mein allowed nahi.");
+    const needsClip=!["caption_translation","ai_voice_over","add_sticker"].includes(item.tool);
+    let clip=null;
+    if(needsClip){
+     const types={
+      scene_detection:["video"],beat_sync:["audio","video"],remove_silence:["audio","video"],ai_colour_correction:["video","image"],
+      auto_captions:["video","audio"],reverse_video:["video"],motion_tracking:["video"],enhance_audio:["audio"],
+      remove_person_background:["video"],auto_reframe:["video"]
+     };
+     clip=requireClip(item.clipId||selectedId,types[item.tool]);
+    }
+    if(item.tool==="caption_translation"&&!clips.some(c=>c.track==="captions"&&c.type==="text"))throw new Error("Translate karne ke liye project mein pehle se captions hone chahiye.");
+    if(item.tool==="caption_translation"||item.tool==="auto_captions"){
+     const language=item.language===undefined?"":String(item.language);
+     if(item.tool==="caption_translation"&&!AI_LANGUAGES.has(language))throw new Error("Caption translation ke liye supported language select karein.");
+     if(item.tool==="auto_captions"&&language&&!["en","ur","hi","ar","es","fr","pt","tr","de"].includes(language))throw new Error("Auto Captions ke liye selected spoken language available nahi.");
+     operation={type:item.type,tool:item.tool,clipId:clip?.id||"",language,reason};
+     plan.requiresCloudConsent=true;
+    }else if(item.tool==="ai_voice_over"){
+     if(typeof item.text!=="string"||!item.text.trim()||item.text.length>2000)throw new Error("AI Voice-over ke liye 1 se 2,000 characters ka script chahiye.");
+     const voiceId=item.voiceId||"angus";if(!AI_VOICE_IDS.has(voiceId))throw new Error("AI Voice-over ke liye selected voice available nahi.");
+     operation={type:item.type,tool:item.tool,text:item.text.trim(),voiceId,reason};plan.requiresCloudConsent=true;
+    }else if(item.tool==="add_sticker"){
+     const preset=item.preset||"star",valid=new Set(["star","heart","circle","rectangle","arrow","speech","lightning","check","emoji-star","emoji-fire","emoji-heart","emoji-clap","emoji-target"]);
+     if(!valid.has(preset))throw new Error("Sticker preset available nahi.");
+     const color=item.color||"#a86bf2";if(typeof color!=="string"||!/^#[0-9a-f]{6}$/i.test(color))throw new Error("Sticker colour valid HEX mein dein.");
+     operation={type:item.type,tool:item.tool,preset,color,reason};
+    }else if(item.tool==="motion_tracking"){
+     const target=item.target||"person";if(!["person","any"].includes(target))throw new Error("Motion tracking target supported nahi.");
+     operation={type:item.type,tool:item.tool,clipId:clip.id,target,reason};
+    }else if(item.tool==="reverse_video"){
+     const alsoReverseAudio=item.alsoReverseAudio===true;
+     operation={type:item.type,tool:item.tool,clipId:clip.id,alsoReverseAudio,reason};
+    }else{
+     operation={type:item.type,tool:item.tool,clipId:clip?.id||"",reason};
+     if(item.tool==="ai_colour_correction")plan.requiresCloudConsent=true;
+    }
+    break;
+   }
+   default:throw new Error("AI ne unsupported action propose kiya. Is plan ko run nahi kiya gaya.");
+  }
+  plan.operations.push(operation);
+ }
+ return plan;
+}
+function aiOperationLabel(operation){
+ if(operation.type==="set_clip_properties")return "Update "+(clips.find(c=>c.id===operation.clipId)?.name||"selected clip")+" settings";
+ if(operation.type==="split_clip")return "Split "+(clips.find(c=>c.id===operation.clipId)?.name||"clip")+" at "+operation.atSeconds.toFixed(1)+" seconds";
+ if(operation.type==="move_clip")return "Move "+(clips.find(c=>c.id===operation.clipId)?.name||"clip")+" to "+operation.start.toFixed(1)+" seconds";
+ if(operation.type==="duplicate_clip")return "Duplicate "+(clips.find(c=>c.id===operation.clipId)?.name||"clip");
+ if(operation.type==="delete_clip")return "Remove "+(clips.find(c=>c.id===operation.clipId)?.name||"clip");
+ if(operation.type==="add_text_overlay")return "Add text overlay: "+operation.text;
+ if(operation.type==="set_keyframes")return "Create "+operation.keyframes.length+" animation keyframes";
+ const names={
+  scene_detection:"Detect scenes and split the selected video",beat_sync:"Align selected clips to music beats",remove_silence:"Remove silent sections from the selected clip",
+  ai_colour_correction:"Analyse and correct selected clip colours",caption_translation:"Translate existing captions into "+operation.language,
+  auto_captions:"Generate AI captions from the selected clip",reverse_video:"Reverse the selected video clip",motion_tracking:"Track "+operation.target+" movement in the selected video",
+  enhance_audio:"Enhance the selected audio",remove_person_background:"Remove the person background from the selected video",
+  auto_reframe:"Reframe the selected video around the subject",ai_voice_over:"Generate an AI voice-over clip",add_sticker:"Add a "+operation.preset+" sticker"
+ };
+ return names[operation.tool]||"Run "+operation.tool;
+}
+function aiRenderPlan(plan){
+ $("aiPlanCard").hidden=false;
+ $("aiPlanUnderstood").textContent=plan.understoodRequest||"";
+ $("aiPlanMessage").textContent=plan.message||"";
+ $("aiPlanSteps").replaceChildren();
+ plan.operations.forEach(operation=>{
+  const li=document.createElement("li");
+  li.textContent=aiOperationLabel(operation)+(operation.reason&&operation.reason!==operation.type?": "+operation.reason:"");
+  $("aiPlanSteps").append(li);
+ });
+ $("aiUseRefinedPrompt").hidden=!plan.understoodRequest;
+ $("aiCloudConsentRow").hidden=!plan.requiresCloudConsent;
+ $("aiCloudConsent").checked=false;
+ $("aiPreviewState").hidden=true;
+ $("aiPreviewPlanBtn").hidden=plan.needsClarification||!plan.operations.length;
+ $("aiApplyPlanBtn").hidden=true;
+ $("aiCancelPreviewBtn").hidden=true;
+ $("aiPreviewPlanBtn").textContent="▶ Preview changes";
+ $("aiPreviewPlanBtn").disabled=plan.needsClarification||!plan.operations.length;
+ aiSetBusy(false);
+ if(plan.needsClarification){
+  aiSetStatus(plan.message||"AI ko ek cheez clear karni hai. Prompt ko update karke dobara plan banayein.");
+ }else{
+  aiSetStatus("Plan ready. Preview chalayein; original project abhi change nahi hua.");
+ }
+}
+async function generateAiEditPlan(){
+ if(aiPlanBusy||aiPreviewActive)return;
+ const request=$("aiEditPrompt").value.trim();
+ if(!request){aiSetStatus("Pehle likhein ke video mein kya edit karna hai.");$("aiEditPrompt").focus();return;}
+ if(request.length>1400){aiSetStatus("Prompt 1,400 characters se chhota rakhein.");return;}
+ if(previewDraft){aiSetStatus("Pehle Properties panel ka Apply ya cancel complete karein, phir AI Editor use karein.");notify("Aapke pending Properties preview ko AI edit change nahi karega.");return;}
+ if(!auth?.currentUser){aiSetStatus("Session expire ho gaya. Dobara Google sign-in karein.");return;}
+ aiCurrentPlan=null;$("aiPlanCard").hidden=true;aiSetBusy(true);aiSetStatus("AI aapki request aur current timeline samajh raha hai…");
+ try{
+  const token=await auth.currentUser.getIdToken();
+  const response=await fetch(WORKER_URL,{
+   method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+token},
+   body:JSON.stringify({action:"ai_editing_assistant",toolId:"video-studio-ai-editor",request,editorContext:aiEditorContext()})
+  });
+  const data=await response.json().catch(()=>({}));
+  if(!response.ok){
+   if(response.status===401)throw new Error("Google sign-in dobara karein. AI request authenticate nahi ho saki.");
+   if(response.status===403)throw new Error("AI Editor advanced access ke liye invite ya admin approval zaroori hai.");
+   if(response.status===429)throw new Error("AI Editor busy hai. Thori dair baad dobara try karein.");
+   throw new Error(data.error||"AI edit plan tayyar nahi ho saka. Dobara try karein.");
+  }
+  const raw=aiParsePlan(data.text);
+  const plan=aiValidatePlan(raw);
+  aiCurrentPlan=plan;
+  aiRenderPlan(plan);
+ }catch(error){
+  aiCurrentPlan=null;
+  $("aiPlanCard").hidden=true;
+  aiSetStatus(error?.message||"AI Editor se rabta nahi ho saka.");
+ }finally{
+  aiSetBusy(false);
+ }
+}
+function aiUseRefinedPrompt(){
+ if(!aiCurrentPlan?.understoodRequest)return;
+ $("aiEditPrompt").value=aiCurrentPlan.understoodRequest.slice(0,1400);
+ $("aiPromptCount").textContent=$("aiEditPrompt").value.length+" / 1,400";
+ $("aiEditPrompt").focus();
+ aiSetStatus("Clear version prompt mein aa gaya. Zaroorat ho to edit karke naya plan banayein.");
+}
+function aiWriteClipChanges(clip,changes){
+ const oldDuration=Number(clip.duration)||0;
+ selectedId=clip.id;previewDraft=null;renderInspector();
+ for(const [key,value] of Object.entries(changes)){
+  const id=AI_FIELD_CONTROLS[key],field=id?$(id):null;
+  if(!field)throw new Error("Editor setting '"+key+"' is currently unavailable. No partial edit was applied.");
+  if(field.type==="checkbox")field.checked=!!value;
+  else field.value=String(value);
+ }
+ const draft=readPropertiesDraft(clip);
+ Object.assign(clip,draft);
+ if(clip.type==="video"&&Array.isArray(clip.keyframes)&&Math.abs(clip.duration-oldDuration)>.001){
+  const factor=clip.duration/Math.max(.001,oldDuration);
+  clip.keyframes=clip.keyframes.map(frame=>({...frame,time:Number((frame.time*factor).toFixed(3))}));
+ }
+ if(clip.type==="video"){
+  const linkedAudio=clips.find(item=>item.type==="audio"&&item.detachedFromVideoId===clip.id);
+  if(linkedAudio){
+   linkedAudio.start=clip.start;linkedAudio.duration=clip.duration;
+   linkedAudio.speedStart=clip.speedStart??1;linkedAudio.speedEnd=clip.speedEnd??1;
+   if(Number(clip.speedSourceDuration)>0)linkedAudio.speedSourceDuration=clip.speedSourceDuration;
+   else delete linkedAudio.speedSourceDuration;
+  }
+ }
+}
+function aiSyncDerivedClip(clip){
+ if(clip.type!=="video")return;
+ const linked=clips.find(item=>item.type==="audio"&&item.detachedFromVideoId===clip.id);
+ if(linked){
+  linked.start=clip.start;linked.duration=clip.duration;linked.speedStart=clip.speedStart??1;linked.speedEnd=clip.speedEnd??1;
+  if(Number(clip.speedSourceDuration)>0)linked.speedSourceDuration=clip.speedSourceDuration;
+  else delete linked.speedSourceDuration;
+ }
+}
+async function aiExecuteTool(operation){
+ const tool=operation.tool,clipId=operation.clipId;
+ if(tool==="caption_translation"){
+  $("translateLanguage").value=operation.language;
+  await translateCaptionTrack();
+  return;
+ }
+ if(tool==="add_sticker"){
+  $("stickerPreset").value=operation.preset;$("stickerColor").value=operation.color;
+  const before=clips.length;
+  await addStickerToTimeline();
+  if(clips.length===before)throw new Error("Sticker add nahi ho saka. Project state unchanged rakhi gayi.");
+  return;
+ }
+ if(tool==="ai_voice_over"){
+  $("voiceoverText").value=operation.text;$("voiceoverVoice").value=operation.voiceId;
+  $("voiceoverCounter").textContent=operation.text.length+" / 2,000";
+  $("voiceoverConsent").checked=true;$("voiceoverGenerateBtn").disabled=false;
+  await generateVoiceover();
+  if(!clips.some(c=>c.name&&c.name.startsWith("AI Voice-over —")&&c.start===playhead))throw new Error("Voice-over generate nahi hua. Quota ya connection check karein.");
+  return;
+ }
+ selectedId=clipId;
+ const before=JSON.stringify(clips),assetsBefore=assets.length;
+ if(tool==="scene_detection")await detectScenes();
+ else if(tool==="beat_sync")await syncClipsToBeats();
+ else if(tool==="remove_silence")await removeSilenceFromSelected();
+ else if(tool==="ai_colour_correction")await applyAiColourCorrection();
+ else if(tool==="auto_captions"){
+  $("captionsLanguage").value=operation.language||"";
+  openCaptionsModal();
+  await generateCaptions();
+  $("captionsModal").hidden=true;
+ }else if(tool==="reverse_video"){
+  $("reverseAudioToo").checked=operation.alsoReverseAudio===true;
+  const success=await localVideoTools.runTool("reverseClipBtn");
+  $("reverseAudioToo").checked=false;
+  if(!success)throw new Error("Reverse Video tool complete nahi ho saka.");
+ }else if(tool==="motion_tracking"){
+  $("motionTrackTarget").value=operation.target;
+  const success=await localVideoTools.runTool("motionTrackBtn");
+  if(!success)throw new Error("Motion Tracking complete nahi ho saki.");
+ }else if(tool==="enhance_audio"){
+  const success=await localVideoTools.runTool("enhanceAudioBtn");
+  if(!success)throw new Error("Audio Enhance complete nahi ho saka.");
+ }else if(tool==="remove_person_background"){
+  if(selectedClip()?.bgRemoveEnabled)throw new Error("Person background removal pehle se enabled hai. Koi doosri change apply nahi ki gayi.");
+  const success=await localVideoTools.runTool("removeVideoBgBtn");
+  if(!success)throw new Error("Person Background Removal complete nahi ho saka.");
+ }else if(tool==="auto_reframe"){
+  const success=await localVideoTools.runTool("autoReframeBtn");
+  if(!success)throw new Error("Auto Reframe complete nahi ho saka.");
+ }
+ const changed=JSON.stringify(clips)!==before||assets.length!==assetsBefore;
+ if(!changed)throw new Error("Selected tool ne is clip par koi change nahi banaya. Original preview restore ki ja rahi hai.");
+}
+async function aiExecuteOperation(operation){
+ if(operation.type==="set_clip_properties"){
+  const clip=clips.find(c=>c.id===operation.clipId);if(!clip)throw new Error("Preview ke dauran selected clip nahi mila.");
+  aiWriteClipChanges(clip,operation.changes);return;
+ }
+ if(operation.type==="split_clip"){
+  const clip=clips.find(c=>c.id===operation.clipId);if(!clip)throw new Error("Split karne wala clip nahi mila.");
+  selectedId=clip.id;playhead=operation.atSeconds;
+  const before=clips.length;splitSelected();
+  if(clips.length!==before+1)throw new Error("Clip split nahi ho saka. Original project restore hoga.");
+  return;
+ }
+ if(operation.type==="move_clip"){
+  const clip=clips.find(c=>c.id===operation.clipId);if(!clip)throw new Error("Move karne wala clip nahi mila.");
+  const delta=operation.start-clip.start;clip.start=operation.start;
+  if(clip.type==="video")aiSyncDerivedClip(clip);
+  const linked=clips.find(c=>c.type==="audio"&&c.detachedFromVideoId===clip.id);
+  if(linked)linked.start=operation.start;
+  return;
+ }
+ if(operation.type==="duplicate_clip"){
+  const original=clips.find(c=>c.id===operation.clipId);if(!original)throw new Error("Duplicate karne wala clip nahi mila.");
+  const copy={...clone(original),id:uid(),name:(original.name||"Clip")+" copy",start:operation.start};
+  if(copy.type==="video")delete copy.audioDetached;
+  clips.push(copy);selectedId=copy.id;return;
+ }
+ if(operation.type==="delete_clip"){
+  const index=clips.findIndex(c=>c.id===operation.clipId);if(index<0)throw new Error("Delete karne wala clip nahi mila.");
+  clips.splice(index,1);if(selectedId===operation.clipId)selectedId=null;return;
+ }
+ if(operation.type==="add_text_overlay"){
+  const clip={id:uid(),name:"AI Text Overlay",type:"text",track:"text",text:operation.text,color:"#ffffff",fontSize:42,font:"Arial, sans-serif",weight:800,align:"center",bgColor:"#000000",bgOpacity:0,x:0,y:0,start:operation.start,duration:operation.duration,sourceStart:0,scale:1,rotation:0,opacity:1};
+  clips.push(clip);selectedId=clip.id;
+  const changes={...operation.changes};delete changes.text;delete changes.start;delete changes.duration;
+  if(Object.keys(changes).length)aiWriteClipChanges(clip,{...changes,text:operation.text,start:operation.start,duration:operation.duration});
+  return;
+ }
+ if(operation.type==="set_keyframes"){
+  const clip=clips.find(c=>c.id===operation.clipId);if(!clip)throw new Error("Animation clip nahi mila.");
+  clip.keyframes=operation.keyframes.map(frame=>({time:frame.time,values:{...frame.values}}));
+  clip.autoNextKeyframe=false;selectedId=clip.id;return;
+ }
+ if(operation.type==="run_tool"){
+  if(operation.clipId)selectedId=operation.clipId;
+  if(operation.tool==="beat_sync"&&selectedClip()?.type==="video"){
+   const hasMusic=clips.some(c=>c.type==="audio"&&c.track==="audio");
+   if(!hasMusic)throw new Error("Beat Sync ke liye audio/music clip bhi required hai.");
+  }
+  if(operation.tool==="ai_voice_over"||operation.tool==="add_sticker")setPlayhead(playhead);
+  else if(operation.clipId){const target=clips.find(c=>c.id===operation.clipId);if(target)setPlayhead(Math.min(Math.max(playhead,target.start),target.start+target.duration-.01));}
+  await aiExecuteTool(operation);return;
+ }
+ throw new Error("AI plan mein unknown action hai. Preview cancel kar di gayi.");
+}
+async function cleanupAiPreviewAssets(){
+ if(!aiPreviewAssetIds)return;
+ const newAssets=assets.filter(asset=>!aiPreviewAssetIds.has(asset.id));
+ for(const asset of newAssets){
+  const url=urls.get(asset.id);if(url){URL.revokeObjectURL(url);urls.delete(asset.id);}
+  try{await dbRequest("assets","readwrite",store=>store.delete(asset.id));}catch(error){console.warn("AI preview asset cleanup failed:",error);}
+ }
+ assets=assets.filter(asset=>aiPreviewAssetIds.has(asset.id));
+ aiPreviewAssetIds=null;
+}
+async function cancelAiEditorPreview(closing=false){
+ if(!aiPreviewActive||!aiPreviewOriginal)return;
+ pause();
+ const original=aiPreviewOriginal;
+ await cleanupAiPreviewAssets();
+ clips=clone(original.clips);selectedId=original.selectedId;playhead=original.playhead;
+ undoStack=clone(original.undoStack);redoStack=clone(original.redoStack);
+ previewDraft=original.previewDraft?clone(original.previewDraft):null;
+ aiPreviewActive=false;aiPreviewOriginal=null;aiCurrentPlan=aiCurrentPlan;
+ document.body.classList.remove("ai-preview-active");
+ renderAll();setPlayhead(Math.min(playhead,duration()));
+ $("aiPreviewState").hidden=true;$("aiApplyPlanBtn").hidden=true;$("aiCancelPreviewBtn").hidden=true;
+ $("aiPreviewPlanBtn").hidden=!aiCurrentPlan||aiCurrentPlan.needsClarification;
+ $("aiPreviewPlanBtn").textContent="▶ Preview changes";
+ $("aiPreviewPlanBtn").disabled=!aiCurrentPlan||aiCurrentPlan.needsClarification||!aiCloudConsentIsReady();
+ aiSetBusy(false);
+ aiSetStatus(closing?"Preview cancel ho gaya. Original project bilkul pehle jaisa hai.":"Preview cancel kar diya. Original timeline aur media restore ho gaye.");
+ if(closing)document.body.classList.remove("ai-assistant-open");
+}
+async function previewAiEditorPlan(){
+ if(aiPlanBusy||aiPreviewActive||!aiCurrentPlan||aiCurrentPlan.needsClarification)return;
+ if(aiCurrentPlan.requiresCloudConsent&&!$("aiCloudConsent").checked){aiSetStatus("Cloud AI processing se pehle consent checkbox tick karein.");return;}
+ if(previewDraft){aiSetStatus("Aapke Properties preview mein pending changes hain. Pehle unhein Apply ya cancel karein.");return;}
+ pause();
+ aiPreviewOriginal={clips:clone(clips),selectedId,playhead,undoStack:clone(undoStack),redoStack:clone(redoStack),previewDraft:previewDraft?clone(previewDraft):null};
+ aiPreviewAssetIds=new Set(assets.map(asset=>asset.id));
+ clips=clone(aiPreviewOriginal.clips);previewDraft=null;aiPreviewActive=true;
+ document.body.classList.add("ai-preview-active","ai-assistant-open");
+ $("aiPreviewPlanBtn").hidden=true;$("aiApplyPlanBtn").hidden=true;$("aiCancelPreviewBtn").hidden=false;
+ $("aiPreviewState").hidden=false;
+ aiSetBusy(true);aiSetStatus("Temporary preview tayyar ho raha hai. Project abhi save nahi hoga.");
+ try{
+  for(let index=0;index<aiCurrentPlan.operations.length;index++){
+   const operation=aiCurrentPlan.operations[index];
+   aiSetStatus("Step "+(index+1)+" / "+aiCurrentPlan.operations.length+": "+aiOperationLabel(operation));
+   await aiExecuteOperation(operation);
+  }
+  if(JSON.stringify(clips)===JSON.stringify(aiPreviewOriginal.clips)&&assets.length===aiPreviewAssetIds.size){
+   throw new Error("Is plan se timeline mein koi visible change nahi bana.");
+  }
+  renderAll();
+  setPlayhead(Math.min(playhead,duration()));
+  $("aiApplyPlanBtn").hidden=false;
+  $("aiCancelPreviewBtn").hidden=false;
+  $("aiPreviewState").hidden=false;
+  aiSetStatus("Preview ready. Video ko ▶ Play karke check karein. Apply sirf aapke kehne par hoga.");
+  notify("AI preview ready. Apply ya Cancel aapke control mein hai.");
+ }catch(error){
+  const message=error?.message||"AI preview nahi ban saka.";
+  await cancelAiEditorPreview(false);
+  aiSetStatus("Preview nahi ban saka: "+message+" Original project safe hai.");
+ }finally{
+  aiSetBusy(false);
+  if(aiPreviewActive){
+   $("aiApplyPlanBtn").hidden=false;
+   $("aiCancelPreviewBtn").hidden=false;
+   $("aiPreviewPlanBtn").hidden=true;
+  }
+ }
+}
+async function commitAiEditorPreview(){
+ if(!aiPreviewActive||!aiPreviewOriginal||aiPlanBusy)return;
+ pause();
+ const original=aiPreviewOriginal;
+ if(JSON.stringify(clips)===JSON.stringify(original.clips)&&assets.length===aiPreviewAssetIds?.size){
+  await cancelAiEditorPreview(false);aiSetStatus("Koi change nahi tha, isliye project save nahi kiya.");return;
+ }
+ undoStack.push(clone(original.clips));if(undoStack.length>40)undoStack.shift();redoStack=[];updateHistoryButtons();
+ aiPreviewActive=false;aiPreviewOriginal=null;aiPreviewAssetIds=null;
+ document.body.classList.remove("ai-preview-active");
+ renderAll();scheduleSave();
+ $("aiPreviewState").hidden=true;$("aiApplyPlanBtn").hidden=true;$("aiCancelPreviewBtn").hidden=true;
+ $("aiPreviewPlanBtn").hidden=false;$("aiPreviewPlanBtn").textContent="Preview another version";
+ aiSetBusy(false);
+ aiSetStatus("Changes apply aur project auto-save ke liye queue ho gaye. Undo se poori AI edit wapas kar sakte hain.");
+ notify("AI edits applied. Aik Undo step se saari AI changes reverse ho sakti hain.");
+}
+function wireAiEditorAssistant(){
+ $("aiEditorOpenBtn").addEventListener("click",openAiEditorAssistant);
+ $("aiAssistantCloseBtn").addEventListener("click",()=>closeAiEditorAssistant());
+ $("aiAssistantBackdrop").addEventListener("click",()=>closeAiEditorAssistant());
+ $("aiGeneratePlanBtn").addEventListener("click",generateAiEditPlan);
+ $("aiPreviewPlanBtn").addEventListener("click",previewAiEditorPlan);
+ $("aiApplyPlanBtn").addEventListener("click",commitAiEditorPreview);
+ $("aiCancelPreviewBtn").addEventListener("click",()=>cancelAiEditorPreview(false));
+ $("aiUseRefinedPrompt").addEventListener("click",aiUseRefinedPrompt);
+ $("aiEditPrompt").addEventListener("input",()=>{$("aiPromptCount").textContent=$("aiEditPrompt").value.length+" / 1,400";});
+ $("aiCloudConsent").addEventListener("change",()=>{$("aiPreviewPlanBtn").disabled=aiPlanBusy||aiPreviewActive||!aiCloudConsentIsReady();});
+ document.querySelectorAll("[data-ai-suggestion]").forEach(button=>{
+  button.addEventListener("click",()=>{
+   $("aiEditPrompt").value=button.dataset.aiSuggestion||"";
+   $("aiPromptCount").textContent=$("aiEditPrompt").value.length+" / 1,400";
+   $("aiEditPrompt").focus();
+  });
+ });
+ $("aiEditPrompt").addEventListener("keydown",event=>{
+  if((event.ctrlKey||event.metaKey)&&event.key==="Enter"){event.preventDefault();generateAiEditPlan();}
+ });
+}
+
 function parseStudioJsonArray(source){
  const value=String(source||"").replace(/\x60{3}(?:json)?/gi,"").trim(),start=value.indexOf("["),end=value.lastIndexOf("]");
  if(start<0||end<=start)throw new Error("The AI response did not contain the expected caption list.");
@@ -3547,7 +4164,7 @@ $("shortcutsModal").addEventListener("click",event=>{if(event.target===$("shortc
 window.addEventListener("keydown",handleEditorShortcuts);
 $("importBtn").addEventListener("click",()=>$("fileInput").click());
 $("fileInput").addEventListener("change",async e=>{if(e.target.files?.length)await importFiles([...e.target.files]);e.target.value="";});
-$("addTextBtn").addEventListener("click",addText);$("openVoiceoverModalBtn").addEventListener("click",openVoiceoverModal);$("voiceoverCloseBtn").addEventListener("click",closeVoiceoverModal);$("voiceoverGenerateBtn").addEventListener("click",generateVoiceover);$("voiceoverConsent").addEventListener("change",()=>{$("voiceoverGenerateBtn").disabled=!$("voiceoverConsent").checked||voiceoverBusy;});$("voiceoverText").addEventListener("input",()=>{$("voiceoverCounter").textContent=$("voiceoverText").value.length+" / 2,000";});$("voiceoverModal").addEventListener("click",event=>{if(event.target===$("voiceoverModal"))closeVoiceoverModal();});$("openStickerModalBtn").addEventListener("click",openStickerModal);$("stickerCloseBtn").addEventListener("click",closeStickerModal);$("stickerAddBtn").addEventListener("click",addStickerToTimeline);$("stickerModal").addEventListener("click",event=>{if(event.target===$("stickerModal"))closeStickerModal();});$("autoCaptionsBtn").addEventListener("click",openCaptionsModal);$("captionsCloseBtn").addEventListener("click",closeCaptionsModal);$("captionsGenerateBtn").addEventListener("click",generateCaptions);$("captionsDownloadBtn").addEventListener("click",downloadCaptionsSrt);$("captionsModal").addEventListener("click",event=>{if(event.target===$("captionsModal")&&!captionsBusy)closeCaptionsModal();});
+$("addTextBtn").addEventListener("click",addText);wireAiEditorAssistant();$("openVoiceoverModalBtn").addEventListener("click",openVoiceoverModal);$("voiceoverCloseBtn").addEventListener("click",closeVoiceoverModal);$("voiceoverGenerateBtn").addEventListener("click",generateVoiceover);$("voiceoverConsent").addEventListener("change",()=>{$("voiceoverGenerateBtn").disabled=!$("voiceoverConsent").checked||voiceoverBusy;});$("voiceoverText").addEventListener("input",()=>{$("voiceoverCounter").textContent=$("voiceoverText").value.length+" / 2,000";});$("voiceoverModal").addEventListener("click",event=>{if(event.target===$("voiceoverModal"))closeVoiceoverModal();});$("openStickerModalBtn").addEventListener("click",openStickerModal);$("stickerCloseBtn").addEventListener("click",closeStickerModal);$("stickerAddBtn").addEventListener("click",addStickerToTimeline);$("stickerModal").addEventListener("click",event=>{if(event.target===$("stickerModal"))closeStickerModal();});$("autoCaptionsBtn").addEventListener("click",openCaptionsModal);$("captionsCloseBtn").addEventListener("click",closeCaptionsModal);$("captionsGenerateBtn").addEventListener("click",generateCaptions);$("captionsDownloadBtn").addEventListener("click",downloadCaptionsSrt);$("captionsModal").addEventListener("click",event=>{if(event.target===$("captionsModal")&&!captionsBusy)closeCaptionsModal();});
 $("playBtn").addEventListener("click",()=>isPlaying?pause():play());
 $("stopBtn").addEventListener("click",()=>{pause();setPlayhead(0);});
 $("splitBtn").addEventListener("click",splitSelected);
