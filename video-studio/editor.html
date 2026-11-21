@@ -1583,13 +1583,13 @@ function setPreviewScale(c,local,scale){
 function maskGuidePointerDown(e){
  const handle=e.target&&e.target.closest?e.target.closest("[data-mask-edge]"):null;
  if(!handle)return;
- const c=selectedClip(),edge=handle.dataset.maskEdge,stage=$("previewStage");
- if(!c||!(c.type==="video"||c.type==="image")||c.maskShape!=="horizontal"||!["top","bottom","center"].includes(edge))return;
+ const c=selectedClip(),shown=previewDraft&&previewDraft.id===c?.id?previewDraft:c,edge=handle.dataset.maskEdge,stage=$("previewStage");
+ if(!c||!(shown.type==="video"||shown.type==="image")||shown.maskShape!=="horizontal"||!["top","bottom","center"].includes(edge))return;
  if(playhead<c.start||playhead>=c.start+c.duration||activeAt(playhead,c.track)!==c)return;
  e.preventDefault();e.stopPropagation();
  if(typeof e.stopImmediatePropagation==="function")e.stopImmediatePropagation();
  pause();snapshot();
- dragState={kind:"mask-guide",id:c.id,pointerId:e.pointerId,edge,startY:e.clientY,stageRect:stage.getBoundingClientRect(),orig:clone(c),moved:false};
+ dragState={kind:"mask-guide",id:c.id,pointerId:e.pointerId,edge,startY:e.clientY,stageRect:stage.getBoundingClientRect(),orig:clone(shown),moved:false};
  stage.classList.add("is-dragging");
  try{handle.setPointerCapture(e.pointerId);}catch(error){}
 }
@@ -1602,7 +1602,8 @@ function previewPointerMove(e){
   if(d.edge==="top"){c.maskTop=Math.max(0,Math.min(originalBottom-5,originalTop+delta));c.maskBottom=originalBottom;}
   else if(d.edge==="bottom"){c.maskTop=originalTop;c.maskBottom=Math.max(originalTop+5,Math.min(100,originalBottom+delta));}
   else{const top=Math.max(0,Math.min(100-bandHeight,originalTop+delta));c.maskTop=top;c.maskBottom=top+bandHeight;}
-  if(previewDraft&&previewDraft.id===c.id){previewDraft.maskTop=c.maskTop;previewDraft.maskBottom=c.maskBottom;}
+  c.maskShape="horizontal";
+  if(previewDraft&&previewDraft.id===c.id){previewDraft.maskShape="horizontal";previewDraft.maskTop=c.maskTop;previewDraft.maskBottom=c.maskBottom;}
   $("propMaskTop").value=String(Number(c.maskTop.toFixed(1)));$("propMaskBottom").value=String(Number(c.maskBottom.toFixed(1)));
   d.moved=Math.abs(Number(c.maskTop)-Number(d.orig.maskTop??25))>.05||Math.abs(Number(c.maskBottom)-Number(d.orig.maskBottom??75))>.05;
   renderPreview();return;
