@@ -1001,6 +1001,7 @@ function renderInspector(){
  $("clipInspector").classList.toggle("hidden",!c);
  if(!c)return;
  const shown=previewDraft&&previewDraft.id===c.id?previewDraft:c;
+ $("removeVideoBgBtn").textContent=c.type==="video"&&shown.bgRemoveEnabled?"✓ Person BG On":"✂ Remove Person BG";
  const linkedAudio=c.type==="video"&&clips.some(item=>item.type==="audio"&&item.detachedFromVideoId===c.id);
  if(c.type==="video"&&linkedAudio&&!c.audioDetached){c.audioDetached=true;c.volume=0;scheduleSave();}
  const isDetachedVideo=c.type==="video"&&!!(c.audioDetached||linkedAudio||shown.audioDetached);
