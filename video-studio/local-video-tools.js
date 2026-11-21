@@ -5,7 +5,6 @@
  */
 
 const MP_VISION_VERSION = "1.2.3";
-const MP_VISION_MODULE = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@" + MP_VISION_VERSION + "/+esm";
 const MP_WASM_ROOT = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@" + MP_VISION_VERSION + "/wasm";
 const PERSON_MODEL = "https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_segmenter_landscape/float16/latest/selfie_segmenter_landscape.tflite";
 const OBJECT_MODEL = "https://storage.googleapis.com/mediapipe-models/object_detector/efficientdet_lite0/int8/1/efficientdet_lite0.tflite";
@@ -149,11 +148,15 @@ export function renderPersonCutoutFrame(source, cacheKey) {
   const now = performance.now();
   const needsInference = !entry.mask || now - entry.lastInference >= 125 && Math.abs((Number(source.currentTime) || 0) - entry.lastVideoTime) >= 0.035;
   if (needsInference) {
-    let result = null;
+    let copiedMask = null;
     segmentationTimestamp = Math.max(segmentationTimestamp + 34, Math.round(now));
-    imageSegmenter.segmentForVideo(source, segmentationTimestamp, value => { result = value; });
-    if (result) {
-      entry.mask = personMaskCanvas(result);
+    imageSegmenter.segmentForVideo(source, segmentationTimestamp, value => {
+      // MediaPipe guarantees mask memory only for the callback lifetime.
+      // Convert and copy pixels into our canvas before returning from it.
+      copiedMask = personMaskCanvas(value);
+    });
+    if (copiedMask) {
+      entry.mask = copiedMask;
       entry.lastInference = now;
       entry.lastVideoTime = Number(source.currentTime) || 0;
     }
@@ -263,8 +266,6 @@ async function analyseClip(api, clip, mode) {
   const detector = await ensureObjectDetector();
   const video = document.createElement("video");
   await waitForVideo(video, url);
-  const sourceDuration = api.getClipSourceElapsed(clip, clip.duration);
-  const sourceStart = api.getClipSourceTime(clip, 0);
   const sampleCount = Math.min(36, Math.max(5, Math.ceil(clip.duration / 0.7) + 1));
   const points = [];
   let previous = null;
@@ -272,7 +273,7 @@ async function analyseClip(api, clip, mode) {
   try {
     for (let i = 0; i < sampleCount; i++) {
       const local = clip.duration * i / (sampleCount - 1);
-      const sourceTime = sourceStart + sourceDuration * i / (sampleCount - 1);
+      const sourceTime = api.getClipSourceTime(clip, local);
       await seekVideo(video, sourceTime);
       const detections = detector.detect(video).detections || [];
       const found = chooseDetection(detections, video.videoWidth, video.videoHeight, target, previous);
@@ -356,7 +357,7 @@ async function reverseSelectedClip(api) {
   if (!asset || !asset.blob) throw new Error("The original video file is unavailable.");
   const sourceDuration = api.getClipSourceElapsed(clip, clip.duration);
   if (sourceDuration > 60) throw new Error("For this free low-memory version, first split the video so the selected clip is 60 seconds or shorter. On your 4 GB PC, 30 seconds or less is recommended.");
-  if (Number(asset.size || asset.blob.size) > 100 * 1024 * 1024) throw new Error("This free low-memory version supports source files up to 100 MB. Use a smaller clip on this PC.");
+  if (Number(asset.size || asset.blob.size) > 50 * 1024 * 1024) throw new Error("For this free low-memory version, use a source file smaller than 50 MB on this PC.");
   if (!sourceDuration || sourceDuration < 0.2) throw new Error("The selected clip has an invalid duration.");
   api.pause();
   const button = byId("reverseClipBtn");
@@ -393,11 +394,11 @@ async function reverseSelectedClip(api) {
       "-t", String(sourceDuration.toFixed(3)),
       "-map", "0:v:0",
       "-map", "0:a?",
-      "-vf", "reverse",
+      "-vf", "scale='min(720,iw)':-2,reverse",
       "-af", "areverse",
       ...videoArgs,
       ...audioArgs,
-      "-movflags", "+faststart",
+      ...(mime === "video/mp4" ? ["-movflags", "+faststart"] : []),
       outputName
     ]);
     if (result !== 0) throw new Error("The free video engine could not reverse this file. Try converting it to MP4 first.");
@@ -493,12 +494,13 @@ async function enhanceSelectedAudio(api) {
   const channelCount = Math.max(1, Math.min(2, decoded.numberOfChannels));
   const module = await loadRNNoise();
   const frameSize = 480;
-  const inputPointer = module._malloc(frameSize * 4);
-  const outputPointer = module._malloc(frameSize * 4);
-  if (!inputPointer || !outputPointer) throw new Error("Not enough memory to start local audio enhancement.");
-  const inputIndex = inputPointer >>> 2, outputIndex = outputPointer >>> 2;
+  let inputPointer = 0, outputPointer = 0;
   const denoisedChannels = [];
   try {
+    inputPointer = module._malloc(frameSize * 4);
+    outputPointer = module._malloc(frameSize * 4);
+    if (!inputPointer || !outputPointer) throw new Error("Not enough memory to start local audio enhancement.");
+    const inputIndex = inputPointer >>> 2, outputIndex = outputPointer >>> 2;
     for (let channel = 0; channel < channelCount; channel++) {
       const original = decoded.getChannelData(channel).subarray(sampleStart, sampleEnd);
       const resampled = resampleLinear(original, decoded.sampleRate, 48000);
@@ -528,10 +530,11 @@ async function enhanceSelectedAudio(api) {
       denoisedChannels.push(denoised);
     }
   } finally {
-    module._free(inputPointer);
-    module._free(outputPointer);
+    if (inputPointer) module._free(inputPointer);
+    if (outputPointer) module._free(outputPointer);
   }
-  const created = await api.addDerivedAsset(writeWav(denoisedChannels, 48000), (clip.name || asset.name || "Audio") + " (Noise Reduced)", "audio", sourceDuration);
+  const processedDuration = (sampleEnd - sampleStart) / decoded.sampleRate;
+  const created = await api.addDerivedAsset(writeWav(denoisedChannels, 48000), (clip.name || asset.name || "Audio") + " (Noise Reduced)", "audio", processedDuration);
   api.replaceAudioWithEnhanced(clip.id, created.id, sourceDuration, "Noise Reduced");
   api.notify("Audio enhancement complete. A noise-reduced copy was added; your original audio stays safe.");
 }
