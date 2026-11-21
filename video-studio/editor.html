@@ -543,7 +543,7 @@ body{background:radial-gradient(ellipse at 48% -18%,rgba(126,79,190,.18),transpa
 <div class="prop"><label for="propMaskBottom">Bottom line (%)</label><input id="propMaskBottom" type="number" min="5" max="100" step="1" value="75"></div>
 </div>
 <div class="prop"><label for="propMaskFeather">Line softness</label><input id="propMaskFeather" type="range" min="0" max="20" step="1" value="3"></div>
-<div class="prop"><label for="propMaskAngle">Mask angle (<span id="propMaskAngleValue">0</span>°)</label><input id="propMaskAngle" type="range" min="-60" max="60" step="1" value="0"></div>
+<div class="prop"><label for="propMaskAngle">Mask angle (<span id="propMaskAngleValue">0</span>°)</label><input id="propMaskAngle" type="range" min="-90" max="90" step="1" value="0"></div>
 <p class="advanced-effects-note">Drag TOP or BOTTOM to adjust one edge. Drag the centre line to move both together without changing their gap. Drag ↻ to rotate the mask, or use the angle slider.</p>
 </div>
 </div>
@@ -1026,6 +1026,18 @@ function activeAt(t,track){return clips.map(effectiveClip).filter(c=>c.track===t
 function hexRgba(hex,alpha){const h=String(hex||"#000000").replace("#","");const n=parseInt(h.length===3?h.split("").map(x=>x+x).join(""):h,16);if(!Number.isFinite(n))return "rgba(0,0,0,"+alpha+")";return "rgba("+((n>>16)&255)+","+((n>>8)&255)+","+(n&255)+","+Math.max(0,Math.min(1,alpha))+")";}
 function clipEnvelope(c,local){let g=1;const fi=Math.max(0,Number(c.fadeIn)||0),fo=Math.max(0,Number(c.fadeOut)||0);if(fi>0)g=Math.min(g,Math.max(0,Math.min(1,local/fi)));if(fo>0)g=Math.min(g,Math.max(0,Math.min(1,(c.duration-local)/fo)));return g;}
 function visualFilter(c,extraBlur=0){const b=c.brightness??1,co=c.contrast??1,s=c.saturation??1,bl=Math.max(0,(c.blur||0)+extraBlur),h=c.hue||0;return "brightness("+b+") contrast("+co+") saturate("+s+") blur("+bl+"px) hue-rotate("+h+"deg)";}
+function maskBoundaryQuad(c,width,height){
+ const w=Math.max(1,Number(width)||1),h=Math.max(1,Number(height)||1),angle=Math.max(-90,Math.min(90,Number(c&&c.maskAngle)||0))*Math.PI/180;
+ const sin=Math.sin(angle),cos=Math.cos(angle),reach=Math.hypot(w,h)*2;
+ const line=value=>{
+  const offset=(Number(value)-50)*h/100,cx=-offset*sin,cy=offset*cos;
+  return [{x:cx-cos*reach,y:cy-sin*reach},{x:cx+cos*reach,y:cy+sin*reach}];
+ };
+ const topValue=Math.max(0,Math.min(95,Number((c&&c.maskTop)??25)));
+ const bottomValue=Math.max(topValue+5,Math.min(100,Number((c&&c.maskBottom)??75)));
+ const top=line(topValue),bottom=line(bottomValue);
+ return [top[0],top[1],bottom[1],bottom[0]];
+}
 function clipMaskClipPath(c,el){
  const shape=typeof c==="string"?c:(c&&c.maskShape)||"none";
  if(shape==="circle")return "circle(50% at 50% 50%)";
@@ -1035,18 +1047,16 @@ function clipMaskClipPath(c,el){
  if(shape==="right-half")return "inset(0 0 0 50%)";
  if(shape==="horizontal"){
   if(Number(c&&c.maskFeather)>0)return "none";
-  const top=Math.max(0,Math.min(95,Number(c&&(c.maskTop??25)))),bottom=Math.max(top+5,Math.min(100,Number(c&&(c.maskBottom??75))));
-  const angle=Math.max(-60,Math.min(60,Number(c&&c.maskAngle)||0))*Math.PI/180,cos=Math.max(.5,Math.cos(angle));
-  const topY=50+(top-50)/cos,bottomY=50+(bottom-50)/cos;
-  const width=Math.max(1,el&&el.clientWidth||1000),height=Math.max(1,el&&el.clientHeight||560),slant=Math.tan(angle)*(width/height)*50;
-  return "polygon(0% "+(topY-slant)+"%, 100% "+(topY+slant)+"%, 100% "+(bottomY+slant)+"%, 0% "+(bottomY-slant)+"%)";
+  const width=Math.max(1,el&&el.clientWidth||1000),height=Math.max(1,el&&el.clientHeight||560);
+  const points=maskBoundaryQuad(c,width,height);
+  return "polygon("+points.map(p=>((p.x+width/2)/width*100)+"% "+((p.y+height/2)/height*100)+"%").join(", ")+")";
  }
  return "none";
 }
 function clipMaskGradient(c,el){
  if(!c||c.maskShape!=="horizontal"||Number(c.maskFeather)<=0)return "";
  const top=Math.max(0,Math.min(95,Number(c.maskTop??25))),bottom=Math.max(top+5,Math.min(100,Number(c.maskBottom??75))),feather=Math.max(0,Math.min(20,Number(c.maskFeather)||0));
- const angle=Math.max(-60,Math.min(60,Number(c.maskAngle)||0))*Math.PI/180,sin=Math.sin(angle),cos=Math.cos(angle);
+ const angle=Math.max(-90,Math.min(90,Number(c.maskAngle)||0))*Math.PI/180,sin=Math.sin(angle),cos=Math.cos(angle);
  const width=Math.max(1,el&&el.clientWidth||1000),height=Math.max(1,el&&el.clientHeight||560),extent=(Math.abs(sin)*width+Math.abs(cos)*height)/2;
  const stop=p=>Math.max(0,Math.min(100,(extent+p)/(2*extent)*100));
  const topP=(top/100-.5)*height,bottomP=(bottom/100-.5)*height,soft=feather/100*height;
@@ -1245,16 +1255,17 @@ function updateStickerResizeHandle(c,img){
  handle.dataset.clipId=c.id;handle.hidden=false;
 }
 function updateMaskGuides(){
- const layer=$("maskGuideLayer"),c=selectedClip();
+ const layer=$("maskGuideLayer"),c=selectedClip(),stage=$("previewStage");
  if(!layer)return;
  const shown=previewDraft&&previewDraft.id===c?.id?previewDraft:c;
  if(!shown||!(shown.type==="video"||shown.type==="image")||shown.maskShape!=="horizontal"||playhead<shown.start||playhead>=shown.start+shown.duration||activeAt(playhead,shown.track)?.id!==shown.id){layer.hidden=true;return;}
  const top=Math.max(0,Math.min(95,Number(shown.maskTop??25))),bottom=Math.max(top+5,Math.min(100,Number(shown.maskBottom??75)));
- const angle=Math.max(-60,Math.min(60,Number(shown.maskAngle)||0)),rad=angle*Math.PI/180,cos=Math.max(.5,Math.cos(rad));
- const topY=50+(top-50)/cos,bottomY=50+(bottom-50)/cos,centerY=(topY+bottomY)/2,transform="translateY(-50%) rotate("+angle+"deg)";
- $("maskTopGuide").style.top=topY+"%";$("maskBottomGuide").style.top=bottomY+"%";$("maskCenterGuide").style.top=centerY+"%";
- $("maskTopGuide").style.transform=transform;$("maskBottomGuide").style.transform=transform;$("maskCenterGuide").style.transform=transform;
- $("maskRotateHandle").style.top=centerY+"%";
+ const angle=Math.max(-90,Math.min(90,Number(shown.maskAngle)||0)),rad=angle*Math.PI/180,sin=Math.sin(rad),cos=Math.cos(rad);
+ const width=Math.max(1,stage.clientWidth),height=Math.max(1,stage.clientHeight);
+ const point=value=>{const offset=(value-50)*height/100;return{x:50-(offset*sin)/width*100,y:50+(offset*cos)/height*100};};
+ const place=(id,value)=>{const p=point(value),el=$(id);el.style.left=p.x+"%";el.style.top=p.y+"%";el.style.transform="translate(-50%,-50%) rotate("+angle+"deg)";};
+ place("maskTopGuide",top);place("maskBottomGuide",bottom);place("maskCenterGuide",(top+bottom)/2);
+ const middle=point((top+bottom)/2);$("maskRotateHandle").style.top=middle.y+"%";
  layer.hidden=false;
 }
 function renderPreviewImageLayer(c,img,activeId,stageRelative=false,hasVideo=false){
@@ -1598,9 +1609,8 @@ function maskGuidePointerDown(e){
  const active=activeAt(playhead,c.track);
  if(playhead<c.start||playhead>=c.start+c.duration||!active||active.id!==c.id)return;
  e.preventDefault();e.stopPropagation();pause();snapshot();
- const stageRect=stage.getBoundingClientRect(),angle=Math.max(-60,Math.min(60,Number(shown.maskAngle)||0)),rad=angle*Math.PI/180,cos=Math.max(.5,Math.cos(rad));
- const mid=(Number(shown.maskTop??25)+Number(shown.maskBottom??75))/2,centerY=50+(mid-50)/cos;
- const pivotX=stageRect.left+stageRect.width/2,pivotY=stageRect.top+stageRect.height*centerY/100;
+ const stageRect=stage.getBoundingClientRect(),angle=Math.max(-90,Math.min(90,Number(shown.maskAngle)||0))*Math.PI/180,mid=(Number(shown.maskTop??25)+Number(shown.maskBottom??75))/2,offset=(mid-50)*stageRect.height/100;
+ const pivotX=stageRect.left+stageRect.width/2-offset*Math.sin(angle),pivotY=stageRect.top+stageRect.height/2+offset*Math.cos(angle);
  dragState={kind:"mask-guide",id:c.id,pointerId:e.pointerId,edge,startX:e.clientX,startY:e.clientY,stageRect,orig:clone(shown),pivotX,pivotY,startPointerAngle:Math.atan2(e.clientY-pivotY,e.clientX-pivotX),moved:false};
  stage.classList.add("is-dragging");
 }
@@ -1608,12 +1618,12 @@ function previewPointerMove(e){
  const d=dragState;if(!d||e.pointerId!==d.pointerId)return;
  if(d.kind==="mask-guide"){
   const c=clips.find(item=>item.id===d.id);if(!c)return;
-  const height=Math.max(1,d.stageRect.height),angle=Math.max(-60,Math.min(60,Number(d.orig.maskAngle)||0))*Math.PI/180;
+  const height=Math.max(1,d.stageRect.height),angle=Math.max(-90,Math.min(90,Number(d.orig.maskAngle)||0))*Math.PI/180;
   const originalTop=Number(d.orig.maskTop??25),originalBottom=Number(d.orig.maskBottom??75),bandHeight=Math.max(5,originalBottom-originalTop);
   if(d.edge==="rotate"){
    const current=Math.atan2(e.clientY-d.pivotY,e.clientX-d.pivotX);
    let delta=current-d.startPointerAngle;while(delta>Math.PI)delta-=Math.PI*2;while(delta< -Math.PI)delta+=Math.PI*2;
-   c.maskAngle=Math.max(-60,Math.min(60,(Number(d.orig.maskAngle)||0)+delta*180/Math.PI));
+   c.maskAngle=Math.max(-90,Math.min(90,(Number(d.orig.maskAngle)||0)+delta*180/Math.PI));
   }else{
    const dx=e.clientX-d.startX,dy=e.clientY-d.startY,normalDelta=(-dx*Math.sin(angle)+dy*Math.cos(angle))/height*100;
    if(d.edge==="top"){c.maskTop=Math.max(0,Math.min(originalBottom-5,originalTop+normalDelta));c.maskBottom=originalBottom;}
@@ -2021,7 +2031,7 @@ function readPropertiesDraft(c){
  }
  if(c.type==="video"||c.type==="image"){
   d.maskShape=$("propMaskShape").value||"none";
-  d.maskTop=Math.max(0,Math.min(95,Number($("propMaskTop").value)||0));d.maskBottom=Math.max(d.maskTop+5,Math.min(100,Number($("propMaskBottom").value)||100));d.maskFeather=Math.max(0,Math.min(20,Number($("propMaskFeather").value)||0));d.maskAngle=Math.max(-60,Math.min(60,Number($("propMaskAngle").value)||0));
+  d.maskTop=Math.max(0,Math.min(95,Number($("propMaskTop").value)||0));d.maskBottom=Math.max(d.maskTop+5,Math.min(100,Number($("propMaskBottom").value)||100));d.maskFeather=Math.max(0,Math.min(20,Number($("propMaskFeather").value)||0));d.maskAngle=Math.max(-90,Math.min(90,Number($("propMaskAngle").value)||0));
  }
  if(c.type==="text"){
   d.text=$("propText").value.slice(0,180);d.color=$("propTextColor").value;d.fontSize=Math.max(10,Math.min(120,Number($("propFontSize").value)||42));d.font=$("propFont").value;
@@ -2084,7 +2094,7 @@ function drawExportHorizontalMasked(ctx,source,c,box,fit){
  maskContext.clearRect(0,0,width,height);drawExportFit(maskContext,source,width,height,fit);
  maskContext.globalCompositeOperation="destination-in";
  const top=Math.max(0,Math.min(95,Number(c.maskTop??25)))/100,bottom=Math.max(top+.05,Math.min(1,Number(c.maskBottom??75)/100)),feather=Math.max(.001,Math.min(.2,(Number(c.maskFeather)||0)/100));
- const angle=Math.max(-60,Math.min(60,Number(c.maskAngle)||0))*Math.PI/180,sin=Math.sin(angle),cos=Math.cos(angle),extent=(Math.abs(sin)*width+Math.abs(cos)*height)/2;
+ const angle=Math.max(-90,Math.min(90,Number(c.maskAngle)||0))*Math.PI/180,sin=Math.sin(angle),cos=Math.cos(angle),extent=(Math.abs(sin)*width+Math.abs(cos)*height)/2;
  const gradient=maskContext.createLinearGradient(width/2+sin*extent,height/2-cos*extent,width/2-sin*extent,height/2+cos*extent);
  const stop=p=>Math.max(0,Math.min(1,(extent+p)/(2*extent))),topP=(top-.5)*height,bottomP=(bottom-.5)*height,soft=feather*height;
  gradient.addColorStop(0,"rgba(255,255,255,0)");
@@ -2127,7 +2137,7 @@ function drawExportMedia(ctx,source,c,local,width,height,fit,box){
   else if(c.maskShape==="rounded"){const x=-box.width/2,y=-box.height/2,w=box.width,h=box.height,r=Math.min(w,h)*.12;if(typeof ctx.roundRect==="function")ctx.roundRect(x,y,w,h,r);else{ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);}}
   else if(c.maskShape==="left-half")ctx.rect(-box.width/2,-box.height/2,box.width/2,box.height);
   else if(c.maskShape==="right-half")ctx.rect(0,-box.height/2,box.width/2,box.height);
-  else if(c.maskShape==="horizontal"){const top=Math.max(0,Math.min(95,Number(c.maskTop??25))),bottom=Math.max(top+5,Math.min(100,Number(c.maskBottom??75))),angle=Math.max(-60,Math.min(60,Number(c.maskAngle)||0))*Math.PI/180,cos=Math.max(.5,Math.cos(angle)),topY=50+(top-50)/cos,bottomY=50+(bottom-50)/cos,slant=Math.tan(angle)*box.width/2;ctx.moveTo(-box.width/2,-box.height/2+box.height*topY/100-slant);ctx.lineTo(box.width/2,-box.height/2+box.height*topY/100+slant);ctx.lineTo(box.width/2,-box.height/2+box.height*bottomY/100+slant);ctx.lineTo(-box.width/2,-box.height/2+box.height*bottomY/100-slant);ctx.closePath();}
+  else if(c.maskShape==="horizontal"){const points=maskBoundaryQuad(c,box.width,box.height);ctx.moveTo(points[0].x,points[0].y);for(let i=1;i<points.length;i++)ctx.lineTo(points[i].x,points[i].y);ctx.closePath();}
   ctx.clip();
  }
  if(c.transition==="wipe-left"){
