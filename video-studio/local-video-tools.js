@@ -5,10 +5,10 @@
  */
 
 const MP_VISION_VERSION = "1.2.3";
+const MP_VISION_BUNDLE = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@" + MP_VISION_VERSION + "/vision_bundle.mjs";
 const MP_WASM_ROOT = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@" + MP_VISION_VERSION + "/wasm";
 const PERSON_MODEL = "https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_segmenter_landscape/float16/latest/selfie_segmenter_landscape.tflite";
 const OBJECT_MODEL = "https://storage.googleapis.com/mediapipe-models/object_detector/efficientdet_lite0/int8/1/efficientdet_lite0.tflite";
-const RNNOISE_SCRIPT = "https://cdn.jsdelivr.net/npm/@jitsi/rnnoise-wasm@0.2.1/dist/rnnoise.js";
 const FFMPEG_SCRIPT = "https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.15/dist/umd/ffmpeg.js";
 const FFMPEG_CORE = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd";
 
@@ -62,7 +62,7 @@ function appendScript(src, ready) {
 async function loadVision() {
   if (!visionPromise) {
     visionPromise = (async () => {
-      const visionModule = await import("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.2.3/+esm");
+      const visionModule = await import(MP_VISION_BUNDLE);
       const fileset = await visionModule.FilesetResolver.forVisionTasks(MP_WASM_ROOT);
       return { ...visionModule, fileset };
     })().catch(error => {
@@ -627,7 +627,7 @@ export function createLocalVideoTools(api) {
       button.disabled = false;
       button.title = oldTitle;
       const selected = api.getSelectedClip();
-      button.textContent = id === "removeVideoBgBtn" && selected && selected.bgRemoveEnabled ? "✓ Person BG On" : oldText;
+      button.textContent = id === "removeVideoBgBtn" && selected && selected.bgRemoveEnabled ? "✓ Person BG On" : (id === "removeVideoBgBtn" ? "✂ Remove Person BG" : oldText);
     }
   };
   return {
