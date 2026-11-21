@@ -49,9 +49,13 @@ function appendScript(src, ready) {
       script.async = true;
       document.head.append(script);
     }
-    const finish = () => ready() ? resolve() : reject(new Error("The local processing library did not load correctly."));
+    const fail = message => {
+      if (script && script.parentNode) script.parentNode.removeChild(script);
+      reject(new Error(message));
+    };
+    const finish = () => ready() ? resolve() : fail("The local processing library did not load correctly.");
     script.addEventListener("load", finish, { once: true });
-    script.addEventListener("error", () => reject(new Error("Could not download a free processing library. Check your internet connection and try again.")), { once: true });
+    script.addEventListener("error", () => fail("Could not download a free processing library. Check your internet connection and try again."), { once: true });
     if (ready()) resolve();
   });
 }
@@ -193,21 +197,21 @@ function waitForVideo(video, url) {
       if (done) return;
       done = true;
       clearTimeout(timer);
-      video.removeEventListener("loadedmetadata", ready);
+      video.removeEventListener("loadeddata", ready);
       video.removeEventListener("error", failed);
       if (error) reject(error); else resolve();
     };
     const ready = () => finish();
     const failed = () => finish(new Error("The selected video could not be opened for local analysis."));
     const timer = setTimeout(() => finish(new Error("Loading the selected video timed out. Try a smaller clip.")), 30000);
-    video.addEventListener("loadedmetadata", ready, { once: true });
+    video.addEventListener("loadeddata", ready, { once: true });
     video.addEventListener("error", failed, { once: true });
     video.preload = "auto";
     video.muted = true;
     video.playsInline = true;
     video.src = url;
     video.load();
-    if (video.readyState >= 1) finish();
+    if (video.readyState >= 2) finish();
   });
 }
 function seekVideo(video, time) {
@@ -588,7 +592,8 @@ export function createLocalVideoTools(api) {
       await action(token);
       checkCancelled(token);
     } catch (error) {
-      api.notify(error && error.message ? error.message : "This local tool could not finish. Please try again.");
+      if (token.cancelled || error && error.name === "AbortError") api.notify("Cancelled. Your original media and project are safe.");
+      else api.notify(error && error.message ? error.message : "This local tool could not finish. Please try again.");
       api.setStatus("Ready · Auto-save on");
     } finally {
       busy.delete(id);
