@@ -423,6 +423,94 @@ input,select,textarea{accent-color:#a96bf1}
 }
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{transition:none!important;animation-duration:.01ms!important;animation-iteration-count:1!important}}
 
+
+/* Clear visual identity for expandable settings/tool groups. */
+.property-group>summary{
+ position:relative;
+ gap:10px;
+ min-height:48px;
+ padding:10px 12px;
+ border:1px solid rgba(166,116,219,.34);
+ border-left:3px solid #aa70f3;
+ border-radius:10px;
+ background:linear-gradient(105deg,rgba(93,54,137,.28),rgba(29,21,47,.94) 68%);
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.045),0 0 18px rgba(153,91,218,.10);
+ transition:border-color .18s ease,background .18s ease,box-shadow .18s ease,transform .18s ease;
+}
+.property-group>summary::before{
+ content:"GROUP";
+ flex:none;
+ display:inline-flex;
+ align-items:center;
+ justify-content:center;
+ min-width:49px;
+ height:21px;
+ padding:0 7px;
+ border:1px solid rgba(198,151,255,.43);
+ border-radius:6px;
+ background:linear-gradient(135deg,rgba(132,79,188,.32),rgba(77,49,115,.28));
+ color:#dfc2ff;
+ font-size:8px;
+ font-weight:900;
+ letter-spacing:.9px;
+ box-shadow:0 0 12px rgba(171,112,239,.16);
+}
+.property-group>summary:after{margin-left:auto}
+.property-group>summary:hover{
+ border-color:rgba(202,151,255,.78);
+ background:linear-gradient(105deg,rgba(117,67,169,.40),rgba(35,24,56,.98) 70%);
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 0 20px rgba(164,100,232,.20);
+}
+.property-group>summary:focus-visible{
+ outline:2px solid #d8b2ff;
+ outline-offset:3px;
+}
+.property-group[open]>summary{
+ border-bottom:1px solid rgba(188,139,239,.35);
+ border-left-color:#d08aff;
+ border-radius:9px 9px 0 0;
+ background:linear-gradient(105deg,rgba(111,61,163,.44),rgba(37,25,60,.98) 72%);
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 0 22px rgba(158,91,225,.17);
+}
+#smartToolsGroup>summary::before{content:"TOOL GROUP";min-width:79px}
+.tool-subgroup-heading{
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ gap:10px;
+ margin:0 0 8px;
+ padding:8px 10px;
+ border:1px solid rgba(159,117,211,.38);
+ border-left:3px solid #8f73ff;
+ border-radius:8px;
+ background:linear-gradient(100deg,rgba(81,56,125,.34),rgba(29,21,46,.78));
+ color:#e2caff;
+ font-size:10px;
+ font-weight:850;
+ letter-spacing:.45px;
+ text-shadow:0 0 12px rgba(179,130,255,.25);
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 0 15px rgba(132,103,219,.10);
+}
+.tool-subgroup-heading::after{
+ content:"TOOL SET";
+ flex:none;
+ padding:4px 6px;
+ border:1px solid rgba(181,147,255,.35);
+ border-radius:5px;
+ background:rgba(118,84,177,.18);
+ color:#cdb2ff;
+ font-size:7px;
+ font-weight:900;
+ letter-spacing:.8px;
+ text-shadow:none;
+}
+@media(max-width:680px){
+ .property-group>summary{min-height:46px;padding:10px;gap:8px}
+ .property-group>summary::before{min-width:45px;font-size:7px}
+ #smartToolsGroup>summary::before{min-width:72px}
+ .tool-subgroup-heading{padding:8px}
+}
+
 </style>
 </head>
 <body>
@@ -659,7 +747,7 @@ input,select,textarea{accent-color:#a96bf1}
 <button class="btn smart-tool-btn" id="removeSilenceBtn" type="button">◖ Remove Silence</button>
 <button class="btn smart-tool-btn" id="autoColourBtn" type="button">◉ AI Colour Correction</button>
 </div>
-<div class="prop" style="margin-top:12px"><strong style="font-size:10px;color:#e8dcf8">Free Local Video Tools</strong><p class="advanced-effects-note local-tools-note">These tools process your media on this device. Your original files stay unchanged.</p></div>
+<div class="prop" style="margin-top:12px"><strong class="tool-subgroup-heading">Free Local Video Tools</strong><p class="advanced-effects-note local-tools-note">These tools process your media on this device. Your original files stay unchanged.</p></div>
 <div class="smart-tool-grid">
 <button class="btn smart-tool-btn" id="reverseClipBtn" type="button">↶ Reverse Video</button>
 <button class="btn smart-tool-btn" id="motionTrackBtn" type="button">◎ Motion Tracking</button>
