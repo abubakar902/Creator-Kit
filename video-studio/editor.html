@@ -569,6 +569,10 @@ body.ai-assistant-open .topbar{pointer-events:none}
 body.ai-assistant-open .editor .media-panel,body.ai-assistant-open .editor .inspector,body.ai-assistant-open .editor .timeline{pointer-events:none}
 body.ai-preview-active .ai-assistant-backdrop{background:rgba(6,4,14,.08);backdrop-filter:none}
 body.ai-preview-active .editor .media-panel,body.ai-preview-active .editor .inspector,body.ai-preview-active .editor .timeline{opacity:.84}
+body.ai-preview-active .editor .timeline #ruler,body.ai-preview-active .editor .timeline #playhead{pointer-events:auto!important}
+body.ai-preview-active .editor .timeline #ruler{cursor:crosshair}
+body.ai-preview-active .editor .timeline #playhead{cursor:ew-resize;touch-action:none;z-index:20}
+body.ai-preview-active .editor .timeline #playhead::before{content:"";position:absolute;left:-8px;top:0;width:18px;height:100%;background:transparent}
 body.ai-preview-active #previewStage,body.ai-preview-active .preview-toolbar{pointer-events:none}
 body.ai-preview-active #playBtn,body.ai-preview-active #stopBtn{pointer-events:auto}
 @media(max-width:680px){
@@ -3615,10 +3619,32 @@ function aiValidatePlan(raw){
  if(!plan.understoodRequest)throw new Error("AI ne aapki request ko clear words mein confirm nahi kiya.");
  if(!Array.isArray(raw.operations)||raw.operations.length<1||raw.operations.length>8)throw new Error("AI plan mein 1 se 8 relevant actions hone chahiye.");
  const ids=new Set(clips.map(clip=>clip.id));
- const requireClip=(id,typeList)=>{
-  if(typeof id!=="string"||!ids.has(id))throw new Error("AI ne current project mein na-mojood clip select ki. Please target clip dobara select karein.");
-  const clip=clips.find(item=>item.id===id);
-  if(typeList&&!typeList.includes(clip.type))throw new Error("Selected clip par yeh tool supported nahi. Sahi media type select karein.");
+ const normalizeClipTargetName=value=>String(value||"").trim().replace(/\\s+/g," ").toLowerCase();
+ const requireClip=(id,typeList,clipName,clipStart,clipTrack,allowImplicit=true)=>{
+  const accepted=clip=>!!clip&&(!typeList||typeList.includes(clip.type));
+  const targetName=typeof clipName==="string"?clipName.trim():"";
+  let clip=typeof id==="string"&&ids.has(id)?clips.find(item=>item.id===id):null;
+  if(clip&&targetName&&normalizeClipTargetName(clip.name)!==normalizeClipTargetName(targetName))throw new Error("AI ne clip ID aur clip name ko match nahi kiya. Clip ka naam dobara confirm karein.");
+  if(!clip&&targetName){
+   let matches=clips.filter(item=>accepted(item)&&normalizeClipTargetName(item.name)===normalizeClipTargetName(targetName));
+   if(typeof clipTrack==="string"&&clipTrack)matches=matches.filter(item=>item.track===clipTrack);
+   if(typeof clipStart==="number"&&Number.isFinite(clipStart))matches=matches.filter(item=>Math.abs(Number(item.start)-clipStart)<=.25);
+   if(matches.length>1)throw new Error("Is naam ke multiple clips hain. Sahi clip batane ke liye uska track ya timeline start time dein.");
+   if(matches.length===1)clip=matches[0];
+   else throw new Error("Is naam ka clip current timeline mein nahi mila. Timeline par dikhne wala exact clip name check karein.");
+  }
+  if(!clip&&typeof id==="string"&&id)throw new Error("AI ne current project mein na-mojood clip ID di. Target clip dobara identify karein.");
+  if(!clip&&allowImplicit&&!id&&!targetName&&selectedId){
+   const selected=clips.find(item=>item.id===selectedId);
+   if(accepted(selected))clip=selected;
+  }
+  if(!clip&&allowImplicit&&!id&&!targetName){
+   const candidates=clips.filter(accepted);
+   if(candidates.length===1)clip=candidates[0];
+   else if(candidates.length>1)throw new Error("Project mein multiple suitable clips hain. Request mein clip ka exact naam, track ya start time batayein.");
+  }
+  if(!clip)throw new Error("Is edit ke liye suitable timeline clip nahi mila. Clip ka exact naam batayein ya usay select karein.");
+  if(!accepted(clip))throw new Error("Selected clip par yeh tool supported nahi. Sahi media type ka clip batayein.");
   return clip;
  };
  for(const item of raw.operations){
@@ -3627,18 +3653,18 @@ function aiValidatePlan(raw){
   let operation;
   switch(item.type){
    case "set_clip_properties":{
-    const clip=requireClip(item.clipId);
+    const clip=requireClip(item.clipId,undefined,item.clipName,item.clipStart,item.clipTrack);
     operation={type:item.type,clipId:clip.id,changes:aiValidateChanges(clip.type,item.changes),reason};
     break;
    }
    case "split_clip":{
-    const clip=requireClip(item.clipId,["video","audio","image","text"]);
+    const clip=requireClip(item.clipId,["video","audio","image","text"],item.clipName,item.clipStart,item.clipTrack);
     const atSeconds=aiClamp(item.atSeconds,clip.start+.151,clip.start+clip.duration-.151,"Split position");
     operation={type:item.type,clipId:clip.id,atSeconds,reason};
     break;
    }
    case "move_clip":{
-    const clip=requireClip(item.clipId);
+    const clip=requireClip(item.clipId,undefined,item.clipName,item.clipStart,item.clipTrack);
     const start=aiClamp(item.start,0,7200,"New clip start");
     let track;
     if(item.track!==undefined){track=String(item.track);if(!aiCanUseTrack(clip,track))throw new Error("Selected clip ko is track par move nahi kiya ja sakta.");}
@@ -3646,12 +3672,12 @@ function aiValidatePlan(raw){
     break;
    }
    case "duplicate_clip":{
-    const clip=requireClip(item.clipId);
+    const clip=requireClip(item.clipId,undefined,item.clipName,item.clipStart,item.clipTrack);
     operation={type:item.type,clipId:clip.id,start:aiClamp(item.start,0,7200,"Duplicate start"),reason};
     break;
    }
    case "delete_clip":{
-    const clip=requireClip(item.clipId);
+    const clip=requireClip(item.clipId,undefined,item.clipName,item.clipStart,item.clipTrack);
     operation={type:item.type,clipId:clip.id,reason};
     break;
    }
@@ -3663,7 +3689,7 @@ function aiValidatePlan(raw){
     break;
    }
    case "set_keyframes":{
-    const clip=requireClip(item.clipId,["video","image","text"]);
+    const clip=requireClip(item.clipId,["video","image","text"],item.clipName,item.clipStart,item.clipTrack);
     if(!Array.isArray(item.keyframes)||item.keyframes.length<2||item.keyframes.length>20)throw new Error("Keyframe edit mein 2 se 20 keyframes required hain.");
     const frames=item.keyframes.map(frame=>{
      if(!frame||typeof frame!=="object"||!frame.values||typeof frame.values!=="object"||Array.isArray(frame.values))throw new Error("AI keyframe ka format valid nahi.");
@@ -3683,7 +3709,7 @@ function aiValidatePlan(raw){
     break;
    }
    case "trim_clip":{
-    const clip=requireClip(item.clipId,["video","audio","image","text"]);
+    const clip=requireClip(item.clipId,["video","audio","image","text"],item.clipName,item.clipStart,item.clipTrack);
     if(clip.type==="video"&&Number(clip.speedSourceDuration)>0)throw new Error("Speed-ramp clip ko AI trim nahi karega, kyun ke source timing ko badalne ka risk hai. Pehle speed ramp normal karein.");
     const start=aiClamp(item.start??clip.start,0,7200,"Trim start");
     const durationValue=aiClamp(item.duration??clip.duration,.2,7200,"Trim duration");
@@ -3798,7 +3824,7 @@ function aiValidatePlan(raw){
       auto_captions:["video","audio"],reverse_video:["video"],motion_tracking:["video"],enhance_audio:["audio"],
       remove_person_background:["video"],auto_reframe:["video"],detach_audio:["video"]
      };
-     clip=requireClip(item.clipId||selectedId,types[item.tool]);
+     clip=requireClip(item.clipId,types[item.tool],item.clipName,item.clipStart,item.clipTrack);
     }
     if(item.tool==="caption_translation"&&!clips.some(c=>c.track==="captions"&&c.type==="text"))throw new Error("Translate karne ke liye project mein pehle se captions hone chahiye.");
     if(item.tool==="caption_translation"||item.tool==="auto_captions"){
