@@ -513,6 +513,73 @@ input,select,textarea{accent-color:#a96bf1}
  .tool-subgroup-heading{padding:8px}
 }
 
+
+/* TrivexaAI AI Editor — focused assistant drawer and review controls. */
+.ai-launch-btn{border-color:rgba(198,135,255,.66)!important;background:linear-gradient(112deg,#7339b7,#4b43a8)!important;color:#fff!important;box-shadow:0 4px 18px rgba(139,81,220,.25)!important;font-weight:850}
+.ai-launch-btn:hover{border-color:#e0bdff!important;background:linear-gradient(112deg,#8745d2,#5b50c7)!important;box-shadow:0 7px 22px rgba(153,95,241,.34)!important}
+.ai-assistant-overlay{position:fixed;inset:0;z-index:1400;pointer-events:none}
+.ai-assistant-overlay[hidden]{display:none!important}
+.ai-assistant-backdrop{position:absolute;inset:0;background:rgba(7,4,16,.46);backdrop-filter:blur(4px);pointer-events:auto}
+.ai-assistant-panel{position:absolute;top:78px;right:16px;bottom:16px;width:min(462px,calc(100vw - 32px));display:flex;flex-direction:column;overflow:hidden;pointer-events:auto;border:1px solid rgba(193,145,246,.5);border-radius:19px;background:linear-gradient(155deg,rgba(28,19,47,.99),rgba(13,10,25,.99));box-shadow:0 28px 90px rgba(0,0,0,.55),0 0 38px rgba(154,91,224,.18);color:#fbf7ff}
+.ai-assistant-head{display:flex;align-items:center;gap:12px;padding:16px 17px;border-bottom:1px solid rgba(185,139,232,.2);background:radial-gradient(ellipse at 0 0,rgba(151,86,218,.23),transparent 72%),rgba(27,18,44,.95)}
+.ai-assistant-mark{width:42px;height:42px;display:grid;place-items:center;flex:none;border:1px solid rgba(211,169,255,.52);border-radius:13px;background:linear-gradient(145deg,#813fc0,#4f43a3);box-shadow:0 0 22px rgba(164,102,235,.24);font-size:21px}
+.ai-assistant-title{min-width:0;flex:1}
+.ai-assistant-title h2{margin:0;color:#fff;font-size:16px;letter-spacing:.1px}
+.ai-assistant-title p{margin:4px 0 0;color:#c7b5df;font-size:10px;line-height:1.45}
+.ai-assistant-close{width:32px;height:32px;display:grid;place-items:center;flex:none;border:1px solid #594270;border-radius:9px;background:#211731;color:#e8d9fa;font-size:17px;cursor:pointer}
+.ai-assistant-close:hover{border-color:#bd8bee;background:#352149}
+.ai-assistant-body{min-height:0;flex:1;display:flex;flex-direction:column;gap:12px;overflow:auto;padding:14px}
+.ai-assistant-context{display:flex;align-items:center;gap:8px;min-height:34px;padding:7px 9px;border:1px solid rgba(157,125,196,.25);border-radius:9px;background:rgba(31,23,47,.7);color:#cbb9df;font-size:10px;line-height:1.4}
+.ai-assistant-context strong{color:#eadbfa}
+.ai-assistant-spark{color:#d7a5ff;font-size:13px}
+.ai-assistant-welcome{padding:11px 12px;border:1px solid rgba(156,116,206,.24);border-radius:12px;background:linear-gradient(120deg,rgba(86,56,129,.24),rgba(28,21,43,.72));color:#d9cbe9;font-size:11px;line-height:1.65}
+.ai-assistant-welcome strong{color:#fff}
+.ai-assistant-suggestions{display:flex;flex-wrap:wrap;gap:7px}
+.ai-suggestion-chip{min-height:31px;padding:6px 9px;border:1px solid #49345f;border-radius:999px;background:rgba(31,22,48,.8);color:#dfcef3;font-size:9px;font-weight:750;cursor:pointer;transition:.16s}
+.ai-suggestion-chip:hover{border-color:#b17ce6;background:#352148;color:#fff;transform:translateY(-1px)}
+.ai-prompt-label{display:flex;align-items:center;justify-content:space-between;gap:8px;color:#e6d8f4;font-size:10px;font-weight:850}
+.ai-prompt-label span:last-child{color:#a99ab9;font-size:9px;font-weight:600}
+.ai-prompt-input{width:100%;min-height:104px;max-height:190px;resize:vertical;padding:11px 12px;border:1px solid #61467c;border-radius:11px;background:#100c1d;color:#fff;font:inherit;font-size:11px;line-height:1.6;outline:none}
+.ai-prompt-input:focus{border-color:#c08bf2;box-shadow:0 0 0 3px rgba(167,108,225,.15)}
+.ai-assistant-actions{display:flex;align-items:center;gap:8px}
+.ai-assistant-actions .btn{min-height:38px}
+.ai-assistant-primary{flex:1;border:0!important;background:linear-gradient(110deg,#9848da,#6554d9)!important;color:#fff!important;box-shadow:0 6px 18px rgba(131,79,214,.22)}
+.ai-assistant-primary:hover:not(:disabled){background:linear-gradient(110deg,#ae58eb,#7665ed)!important}
+.ai-assistant-status{min-height:15px;color:#b9a9cc;font-size:9px;line-height:1.5}
+.ai-plan-card{padding:12px;border:1px solid rgba(178,131,225,.38);border-radius:13px;background:linear-gradient(145deg,rgba(53,35,77,.62),rgba(20,15,32,.95));}
+.ai-plan-card[hidden],.ai-cloud-consent[hidden]{display:none!important}
+.ai-plan-eyebrow{display:flex;align-items:center;gap:7px;margin-bottom:9px;color:#d8b2ff;font-size:9px;font-weight:900;letter-spacing:1px;text-transform:uppercase}
+.ai-plan-understood{padding:10px;border-left:3px solid #a66bdd;border-radius:0 8px 8px 0;background:rgba(129,83,171,.15);color:#f3e9ff;font-size:11px;line-height:1.6}
+.ai-plan-message{margin:9px 0;color:#c8bad8;font-size:10px;line-height:1.55}
+.ai-plan-steps{display:grid;gap:7px;margin:10px 0 11px;padding:0;list-style:none;counter-reset:aiStep}
+.ai-plan-steps li{position:relative;padding:8px 9px 8px 33px;border:1px solid rgba(157,124,191,.2);border-radius:9px;background:rgba(16,12,26,.75);color:#e6d9f3;font-size:10px;line-height:1.5;counter-increment:aiStep}
+.ai-plan-steps li:before{content:counter(aiStep);position:absolute;left:9px;top:8px;width:17px;height:17px;display:grid;place-items:center;border:1px solid rgba(192,148,236,.4);border-radius:6px;background:#36224b;color:#e2c5ff;font-size:9px;font-weight:900}
+.ai-plan-refine{margin:0 0 10px;padding:0;border:0;background:none;color:#d5aaff;font-size:9px;font-weight:800;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.ai-cloud-consent{display:flex;align-items:flex-start;gap:8px;margin:10px 0;padding:9px;border:1px solid rgba(221,169,104,.38);border-radius:9px;background:rgba(110,70,24,.16);color:#f0dfc7;font-size:9px;line-height:1.5}
+.ai-cloud-consent input{margin:2px 0 0;accent-color:#b47ce9;flex:none}
+.ai-plan-notice{margin:8px 0 0;color:#b7a6c8;font-size:9px;line-height:1.5}
+.ai-plan-actions{display:flex;gap:7px;margin-top:10px}
+.ai-plan-actions .btn{flex:1;min-height:36px;padding:8px 9px;font-size:10px}
+.ai-apply-btn{border:0!important;background:linear-gradient(110deg,#238d6c,#277d8a)!important;color:#fff!important}
+.ai-cancel-btn{border-color:#75516d!important;background:#2b1c31!important;color:#f2d9ed!important}
+.ai-preview-state{display:flex;align-items:center;gap:7px;margin:0 0 8px;padding:8px 9px;border:1px solid rgba(91,205,167,.35);border-radius:9px;background:rgba(32,120,91,.14);color:#c8f7e7;font-size:9px;line-height:1.5}
+.ai-preview-state[hidden]{display:none!important}
+.ai-assistant-foot{padding:9px 14px;border-top:1px solid rgba(185,139,232,.16);color:#9989ad;font-size:8px;line-height:1.5;text-align:center}
+body.ai-assistant-open .topbar{pointer-events:none}
+body.ai-assistant-open .editor .media-panel,body.ai-assistant-open .editor .inspector,body.ai-assistant-open .editor .timeline{pointer-events:none}
+body.ai-preview-active .ai-assistant-backdrop{background:rgba(6,4,14,.08);backdrop-filter:none}
+body.ai-preview-active .editor .media-panel,body.ai-preview-active .editor .inspector,body.ai-preview-active .editor .timeline{opacity:.84}
+body.ai-preview-active #previewStage,body.ai-preview-active .preview-toolbar{pointer-events:none}
+body.ai-preview-active #playBtn,body.ai-preview-active #stopBtn{pointer-events:auto}
+@media(max-width:680px){
+ .ai-assistant-panel{top:auto;left:9px;right:9px;bottom:9px;width:auto;max-height:min(82vh,720px);border-radius:16px}
+ .ai-assistant-head{padding:12px}
+ .ai-assistant-body{padding:11px;gap:10px}
+ .ai-prompt-input{min-height:82px}
+ .ai-assistant-foot{padding:7px}
+}
+@media(prefers-reduced-motion:reduce){.ai-assistant-panel,.ai-suggestion-chip{transition:none!important}}
+
 </style>
 </head>
 <body>
@@ -632,7 +699,8 @@ input,select,textarea{accent-color:#a96bf1}
 <button class="btn" id="undoBtn" type="button" disabled title="Undo (Ctrl+Z)" aria-label="Undo">↶</button>
 <button class="btn" id="redoBtn" type="button" disabled title="Redo (Ctrl+Shift+Z)" aria-label="Redo">↷</button>
 <a class="btn" href="help.html" target="_blank" rel="noopener" title="Open the Video Studio Help Guide">? Help</a>
-<button class="btn" id="saveBtn" type="button" title="Save this project on your device">Save</button>
+<button class="btn ai-launch-btn" id="aiEditorOpenBtn" type="button" title="Ask AI to edit this project with a reviewable preview">✦ AI Editor</button>
+ <button class="btn" id="saveBtn" type="button" title="Save this project on your device">Save</button>
 <button class="btn primary" id="exportBtn" type="button" title="Choose your video export settings">Export</button>
 </div>
 </header>
@@ -975,6 +1043,51 @@ input,select,textarea{accent-color:#a96bf1}
   <footer class="export-dialog-actions"><button class="btn" id="voiceoverCloseBtn" type="button">Close</button><button class="btn primary" id="voiceoverGenerateBtn" type="button" disabled>Generate &amp; add to timeline</button></footer>
  </section>
 </div>
+<div class="ai-assistant-overlay" id="aiAssistantOverlay" hidden>
+ <div class="ai-assistant-backdrop" id="aiAssistantBackdrop"></div>
+ <section class="ai-assistant-panel" role="dialog" aria-modal="true" aria-labelledby="aiAssistantHeading">
+  <header class="ai-assistant-head">
+   <div class="ai-assistant-mark" aria-hidden="true">✦</div>
+   <div class="ai-assistant-title"><h2 id="aiAssistantHeading">TrivexaAI AI Editor</h2><p>Describe the edit. Review the plan. Preview before applying.</p></div>
+   <button class="ai-assistant-close" id="aiAssistantCloseBtn" type="button" aria-label="Close AI Editor">×</button>
+  </header>
+  <div class="ai-assistant-body">
+   <div class="ai-assistant-context" id="aiAssistantContext"><span class="ai-assistant-spark">✦</span><span>Reading your current project…</span></div>
+   <div class="ai-assistant-welcome"><strong>Your editing co-pilot</strong><br>Tell me what you want in plain language. I will choose only the relevant existing Video Studio tools, explain the changes, and show a temporary video preview. Nothing is saved until you press <strong>Apply changes</strong>.</div>
+   <div class="ai-assistant-suggestions" aria-label="Example editing requests">
+    <button class="ai-suggestion-chip" type="button" data-ai-suggestion="Make the selected video brighter and more cinematic, but keep its natural colours. Do not change audio.">Cinematic colour</button>
+    <button class="ai-suggestion-chip" type="button" data-ai-suggestion="Reframe the selected video for a vertical 9:16 social video and keep the subject centred.">Vertical 9:16</button>
+    <button class="ai-suggestion-chip" type="button" data-ai-suggestion="Detect scene changes in the selected video and split it at the detected cuts.">Detect scenes</button>
+    <button class="ai-suggestion-chip" type="button" data-ai-suggestion="Remove long silent sections from the selected audio clip without changing other clips.">Remove silence</button>
+    <button class="ai-suggestion-chip" type="button" data-ai-suggestion="Translate the existing captions into Urdu and keep their timing unchanged.">Translate to Urdu</button>
+    <button class="ai-suggestion-chip" type="button" data-ai-suggestion="Add a clean, readable title overlay at the beginning: ">Add a title</button>
+   </div>
+   <label class="ai-prompt-label" for="aiEditPrompt"><span>What should I edit?</span><span id="aiPromptCount">0 / 1,400</span></label>
+   <textarea class="ai-prompt-input" id="aiEditPrompt" maxlength="1400" placeholder="Example: Make the selected clip brighter, add a gentle fade-in, and keep the original audio exactly as it is."></textarea>
+   <div class="ai-assistant-actions">
+    <button class="btn ai-assistant-primary" id="aiGeneratePlanBtn" type="button">✦ Understand &amp; create edit plan</button>
+   </div>
+   <div class="ai-assistant-status" id="aiAssistantStatus" role="status" aria-live="polite">AI will ask before making unclear or unsupported changes.</div>
+   <section class="ai-plan-card" id="aiPlanCard" hidden>
+    <div class="ai-plan-eyebrow"><span>✦</span> AI edit plan</div>
+    <div class="ai-plan-understood" id="aiPlanUnderstood"></div>
+    <p class="ai-plan-message" id="aiPlanMessage"></p>
+    <ol class="ai-plan-steps" id="aiPlanSteps"></ol>
+    <button class="ai-plan-refine" type="button" id="aiUseRefinedPrompt">Use the clearer version in my prompt</button>
+    <label class="ai-cloud-consent" id="aiCloudConsentRow" hidden><input type="checkbox" id="aiCloudConsent"><span>This plan sends selected text or audio to Cloudflare AI. I understand that account usage or paid quota may apply.</span></label>
+    <div class="ai-preview-state" id="aiPreviewState" hidden><span>●</span><span>Preview mode: your original project is safe. Play the preview, then Apply or Cancel.</span></div>
+    <div class="ai-plan-actions">
+     <button class="btn ai-assistant-primary" id="aiPreviewPlanBtn" type="button">▶ Preview changes</button>
+     <button class="btn ai-apply-btn" id="aiApplyPlanBtn" type="button" hidden>✓ Apply changes</button>
+     <button class="btn ai-cancel-btn" id="aiCancelPreviewBtn" type="button" hidden>Cancel preview</button>
+    </div>
+    <p class="ai-plan-notice">Preview changes are temporary. Apply saves them to this project and adds one Undo step. Cancel restores the exact original timeline.</p>
+   </section>
+  </div>
+  <footer class="ai-assistant-foot">AI edits are limited to the current Video Studio project. Existing media files are preserved. You stay in control.</footer>
+ </section>
+</div>
+
 <script type="module">
 import {authReady,auth,getAccountProfile} from "../auth/auth-client.js";
 import {createLocalVideoTools,renderPersonCutoutFrame} from "./local-video-tools.js";
@@ -983,6 +1096,7 @@ const projectKey="trivexaai_video_studio_projects_v1",dbName="trivexaai-video-st
 let db=null,project=null,clips=[],assets=[],urls=new Map(),selectedId=null,scale=scaleDefault,playhead=0,isPlaying=false,raf=0,lastFrame=0,activeVideoId=null,activeOverlayVideoId=null,activeBaseImageId=null,activeImageId=null,previewStickerElements=new Map(),audioNodes=new Map(),audioGraphs=new Map(),previewAudioContext=null,audioWaveforms=new Map(),audioWaveformPending=new Map(),audioWaveformUnavailable=new Set(),audioWaveformQueue=Promise.resolve(),saveTimer=0,saveQueue=Promise.resolve(),saveRevision=0,savedRevision=0,undoStack=[],redoStack=[],dragState=null,playheadDrag=null,previewDraft=null,exportBusy=false,exportController=null,lastExportBlob=null,lastExportFileName="",snapEnabled=true,proxyBusy=false,captionsBusy=false,voiceoverBusy=false,copiedKeyframe=null,activeKeyframeTime=null,exportQueue=[],exportQueueRunning=false,queuedExportClipsSnapshot=null;
 const chromaCanvasCache=new WeakMap();
 let localVideoTools=null,backgroundPreviewWarningShown=false;
+let aiAssistantOpen=false,aiPlanBusy=false,aiPreviewActive=false,aiPreviewOriginal=null,aiPreviewAssetIds=null,aiCurrentPlan=null,aiPreviewCloudConsent=false;
 const horizontalMaskCanvasCache=new WeakMap();
 const params=new URLSearchParams(location.search),projectId=params.get("id"),WORKER_URL="https://creatorkit-ai.abubakar647648.workers.dev";
 function notify(msg){const el=$("toast");el.textContent=msg;el.classList.add("show");clearTimeout(window.__editorToast);window.__editorToast=setTimeout(()=>el.classList.remove("show"),3600);}
@@ -995,13 +1109,13 @@ function openDB(){return new Promise((resolve,reject)=>{const req=indexedDB.open
 function dbRequest(store,mode,fn){return new Promise((resolve,reject)=>{const tx=db.transaction(store,mode),s=tx.objectStore(store);let req,result;try{req=fn(s);}catch(e){reject(e);return;}if(req){req.onsuccess=()=>{result=req.result;};req.onerror=()=>reject(req.error||new Error("Database request failed"));}tx.oncomplete=()=>resolve(result);tx.onerror=()=>reject(tx.error||new Error("Database transaction failed"));tx.onabort=()=>reject(tx.error||new Error("Database transaction was aborted"));});}
 function projectFromLocal(){try{return (JSON.parse(localStorage.getItem(projectKey)||"[]")).find(p=>p.id===projectId)||null;}catch{return null;}}
 function status(t){$("saveStatus").textContent=t;}
-function snapshot(){undoStack.push(clone(clips));if(undoStack.length>40)undoStack.shift();redoStack=[];updateHistoryButtons();}
+function snapshot(){if(aiPreviewActive)return;undoStack.push(clone(clips));if(undoStack.length>40)undoStack.shift();redoStack=[];updateHistoryButtons();}
 function updateHistoryButtons(){$("undoBtn").disabled=!undoStack.length;$("redoBtn").disabled=!redoStack.length;}
 function recoveryKey(){return "trivexaai_video_studio_recovery_"+projectId;}
-function writeRecoveryDraft(){if(!project)return;try{localStorage.setItem(recoveryKey(),JSON.stringify({projectId:project.id,name:safeName($("projectTitle").value||project.name),clips:clone(clips),updatedAt:new Date().toISOString()}));}catch(error){status("Recovery backup unavailable · saving to device…");}}
+function writeRecoveryDraft(){if(aiPreviewActive||!project)return;try{localStorage.setItem(recoveryKey(),JSON.stringify({projectId:project.id,name:safeName($("projectTitle").value||project.name),clips:clone(clips),updatedAt:new Date().toISOString()}));}catch(error){status("Recovery backup unavailable · saving to device…");}}
 function readRecoveryDraft(){try{const raw=localStorage.getItem(recoveryKey());if(!raw)return null;const draft=JSON.parse(raw);return draft&&draft.projectId===projectId&&Array.isArray(draft.clips)&&Number.isFinite(Date.parse(draft.updatedAt))?draft:null;}catch(error){return null;}}
-function scheduleSave(){saveRevision++;writeRecoveryDraft();status("Saving…");clearTimeout(saveTimer);saveTimer=setTimeout(()=>{saveProject();},450);}
-function saveProject(){if(!project||!db)return Promise.resolve();clearTimeout(saveTimer);if(savedRevision>=saveRevision)saveRevision++;saveQueue=saveQueue.catch(()=>{}).then(async()=>{while(savedRevision<saveRevision){const revision=saveRevision,snapshot={...project,name:safeName($("projectTitle").value||project.name),clips:clone(clips),updatedAt:new Date().toISOString()};await dbRequest("projects","readwrite",s=>s.put(snapshot));project.name=snapshot.name;project.clips=clone(snapshot.clips);project.updatedAt=snapshot.updatedAt;const list=JSON.parse(localStorage.getItem(projectKey)||"[]"),i=list.findIndex(p=>p.id===project.id);if(i>=0){list[i].name=snapshot.name;list[i].updatedAt=snapshot.updatedAt;localStorage.setItem(projectKey,JSON.stringify(list));}savedRevision=revision;const draft=readRecoveryDraft();if(draft&&Date.parse(draft.updatedAt)<=Date.parse(snapshot.updatedAt)){try{localStorage.removeItem(recoveryKey());}catch(error){}}}status("Saved on this device");}).catch(error=>{status("Save failed · recovery backup kept");notify("Project save failed. Your recovery backup is kept on this device. Check browser storage space.");throw error;});return saveQueue;}
+function scheduleSave(){if(aiPreviewActive)return;saveRevision++;writeRecoveryDraft();status("Saving…");clearTimeout(saveTimer);saveTimer=setTimeout(()=>{saveProject();},450);}
+function saveProject(){if(aiPreviewActive||!project||!db)return Promise.resolve();clearTimeout(saveTimer);if(savedRevision>=saveRevision)saveRevision++;saveQueue=saveQueue.catch(()=>{}).then(async()=>{while(savedRevision<saveRevision){const revision=saveRevision,snapshot={...project,name:safeName($("projectTitle").value||project.name),clips:clone(clips),updatedAt:new Date().toISOString()};await dbRequest("projects","readwrite",s=>s.put(snapshot));project.name=snapshot.name;project.clips=clone(snapshot.clips);project.updatedAt=snapshot.updatedAt;const list=JSON.parse(localStorage.getItem(projectKey)||"[]"),i=list.findIndex(p=>p.id===project.id);if(i>=0){list[i].name=snapshot.name;list[i].updatedAt=snapshot.updatedAt;localStorage.setItem(projectKey,JSON.stringify(list));}savedRevision=revision;const draft=readRecoveryDraft();if(draft&&Date.parse(draft.updatedAt)<=Date.parse(snapshot.updatedAt)){try{localStorage.removeItem(recoveryKey());}catch(error){}}}status("Saved on this device");}).catch(error=>{status("Save failed · recovery backup kept");notify("Project save failed. Your recovery backup is kept on this device. Check browser storage space.");throw error;});return saveQueue;}
 function assetUrl(id){return urls.get(id)||"";}
 function assetById(id){return assets.find(a=>a.id===id);}
 function isImportedAsset(asset){
