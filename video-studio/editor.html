@@ -4005,6 +4005,7 @@ async function generateAiPrompt(){
  if(request.length>2000){aiSetPromptWriterStatus("Request 2,000 characters se chhoti rakhein.");return;}
  if(!auth?.currentUser){aiSetPromptWriterStatus("Google sign-in session expire ho gaya. Dobara sign-in karein.");return;}
  aiPromptWriterBusy=true;
+ $("aiPromptWriterStatus").style.color="";
  $("aiPromptWriterGenerateBtn").textContent="Gemini prompt bana raha hai…";
 
  $("aiPromptWriterQuestion").hidden=true;
