@@ -1062,17 +1062,21 @@ body.ai-preview-active #playBtn,body.ai-preview-active #stopBtn{pointer-events:a
   </header>
   <div class="ai-assistant-body">
    <div class="ai-assistant-context" id="aiAssistantContext"><span class="ai-assistant-spark">✦</span><span>Reading your current project…</span></div>
-   <div class="ai-assistant-welcome"><strong>Your editing co-pilot</strong><br>Tell me what you want in plain language. I will choose only the relevant existing Video Studio tools, explain the changes, and show a temporary video preview. Nothing is saved until you press <strong>Apply changes</strong>.<br><br>Your prompt and current clip names/settings are sent securely to TrivexaAI AI to prepare the plan. Your original video files are not uploaded for planning. Audio or text is sent for processing only when you approve an AI tool that needs it.</div>
+   <div class="ai-assistant-welcome"><strong>Your Video Studio co-pilot</strong><br>Apni request simple alfaaz mein likhein. AI clips edit kar sakta hai, timeline arrange/trim kar sakta hai, preview controls chala sakta hai, imported media aur video proxies manage kar sakta hai, aur projects create/open/rename kar sakta hai. AI sirf relevant Video Studio tools use karega aur Apply se pehle review preview dikhayega.<br><br><strong>Prompt likhne ka easy tareeqa:</strong> batayein <em>kis clip ya project par</em>, <em>kya change</em>, aur <em>kya bilkul same rakhna hai</em>. Misal: “Selected video ko 12 seconds par move karo, 8 seconds tak trim karo, aur detached audio sync rakho.”<br><br>Planning ke liye prompt, project/clip names, settings aur media-library metadata securely AI ko bheje ja sakte hain. Aapki local video files planning ke liye upload nahi hotin. New file import karne ke liye aapko khud <strong>Choose files</strong> click karna hoga. Export system AI control mein nahi hai.</div>
    <div class="ai-assistant-suggestions" aria-label="Example editing requests">
     <button class="ai-suggestion-chip" type="button" data-ai-suggestion="Make the selected video brighter and more cinematic, but keep its natural colours. Do not change audio.">Cinematic colour</button>
     <button class="ai-suggestion-chip" type="button" data-ai-suggestion="Reframe the selected video for a vertical 9:16 social video and keep the subject centred.">Vertical 9:16</button>
+    <button class="ai-suggestion-chip" type="button" data-ai-suggestion="Move the selected clip to 12 seconds, trim its duration to 8 seconds, and keep its linked audio in sync.">Timeline edit</button>
+    <button class="ai-suggestion-chip" type="button" data-ai-suggestion="Set preview to Fill, show composition guides, and play from 15 seconds.">Preview controls</button>
+    <button class="ai-suggestion-chip" type="button" data-ai-suggestion="Create a lightweight proxy for the imported video so preview playback is smoother. Keep the original for export.">Create proxy</button>
+    <button class="ai-suggestion-chip" type="button" data-ai-suggestion="Add the imported audio named background-music.mp3 to the timeline at 0 seconds.">Add library media</button>
+    <button class="ai-suggestion-chip" type="button" data-ai-suggestion="Create a new Shorts project called Cricket Shorts in 9:16, 1080x1920, at 30 FPS.">New project</button>
+    <button class="ai-suggestion-chip" type="button" data-ai-suggestion="Open my project named Cricket Highlights.">Open project</button>
     <button class="ai-suggestion-chip" type="button" data-ai-suggestion="Detect scene changes in the selected video and split it at the detected cuts.">Detect scenes</button>
-    <button class="ai-suggestion-chip" type="button" data-ai-suggestion="Remove long silent sections from the selected audio clip without changing other clips.">Remove silence</button>
-    <button class="ai-suggestion-chip" type="button" data-ai-suggestion="Translate the existing captions into Urdu and keep their timing unchanged.">Translate to Urdu</button>
-    <button class="ai-suggestion-chip" type="button" data-ai-suggestion="Add a clean, readable title overlay at the beginning: ">Add a title</button>
+    <button class="ai-suggestion-chip" type="button" data-ai-suggestion="Translate the existing captions into Urdu and keep their timing unchanged.">Translate captions</button>
    </div>
    <label class="ai-prompt-label" for="aiEditPrompt"><span>What should I edit?</span><span id="aiPromptCount">0 / 1,400</span></label>
-   <textarea class="ai-prompt-input" id="aiEditPrompt" maxlength="1400" placeholder="Example: Make the selected clip brighter, add a gentle fade-in, and keep the original audio exactly as it is."></textarea>
+   <textarea class="ai-prompt-input" id="aiEditPrompt" maxlength="1400" placeholder="Example: Move my selected video to 12 seconds, trim it to 8 seconds, show Guides, and keep its linked audio in sync."></textarea>
    <div class="ai-assistant-actions">
     <button class="btn ai-assistant-primary" id="aiGeneratePlanBtn" type="button">✦ Understand &amp; create edit plan</button>
    </div>
@@ -1090,10 +1094,10 @@ body.ai-preview-active #playBtn,body.ai-preview-active #stopBtn{pointer-events:a
      <button class="btn ai-apply-btn" id="aiApplyPlanBtn" type="button" hidden>✓ Apply changes</button>
      <button class="btn ai-cancel-btn" id="aiCancelPreviewBtn" type="button" hidden>Cancel preview</button>
     </div>
-    <p class="ai-plan-notice">Preview changes are temporary. Apply saves them to this project and adds one Undo step. Cancel restores the exact original timeline.</p>
+    <p class="ai-plan-notice">Preview temporary hai. Apply timeline aur media-library changes save karta hai; timeline edits ke liye one-step Undo available hai. Cancel preview ko restore karta hai. Project delete par next screen par dobara confirmation zaroori hai.</p>
    </section>
   </div>
-  <footer class="ai-assistant-foot">AI edits are limited to the current Video Studio project. Existing media files are preserved. You stay in control.</footer>
+  <footer class="ai-assistant-foot">AI sirf Video Studio controls use karta hai. Original media aur Export controls protected hain. Apply aur Cancel aapke control mein hain.</footer>
  </section>
 </div>
 
@@ -1105,7 +1109,7 @@ const projectKey="trivexaai_video_studio_projects_v1",dbName="trivexaai-video-st
 let db=null,project=null,clips=[],assets=[],urls=new Map(),selectedId=null,scale=scaleDefault,playhead=0,isPlaying=false,raf=0,lastFrame=0,activeVideoId=null,activeOverlayVideoId=null,activeBaseImageId=null,activeImageId=null,previewStickerElements=new Map(),audioNodes=new Map(),audioGraphs=new Map(),previewAudioContext=null,audioWaveforms=new Map(),audioWaveformPending=new Map(),audioWaveformUnavailable=new Set(),audioWaveformQueue=Promise.resolve(),saveTimer=0,saveQueue=Promise.resolve(),saveRevision=0,savedRevision=0,undoStack=[],redoStack=[],dragState=null,playheadDrag=null,previewDraft=null,exportBusy=false,exportController=null,lastExportBlob=null,lastExportFileName="",snapEnabled=true,proxyBusy=false,captionsBusy=false,voiceoverBusy=false,copiedKeyframe=null,activeKeyframeTime=null,exportQueue=[],exportQueueRunning=false,queuedExportClipsSnapshot=null;
 const chromaCanvasCache=new WeakMap();
 let localVideoTools=null,backgroundPreviewWarningShown=false;
-let aiAssistantOpen=false,aiPlanBusy=false,aiPreviewActive=false,aiPreviewOriginal=null,aiPreviewAssetIds=null,aiCurrentPlan=null,aiPreviewCloudConsent=false;
+let aiAssistantOpen=false,aiPlanBusy=false,aiPreviewActive=false,aiPreviewOriginal=null,aiPreviewAssetIds=null,aiCurrentPlan=null,aiPreviewCloudConsent=false,aiPendingProjectAction=null;
 const horizontalMaskCanvasCache=new WeakMap();
 const params=new URLSearchParams(location.search),projectId=params.get("id"),WORKER_URL="https://creatorkit-ai.abubakar647648.workers.dev";
 function notify(msg){const el=$("toast");el.textContent=msg;el.classList.add("show");clearTimeout(window.__editorToast);window.__editorToast=setTimeout(()=>el.classList.remove("show"),3600);}
@@ -1173,7 +1177,7 @@ function renderAssets(){
  $("assetCount").textContent=importedAssets.length+" imported";list.replaceChildren();
  if(!importedAssets.length){const e=document.createElement("div");e.className="empty";e.textContent="No imported files yet. Import a video, audio file or image to get started.";list.append(e);return;}
  for(const a of importedAssets){
-  const row=document.createElement("div");row.className="asset";
+  const row=document.createElement("div");row.className="asset";row.dataset.assetId=a.id;
   const ico=document.createElement("div");ico.className="asset-icon";ico.textContent=a.type==="video"?"▶":a.type==="audio"?"♫":"▧";
   const info=document.createElement("div");info.className="asset-info";
   const name=document.createElement("strong");name.textContent=a.name;name.title=a.name;
@@ -3365,11 +3369,11 @@ function aiCloudConsentIsReady(){
   : true;
 }
 function aiUpdateContextLabel(){
- const count=clips.length,selected=selectedClip();
+ const count=clips.length,selected=selectedClip(),imported=assets.filter(isImportedAsset).length,proxyCount=assets.filter(a=>a.sourceVideoAssetId).length;
  const selectedLabel=selected?(selected.name||selected.type):"No clip selected";
  $("aiAssistantContext").replaceChildren();
  const spark=document.createElement("span");spark.className="ai-assistant-spark";spark.textContent="✦";
- const label=document.createElement("span");label.textContent=(project?.name||"Current project")+" · "+count+" timeline clips · "+selectedLabel;
+ const label=document.createElement("span");label.textContent=(project?.name||"Current project")+" · "+count+" timeline clips · "+imported+" media assets · "+proxyCount+" proxies · "+selectedLabel;
  $("aiAssistantContext").append(spark,label);
 }
 function openAiEditorAssistant(){
@@ -3395,32 +3399,26 @@ async function closeAiEditorAssistant(){
 function aiEditorContext(){
  const allowed=["name","start","duration","scale","rotation","x","y","opacity","volume","flipX","flipY","framingMode","filterPreset","brightness","contrast","saturation","blur","hue","transition","transitionDuration","speedStart","speedEnd","chromaEnabled","chromaColor","chromaTolerance","chromaSoftness","maskShape","maskTop","maskBottom","maskFeather","maskAngle","fadeIn","fadeOut","audioBass","audioMid","audioTreble","audioPan","fontSize","font","weight","align","bgColor","bgOpacity","italic","textEffect","textTransition","textTransitionDuration","bgRemoveEnabled"];
  const contextClips=clips.slice(0,40).map(clip=>{
-  const properties={};
-  allowed.forEach(key=>{
-   if(clip[key]!==undefined){
-    const value=clip[key];
-    if(typeof value==="string")properties[key]=value.slice(0,180);
-    else if(typeof value==="boolean"||Number.isFinite(value))properties[key]=value;
-   }
-  });
-  return {id:String(clip.id),name:String(clip.name||clip.type||"Clip").slice(0,100),type:clip.type,track:clip.track,start:Number(clip.start)||0,duration:Number(clip.duration)||0,properties};
+  const properties={};allowed.forEach(key=>{if(clip[key]!==undefined){const value=clip[key];if(typeof value==="string")properties[key]=value.slice(0,180);else if(typeof value==="boolean"||Number.isFinite(value))properties[key]=value;}});
+  return {id:String(clip.id),name:String(clip.name||clip.type||"Clip").slice(0,100),type:clip.type,track:clip.track,start:Number(clip.start)||0,duration:Number(clip.duration)||0,assetId:String(clip.assetId||""),properties};
  });
  if(selectedId&&!contextClips.some(item=>item.id===selectedId)){
   const selected=clips.find(item=>item.id===selectedId);
   if(selected&&contextClips.length>=40)contextClips.pop();
-  if(selected)contextClips.push({
-   id:String(selected.id),name:String(selected.name||selected.type||"Clip").slice(0,100),type:selected.type,track:selected.track,
-   start:Number(selected.start)||0,duration:Number(selected.duration)||0,
-   properties:Object.fromEntries(allowed.filter(key=>selected[key]!==undefined).map(key=>[key,typeof selected[key]==="string"?selected[key].slice(0,180):selected[key]]))
-  });
+  if(selected)contextClips.push({id:String(selected.id),name:String(selected.name||selected.type||"Clip").slice(0,100),type:selected.type,track:selected.track,start:Number(selected.start)||0,duration:Number(selected.duration)||0,assetId:String(selected.assetId||""),properties:Object.fromEntries(allowed.filter(key=>selected[key]!==undefined).map(key=>[key,typeof selected[key]==="string"?selected[key].slice(0,180):selected[key]]))});
  }
+ const allImported=assets.filter(isImportedAsset);
+ const library=allImported.slice(0,80).map(asset=>({id:String(asset.id),name:String(asset.name||"Media").slice(0,100),type:asset.type,duration:Number(asset.duration)||0,size:Number(asset.size)||0,proxyAvailable:!!(asset.proxyAssetId&&assetById(asset.proxyAssetId)),usingProxy:asset.useProxy!==false&&!!asset.proxyAssetId}));
+ const projectList=aiProjectList();
  return {
-  project:{name:String(project.name||"Untitled project"),resolution:String(project.resolution||""),fps:Number(project.fps)||30,duration:Number(duration())||0},
-  clipCount:clips.length,
-  clipsTruncated:clips.length>contextClips.length,
-  selectedClipId:selectedId||"",
-  playhead:Number(playhead)||0,
-  clips:contextClips
+  scope:"Video Studio only. Never operate homepage standalone tools. Export and export queue are not AI-controllable.",
+  project:{id:String(project.id),name:String(project.name||"Untitled project"),ratio:String(project.ratio||""),resolution:String(project.resolution||""),fps:Number(project.fps)||30,duration:Number(duration())||0},
+  clipCount:clips.length,clipsTruncated:clips.length>contextClips.length,selectedClipId:selectedId||"",playhead:Number(playhead)||0,clips:contextClips,
+  mediaLibrary:{assetCount:allImported.length,assetsTruncated:allImported.length>library.length,assets:library},
+  projects:{count:projectList.length,projects:projectList},
+  preview:{playback:isPlaying?"playing":"paused",playhead:Number(playhead)||0,fit:$("previewFit").value,guides:!$("previewGuides").hidden},
+  timeline:{zoom:Number(scale)||64,snapEnabled:!!snapEnabled,tracks:["video","overlay","text","audio","captions"]},
+  capabilities:AI_EDITOR_CAPABILITIES
  };
 }
 function aiParsePlan(source){
@@ -3511,6 +3509,39 @@ function aiValidateChanges(clipType,changes){
  }
  return result;
 }
+function aiProjectList(){
+ try{
+  const saved=JSON.parse(localStorage.getItem(projectKey)||"[]");
+  const list=Array.isArray(saved)?saved.filter(item=>item&&typeof item.id==="string"&&typeof item.name==="string"):[];
+  if(project&&project.id&&!list.some(item=>item.id===project.id))list.unshift({id:project.id,name:project.name||"Untitled project",ratio:project.ratio||"",resolution:project.resolution||"",fps:project.fps||30});
+  return list.slice(0,60).map(item=>({id:String(item.id),name:String(item.name||"Untitled project").slice(0,80),ratio:String(item.ratio||item.ratioLabel||""),resolution:String(item.resolution||item.resolutionLabel||""),fps:Number(item.fps)||30}));
+ }catch(error){return project?[{id:String(project.id),name:String(project.name||"Untitled project"),ratio:String(project.ratio||""),resolution:String(project.resolution||""),fps:Number(project.fps)||30}]:[];}
+}
+function aiResolveProjectTarget(item){
+ const list=aiProjectList();
+ if(item.projectId){
+  const found=list.find(entry=>entry.id===String(item.projectId));
+  if(!found)throw new Error("AI jis project ko refer kar raha hai woh is device par nahi mila. Project list refresh karein.");
+  return found;
+ }
+ const wanted=String(item.projectName||item.name||"").trim().toLocaleLowerCase();
+ if(!wanted)throw new Error("Project ka exact naam ya project ID required hai.");
+ const matches=list.filter(entry=>entry.name.trim().toLocaleLowerCase()===wanted);
+ if(matches.length>1)throw new Error("Same naam ke multiple projects hain. Project ka exact naam ya ID clear karein.");
+ if(!matches.length)throw new Error("Project '"+wanted+"' is device par nahi mila. Pehle project list check karein.");
+ return matches[0];
+}
+function aiCanUseTrack(clip,track){
+ if(clip.type==="video"||clip.type==="image")return track==="video"||track==="overlay";
+ if(clip.type==="audio")return track==="audio";
+ if(clip.type==="text")return track==="text"||track==="captions";
+ return false;
+}
+const AI_EDITOR_CAPABILITIES=[
+ "set_clip_properties","split_clip","move_clip","duplicate_clip","delete_clip","add_text_overlay","set_keyframes","run_tool",
+ "trim_clip","set_preview_controls","set_timeline_controls","add_asset_to_timeline","rename_asset","remove_asset",
+ "create_video_proxy","set_proxy_usage","rename_project","create_project","open_project","delete_project"
+];
 function aiValidatePlan(raw){
  if(!raw||typeof raw!=="object"||Array.isArray(raw))throw new Error("AI edit plan ka format valid nahi.");
  const plan={
@@ -3548,7 +3579,10 @@ function aiValidatePlan(raw){
    }
    case "move_clip":{
     const clip=requireClip(item.clipId);
-    operation={type:item.type,clipId:clip.id,start:aiClamp(item.start,0,7200,"New clip start"),reason};
+    const start=aiClamp(item.start,0,7200,"New clip start");
+    let track;
+    if(item.track!==undefined){track=String(item.track);if(!aiCanUseTrack(clip,track))throw new Error("Selected clip ko is track par move nahi kiya ja sakta.");}
+    operation={type:item.type,clipId:clip.id,start,track,reason};
     break;
    }
    case "duplicate_clip":{
@@ -3587,6 +3621,112 @@ function aiValidatePlan(raw){
     if(frames[0].time!==0||frames[frames.length-1].time>clip.duration)throw new Error("Keyframes ko clip ke start aur duration ke andar rehna chahiye.");
     operation={type:item.type,clipId:clip.id,keyframes:frames,reason};
     break;
+   }
+   case "trim_clip":{
+    const clip=requireClip(item.clipId,["video","audio","image","text"]);
+    if(clip.type==="video"&&Number(clip.speedSourceDuration)>0)throw new Error("Speed-ramp clip ko AI trim nahi karega, kyun ke source timing ko badalne ka risk hai. Pehle speed ramp normal karein.");
+    const start=aiClamp(item.start??clip.start,0,7200,"Trim start");
+    const durationValue=aiClamp(item.duration??clip.duration,.2,7200,"Trim duration");
+    if(clip.type==="video"||clip.type==="audio"){
+     const asset=assetById(clip.assetId);
+     if(!asset||!Number.isFinite(Number(asset.duration)))throw new Error("Is clip ka original media duration available nahi.");
+     const sourceStart=(Number(clip.sourceStart)||0)+(start-(Number(clip.start)||0));
+     if(sourceStart<-.001)throw new Error("Clip ko is se pehle trim nahi kiya ja sakta, kyun ke original media mein pehle ka footage/audio available nahi.");
+     if(sourceStart+durationValue>Number(asset.duration)+.05)throw new Error("Trim range original media ki available duration se bahar ja rahi hai.");
+    }
+    operation={type:item.type,clipId:clip.id,start,duration:durationValue,reason};break;
+   }
+   case "set_preview_controls":{
+    const playback=item.playback===undefined?undefined:String(item.playback);
+    if(playback!==undefined&&!["play","pause","stop"].includes(playback))throw new Error("Preview playback ke liye play, pause ya stop use karein.");
+    const playheadValue=item.playhead===undefined?undefined:aiClamp(item.playhead,0,duration(),"Preview playhead");
+    const fit=item.fit===undefined?undefined:String(item.fit);
+    if(fit!==undefined&&!["contain","cover"].includes(fit))throw new Error("Preview fit ke liye Fit ya Fill select karein.");
+    if(item.guides!==undefined&&typeof item.guides!=="boolean")throw new Error("Preview guides ka value true ya false hona chahiye.");
+    if(playback===undefined&&playheadValue===undefined&&fit===undefined&&item.guides===undefined)throw new Error("Preview controls mein koi setting nahi di gayi.");
+    operation={type:item.type,playback,playhead:playheadValue,fit,guides:item.guides,reason};break;
+   }
+   case "set_timeline_controls":{
+    const fitAll=item.fitAll===undefined?undefined:item.fitAll;
+    if(fitAll!==undefined&&typeof fitAll!=="boolean")throw new Error("Fit All ka value true ya false hona chahiye.");
+    const zoom=item.zoom===undefined?undefined:aiClamp(item.zoom,24,140,"Timeline zoom");
+    if(zoom!==undefined&&Math.abs(zoom/4-Math.round(zoom/4))>.001)throw new Error("Timeline zoom ko 4 ke supported steps mein set karein.");
+    if(item.snap!==undefined&&typeof item.snap!=="boolean")throw new Error("Timeline snapping ka value true ya false hona chahiye.");
+    let scrollToClipId;if(item.scrollToClipId!==undefined)scrollToClipId=requireClip(item.scrollToClipId).id;
+    if(fitAll===undefined&&zoom===undefined&&item.snap===undefined&&scrollToClipId===undefined)throw new Error("Timeline controls mein koi setting nahi di gayi.");
+    if(fitAll===true&&zoom!==undefined)throw new Error("Fit All aur custom zoom ek hi request mein use na karein.");
+    operation={type:item.type,fitAll,zoom,snap:item.snap,scrollToClipId,reason};break;
+   }
+   case "add_asset_to_timeline":{
+    const asset=assets.find(entry=>entry.id===item.assetId);
+    if(!asset||asset.projectId!==project.id||!isImportedAsset(asset))throw new Error("Media Library mein yeh imported asset nahi mila. Derived proxies ko original media ke bajaye direct timeline par add nahi kiya ja sakta.");
+    if(!["video","audio","image"].includes(asset.type))throw new Error("Is media type ko timeline par add nahi kiya ja sakta.");
+    const start=aiClamp(item.start??playhead,0,7200,"New clip start");
+    const track=item.track===undefined?(asset.type==="audio"?"audio":asset.type==="video"?"video":"overlay"):String(item.track);
+    if(!aiCanUseTrack({type:asset.type},track))throw new Error("Is media type ke liye selected timeline track allowed nahi.");
+    const durationValue=aiClamp(item.duration??Math.max(.2,Number(asset.duration)||5),.2,7200,"New clip duration");
+    if((asset.type==="video"||asset.type==="audio")&&durationValue>Number(asset.duration||0)+.05)throw new Error("New clip duration original media se zyada nahi ho sakti.");
+    operation={type:item.type,assetId:asset.id,start,track,duration:durationValue,reason};break;
+   }
+   case "rename_asset":{
+    const asset=assets.find(entry=>entry.id===item.assetId);
+    if(!asset||asset.projectId!==project.id||!isImportedAsset(asset))throw new Error("Rename karne ke liye imported media asset select karein.");
+    if(typeof item.name!=="string"||!item.name.trim()||item.name.trim().length>100)throw new Error("Media file ka naya naam 1 se 100 characters ka hona chahiye.");
+    operation={type:item.type,assetId:asset.id,name:item.name.trim(),reason};break;
+   }
+   case "remove_asset":{
+    const asset=assets.find(entry=>entry.id===item.assetId);
+    if(!asset||asset.projectId!==project.id||!isImportedAsset(asset))throw new Error("Remove karne ke liye imported original media asset select karein.");
+    const linkedProxy=asset.proxyAssetId?assets.find(entry=>entry.id===asset.proxyAssetId):null;
+    if(clips.some(clip=>clip.assetId===asset.id||linkedProxy&&clip.assetId===linkedProxy.id))throw new Error("Yeh media timeline mein use ho raha hai. Pehle iski timeline clip remove karein; phir Media Library se asset remove kar sakte hain.");
+    operation={type:item.type,assetId:asset.id,reason};break;
+   }
+   case "create_video_proxy":{
+    const asset=assets.find(entry=>entry.id===item.assetId);
+    if(!asset||asset.projectId!==project.id||asset.type!=="video"||!isImportedAsset(asset))throw new Error("Proxy sirf Media Library ke original imported video ke liye ban sakta hai.");
+    if(asset.proxyAssetId&&assets.some(entry=>entry.id===asset.proxyAssetId))throw new Error("Is video ka proxy pehle se maujood hai. Use Proxy option select karein.");
+    if(proxyBusy)throw new Error("Ek proxy task pehle se chal raha hai. Pehle uske complete hone dein.");
+    operation={type:item.type,assetId:asset.id,reason};break;
+   }
+   case "set_proxy_usage":{
+    const asset=assets.find(entry=>entry.id===item.assetId);
+    if(!asset||asset.projectId!==project.id||asset.type!=="video"||!asset.proxyAssetId||!assets.some(entry=>entry.id===asset.proxyAssetId))throw new Error("Is video ke liye ready proxy available nahi. Pehle Create Video Proxy karein.");
+    if(typeof item.useProxy!=="boolean")throw new Error("useProxy ka value true ya false hona chahiye.");
+    operation={type:item.type,assetId:asset.id,useProxy:item.useProxy,reason};break;
+   }
+   case "rename_project":{
+    if(item.projectId&&String(item.projectId)!==String(projectId))throw new Error("AI current open project ka naam hi change kar sakta hai. Doosra project pehle open karein.");
+    if(typeof item.name!=="string"||!item.name.trim()||item.name.trim().length>60)throw new Error("Project ka naya naam 1 se 60 characters ka hona chahiye.");
+    operation={type:item.type,projectId:String(projectId),name:safeName(item.name.trim()),reason};break;
+   }
+   case "create_project":{
+    const name=String(item.name||item.projectName||"").trim();
+    if(!name||name.length>60)throw new Error("New project ka naam 1 se 60 characters ka hona chahiye.");
+    const ratio=String(item.ratio||"16:9");
+    if(!["16:9","9:16","1:1","4:5","custom"].includes(ratio))throw new Error("Project aspect ratio available preset mein se select karein.");
+    const defaults={"16:9":"1920x1080","9:16":"1080x1920","1:1":"1080x1080","4:5":"1080x1350"};
+    const resolution=String(item.resolution||defaults[ratio]||"");
+    const allowedByRatio={
+     "16:9":new Set(["1280x720","1920x1080","2560x1440","3840x2160"]),
+     "9:16":new Set(["1080x1920"]),
+     "1:1":new Set(["1080x1080"]),
+     "4:5":new Set(["1080x1350"])
+    };
+    const dimensions=/^(\d{3,4})x(\d{3,4})$/.exec(resolution);
+    if(!dimensions)throw new Error("Project resolution widthxheight format mein honi chahiye, misal 1920x1080.");
+    const width=Number(dimensions[1]),height=Number(dimensions[2]);
+    if(width<240||height<240||width>3840||height>3840)throw new Error("Project width aur height 240 se 3840 pixels ke darmiyan honi chahiye.");
+    if(ratio!=="custom"&&!allowedByRatio[ratio].has(resolution))throw new Error("Selected resolution aspect ratio ke preset se match nahi karti.");
+    const fps=Number(item.fps??30);if(![24,30,60].includes(fps))throw new Error("Project FPS 24, 30 ya 60 mein se select karein.");
+    operation={type:item.type,name:safeName(name),ratio,resolution,width,height,fps,ratioLabel:ratio==="custom"?"Custom ("+width+":"+height+")":ratio,resolutionLabel:width+" × "+height,reason};break;
+   }
+   case "open_project":{
+    const target=aiResolveProjectTarget(item);
+    operation={type:item.type,projectId:target.id,projectName:target.name,reason};break;
+   }
+   case "delete_project":{
+    const target=aiResolveProjectTarget(item);
+    operation={type:item.type,projectId:target.id,projectName:target.name,reason};break;
    }
    case "run_tool":{
     if(!AI_VIDEO_TOOLS.has(item.tool))throw new Error("AI ne koi aisa tool choose kiya jo editor mein allowed nahi.");
@@ -3632,23 +3772,32 @@ function aiValidatePlan(raw){
   }
   plan.operations.push(operation);
  }
+ const navigationOperations=plan.operations.filter(operation=>["create_project","open_project","delete_project"].includes(operation.type));
+ if(navigationOperations.length&&plan.operations.length!==1)throw new Error("New, open ya delete project ko ek separate request mein karein. Isay clip/media edits ke saath mix nahi kiya ja sakta.");
+ if(plan.operations.some(operation=>operation.type==="remove_asset")&&plan.operations.length!==1)throw new Error("Media Library se asset permanently remove karne ka action alag request mein karein.");
  return plan;
 }
 function aiOperationLabel(operation){
  if(operation.type==="set_clip_properties")return "Update "+(clips.find(c=>c.id===operation.clipId)?.name||"selected clip")+" settings";
  if(operation.type==="split_clip")return "Split "+(clips.find(c=>c.id===operation.clipId)?.name||"clip")+" at "+operation.atSeconds.toFixed(1)+" seconds";
- if(operation.type==="move_clip")return "Move "+(clips.find(c=>c.id===operation.clipId)?.name||"clip")+" to "+operation.start.toFixed(1)+" seconds";
+ if(operation.type==="move_clip")return "Move "+(clips.find(c=>c.id===operation.clipId)?.name||"clip")+" to "+operation.start.toFixed(1)+" seconds"+(operation.track?" on the "+operation.track+" track":"");
+ if(operation.type==="trim_clip")return "Trim "+(clips.find(c=>c.id===operation.clipId)?.name||"clip")+" to "+operation.start.toFixed(1)+"s – "+(operation.start+operation.duration).toFixed(1)+"s";
  if(operation.type==="duplicate_clip")return "Duplicate "+(clips.find(c=>c.id===operation.clipId)?.name||"clip");
  if(operation.type==="delete_clip")return "Remove "+(clips.find(c=>c.id===operation.clipId)?.name||"clip");
  if(operation.type==="add_text_overlay")return "Add text overlay: "+operation.text;
  if(operation.type==="set_keyframes")return "Create "+operation.keyframes.length+" animation keyframes";
- const names={
-  scene_detection:"Detect scenes and split the selected video",beat_sync:"Align selected clips to music beats",remove_silence:"Remove silent sections from the selected clip",
-  ai_colour_correction:"Analyse and correct selected clip colours",caption_translation:"Translate existing captions into "+operation.language,
-  auto_captions:"Generate AI captions from the selected clip",reverse_video:"Reverse the selected video clip",motion_tracking:"Track "+operation.target+" movement in the selected video",
-  enhance_audio:"Enhance the selected audio",remove_person_background:"Remove the person background from the selected video",
-  auto_reframe:"Reframe the selected video around the subject",detach_audio:"Extract the selected video's audio to a new Audio track",ai_voice_over:"Generate an AI voice-over clip",add_sticker:"Add a "+operation.preset+" sticker"
- };
+ if(operation.type==="set_preview_controls")return "Set preview playback, playhead, Fit/Fill or composition guides";
+ if(operation.type==="set_timeline_controls")return "Adjust timeline zoom, Fit All, snapping or focus";
+ if(operation.type==="add_asset_to_timeline")return "Add "+(assetById(operation.assetId)?.name||"Media Library asset")+" to the "+operation.track+" track";
+ if(operation.type==="rename_asset")return "Rename Media Library asset to "+operation.name;
+ if(operation.type==="remove_asset")return "Remove "+(assetById(operation.assetId)?.name||"media asset")+" and its proxy from this device";
+ if(operation.type==="create_video_proxy")return "Create a lightweight local proxy for "+(assetById(operation.assetId)?.name||"video");
+ if(operation.type==="set_proxy_usage")return (operation.useProxy?"Use proxy for preview: ":"Use original for preview: ")+(assetById(operation.assetId)?.name||"video");
+ if(operation.type==="rename_project")return "Rename current project to "+operation.name;
+ if(operation.type==="create_project")return "Create project '"+operation.name+"' · "+operation.ratio+" · "+operation.resolution+" · "+operation.fps+" FPS";
+ if(operation.type==="open_project")return "Open project '"+operation.projectName+"'";
+ if(operation.type==="delete_project")return "Open the extra delete-confirmation screen for '"+operation.projectName+"'";
+ const names={scene_detection:"Detect scenes and split the selected video",beat_sync:"Align selected clips to music beats",remove_silence:"Remove silent sections from the selected clip",ai_colour_correction:"Analyse and correct selected clip colours",caption_translation:"Translate existing captions into "+operation.language,auto_captions:"Generate AI captions from the selected clip",reverse_video:"Reverse the selected video clip",motion_tracking:"Track "+operation.target+" movement in the selected video",enhance_audio:"Enhance the selected audio",remove_person_background:"Remove the person background from the selected video",auto_reframe:"Reframe the selected video around the subject",detach_audio:"Extract the selected video's audio to a new Audio track",ai_voice_over:"Generate an AI voice-over clip",add_sticker:"Add a "+operation.preset+" sticker"};
  return names[operation.tool]||"Run "+operation.tool;
 }
 function aiRenderPlan(plan){
@@ -3689,7 +3838,7 @@ async function generateAiEditPlan(){
   const token=await auth.currentUser.getIdToken();
   const response=await fetch(WORKER_URL,{
    method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+token},
-   body:JSON.stringify({action:"ai_editing_assistant",toolId:"video-studio-ai-editor",request,editorContext:aiEditorContext()})
+   body:JSON.stringify({action:"ai_editing_assistant",toolId:"video-studio-ai-editor",capabilityVersion:"video-studio-ai-v2",capabilities:AI_EDITOR_CAPABILITIES,request,editorContext:aiEditorContext()})
   });
   const data=await response.json().catch(()=>({}));
   if(!response.ok){
@@ -3858,23 +4007,29 @@ async function aiExecuteOperation(operation){
   const clip=clips.find(c=>c.id===operation.clipId);if(!clip)throw new Error("Split karne wala clip nahi mila.");
   selectedId=clip.id;playhead=operation.atSeconds;
   const before=clips.length,hasLinkedAudio=clips.some(item=>item.type==="audio"&&item.detachedFromVideoId===clip.id);splitSelected();
-  const expectedIncrease=hasLinkedAudio?2:1;
-  if(clips.length!==before+expectedIncrease)throw new Error("Clip split nahi ho saka. Original project restore hoga.");
-  return;
+  const expectedIncrease=hasLinkedAudio?2:1;if(clips.length!==before+expectedIncrease)throw new Error("Clip split nahi ho saka. Original project restore hoga.");return;
  }
  if(operation.type==="move_clip"){
   const clip=clips.find(c=>c.id===operation.clipId);if(!clip)throw new Error("Move karne wala clip nahi mila.");
-  clip.start=operation.start;
+  clip.start=operation.start;if(operation.track)clip.track=operation.track;
   if(clip.type==="video")aiSyncDerivedClip(clip);
-  const linked=clips.find(c=>c.type==="audio"&&c.detachedFromVideoId===clip.id);
-  if(linked)linked.start=operation.start;
-  return;
+  const linked=clips.find(c=>c.type==="audio"&&c.detachedFromVideoId===clip.id);if(linked)linked.start=operation.start;
+  selectedId=clip.id;return;
+ }
+ if(operation.type==="trim_clip"){
+  const clip=clips.find(c=>c.id===operation.clipId);if(!clip)throw new Error("Trim karne wala clip nahi mila.");
+  const before=clone(clip),sourceLimited=clip.type==="video"||clip.type==="audio";
+  if(sourceLimited){const delta=operation.start-(Number(clip.start)||0);clip.sourceStart=Math.max(0,(Number(clip.sourceStart)||0)+delta);}
+  clip.start=operation.start;clip.duration=operation.duration;
+  if(clip.type==="video"){
+   const linked=clips.find(c=>c.type==="audio"&&c.detachedFromVideoId===clip.id);
+   if(linked){linked.start=clip.start;linked.duration=clip.duration;linked.sourceStart=Math.max(0,(Number(linked.sourceStart)||0)+(Number(clip.sourceStart)||0)-(Number(before.sourceStart)||0));linked.speedStart=clip.speedStart??1;linked.speedEnd=clip.speedEnd??1;if(Number(clip.speedSourceDuration)>0)linked.speedSourceDuration=clip.speedSourceDuration;else delete linked.speedSourceDuration;}
+  }
+  selectedId=clip.id;return;
  }
  if(operation.type==="duplicate_clip"){
   const original=clips.find(c=>c.id===operation.clipId);if(!original)throw new Error("Duplicate karne wala clip nahi mila.");
-  const copy={...clone(original),id:uid(),name:(original.name||"Clip")+" copy",start:operation.start};
-  if(copy.type==="video")delete copy.audioDetached;
-  clips.push(copy);selectedId=copy.id;return;
+  const copy={...clone(original),id:uid(),name:(original.name||"Clip")+" copy",start:operation.start};if(copy.type==="video")delete copy.audioDetached;clips.push(copy);selectedId=copy.id;return;
  }
  if(operation.type==="delete_clip"){
   const index=clips.findIndex(c=>c.id===operation.clipId);if(index<0)throw new Error("Delete karne wala clip nahi mila.");
@@ -3882,22 +4037,54 @@ async function aiExecuteOperation(operation){
  }
  if(operation.type==="add_text_overlay"){
   const clip={id:uid(),name:"AI Text Overlay",type:"text",track:"text",text:operation.text,color:"#ffffff",fontSize:42,font:"Arial, sans-serif",weight:800,align:"center",bgColor:"#000000",bgOpacity:0,x:0,y:0,start:operation.start,duration:operation.duration,sourceStart:0,scale:1,rotation:0,opacity:1};
-  clips.push(clip);selectedId=clip.id;
-  const changes={...operation.changes};delete changes.text;delete changes.start;delete changes.duration;
-  if(Object.keys(changes).length)aiWriteClipChanges(clip,{...changes,text:operation.text,start:operation.start,duration:operation.duration});
-  return;
+  clips.push(clip);selectedId=clip.id;const changes={...operation.changes};delete changes.text;delete changes.start;delete changes.duration;if(Object.keys(changes).length)aiWriteClipChanges(clip,{...changes,text:operation.text,start:operation.start,duration:operation.duration});return;
  }
  if(operation.type==="set_keyframes"){
   const clip=clips.find(c=>c.id===operation.clipId);if(!clip)throw new Error("Animation clip nahi mila.");
-  clip.keyframes=operation.keyframes.map(frame=>({time:frame.time,values:{...frame.values}}));
-  clip.autoNextKeyframe=false;selectedId=clip.id;return;
+  clip.keyframes=operation.keyframes.map(frame=>({time:frame.time,values:{...frame.values}}));clip.autoNextKeyframe=false;selectedId=clip.id;return;
  }
+ if(operation.type==="set_preview_controls"){
+  if(operation.fit!==undefined){$("previewFit").value=operation.fit;$("previewFit").dispatchEvent(new Event("change",{bubbles:true}));}
+  if(operation.guides!==undefined){const guideButton=$("previewGuidesBtn");if((guideButton.getAttribute("aria-pressed")==="true")!==operation.guides)guideButton.click();}
+  if(operation.playhead!==undefined)setPlayhead(Math.min(operation.playhead,duration()));
+  if(operation.playback==="play")play();else if(operation.playback==="pause")pause();else if(operation.playback==="stop"){pause();setPlayhead(0);}return;
+ }
+ if(operation.type==="set_timeline_controls"){
+  if(operation.fitAll===true)fitTimeline();else if(operation.zoom!==undefined){scale=operation.zoom;$("zoomSlider").value=String(scale);renderTimeline();}
+  if(operation.snap!==undefined&&operation.snap!==snapEnabled)$("snapToggleBtn").click();
+  if(operation.scrollToClipId){const target=clips.find(c=>c.id===operation.scrollToClipId);if(target){renderTimeline();$("timelineScroll").scrollLeft=Math.max(0,116+target.start*scale-180);}}return;
+ }
+ if(operation.type==="add_asset_to_timeline"){
+  const asset=assetById(operation.assetId);if(!asset)throw new Error("Media Library asset preview ke dauran nahi mila.");
+  const clip={id:uid(),assetId:asset.id,name:asset.name,type:asset.type,track:operation.track,start:operation.start,sourceStart:0,duration:operation.duration,volume:1};
+  clips.push(clip);selectedId=clip.id;return;
+ }
+ if(operation.type==="rename_asset"){
+  const asset=assetById(operation.assetId);if(!asset)throw new Error("Media Library asset nahi mila.");
+  asset.name=operation.name;clips.filter(c=>c.assetId===asset.id).forEach(c=>{c.name=operation.name;});renderAssets();return;
+ }
+ if(operation.type==="remove_asset"){
+  const asset=assetById(operation.assetId);if(!asset)throw new Error("Media Library asset nahi mila.");
+  const ids=new Set([asset.id]);if(asset.proxyAssetId)ids.add(asset.proxyAssetId);
+  assets=assets.filter(entry=>!ids.has(entry.id));renderAssets();renderPreview();return;
+ }
+ if(operation.type==="create_video_proxy"){
+  const asset=assetById(operation.assetId);if(!asset)throw new Error("Original video asset nahi mila.");
+  const row=[...document.querySelectorAll(".asset")].find(node=>node.dataset.assetId===asset.id),proxyButton=row?.querySelector(".asset-proxy");
+  await createVideoProxy(asset.id,proxyButton||{disabled:false,textContent:"Create proxy"});
+  if(!asset.proxyAssetId||!assetById(asset.proxyAssetId))throw new Error("Video proxy create nahi ho saka. Original video unchanged hai.");return;
+ }
+ if(operation.type==="set_proxy_usage"){
+  const asset=assetById(operation.assetId);if(!asset)throw new Error("Original video asset nahi mila.");
+  asset.useProxy=operation.useProxy;renderAssets();renderPreview();return;
+ }
+ if(operation.type==="rename_project"){project.name=operation.name;$("projectTitle").value=operation.name;return;}
+ if(operation.type==="create_project"){aiPendingProjectAction={...operation,type:"create",id:uid()};return;}
+ if(operation.type==="open_project"){aiPendingProjectAction={...operation,type:"open"};return;}
+ if(operation.type==="delete_project"){aiPendingProjectAction={...operation,type:"delete"};return;}
  if(operation.type==="run_tool"){
   if(operation.clipId)selectedId=operation.clipId;
-  if(operation.tool==="beat_sync"&&selectedClip()?.type==="video"){
-   const hasMusic=clips.some(c=>c.type==="audio"&&c.track==="audio");
-   if(!hasMusic)throw new Error("Beat Sync ke liye audio/music clip bhi required hai.");
-  }
+  if(operation.tool==="beat_sync"&&selectedClip()?.type==="video"&&!clips.some(c=>c.type==="audio"&&c.track==="audio"))throw new Error("Beat Sync ke liye audio/music clip bhi required hai.");
   if(operation.tool==="ai_voice_over"||operation.tool==="add_sticker")setPlayhead(playhead);
   else if(operation.clipId){const target=clips.find(c=>c.id===operation.clipId);if(target)setPlayhead(Math.min(Math.max(playhead,target.start),target.start+target.duration-.01));}
   await aiExecuteTool(operation);return;
@@ -3923,83 +4110,129 @@ async function cleanupAiPreviewAssets(){
 }
 async function cancelAiEditorPreview(closing=false){
  if(!aiPreviewActive||!aiPreviewOriginal)return;
- pause();
- const original=aiPreviewOriginal;
+ pause();const original=aiPreviewOriginal;clearTimeout(saveTimer);
+ const changedAssets=assets.filter(current=>{
+  const old=original.assets.find(entry=>entry.id===current.id);
+  return old&&(old.name!==current.name||old.proxyAssetId!==current.proxyAssetId||old.useProxy!==current.useProxy);
+ });
  await cleanupAiPreviewAssets();
- clips=clone(original.clips);selectedId=original.selectedId;playhead=original.playhead;
- undoStack=clone(original.undoStack);redoStack=clone(original.redoStack);
- previewDraft=original.previewDraft?clone(original.previewDraft):null;
- aiPreviewActive=false;aiPreviewOriginal=null;aiCurrentPlan=aiCurrentPlan;
- document.body.classList.remove("ai-preview-active");
- $("aiAssistantOverlay").classList.remove("is-preview-mode");
- renderAll();setPlayhead(Math.min(playhead,duration()));
+ project=clone(original.project);clips=clone(original.clips);selectedId=original.selectedId;playhead=original.playhead;
+ assets=original.assets.map(asset=>({...asset}));
+ try{
+  if(changedAssets.length){const oldById=new Map(original.assets.map(asset=>[asset.id,asset]));await dbRequest("assets","readwrite",store=>changedAssets.forEach(asset=>{const old=oldById.get(asset.id);if(old)store.put(old);}));}
+  await dbRequest("projects","readwrite",store=>store.put(original.project));
+ }catch(error){console.warn("Could not fully restore original project/media metadata after AI preview cancellation:",error);}
+ undoStack=clone(original.undoStack);redoStack=clone(original.redoStack);previewDraft=original.previewDraft?clone(original.previewDraft):null;
+ scale=original.scale;$("zoomSlider").value=String(scale);
+ snapEnabled=original.snapEnabled;$("snapToggleBtn").setAttribute("aria-pressed",String(snapEnabled));$("snapToggleBtn").textContent=snapEnabled?"⌁ Snap On":"⌁ Snap Off";$("snapToggleBtn").title=snapEnabled?"Magnetic snapping is on":"Magnetic snapping is off";
+ $("previewFit").value=original.previewFit;$("previewFit").dispatchEvent(new Event("change",{bubbles:true}));
+ const guideButton=$("previewGuidesBtn");if((guideButton.getAttribute("aria-pressed")==="true")!==original.previewGuides)guideButton.click();
+ $("projectTitle").value=project.name||"Untitled project";
+ try{
+  const saved=JSON.parse(localStorage.getItem(projectKey)||"[]"),index=saved.findIndex(item=>item.id===project.id);
+  if(index>=0){saved[index].name=project.name;saved[index].updatedAt=project.updatedAt;localStorage.setItem(projectKey,JSON.stringify(saved));}
+  if(original.recoveryDraftRaw===null)localStorage.removeItem(recoveryKey());else localStorage.setItem(recoveryKey(),original.recoveryDraftRaw);
+ }catch(error){}
+ aiPendingProjectAction=null;aiPreviewActive=false;aiPreviewOriginal=null;aiPreviewAssetIds=null;
+ document.body.classList.remove("ai-preview-active");$("aiAssistantOverlay").classList.remove("is-preview-mode");
+ renderAll();setPlayhead(Math.min(playhead,duration()));$("timelineScroll").scrollLeft=original.timelineScrollLeft||0;
  $("aiPreviewState").hidden=true;$("aiApplyPlanBtn").hidden=true;$("aiCancelPreviewBtn").hidden=true;
- $("aiPreviewPlanBtn").hidden=!aiCurrentPlan||aiCurrentPlan.needsClarification;
- $("aiPreviewPlanBtn").textContent="▶ Preview changes";
+ $("aiPreviewPlanBtn").hidden=!aiCurrentPlan||aiCurrentPlan.needsClarification;$("aiPreviewPlanBtn").textContent="▶ Preview changes";
  $("aiPreviewPlanBtn").disabled=!aiCurrentPlan||aiCurrentPlan.needsClarification||!aiCloudConsentIsReady();
- aiSetBusy(false);
- aiSetStatus(closing?"Preview cancel ho gaya. Original project bilkul pehle jaisa hai.":"Preview cancel kar diya. Original timeline aur media restore ho gaye.");
+ aiSetBusy(false);aiSetStatus(closing?"Preview cancel ho gaya. Original project aur media restore ho gaye.":"Preview cancel kar diya. Original timeline aur media restore ho gaye.");
  if(closing)document.body.classList.remove("ai-assistant-open");
+}
+function aiPreviewHasChanges(){
+ if(!aiPreviewOriginal)return false;const original=aiPreviewOriginal;
+ const mediaState=list=>list.map(a=>({id:a.id,name:a.name,proxyAssetId:a.proxyAssetId||"",useProxy:a.useProxy!==false}));
+ return JSON.stringify(clips)!==JSON.stringify(original.clips)
+  ||JSON.stringify(mediaState(assets))!==JSON.stringify(mediaState(original.assets))
+  ||String(project?.name||"")!==String(original.project?.name||"")
+  ||Number(playhead)!==Number(original.playhead)||Number(scale)!==Number(original.scale)
+  ||!!snapEnabled!==!!original.snapEnabled||$("previewFit").value!==original.previewFit
+  ||(!$("previewGuides").hidden)!==original.previewGuides||!!isPlaying!==!!original.isPlaying
+  ||!!aiPendingProjectAction;
+}
+async function aiPersistPreviewAssets(){
+ if(!aiPreviewOriginal)return;
+ const originalIds=new Set(aiPreviewOriginal.assets.map(a=>a.id));
+ const currentIds=new Set(assets.map(a=>a.id));
+ const removed=aiPreviewOriginal.assets.filter(a=>!currentIds.has(a.id));
+ await dbRequest("assets","readwrite",store=>{assets.forEach(asset=>store.put(asset));removed.forEach(asset=>store.delete(asset.id));});
+ for(const asset of removed){const url=urls.get(asset.id);if(url){URL.revokeObjectURL(url);urls.delete(asset.id);}}
+}
+function aiSetProjectWorkspaceRoute(action){
+ if(action.type==="create"){
+  const createdAt=new Date().toISOString();
+  const entry={id:action.id,name:action.name,ratio:action.ratio,ratioLabel:action.ratioLabel,resolution:action.resolution,resolutionLabel:action.resolutionLabel,fps:action.fps,createdAt,updatedAt:createdAt};
+  const saved=JSON.parse(localStorage.getItem(projectKey)||"[]");
+  if(saved.some(item=>item.id===entry.id))throw new Error("New project ID duplicate ho gaya. Dobara try karein.");
+  saved.push(entry);localStorage.setItem(projectKey,JSON.stringify(saved));
+  location.assign("editor.html?id="+encodeURIComponent(entry.id)+"&v=20261121-ai-project");return;
+ }
+ if(action.type==="open"){location.assign("editor.html?id="+encodeURIComponent(action.projectId)+"&v=20261121-ai-project");return;}
+ if(action.type==="delete"){location.assign("./?aiDeleteProject="+encodeURIComponent(action.projectId));return;}
 }
 async function previewAiEditorPlan(){
  if(aiPlanBusy||aiPreviewActive||!aiCurrentPlan||aiCurrentPlan.needsClarification)return;
  if(aiCurrentPlan.requiresCloudConsent&&!$("aiCloudConsent").checked){aiSetStatus("Cloud AI processing se pehle consent checkbox tick karein.");return;}
  if(previewDraft){aiSetStatus("Aapke Properties preview mein pending changes hain. Pehle unhein Apply ya cancel karein.");return;}
  pause();
- aiPreviewOriginal={clips:clone(clips),selectedId,playhead,undoStack:clone(undoStack),redoStack:clone(redoStack),previewDraft:previewDraft?clone(previewDraft):null};
- aiPreviewAssetIds=new Set(assets.map(asset=>asset.id));
+ aiPreviewOriginal={
+  project:clone(project),clips:clone(clips),assets:assets.map(asset=>({...asset})),selectedId,playhead,scale,snapEnabled,
+  previewFit:$("previewFit").value,previewGuides:!$("previewGuides").hidden,isPlaying:false,
+  undoStack:clone(undoStack),redoStack:clone(redoStack),previewDraft:previewDraft?clone(previewDraft):null,
+  recoveryDraftRaw:(()=>{try{return localStorage.getItem(recoveryKey());}catch(error){return null;}})(),timelineScrollLeft:$("timelineScroll").scrollLeft
+ };
+ aiPreviewAssetIds=new Set(assets.map(asset=>asset.id));aiPendingProjectAction=null;
  clips=clone(aiPreviewOriginal.clips);previewDraft=null;aiPreviewActive=true;
- document.body.classList.add("ai-preview-active","ai-assistant-open");
- $("aiAssistantOverlay").classList.add("is-preview-mode");
- $("aiPreviewPlanBtn").hidden=true;$("aiApplyPlanBtn").hidden=true;$("aiCancelPreviewBtn").hidden=false;
- $("aiPreviewState").hidden=false;
- aiSetBusy(true);aiSetStatus("Temporary preview tayyar ho raha hai. Project abhi save nahi hoga.");
+ document.body.classList.add("ai-preview-active","ai-assistant-open");$("aiAssistantOverlay").classList.add("is-preview-mode");
+ $("aiPreviewPlanBtn").hidden=true;$("aiApplyPlanBtn").hidden=true;$("aiCancelPreviewBtn").hidden=false;$("aiPreviewState").hidden=false;
+ aiSetBusy(true);aiSetStatus("Temporary preview tayyar ho raha hai. Project aur media abhi save nahi honge.");
  try{
   for(let index=0;index<aiCurrentPlan.operations.length;index++){
-   const operation=aiCurrentPlan.operations[index];
-   aiSetStatus("Step "+(index+1)+" / "+aiCurrentPlan.operations.length+": "+aiOperationLabel(operation));
-   await aiExecuteOperation(operation);
+   const operation=aiCurrentPlan.operations[index];aiSetStatus("Step "+(index+1)+" / "+aiCurrentPlan.operations.length+": "+aiOperationLabel(operation));await aiExecuteOperation(operation);
   }
-  if(JSON.stringify(clips)===JSON.stringify(aiPreviewOriginal.clips)&&assets.length===aiPreviewAssetIds.size){
-   throw new Error("Is plan se timeline mein koi visible change nahi bana.");
-  }
-  renderAll();
-  setPlayhead(Math.min(playhead,duration()));
-  $("aiApplyPlanBtn").hidden=false;
-  $("aiCancelPreviewBtn").hidden=false;
-  $("aiPreviewState").hidden=false;
-  aiSetStatus("Preview ready. Video ko ▶ Play karke check karein. Apply sirf aapke kehne par hoga.");
+  if(!aiPreviewHasChanges())throw new Error("Is plan se koi visible change nahi bana.");
+  renderAll();setPlayhead(Math.min(playhead,duration()));
+  $("aiApplyPlanBtn").hidden=false;$("aiCancelPreviewBtn").hidden=false;$("aiPreviewState").hidden=false;
+  aiSetStatus(aiPendingProjectAction?.type==="delete"?"Review complete. Apply ke baad project page par alag Delete Project confirmation aayegi.":aiPendingProjectAction?"Review complete. Apply ke baad project action complete hoga.":"Preview ready. Video ko ▶ Play karke check karein. Apply sirf aapke kehne par hoga.");
   notify("AI preview ready. Apply ya Cancel aapke control mein hai.");
  }catch(error){
-  const message=error?.message||"AI preview nahi ban saka.";
-  await cancelAiEditorPreview(false);
-  aiSetStatus("Preview nahi ban saka: "+message+" Original project safe hai.");
+  const message=error?.message||"AI preview nahi ban saka.";await cancelAiEditorPreview(false);aiSetStatus("Preview nahi ban saka: "+message+" Original project safe hai.");
  }finally{
-  aiSetBusy(false);
-  if(aiPreviewActive){
-   $("aiApplyPlanBtn").hidden=false;
-   $("aiCancelPreviewBtn").hidden=false;
-   $("aiPreviewPlanBtn").hidden=true;
-  }
+  aiSetBusy(false);if(aiPreviewActive){$("aiApplyPlanBtn").hidden=false;$("aiCancelPreviewBtn").hidden=false;$("aiPreviewPlanBtn").hidden=true;}
  }
 }
 async function commitAiEditorPreview(){
  if(!aiPreviewActive||!aiPreviewOriginal||aiPlanBusy)return;
- pause();
- const original=aiPreviewOriginal;
- if(JSON.stringify(clips)===JSON.stringify(original.clips)&&assets.length===aiPreviewAssetIds?.size){
-  await cancelAiEditorPreview(false);aiSetStatus("Koi change nahi tha, isliye project save nahi kiya.");return;
+ pause();const original=aiPreviewOriginal,navigation=aiPendingProjectAction;
+ if(navigation){
+  try{
+   aiPreviewActive=false;document.body.classList.remove("ai-preview-active");$("aiAssistantOverlay").classList.remove("is-preview-mode");
+   await saveProject();
+   aiPreviewOriginal=null;aiPreviewAssetIds=null;aiPendingProjectAction=null;
+   $("aiPreviewState").hidden=true;$("aiApplyPlanBtn").hidden=true;$("aiCancelPreviewBtn").hidden=true;aiSetBusy(false);
+   aiSetStatus("Project action approved.");aiSetProjectWorkspaceRoute(navigation);
+  }catch(error){
+   aiPreviewActive=true;aiPreviewOriginal=original;aiPreviewAssetIds=new Set(original.assets.map(asset=>asset.id));aiPendingProjectAction=navigation;
+   await cancelAiEditorPreview(false);aiSetStatus("Project action start nahi ho saka. Aapka existing project restore kar diya gaya: "+(error?.message||"Storage error."));
+  }
+  return;
  }
- undoStack.push(clone(original.clips));if(undoStack.length>40)undoStack.shift();redoStack=[];updateHistoryButtons();
- aiPreviewActive=false;aiPreviewOriginal=null;aiPreviewAssetIds=null;
- document.body.classList.remove("ai-preview-active");
- $("aiAssistantOverlay").classList.remove("is-preview-mode");
- renderAll();scheduleSave();
- $("aiPreviewState").hidden=true;$("aiApplyPlanBtn").hidden=true;$("aiCancelPreviewBtn").hidden=true;
- $("aiPreviewPlanBtn").hidden=false;$("aiPreviewPlanBtn").textContent="Preview another version";
- aiSetBusy(false);
- aiSetStatus("Changes apply aur project auto-save ke liye queue ho gaye. Undo se poori AI edit wapas kar sakte hain.");
- notify("AI edits applied. Aik Undo step se saari AI changes reverse ho sakti hain.");
+ const clipsChanged=JSON.stringify(clips)!==JSON.stringify(original.clips);
+ try{
+  await aiPersistPreviewAssets();aiPreviewActive=false;document.body.classList.remove("ai-preview-active");$("aiAssistantOverlay").classList.remove("is-preview-mode");
+  if(clipsChanged){undoStack.push(clone(original.clips));if(undoStack.length>40)undoStack.shift();redoStack=[];updateHistoryButtons();}
+  renderAll();scheduleSave();await saveProject();
+  aiPreviewOriginal=null;aiPreviewAssetIds=null;aiPendingProjectAction=null;
+  $("aiPreviewState").hidden=true;$("aiApplyPlanBtn").hidden=true;$("aiCancelPreviewBtn").hidden=true;$("aiPreviewPlanBtn").hidden=false;$("aiPreviewPlanBtn").textContent="Preview another version";
+  aiSetBusy(false);aiSetStatus("AI changes apply ho gayi hain. Timeline changes aik Undo step se reverse ho sakti hain.");
+  notify("AI changes applied. Timeline edits Undo se reverse ho sakti hain.");
+ }catch(error){
+  aiPreviewActive=true;aiPreviewOriginal=original;aiPreviewAssetIds=new Set(original.assets.map(asset=>asset.id));
+  await cancelAiEditorPreview(false);aiSetStatus("Save complete nahi ho saka, is liye original project restore kiya gaya. Recovery backup check karein: "+(error?.message||"Storage error."));
+ }
 }
 function wireAiEditorAssistant(){
  $("aiEditorOpenBtn").addEventListener("click",openAiEditorAssistant);
