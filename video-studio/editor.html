@@ -601,6 +601,11 @@ body.ai-preview-active #playBtn,body.ai-preview-active #stopBtn{pointer-events:a
 .ai-assistant-overlay.is-preview-mode .ai-assistant-context,.ai-assistant-overlay.is-preview-mode .ai-assistant-welcome,.ai-assistant-overlay.is-preview-mode .ai-assistant-suggestions,.ai-assistant-overlay.is-preview-mode .ai-prompt-label,.ai-assistant-overlay.is-preview-mode .ai-prompt-input,.ai-assistant-overlay.is-preview-mode .ai-assistant-actions,.ai-assistant-overlay.is-preview-mode .ai-plan-refine,.ai-assistant-overlay.is-preview-mode .ai-cloud-consent{display:none!important}
 .ai-assistant-overlay.is-preview-mode .ai-plan-card{padding:9px}
 .ai-assistant-overlay.is-preview-mode .ai-plan-steps{max-height:54px;overflow:auto;margin:5px 0}
+.ai-assistant-overlay.is-preview-mode .ai-plan-actions{position:sticky;bottom:-9px;z-index:8;margin:8px -9px -9px;padding:9px;background:linear-gradient(180deg,rgba(25,18,41,.72),#191229 38%);border-top:1px solid rgba(185,139,232,.22)}
+.ai-preview-feedback{margin:8px 0;padding:10px 11px;border:1px solid rgba(144,113,190,.5);border-left:4px solid #a77be0;border-radius:9px;background:rgba(61,43,85,.75);color:#f2e7ff;font-size:10px;line-height:1.55;overflow-wrap:anywhere}
+.ai-preview-feedback[hidden]{display:none!important}
+.ai-preview-feedback[data-state="error"]{border-color:rgba(244,125,125,.55);border-left-color:#f47d7d;background:rgba(130,38,48,.28);color:#ffe1e3}
+.ai-preview-feedback[data-state="success"]{border-color:rgba(91,205,167,.48);border-left-color:#5bcdA7;background:rgba(32,120,91,.22);color:#d4ffed}
 .ai-assistant-overlay.is-preview-mode .ai-assistant-foot{padding:6px}
 @media(max-width:680px){.ai-assistant-overlay.is-preview-mode .ai-assistant-panel{left:auto;right:9px;bottom:9px;width:min(340px,calc(100vw - 18px));max-height:210px}}
 
@@ -1194,6 +1199,7 @@ body.ai-preview-active #playBtn,body.ai-preview-active #stopBtn{pointer-events:a
     <button class="ai-plan-refine" type="button" id="aiUseRefinedPrompt">Use the clearer version in my prompt</button>
     <label class="ai-cloud-consent" id="aiCloudConsentRow" hidden><input type="checkbox" id="aiCloudConsent"><span>I approve the required AI processing for this step. Depending on the tool, text/audio or analysis data may be sent securely to Cloudflare or Gemini AI. Account quota or charges may apply.</span></label>
     <div class="ai-preview-state" id="aiPreviewState" hidden><span>●</span><span>Preview mode: your original project is safe. Play the preview, then Apply or Cancel.</span></div>
+    <p class="ai-preview-feedback" id="aiPreviewFeedback" role="status" aria-live="polite" hidden></p>
     <div class="ai-plan-actions">
      <button class="btn ai-assistant-primary" id="aiPreviewPlanBtn" type="button">▶ Preview changes</button>
      <button class="btn ai-apply-btn" id="aiApplyPlanBtn" type="button" hidden>✓ Apply changes</button>
@@ -3461,7 +3467,24 @@ const AI_FIELD_CONTROLS = {
  text:"propText",color:"propTextColor",fontSize:"propFontSize",font:"propFont",weight:"propWeight",align:"propTextAlign",bgColor:"propBgColor",
  bgOpacity:"propBgOpacity",italic:"propItalic",textEffect:"propTextEffect",textTransition:"propTextTransition",textTransitionDuration:"propTextTransitionDuration"
 };
-function aiSetStatus(message,state=""){const element=$("aiAssistantStatus");element.textContent=String(message||"");if(state)element.dataset.state=state;else delete element.dataset.state;}
+function aiSetStatus(message,state=""){
+ const value=String(message||""),element=$("aiAssistantStatus");
+ element.textContent=value;
+ if(state)element.dataset.state=state;else delete element.dataset.state;
+ const previewFeedback=$("aiPreviewFeedback");
+ if(previewFeedback&&aiPreviewActive){
+  previewFeedback.textContent=value;
+  previewFeedback.hidden=!value;
+  if(state)previewFeedback.dataset.state=state;else delete previewFeedback.dataset.state;
+ }
+}
+function aiSetPreviewFeedback(message,state=""){
+ const element=$("aiPreviewFeedback");
+ if(!element)return;
+ element.textContent=String(message||"");
+ element.hidden=!message;
+ if(state)element.dataset.state=state;else delete element.dataset.state;
+}
 function aiFriendlyConnectionError(error,feature){
  const message=String(error?.message||error||"").trim();
  if(error?.name==="TypeError"||/failed to fetch|networkerror|load failed/i.test(message)){
@@ -4424,7 +4447,8 @@ async function cancelAiEditorPreview(closing=false){
  $("aiPreviewState").hidden=true;$("aiApplyPlanBtn").hidden=true;$("aiCancelPreviewBtn").hidden=true;
  $("aiPreviewPlanBtn").hidden=!aiCurrentPlan||aiCurrentPlan.needsClarification;$("aiPreviewPlanBtn").textContent="▶ Preview changes";
  $("aiPreviewPlanBtn").disabled=!aiCurrentPlan||aiCurrentPlan.needsClarification||!aiCloudConsentIsReady();
- aiSetBusy(false);aiSetStatus(closing?"Preview cancel ho gaya. Original project aur media restore ho gaye.":"Preview cancel kar diya. Original timeline aur media restore ho gaye.");
+ aiSetBusy(false);aiSetPreviewFeedback("");
+ aiSetStatus(closing?"Preview cancel ho gaya. Original project aur media restore ho gaye.":"Preview cancel kar diya. Original timeline aur media restore ho gaye.");
  if(closing)document.body.classList.remove("ai-assistant-open");
  else aiReturnToPromptWriter();
 }
@@ -4481,6 +4505,9 @@ async function previewAiEditorPlan(){
  clips=clone(aiPreviewOriginal.clips);previewDraft=null;aiPreviewActive=true;
  $(".timeline").inert=false;
  document.body.classList.add("ai-preview-active","ai-assistant-open");$("aiAssistantOverlay").classList.add("is-preview-mode");
+ const assistantBody=$("aiAssistantBody");
+ if(assistantBody)assistantBody.scrollTo({top:0,behavior:"auto"});
+ aiSetPreviewFeedback("Preview prepare ho raha hai…");
  $("aiPreviewPlanBtn").hidden=true;$("aiApplyPlanBtn").hidden=true;$("aiCancelPreviewBtn").hidden=false;$("aiPreviewState").hidden=false;
  aiSetBusy(true);aiSetStatus("Temporary preview tayyar ho raha hai. Project aur media abhi save nahi honge.");
  try{
@@ -4494,7 +4521,12 @@ async function previewAiEditorPlan(){
   aiSetStatus(aiPendingProjectAction?.type==="delete"?"Review complete. Apply ke baad project page par alag Delete Project confirmation aayegi.":aiPendingProjectAction?"Review complete. Apply ke baad project action complete hoga.":"Preview ready. Video ko ▶ Play karke check karein. Apply sirf aapke kehne par hoga.");
   notify("AI preview ready. Apply ya Cancel aapke control mein hai.");
  }catch(error){
-  const message=error?.message||"AI preview nahi ban saka.";await cancelAiEditorPreview(false);aiSetStatus("Preview nahi ban saka: "+message+" Original project safe hai.");
+  const message=error?.message||"AI preview nahi ban saka.";
+  await cancelAiEditorPreview(false);
+  const feedback="Preview nahi ban saka: "+message+" Original project safe hai. Prompt ko check karke dobara try karein.";
+  aiSetStatus(feedback,"error");
+  aiSetPreviewFeedback(feedback,"error");
+  requestAnimationFrame(()=>$("aiPreviewFeedback").scrollIntoView({behavior:"smooth",block:"nearest"}));
  }finally{
   aiSetBusy(false);if(aiPreviewActive){$("aiApplyPlanBtn").hidden=false;$("aiCancelPreviewBtn").hidden=false;$("aiPreviewPlanBtn").hidden=true;}
  }
@@ -4524,7 +4556,7 @@ async function commitAiEditorPreview(){
   aiPreviewOriginal=null;aiPreviewAssetIds=null;aiPendingProjectAction=null;
   $("aiPreviewState").hidden=true;$("aiApplyPlanBtn").hidden=true;$("aiCancelPreviewBtn").hidden=true;$("aiPreviewPlanBtn").hidden=false;$("aiPreviewPlanBtn").textContent="Preview another version";
   $(".timeline").inert=false;
-  aiSetBusy(false);aiSetStatus("AI changes apply ho gayi hain. Timeline changes aik Undo step se reverse ho sakti hain.","success");
+  aiSetBusy(false);aiSetPreviewFeedback("");aiSetStatus("AI changes apply ho gayi hain. Timeline changes aik Undo step se reverse ho sakti hain.","success");
   aiReturnToPromptWriter();
   notify("AI changes applied. Timeline edits Undo se reverse ho sakti hain.");
  }catch(error){
