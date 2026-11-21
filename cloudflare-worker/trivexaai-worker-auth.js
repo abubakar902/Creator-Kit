@@ -866,7 +866,7 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
             "saturation", "blur", "hue", "transition", "transitionDuration", "volume",
             "speedStart", "speedEnd", "chromaEnabled", "chromaColor", "chromaTolerance",
             "chromaSoftness", "maskShape", "maskTop", "maskBottom", "maskFeather",
-            "maskAngle", "bgRemoveEnabled"
+            "maskAngle"
           ],
           image: [
             "name", "start", "duration", "scale", "rotation", "x", "y", "opacity",
@@ -894,10 +894,24 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
             "audioMid", "audioTreble", "audioPan", "fontSize", "bgOpacity",
             "textTransitionDuration", "weight"
           ]),
-          boolean: new Set(["flipX", "flipY", "chromaEnabled", "italic", "bgRemoveEnabled"]),
+          boolean: new Set(["flipX", "flipY", "chromaEnabled", "italic"]),
           string: new Set(["name", "text", "color", "bgColor", "chromaColor", "font",
             "framingMode", "filterPreset", "transition", "maskShape", "align",
             "textEffect", "textTransition"])
+        };
+        const propertyRanges = {
+          start: [0, 7200], duration: [0.2, 7200], scale: [0.1, 4],
+          rotation: [-180, 180], x: [-100, 100], y: [-100, 100],
+          opacity: [0, 1], volume: [0, 1], brightness: [0.5, 1.8],
+          contrast: [0.5, 1.8], saturation: [0, 2], blur: [0, 12],
+          hue: [-45, 45], transitionDuration: [0.1, 2.5],
+          speedStart: [0.25, 4], speedEnd: [0.25, 4],
+          chromaTolerance: [20, 220], chromaSoftness: [0, 160],
+          maskTop: [0, 95], maskBottom: [5, 100], maskFeather: [0, 20],
+          maskAngle: [-90, 90], fadeIn: [0, 7200], fadeOut: [0, 7200],
+          audioBass: [-12, 12], audioMid: [-12, 12], audioTreble: [-12, 12],
+          audioPan: [-100, 100], fontSize: [10, 120], bgOpacity: [0, 1],
+          textTransitionDuration: [0.1, 2]
         };
         const enumValues = {
           framingMode: ["project", "fit", "fill", "stretch"],
@@ -1003,6 +1017,10 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
               start: Math.min(7200, start),
               duration: Math.min(7200, duration),
               assetId: str(item.assetId, 128),
+              sourceTiming: {
+                sourceStart: Math.max(0, Math.min(7200, finite(item.sourceTiming?.sourceStart) ?? 0)),
+                speedSourceDuration: Math.max(0, Math.min(7200, finite(item.sourceTiming?.speedSourceDuration) ?? 0))
+              },
               properties: safeProperties(item.properties, type)
             };
           })
@@ -1019,6 +1037,7 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
               type,
               duration: Math.max(0, Math.min(7200, finite(item.duration) ?? 0)),
               size: Math.max(0, Math.min(100000000000, finite(item.size) ?? 0)),
+              proxyAssetId: str(item.proxyAssetId, 128),
               proxyAvailable: item.proxyAvailable === true,
               usingProxy: item.usingProxy === true
             };
@@ -1112,15 +1131,19 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
             if (!(propertyKeys[clip.type] || []).includes(key)) throw new Error("The AI proposed an unsupported property: " + key);
             const value = changes[key];
             if (propertyTypes.numeric.has(key) && (typeof value !== "number" || !Number.isFinite(value))) throw new Error("A numeric clip property had an invalid value.");
+            if (propertyRanges[key] && (value < propertyRanges[key][0] || value > propertyRanges[key][1])) throw new Error("A clip property is outside its safe range: " + key);
+            if ((key === "speedStart" || key === "speedEnd") && ![0.25, 0.5, 0.75, 1, 1.5, 2, 3, 4].includes(value)) throw new Error("A speed setting is not a supported preset.");
             if (propertyTypes.boolean.has(key) && typeof value !== "boolean") throw new Error("A boolean clip property had an invalid value.");
             if (propertyTypes.string.has(key) && typeof value !== "string") throw new Error("A text clip property had an invalid value.");
             if (!propertyTypes.numeric.has(key) && !propertyTypes.boolean.has(key) && !propertyTypes.string.has(key)) throw new Error("A clip property had an unsupported data type.");
             if (Object.prototype.hasOwnProperty.call(enumValues, key) && !enumValues[key].includes(value)) throw new Error("A clip property used an unavailable option: " + key);
             if (["color", "bgColor", "chromaColor"].includes(key) && !/^#[0-9a-f]{6}$/i.test(value)) throw new Error("A clip colour must be a six-digit HEX value.");
-            if (key === "name" && (!value.trim() || value.length > 80)) throw new Error("Clip names must contain 1 to 80 characters.");
-            if (key === "text" && (!value.trim() || value.length > 180)) throw new Error("Text overlays must contain 1 to 180 characters.");
-            if (key === "fontSize" && (value < 10 || value > 120)) throw new Error("Font size is outside the supported range.");
+            if (["name", "text"].includes(key) && (!value.trim() || value.length > (key === "text" ? 180 : 80))) throw new Error("A clip text field is empty or too long.");
             if (key === "weight" && ![500, 700, 900].includes(value)) throw new Error("Font weight is not supported.");
+          }
+          if (changes.maskTop !== undefined || changes.maskBottom !== undefined) {
+            const top = changes.maskTop ?? 0, bottom = changes.maskBottom ?? 100;
+            if (bottom < top + 5) throw new Error("Mask top and bottom lines must remain at least 5 percent apart.");
           }
         };
         const checkId = (item, key) => {
@@ -1199,10 +1222,11 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
               const clip = requireClip(item.clipId);
               checkNum(item, "start", 0, 7200);
               checkNum(item, "duration", 0.2, 7200);
-              if (clip.type === "video" && clip.properties.speedStart !== undefined && clip.properties.speedStart !== clip.properties.speedEnd) throw new Error("Speed-ramped video clips must not be trimmed by AI.");
+              if (clip.type === "video" && clip.sourceTiming.speedSourceDuration > 0) throw new Error("Speed-ramped video clips must not be trimmed by AI.");
               if (clip.assetId && ["video", "audio"].includes(clip.type)) {
                 const asset = assetById.get(clip.assetId);
-                if (!asset || item.start + item.duration > asset.duration + 0.05) throw new Error("The requested trim exceeds the available original media.");
+                const nextSourceStart = clip.sourceTiming.sourceStart + item.start - clip.start;
+                if (!asset || nextSourceStart < 0 || nextSourceStart + item.duration > asset.duration + 0.05) throw new Error("The requested trim exceeds the available original media.");
               }
               break;
             }
@@ -1211,9 +1235,11 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
               if (item.playhead !== undefined) checkNum(item, "playhead", 0, 7200);
               if (item.fit !== undefined && !["contain", "cover"].includes(item.fit)) throw new Error("Preview Fit/Fill option is unsupported.");
               if (item.guides !== undefined && typeof item.guides !== "boolean") throw new Error("Preview guides option must be true or false.");
+              if (item.playback === undefined && item.playhead === undefined && item.fit === undefined && item.guides === undefined) throw new Error("Preview control action was empty.");
               break;
             case "set_timeline_controls":
               if (item.fitAll !== undefined && typeof item.fitAll !== "boolean") throw new Error("Fit All option must be true or false.");
+              if (item.fitAll === true && item.zoom !== undefined) throw new Error("Fit All and custom zoom cannot be combined.");
               if (item.zoom !== undefined && (!boundedNumber(item.zoom, 24, 140) || item.zoom % 4 !== 0)) throw new Error("Timeline zoom must use a supported step.");
               if (item.snap !== undefined && typeof item.snap !== "boolean") throw new Error("Timeline snap option must be true or false.");
               if (item.scrollToClipId !== undefined) requireClip(item.scrollToClipId);
@@ -1233,7 +1259,7 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
               break;
             case "remove_asset": {
               const asset = requireAsset(item.assetId);
-              if (clips.some(clip => clip.assetId === asset.id)) throw new Error("An asset that is already used on the timeline cannot be removed from the Media Library.");
+              if (clips.some(clip => clip.assetId === asset.id || (asset.proxyAssetId && clip.assetId === asset.proxyAssetId))) throw new Error("An asset that is already used on the timeline cannot be removed from the Media Library.");
               break;
             }
             case "create_video_proxy": {
@@ -1255,6 +1281,12 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
               if (!["16:9", "9:16", "1:1", "4:5", "custom"].includes(item.ratio || "16:9")) throw new Error("The requested project aspect ratio is not available.");
               if (typeof item.resolution !== "string" || !/^\d{3,4}x\d{3,4}$/.test(item.resolution)) throw new Error("New project resolution is invalid.");
               if (!boundedNumber(item.width, 240, 3840) || !boundedNumber(item.height, 240, 3840)) throw new Error("New project dimensions are outside the supported range.");
+              const ratio = item.ratio || "16:9";
+              const presetResolutions = {
+                "16:9": ["1280x720", "1920x1080", "2560x1440", "3840x2160"],
+                "9:16": ["1080x1920"], "1:1": ["1080x1080"], "4:5": ["1080x1350"]
+              };
+              if (ratio !== "custom" && !presetResolutions[ratio]?.includes(item.resolution)) throw new Error("New project resolution does not match the selected aspect-ratio preset.");
               if (![24, 30, 60].includes(item.fps ?? 30)) throw new Error("New project frame rate is not supported.");
               break;
             case "open_project":
