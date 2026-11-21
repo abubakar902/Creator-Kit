@@ -2625,7 +2625,7 @@ $("timelineScroll").addEventListener("click",e=>{if(e.target.classList.contains(
 $("previewFit").addEventListener("change",renderPreview);
 if(typeof ResizeObserver==="function"){previewResizeObserver=new ResizeObserver(fitPreviewStage);previewResizeObserver.observe($("previewArea"));}
 window.addEventListener("resize",fitPreviewStage,{passive:true});
-$("videoPreview")("loadeddata",renderPreview);$("overlayVideoPreview").addEventListener("loadeddata",renderPreview);$("maskGuideLayer").addEventListener("pointerdown",maskGuidePointerDown);$("previewStage").addEventListener("pointerdown",previewPointerDown);
+$("videoPreview").addEventListener("loadeddata",renderPreview);$("overlayVideoPreview").addEventListener("loadeddata",renderPreview);$("maskGuideLayer").addEventListener("pointerdown",maskGuidePointerDown);$("previewStage").addEventListener("pointerdown",previewPointerDown);
 window.addEventListener("pointermove",previewPointerMove);
 window.addEventListener("pointerup",previewPointerUp);
 window.addEventListener("pointercancel",previewPointerUp);
