@@ -559,6 +559,16 @@ body{background:radial-gradient(ellipse at 48% -18%,rgba(126,79,190,.18),transpa
 <button class="btn smart-tool-btn" id="removeSilenceBtn" type="button">◖ Remove Silence</button>
 <button class="btn smart-tool-btn" id="autoColourBtn" type="button">◉ AI Colour Correction</button>
 </div>
+<div class="prop" style="margin-top:12px"><strong style="font-size:10px;color:#e8dcf8">Free Local Video Tools</strong><p class="advanced-effects-note">These tools run on this device. First use downloads a free open-source engine or model; your media is not uploaded to an AI API.</p></div>
+<div class="smart-tool-grid">
+<button class="btn smart-tool-btn" id="reverseClipBtn" type="button">↶ Reverse Video</button>
+<button class="btn smart-tool-btn" id="motionTrackBtn" type="button">◎ Motion Tracking</button>
+<button class="btn smart-tool-btn" id="enhanceAudioBtn" type="button">♫ Enhance Audio</button>
+<button class="btn smart-tool-btn" id="removeVideoBgBtn" type="button">✂ Remove Person BG</button>
+<button class="btn smart-tool-btn" id="autoReframeBtn" type="button">▣ Auto Reframe</button>
+</div>
+<div class="prop"><label for="motionTrackTarget">Motion tracking target</label><select id="motionTrackTarget"><option value="person">Person</option><option value="any">Any visible object</option></select></div>
+<p class="advanced-effects-note">Free-version limits: Reverse Video supports short clips (up to 60 seconds; 30 seconds recommended on low-memory PCs). Motion Tracking follows one visible person/object. Background removal currently isolates people only. Audio enhancement reduces background noise; it is not full studio mastering. Keep this tab open while a tool runs.</p>
 <div class="prop"><label for="translateLanguage">Translate captions to</label><select id="translateLanguage">
 <option value="English">English</option><option value="Urdu">Urdu</option><option value="Hindi">Hindi</option><option value="Arabic">Arabic</option><option value="Spanish">Spanish</option><option value="French">French</option><option value="German">German</option><option value="Portuguese">Portuguese</option><option value="Turkish">Turkish</option><option value="Bengali">Bengali</option><option value="Chinese (Simplified)">Chinese (Simplified)</option><option value="Japanese">Japanese</option>
 </select><button class="btn smart-tool-btn" id="translateCaptionsBtn" type="button" style="width:100%;margin-top:7px">文 Translate Captions</button></div>
@@ -736,10 +746,12 @@ body{background:radial-gradient(ellipse at 48% -18%,rgba(126,79,190,.18),transpa
 </div>
 <script type="module">
 import {authReady,auth,getAccountProfile} from "../auth/auth-client.js";
+import {createLocalVideoTools,renderPersonCutoutFrame} from "./local-video-tools.js";
 const $=id=>document.getElementById(id);
 const projectKey="trivexaai_video_studio_projects_v1",dbName="trivexaai-video-studio",dbVersion=1,scaleDefault=64;
 let db=null,project=null,clips=[],assets=[],urls=new Map(),selectedId=null,scale=scaleDefault,playhead=0,isPlaying=false,raf=0,lastFrame=0,activeVideoId=null,activeOverlayVideoId=null,activeBaseImageId=null,activeImageId=null,audioNodes=new Map(),audioWaveforms=new Map(),audioWaveformPending=new Map(),audioWaveformUnavailable=new Set(),audioWaveformQueue=Promise.resolve(),saveTimer=0,saveQueue=Promise.resolve(),saveRevision=0,savedRevision=0,undoStack=[],redoStack=[],dragState=null,playheadDrag=null,previewDraft=null,exportBusy=false,exportController=null,lastExportBlob=null,lastExportFileName="",snapEnabled=true,proxyBusy=false,captionsBusy=false,copiedKeyframe=null,activeKeyframeTime=null,exportQueue=[],exportQueueRunning=false,queuedExportClipsSnapshot=null;
 const chromaCanvasCache=new WeakMap();
+let localVideoTools=null,backgroundPreviewWarningShown=false;
 const horizontalMaskCanvasCache=new WeakMap();
 const params=new URLSearchParams(location.search),projectId=params.get("id"),WORKER_URL="https://creatorkit-ai.abubakar647648.workers.dev";
 function notify(msg){const el=$("toast");el.textContent=msg;el.classList.add("show");clearTimeout(window.__editorToast);window.__editorToast=setTimeout(()=>el.classList.remove("show"),3600);}
@@ -1160,6 +1172,24 @@ function renderChromaPreview(video,c,local,canvasId="chromaPreview"){
   canvas.dataset.clipId=c.id;canvas.style.display="block";applyVisualStyle(canvas,c,local);video.style.visibility="hidden";
  }catch(error){canvas.style.display="none";video.style.visibility="visible";}
 }
+function renderBackgroundRemovalPreview(video,c,local,canvasId){
+ const canvas=$(canvasId);
+ if(!c.bgRemoveEnabled||video.readyState<2){canvas.style.display="none";canvas.removeAttribute("data-clip-id");video.style.visibility="visible";return;}
+ try{
+  const cutout=renderPersonCutoutFrame(video,c.id);
+  if(!cutout){canvas.style.display="none";video.style.visibility="visible";return;}
+  const stage=$("previewStage"),width=Math.max(1,Math.min(850,Math.round(stage.clientWidth||640))),height=Math.max(1,Math.round(width*(stage.clientHeight/Math.max(1,stage.clientWidth))));
+  if(canvas.width!==width||canvas.height!==height){canvas.width=width;canvas.height=height;}
+  const ctx=canvas.getContext("2d");if(!ctx)throw new Error("Could not prepare the person cutout preview.");
+  ctx.clearRect(0,0,width,height);
+  const mode=c.framingMode||"project",fit=mode==="fill"?"cover":mode==="stretch"?"stretch":mode==="fit"?"contain":$("previewFit").value;
+  drawPreviewFit(ctx,cutout,width,height,fit==="cover"?"cover":"contain");
+  canvas.dataset.clipId=c.id;canvas.style.display="block";applyVisualStyle(canvas,c,local);video.style.visibility="hidden";
+ }catch(error){
+  canvas.style.display="none";canvas.removeAttribute("data-clip-id");video.style.visibility="visible";
+  if(!backgroundPreviewWarningShown){backgroundPreviewWarningShown=true;notify("Person background preview could not refresh. Try turning the effect off and on again.");}
+ }
+}
 function hideChromaPreview(canvasId="chromaPreview",videoId="videoPreview"){
  const canvas=$(canvasId);if(canvas){canvas.style.display="none";canvas.removeAttribute("data-clip-id");}
  const video=$(videoId);if(video)video.style.visibility="visible";
@@ -1179,7 +1209,7 @@ function renderPreviewVideoLayer(c,video,canvasId,activeKey){
  const ct=clipSourceTime(c,local);
  try{video.playbackRate=clipPlaybackRate(c,local);if(video.readyState>=1&&Math.abs(video.currentTime-ct)>.65)video.currentTime=Math.min(ct,Math.max(0,(Number.isFinite(video.duration)?video.duration:ct)-.03));}catch(error){}
  if(isPlaying){if(video.paused)video.play().catch(()=>{});}else video.pause();
- renderChromaPreview(video,c,local,canvasId);
+ if(c.bgRemoveEnabled)renderBackgroundRemovalPreview(video,c,local,canvasId);else renderChromaPreview(video,c,local,canvasId);
  return activeKey;
 }
 function ensureStickerStagePosition(c,hasVideo){
@@ -2134,6 +2164,7 @@ function drawExportHorizontalMasked(ctx,source,c,box,fit){
 }
 function drawExportMedia(ctx,source,c,local,width,height,fit,box){
  if(!source)return;
+ if(c.bgRemoveEnabled){const cutout=renderPersonCutoutFrame(source,c.id);if(!cutout)throw new Error("Person background removal is not ready. Turn the effect off and on again, then retry export.");source=cutout;}
  const sw=source.videoWidth||source.naturalWidth||source.width;
  const sh=source.videoHeight||source.naturalHeight||source.height;
  if(!sw||!sh)return;
@@ -2403,6 +2434,10 @@ async function exportVideo(){
   const fontScale=size.width/stageWidth;
   const assetMap=new Map(assets.map(a=>[a.id,a]));
   const mediaClips=exportClips.filter(c=>c.type==="video"||c.type==="audio"||c.type==="image");
+  if(mediaClips.some(c=>c.type==="video"&&c.bgRemoveEnabled)){
+   setExportModalProgress(4,"Loading person-removal model","Preparing the free on-device model. Your media stays in this browser.");
+   await waitForExportCancel(localVideoTools.prepareBackgroundRemoval(),exportController);
+  }
   for(let index=0;index<mediaClips.length;index++){
    if(exportController.cancelled)throw new Error("Export cancelled by you.");
    const c=mediaClips[index],asset=assetMap.get(c.assetId);
