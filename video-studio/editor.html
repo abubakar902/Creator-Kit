@@ -3400,15 +3400,15 @@ function aiEditorContext(){
  const allowed=["name","start","duration","scale","rotation","x","y","opacity","volume","flipX","flipY","framingMode","filterPreset","brightness","contrast","saturation","blur","hue","transition","transitionDuration","speedStart","speedEnd","chromaEnabled","chromaColor","chromaTolerance","chromaSoftness","maskShape","maskTop","maskBottom","maskFeather","maskAngle","fadeIn","fadeOut","audioBass","audioMid","audioTreble","audioPan","fontSize","font","weight","align","bgColor","bgOpacity","italic","textEffect","textTransition","textTransitionDuration","bgRemoveEnabled"];
  const contextClips=clips.slice(0,40).map(clip=>{
   const properties={};allowed.forEach(key=>{if(clip[key]!==undefined){const value=clip[key];if(typeof value==="string")properties[key]=value.slice(0,180);else if(typeof value==="boolean"||Number.isFinite(value))properties[key]=value;}});
-  return {id:String(clip.id),name:String(clip.name||clip.type||"Clip").slice(0,100),type:clip.type,track:clip.track,start:Number(clip.start)||0,duration:Number(clip.duration)||0,assetId:String(clip.assetId||""),properties};
+  return {id:String(clip.id),name:String(clip.name||clip.type||"Clip").slice(0,100),type:clip.type,track:clip.track,start:Number(clip.start)||0,duration:Number(clip.duration)||0,assetId:String(clip.assetId||""),sourceTiming:{sourceStart:Number(clip.sourceStart)||0,speedSourceDuration:Number(clip.speedSourceDuration)||0},properties};
  });
  if(selectedId&&!contextClips.some(item=>item.id===selectedId)){
   const selected=clips.find(item=>item.id===selectedId);
   if(selected&&contextClips.length>=40)contextClips.pop();
-  if(selected)contextClips.push({id:String(selected.id),name:String(selected.name||selected.type||"Clip").slice(0,100),type:selected.type,track:selected.track,start:Number(selected.start)||0,duration:Number(selected.duration)||0,assetId:String(selected.assetId||""),properties:Object.fromEntries(allowed.filter(key=>selected[key]!==undefined).map(key=>[key,typeof selected[key]==="string"?selected[key].slice(0,180):selected[key]]))});
+  if(selected)contextClips.push({id:String(selected.id),name:String(selected.name||selected.type||"Clip").slice(0,100),type:selected.type,track:selected.track,start:Number(selected.start)||0,duration:Number(selected.duration)||0,assetId:String(selected.assetId||""),sourceTiming:{sourceStart:Number(selected.sourceStart)||0,speedSourceDuration:Number(selected.speedSourceDuration)||0},properties:Object.fromEntries(allowed.filter(key=>selected[key]!==undefined).map(key=>[key,typeof selected[key]==="string"?selected[key].slice(0,180):selected[key]]))});
  }
  const allImported=assets.filter(isImportedAsset);
- const library=allImported.slice(0,80).map(asset=>({id:String(asset.id),name:String(asset.name||"Media").slice(0,100),type:asset.type,duration:Number(asset.duration)||0,size:Number(asset.size)||0,proxyAvailable:!!(asset.proxyAssetId&&assetById(asset.proxyAssetId)),usingProxy:asset.useProxy!==false&&!!asset.proxyAssetId}));
+ const library=allImported.slice(0,80).map(asset=>({id:String(asset.id),name:String(asset.name||"Media").slice(0,100),type:asset.type,duration:Number(asset.duration)||0,size:Number(asset.size)||0,proxyAssetId:String(asset.proxyAssetId||""),proxyAvailable:!!(asset.proxyAssetId&&assetById(asset.proxyAssetId)),usingProxy:asset.useProxy!==false&&!!asset.proxyAssetId}));
  const projectList=aiProjectList();
  return {
   scope:"Video Studio only. Never operate homepage standalone tools. Export and export queue are not AI-controllable.",
