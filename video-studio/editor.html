@@ -323,6 +323,7 @@ body{background:radial-gradient(ellipse at 48% -18%,rgba(126,79,190,.18),transpa
  .center{min-height:min(72vh,560px)}
  #previewArea{min-height:0;flex:1 1 auto;padding:10px}
 }
+.smart-tool-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:4px 0 12px}.smart-tool-btn{min-height:34px;font-size:10px;padding:7px 8px}.smart-tool-btn:disabled{opacity:.45;cursor:wait}.export-queue-panel{margin:0 0 16px;padding:12px;border:1px solid #4a3568;border-radius:12px;background:linear-gradient(145deg,#1c1430,#130e22)}.export-queue-heading{display:flex;align-items:center;justify-content:space-between;gap:8px}.export-queue-heading strong{font-size:12px}.export-queue-heading span{font-size:10px;color:#c5a5ff}.export-queue-panel p{margin:7px 0;color:#b9accf;font-size:10px;line-height:1.5}.export-queue-list{margin:7px 0 10px;padding-left:20px;max-height:92px;overflow:auto;color:#cfc0e1;font-size:10px}.export-queue-list li{padding:2px 0}.export-queue-actions{display:flex;gap:7px;flex-wrap:wrap}.export-queue-actions .btn{flex:1;min-width:125px;font-size:10px}.export-queue-actions .btn:disabled{opacity:.4;cursor:not-allowed}
 </style>
 </head>
 <body>
@@ -500,6 +501,7 @@ body{background:radial-gradient(ellipse at 48% -18%,rgba(126,79,190,.18),transpa
 <div class="prop"><label for="propY">Position Y (%)</label><input id="propY" type="number" min="-100" max="100" step="1" value="0"></div>
 </div>
 <div class="prop-grid"><div class="prop"><label><input id="propFlipX" type="checkbox"> Flip Horizontal</label></div><div class="prop"><label><input id="propFlipY" type="checkbox"> Flip Vertical</label></div></div>
+<div class="prop"><label for="propFramingMode">Crop &amp; Resize</label><select id="propFramingMode"><option value="fit">Fit — show full clip</option><option value="fill">Fill — crop to frame</option><option value="stretch">Stretch — fill frame</option></select></div>
 <div class="prop"><label for="propOpacity">Opacity</label><input id="propOpacity" type="range" min="0" max="1" step="0.05" value="1"></div>
 </div>
 </div></details>
@@ -549,6 +551,20 @@ body{background:radial-gradient(ellipse at 48% -18%,rgba(126,79,190,.18),transpa
 </div>
 </div>
 <p class="advanced-effects-note">Masks work on video and image clips, and are included in the final export.</p>
+</div></details>
+<details class="property-group" id="smartToolsGroup"><summary>Smart Editing Tools</summary><div class="group-body">
+<div class="smart-tool-grid">
+<button class="btn smart-tool-btn" id="sceneDetectBtn" type="button">✦ Detect Scenes</button>
+<button class="btn smart-tool-btn" id="beatSyncBtn" type="button">♫ Sync to Beats</button>
+<button class="btn smart-tool-btn" id="removeSilenceBtn" type="button">◖ Remove Silence</button>
+<button class="btn smart-tool-btn" id="autoColourBtn" type="button">◉ AI Colour Correction</button>
+</div>
+<div class="prop"><label for="translateLanguage">Translate captions to</label><select id="translateLanguage">
+<option value="English">English</option><option value="Urdu">Urdu</option><option value="Hindi">Hindi</option><option value="Arabic">Arabic</option><option value="Spanish">Spanish</option><option value="French">French</option><option value="German">German</option><option value="Portuguese">Portuguese</option><option value="Turkish">Turkish</option><option value="Bengali">Bengali</option><option value="Chinese (Simplified)">Chinese (Simplified)</option><option value="Japanese">Japanese</option>
+</select><button class="btn smart-tool-btn" id="translateCaptionsBtn" type="button" style="width:100%;margin-top:7px">文 Translate Captions</button></div>
+<div class="prop"><label for="silenceThreshold">Silence threshold <span id="silenceThresholdValue">−42 dB</span></label><input id="silenceThreshold" type="range" min="-60" max="-24" step="2" value="-42"></div>
+<div class="prop"><label for="silencePadding">Speech edge padding</label><select id="silencePadding"><option value="0.04">40 ms</option><option value="0.08" selected>80 ms</option><option value="0.12">120 ms</option><option value="0.18">180 ms</option></select></div>
+<p class="advanced-effects-note">Picture-in-Picture is already supported by the Overlay track: add a video or image there, then adjust its size and position in Properties. Scene detection, beat sync and silence removal run locally. AI translation and colour recommendations require approved Studio access.</p>
 </div></details>
 <details class="property-group" id="textGroup"><summary>Text &amp; Style</summary><div class="group-body"><div class="prop hidden" id="textProp"><label for="propText">Text overlay</label><textarea id="propText"></textarea></div>
 <div id="textStyleProps" class="hidden">
@@ -665,6 +681,12 @@ body{background:radial-gradient(ellipse at 48% -18%,rgba(126,79,190,.18),transpa
    <div><h2 id="exportDialogTitle">Export your video</h2><p>Render your project and save it to your device</p></div>
   </header>
   <div class="export-dialog-body">
+   <div class="export-queue-panel" id="exportQueuePanel">
+    <div class="export-queue-heading"><strong>Export Queue</strong><span id="exportQueueCount">0 jobs</span></div>
+    <p id="exportQueueStatus">Add different export settings here, then run them one after another. Each finished job downloads automatically.</p>
+    <ol id="exportQueueList" class="export-queue-list"><li>No queued exports yet.</li></ol>
+    <div class="export-queue-actions"><button class="btn" id="addExportQueueBtn" type="button">＋ Add current settings</button><button class="btn primary" id="startExportQueueBtn" type="button" disabled>Start Queue</button></div>
+   </div>
    <div class="export-options-grid" id="exportQualityRow">
     <div class="export-quality"><label for="exportFormat">Format</label><select id="exportFormat"><option value="mp4">MP4 · Compatible</option><option value="webm" selected>WebM · Smaller</option></select></div>
     <div class="export-quality"><label for="exportResolution">Resolution</label><select id="exportResolution"><option value="480p">480p · Faster</option><option value="720p" selected>720p · Recommended</option><option value="1080p">1080p · High detail</option><option value="project">Project resolution</option></select></div>
@@ -716,7 +738,7 @@ body{background:radial-gradient(ellipse at 48% -18%,rgba(126,79,190,.18),transpa
 import {authReady,auth,getAccountProfile} from "../auth/auth-client.js";
 const $=id=>document.getElementById(id);
 const projectKey="trivexaai_video_studio_projects_v1",dbName="trivexaai-video-studio",dbVersion=1,scaleDefault=64;
-let db=null,project=null,clips=[],assets=[],urls=new Map(),selectedId=null,scale=scaleDefault,playhead=0,isPlaying=false,raf=0,lastFrame=0,activeVideoId=null,activeOverlayVideoId=null,activeBaseImageId=null,activeImageId=null,audioNodes=new Map(),audioWaveforms=new Map(),audioWaveformPending=new Map(),audioWaveformUnavailable=new Set(),audioWaveformQueue=Promise.resolve(),saveTimer=0,saveQueue=Promise.resolve(),saveRevision=0,savedRevision=0,undoStack=[],redoStack=[],dragState=null,playheadDrag=null,previewDraft=null,exportBusy=false,exportController=null,lastExportBlob=null,lastExportFileName="",snapEnabled=true,proxyBusy=false,captionsBusy=false,copiedKeyframe=null,activeKeyframeTime=null;
+let db=null,project=null,clips=[],assets=[],urls=new Map(),selectedId=null,scale=scaleDefault,playhead=0,isPlaying=false,raf=0,lastFrame=0,activeVideoId=null,activeOverlayVideoId=null,activeBaseImageId=null,activeImageId=null,audioNodes=new Map(),audioWaveforms=new Map(),audioWaveformPending=new Map(),audioWaveformUnavailable=new Set(),audioWaveformQueue=Promise.resolve(),saveTimer=0,saveQueue=Promise.resolve(),saveRevision=0,savedRevision=0,undoStack=[],redoStack=[],dragState=null,playheadDrag=null,previewDraft=null,exportBusy=false,exportController=null,lastExportBlob=null,lastExportFileName="",snapEnabled=true,proxyBusy=false,captionsBusy=false,copiedKeyframe=null,activeKeyframeTime=null,exportQueue=[],exportQueueRunning=false,queuedExportClipsSnapshot=null;
 const chromaCanvasCache=new WeakMap();
 const horizontalMaskCanvasCache=new WeakMap();
 const params=new URLSearchParams(location.search),projectId=params.get("id"),WORKER_URL="https://creatorkit-ai.abubakar647648.workers.dev";
@@ -1000,7 +1022,7 @@ function renderInspector(){
  $("propX").value=shown.x??0;
  $("propY").value=shown.y??0;
  $("propOpacity").value=shown.opacity??1;
- $("propFlipX").checked=!!shown.flipX;$("propFlipY").checked=!!shown.flipY;
+ $("propFlipX").checked=!!shown.flipX;$("propFlipY").checked=!!shown.flipY;$("propFramingMode").value=shown.framingMode||"fit";
  $("textProp").classList.toggle("hidden",!isText);
  $("textStyleProps").classList.toggle("hidden",!isText);
  $("keyframeProps").classList.toggle("hidden",!visual);
@@ -1072,6 +1094,7 @@ function applyVisualStyle(el,c,local,stageRelative=false){
  else if(type==="slide-left"){x+=(1-p)*18;opacity*=Math.min(1,p*1.4);}
  else if(type==="blur-reveal"){extraBlur=(1-p)*14;opacity*=Math.min(1,p*1.5);}
  const flipScaleX=scale*(c.flipX?-1:1),flipScaleY=scale*(c.flipY?-1:1);
+ const selectedFraming=c.framingMode||($("previewFit")?$("previewFit").value:"contain");el.style.objectFit=selectedFraming==="fill"?"cover":selectedFraming==="stretch"?"fill":"contain";el.style.objectPosition="center center";
  if(stageRelative){el.style.inset="auto";el.style.left="calc(50% + "+x+"%)";el.style.top="calc(50% + "+motion.y+"%)";el.style.transform="translate(-50%, -50%) rotate("+motion.rotation+"deg) scale("+flipScaleX+","+flipScaleY+")";}
  else{el.style.transform="translate("+x+"%, "+motion.y+"%) rotate("+motion.rotation+"deg) scale("+flipScaleX+","+flipScaleY+")";}
  el.style.opacity=String(Math.max(0,Math.min(1,opacity)));
@@ -2016,7 +2039,7 @@ function readPropertiesDraft(c){
  if(c.type==="audio"){d.fadeIn=Math.max(0,Math.min(dur,Number($("propFadeIn").value)||0));d.fadeOut=Math.max(0,Math.min(dur,Number($("propFadeOut").value)||0));}
  if(c.type==="video"||c.type==="image"){
   d.scale=Math.max(.1,Math.min(4,Number($("propScale").value)||1));d.rotation=Math.max(-180,Math.min(180,Number($("propRotation").value)||0));
-  d.x=Math.max(-100,Math.min(100,Number($("propX").value)||0));d.y=Math.max(-100,Math.min(100,Number($("propY").value)||0));d.opacity=Math.max(0,Math.min(1,Number($("propOpacity").value)||0));d.flipX=$("propFlipX").checked;d.flipY=$("propFlipY").checked;
+  d.x=Math.max(-100,Math.min(100,Number($("propX").value)||0));d.y=Math.max(-100,Math.min(100,Number($("propY").value)||0));d.opacity=Math.max(0,Math.min(1,Number($("propOpacity").value)||0));d.flipX=$("propFlipX").checked;d.flipY=$("propFlipY").checked;d.framingMode=$("propFramingMode").value;
   d.filterPreset=$("propFilterPreset").value;d.brightness=Math.max(.5,Math.min(1.8,Number($("propBrightness").value)||1));d.contrast=Math.max(.5,Math.min(1.8,Number($("propContrast").value)||1));
   d.saturation=Math.max(0,Math.min(2,Number($("propSaturation").value)||0));d.blur=Math.max(0,Math.min(12,Number($("propBlur").value)||0));d.hue=Math.max(-45,Math.min(45,Number($("propHue").value)||0));
   d.transition=$("propTransition").value;d.transitionDuration=Math.max(.1,Math.min(2.5,dur,Number($("propTransitionDuration").value)||.6));
@@ -2084,8 +2107,8 @@ function drawExportFit(ctx,source,boxWidth,boxHeight,fit){
  const sw=source.videoWidth||source.naturalWidth||source.width;
  const sh=source.videoHeight||source.naturalHeight||source.height;
  if(!sw||!sh)return;
- const factor=fit==="cover"?Math.max(boxWidth/sw,boxHeight/sh):Math.min(boxWidth/sw,boxHeight/sh);
- const drawWidth=sw*factor,drawHeight=sh*factor;
+ const factor=fit==="stretch"?1:fit==="cover"?Math.max(boxWidth/sw,boxHeight/sh):Math.min(boxWidth/sw,boxHeight/sh);
+ const drawWidth=fit==="stretch"?boxWidth:sw*factor,drawHeight=fit==="stretch"?boxHeight:sh*factor;
  ctx.drawImage(source,-drawWidth/2,-drawHeight/2,drawWidth,drawHeight);
 }
 function drawExportHorizontalMasked(ctx,source,c,box,fit){
@@ -2148,8 +2171,9 @@ function drawExportMedia(ctx,source,c,local,width,height,fit,box){
   ctx.beginPath();ctx.rect(-box.width/2,-box.height/2,box.width*wipeProgress,box.height);ctx.clip();
  }
  const renderSource=c.chromaEnabled?processChromaSource(source,c,1280):source;
- if(c.maskShape==="horizontal"&&Number(c.maskFeather)>0)drawExportHorizontalMasked(ctx,renderSource,c,box,fit);
- else drawExportFit(ctx,renderSource,box.width,box.height,fit);
+ const renderFit=c.framingMode==="fill"?"cover":c.framingMode==="stretch"?"stretch":c.framingMode==="fit"?"contain":fit;
+ if(c.maskShape==="horizontal"&&Number(c.maskFeather)>0)drawExportHorizontalMasked(ctx,renderSource,c,box,renderFit);
+ else drawExportFit(ctx,renderSource,box.width,box.height,renderFit);
  ctx.restore();
 }
 function wrapExportText(ctx,text,maxWidth){
@@ -2305,7 +2329,7 @@ function showExportModal(){
  setExportModalProgress(0,"Choose your export settings","Your video will not start exporting until you press Start export.");
 }
 function hideExportModal(){
- if(exportBusy)return;
+ if(exportBusy||exportQueueRunning)return;
  $("exportModal").hidden=true;
 }
 function downloadLastExport(){
@@ -2345,7 +2369,7 @@ async function exportVideo(){
  if(typeof MediaRecorder==="undefined"||!HTMLCanvasElement.prototype.captureStream){
   notify("This browser does not support video export. Please use an updated Chrome or Edge browser.");return;
  }
- const button=$("exportBtn"),originalPlayhead=playhead,exportClips=clone(clips);
+ const button=$("exportBtn"),originalPlayhead=playhead,exportClips=clone(queuedExportClipsSnapshot||clips);
  const total=Math.max(0,...exportClips.map(c=>c.start+c.duration));
  if(total<=0){notify("There is nothing to export yet.");return;}
  exportBusy=true;exportController={cancelled:false,cancelWaiters:new Set(),stopRecording:null};lastExportBlob=null;lastExportFileName="";
@@ -2538,6 +2562,287 @@ async function exportVideo(){
 }
 
 
+
+function clampStudioNumber(value,min,max){return Math.max(min,Math.min(max,Number(value)||0));}
+function seekStudioMedia(media,time){
+ const target=Math.max(0,Math.min(Number(media.duration)||time,Number(time)||0));
+ if(!Number.isFinite(target)||Math.abs((Number(media.currentTime)||0)-target)<.025)return Promise.resolve();
+ return new Promise((resolve,reject)=>{
+  let settled=false;
+  const finish=error=>{if(settled)return;settled=true;clearTimeout(timer);media.removeEventListener("seeked",onSeeked);media.removeEventListener("error",onError);error?reject(error):resolve();};
+  const onSeeked=()=>finish(),onError=()=>finish(new Error("The media could not seek to the requested frame."));
+  const timer=setTimeout(()=>finish(new Error("Media seeking timed out. Try a shorter clip.")),6000);
+  media.addEventListener("seeked",onSeeked,{once:true});media.addEventListener("error",onError,{once:true});
+  try{media.currentTime=target;}catch(error){finish(error);}
+ });
+}
+async function decodeStudioAudio(asset){
+ const AudioContextClass=window.AudioContext||window.webkitAudioContext;
+ if(!AudioContextClass)throw new Error("Audio analysis needs an updated Chrome or Edge browser.");
+ if(!asset||!asset.blob)throw new Error("The original media file is not available.");
+ const context=new AudioContextClass();
+ try{return await context.decodeAudioData(await asset.blob.arrayBuffer());}
+ finally{try{await context.close();}catch(error){}}
+}
+function studioLocalForSourceElapsed(clip,sourceElapsed){
+ let low=0,high=Math.max(.001,Number(clip.duration)||.001);
+ for(let i=0;i<26;i++){const middle=(low+high)/2;if(clipSourceElapsed(clip,middle)<sourceElapsed)low=middle;else high=middle;}
+ return (low+high)/2;
+}
+async function detectScenes(){
+ const clip=selectedClip();
+ if(!clip||clip.type!=="video"){notify("Select a video clip on the timeline first.");return;}
+ const asset=assetById(clip.assetId);
+ if(!asset||!assetUrl(clip.assetId)){notify("The selected video's original file is unavailable.");return;}
+ if(clip.duration<2){notify("This clip is too short for scene detection.");return;}
+ const button=$("sceneDetectBtn"),oldLabel=button.textContent,originalPlayhead=playhead,originalId=clip.id;
+ button.disabled=true;button.textContent="Scanning…";status("Analysing scene changes…");pause();
+ let video=null;
+ try{
+  video=document.createElement("video");video.muted=true;video.playsInline=true;video.preload="auto";
+  const ready=waitForExportMedia(video,"loadeddata",clip.name||"video");video.src=assetUrl(asset.id);video.load();await ready;
+  const sourceStart=Math.max(0,Number(clip.sourceStart)||0),sourceDuration=clipSourceElapsed(clip,clip.duration);
+  const sampleCount=Math.min(180,Math.max(12,Math.ceil(clip.duration/.8)));
+  const canvas=document.createElement("canvas");canvas.width=80;canvas.height=45;
+  const context=canvas.getContext("2d",{willReadFrequently:true});if(!context)throw new Error("Could not prepare the scene analysis canvas.");
+  let previous=null,lastCut=-10;const cutTimes=[];
+  for(let i=0;i<sampleCount;i++){
+   const sourceElapsed=sourceDuration*i/(sampleCount-1);
+   await seekStudioMedia(video,sourceStart+sourceElapsed);context.drawImage(video,0,0,80,45);
+   const pixels=context.getImageData(0,0,80,45).data;
+   if(previous){
+    let diff=0,count=0;
+    for(let p=0;p<pixels.length;p+=16){diff+=Math.abs(pixels[p]-previous[p])+Math.abs(pixels[p+1]-previous[p+1])+Math.abs(pixels[p+2]-previous[p+2]);count+=3;}
+    const local=studioLocalForSourceElapsed(clip,sourceElapsed),score=diff/Math.max(1,count);
+    if(score>27&&local-lastCut>=.95&&local>.25&&local<clip.duration-.25){cutTimes.push(clip.start+local);lastCut=local;}
+   }
+   previous=new Uint8ClampedArray(pixels);
+  }
+  if(!cutTimes.length){notify("No clear scene cuts were detected in this clip.");status("Ready · Auto-save on");return;}
+  let created=0;
+  for(const cutTime of cutTimes.sort((a,b)=>b-a)){
+   const current=clips.find(item=>item.id===originalId);
+   if(!current||cutTime<=current.start+.15||cutTime>=current.start+current.duration-.15)continue;
+   selectedId=originalId;playhead=cutTime;splitSelected();created++;
+  }
+  selectedId=originalId;playhead=Math.min(originalPlayhead,duration());renderAll();scheduleSave();
+  notify(created+" scene cut"+(created===1?"":"s")+" detected and split.");
+ }catch(error){notify(error&&error.message?error.message:"Scene detection could not finish.");status("Ready · Auto-save on");}
+ finally{if(video){video.pause();video.removeAttribute("src");video.load();}button.disabled=false;button.textContent=oldLabel;}
+}
+async function syncClipsToBeats(){
+ const audioClip=selectedClip();
+ if(!audioClip||!["audio","video"].includes(audioClip.type)){notify("Select an audio or video clip that contains music first.");return;}
+ if(Math.abs(clipSpeedStart(audioClip)-1)>.01||Math.abs(clipSpeedEnd(audioClip)-1)>.01){notify("For accurate beat detection, use a normal-speed audio clip.");return;}
+ const asset=assetById(audioClip.assetId),button=$("beatSyncBtn"),oldLabel=button.textContent;
+ if(!asset){notify("The selected audio file is unavailable.");return;}
+ button.disabled=true;button.textContent="Listening…";status("Detecting music beats…");
+ try{
+  const buffer=await decodeStudioAudio(asset),sampleRate=buffer.sampleRate,channels=Array.from({length:buffer.numberOfChannels},(_,i)=>buffer.getChannelData(i));
+  const hop=Math.max(256,Math.floor(sampleRate*.02)),count=Math.ceil(buffer.length/hop),energy=new Float32Array(count);let total=0;
+  for(let frame=0;frame<count;frame++){
+   const start=frame*hop,end=Math.min(buffer.length,start+hop);let sum=0,n=0;
+   for(const channel of channels)for(let p=start;p<end;p+=2){const value=channel[p]||0;sum+=value*value;n++;}
+   const rms=Math.sqrt(sum/Math.max(1,n));energy[frame]=rms;total+=rms;
+  }
+  const mean=total/Math.max(1,count),threshold=Math.max(.018,mean*1.45),beatSeconds=[],sourceOffset=Number(audioClip.sourceStart)||0;let last=-1;
+  for(let i=2;i<count-2;i++){
+   if(energy[i]>=threshold&&energy[i]>=energy[i-1]&&energy[i]>energy[i+1]&&energy[i]>energy[i-2]&&energy[i]>=energy[i+2]){
+    const time=i*hop/sampleRate;
+    if(time>=sourceOffset&&time<=sourceOffset+audioClip.duration&&time-last>=.24){beatSeconds.push(time-sourceOffset);last=time;}
+   }
+  }
+  if(beatSeconds.length<2){notify("Not enough clear beats were detected. Try a music track with a stronger rhythm.");return;}
+  const beats=beatSeconds.map(time=>audioClip.start+time);
+  const visual=clips.filter(item=>item.id!==audioClip.id&&(item.type==="video"||item.type==="image")&&(item.track==="video"||item.track==="overlay")).sort((a,b)=>a.start-b.start);
+  const moved=[];
+  for(const item of visual){
+   const nearest=beats.reduce((best,time)=>Math.abs(time-item.start)<Math.abs(best-item.start)?time:best,beats[0]);
+   if(Math.abs(nearest-item.start)>.34)continue;
+   const collides=clips.some(other=>other.id!==item.id&&other.track===item.track&&nearest<other.start+other.duration-.03&&nearest+item.duration>other.start+.03);
+   if(!collides)moved.push({clip:item,start:nearest});
+  }
+  if(!moved.length){notify("No visual clip could be aligned to a nearby beat without overlapping another clip.");return;}
+  snapshot();moved.forEach(item=>{item.clip.start=Number(item.start.toFixed(3));});renderAll();scheduleSave();
+  notify(moved.length+" video/image clip"+(moved.length===1?"":"s")+" aligned to nearby beats.");
+ }catch(error){notify(error&&error.message?error.message:"Beat detection could not finish.");}
+ finally{button.disabled=false;button.textContent=oldLabel;status("Ready · Auto-save on");}
+}
+async function applyAiColourCorrection(){
+ const clip=selectedClip();
+ if(!clip||!["video","image"].includes(clip.type)){notify("Select a video or image clip first.");return;}
+ const asset=assetById(clip.assetId),button=$("autoColourBtn"),oldLabel=button.textContent;
+ if(!asset){notify("The selected media file is unavailable.");return;}
+ button.disabled=true;button.textContent="Analysing…";status("Measuring colour and exposure…");
+ let video=null,image=null;
+ try{
+  let source;
+  if(clip.type==="video"){
+   video=document.createElement("video");video.muted=true;video.playsInline=true;video.preload="auto";
+   const ready=waitForExportMedia(video,"loadeddata",clip.name||"video");video.src=assetUrl(asset.id);video.load();await ready;
+   const local=clampStudioNumber(playhead-clip.start,0,Math.max(.01,clip.duration-.03));
+   await seekStudioMedia(video,clipSourceTime(clip,local));source=video;
+  }else{
+   image=new Image();image.src=assetUrl(asset.id);
+   if(typeof image.decode==="function")await image.decode();
+   else await new Promise((resolve,reject)=>{image.onload=resolve;image.onerror=()=>reject(new Error("Could not load the selected image."));});
+   source=image;
+  }
+  const canvas=document.createElement("canvas");canvas.width=96;canvas.height=54;
+  const context=canvas.getContext("2d",{willReadFrequently:true});if(!context)throw new Error("Could not prepare the colour analysis canvas.");
+  context.drawImage(source,0,0,96,54);
+  const data=context.getImageData(0,0,96,54).data;let sum=0,sumSq=0,sat=0,pixels=0;
+  for(let i=0;i<data.length;i+=16){
+   const r=data[i]/255,g=data[i+1]/255,b=data[i+2]/255,l=.2126*r+.7152*g+.0722*b;
+   sum+=l;sumSq+=l*l;const hi=Math.max(r,g,b),lo=Math.min(r,g,b);sat+=hi>0?(hi-lo)/hi:0;pixels++;
+  }
+  const mean=sum/Math.max(1,pixels),contrast=Math.sqrt(Math.max(0,sumSq/Math.max(1,pixels)-mean*mean)),saturation=sat/Math.max(1,pixels);
+  const prompt="You are a careful video colour-grading assistant. A sampled frame from a user's clip has these measured statistics: average luminance "+mean.toFixed(3)+", luminance standard deviation "+contrast.toFixed(3)+", average saturation "+saturation.toFixed(3)+". Recommend subtle corrective filter multipliers only. Return one JSON object with numeric keys brightness, contrast, saturation, hue. Ranges: brightness 0.75-1.30, contrast 0.80-1.30, saturation 0.70-1.35, hue -12 to 12. Avoid a stylized look; correct exposure and weak contrast/saturation, not over-processing. Do not include markdown.";
+  const answer=await callVideoStudioAi(prompt),match=answer.match(/\{[\s\S]*\}/);
+  if(!match)throw new Error("The AI colour recommendation was not valid JSON. Please try again.");
+  const values=JSON.parse(match[0]),brightness=clampStudioNumber(values.brightness,.75,1.3),contrastValue=clampStudioNumber(values.contrast,.8,1.3),satValue=clampStudioNumber(values.saturation,.7,1.35),hue=clampStudioNumber(values.hue,-12,12);
+  snapshot();clip.filterPreset="none";clip.brightness=Number(brightness.toFixed(2));clip.contrast=Number(contrastValue.toFixed(2));clip.saturation=Number(satValue.toFixed(2));clip.hue=Number(hue.toFixed(1));
+  renderAll();scheduleSave();notify("AI colour correction applied. You can fine-tune it in Effects & Transitions.");
+ }catch(error){notify(error&&error.message?error.message:"AI colour correction could not finish.");}
+ finally{if(video){video.pause();video.removeAttribute("src");video.load();}if(image)image.src="";button.disabled=false;button.textContent=oldLabel;status("Ready · Auto-save on");}
+}
+async function callVideoStudioAi(prompt){
+ if(!auth||!auth.currentUser)throw new Error("Please sign in again to use the Video Studio AI tools.");
+ const token=await auth.currentUser.getIdToken();
+ const response=await fetch(WORKER_URL,{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+token},body:JSON.stringify({action:"video_studio",prompt})});
+ let data={};try{data=await response.json();}catch(error){}
+ if(!response.ok)throw new Error(data.error||data.details||"The Video Studio AI Worker could not complete this request.");
+ if(typeof data.text!=="string"||!data.text.trim())throw new Error("The AI Worker returned an empty response.");
+ return data.text.trim();
+}
+function parseStudioJsonArray(source){
+ const value=String(source||"").replace(/\x60{3}(?:json)?/gi,"").trim(),start=value.indexOf("["),end=value.lastIndexOf("]");
+ if(start<0||end<=start)throw new Error("The AI response did not contain the expected caption list.");
+ return JSON.parse(value.slice(start,end+1));
+}
+async function translateCaptionTrack(){
+ const captions=clips.filter(item=>item.track==="captions");
+ if(!captions.length){notify("Generate or add captions before translating them.");return;}
+ const language=$("translateLanguage").value,button=$("translateCaptionsBtn"),oldLabel=button.textContent;
+ button.disabled=true;button.textContent="Translating…";status("Preparing caption translation…");
+ try{
+  const translations=new Map(),chunks=[];let chunk=[];
+  for(const caption of captions){
+   const item={id:caption.id,text:caption.text||""};
+   if(chunk.length>=8||JSON.stringify([...chunk,item]).length>2500){chunks.push(chunk);chunk=[];}
+   chunk.push(item);
+  }
+  if(chunk.length)chunks.push(chunk);
+  for(let i=0;i<chunks.length;i++){
+   status("Translating caption batch "+(i+1)+" of "+chunks.length+"…");
+   const prompt="Translate each subtitle text into "+language+". Preserve each meaning, tone, names, numbers and punctuation. Keep every id unchanged. Return only a JSON array of objects with exactly id and text keys. Do not add, remove, merge or reorder captions. Source captions: "+JSON.stringify(chunks[i]);
+   const result=parseStudioJsonArray(await callVideoStudioAi(prompt));
+   if(!Array.isArray(result)||result.length!==chunks[i].length)throw new Error("The AI returned an incomplete subtitle batch. No captions were changed.");
+   for(let j=0;j<result.length;j++){
+    if(!result[j]||result[j].id!==chunks[i][j].id||typeof result[j].text!=="string"||!result[j].text.trim())throw new Error("The AI returned mismatched caption IDs. No captions were changed.");
+    translations.set(result[j].id,result[j].text.trim().slice(0,500));
+   }
+  }
+  if(translations.size!==captions.length)throw new Error("Some captions were not translated. No captions were changed.");
+  snapshot();captions.forEach(caption=>{caption.text=translations.get(caption.id);});renderAll();scheduleSave();
+  notify(captions.length+" captions translated into "+language+".");
+ }catch(error){notify(error&&error.message?error.message:"Caption translation could not finish.");}
+ finally{button.disabled=false;button.textContent=oldLabel;status("Ready · Auto-save on");}
+}
+async function removeSilenceFromSelected(){
+ const clip=selectedClip();
+ if(!clip||!["audio","video"].includes(clip.type)){notify("Select an audio or video clip with sound first.");return;}
+ if(clip.keyframes&&clip.keyframes.length||Number(clip.speedSourceDuration)>0||Math.abs(clipSpeedStart(clip)-1)>.01||Math.abs(clipSpeedEnd(clip)-1)>.01){notify("For a safe silence cut, first apply the clip's speed ramp and keyframes or use a normal-speed clip.");return;}
+ if(clips.some(item=>item.id!==clip.id&&item.start<clip.start+clip.duration-.04&&item.start+item.duration>clip.start+.04)){notify("This clip overlaps other timeline clips. Move those clips out of its time range before ripple-removing silence, so their timing is not damaged.");return;}
+ if(clips.some(item=>item.type==="audio"&&item.detachedFromVideoId===clip.id)){notify("This video has detached audio. Select the detached audio clip instead.");return;}
+ const asset=assetById(clip.assetId),button=$("removeSilenceBtn"),oldLabel=button.textContent;
+ if(!asset||!asset.blob){notify("The original media file is unavailable.");return;}
+ if(Number(asset.size||asset.blob.size)>180*1024*1024||clip.duration>720){notify("For stable local analysis, use a clip under 12 minutes and 180 MB.");return;}
+ button.disabled=true;button.textContent="Listening…";status("Analysing speech and quiet sections…");
+ try{
+  const buffer=await decodeStudioAudio(asset),sampleRate=buffer.sampleRate,channels=Array.from({length:buffer.numberOfChannels},(_,i)=>buffer.getChannelData(i));
+  const thresholdDb=Number($("silenceThreshold").value)||-42,threshold=Math.pow(10,thresholdDb/20),hop=Math.max(256,Math.floor(sampleRate*.02)),frameCount=Math.ceil(buffer.length/hop),padding=clampStudioNumber($("silencePadding").value,.02,.25);
+  const from=Math.max(0,Number(clip.sourceStart)||0),to=Math.min(buffer.duration,from+clip.duration),analysedDuration=Math.min(clip.duration,to-from);
+  if(analysedDuration<.2)throw new Error("The selected clip has no readable audio range.");
+  const active=[];let run=null,lastLoudEnd=0;
+  for(let frame=0;frame<frameCount;frame++){
+   const sourceTime=frame*hop/sampleRate;
+   if(sourceTime<from||sourceTime>=to)continue;
+   const start=frame*hop,end=Math.min(buffer.length,start+hop);let sum=0,n=0;
+   for(const channel of channels)for(let p=start;p<end;p+=2){const value=channel[p]||0;sum+=value*value;n++;}
+   const rms=Math.sqrt(sum/Math.max(1,n)),relativeTime=sourceTime-from;
+   if(rms>=threshold){
+    if(!run)run=[relativeTime,Math.min(analysedDuration,(end/sampleRate)-from)];
+    else run[1]=Math.min(analysedDuration,(end/sampleRate)-from);
+    lastLoudEnd=relativeTime;
+   }else if(run&&relativeTime-lastLoudEnd>.14){active.push(run);run=null;}
+  }
+  if(run)active.push(run);
+  const merged=[];
+  for(const item of active){
+   const start=Math.max(0,item[0]-padding),end=Math.min(analysedDuration,item[1]+padding);
+   if(end-start<.16)continue;
+   const last=merged[merged.length-1];if(last&&start-last[1]<.04)last[1]=end;else merged.push([start,end]);
+  }
+  if(!merged.length)throw new Error("No clear speech or sound was found above "+thresholdDb+" dB. Lower the silence threshold and try again.");
+  if(merged.length===1&&merged[0][0]<.12&&analysedDuration-merged[0][1]<.12){notify("No meaningful silence was found. Your clip was left unchanged.");return;}
+  const gaps=[];let cursor=0;
+  for(const segment of merged){if(segment[0]>cursor)gaps.push([cursor,segment[0]]);cursor=segment[1];}
+  if(cursor<analysedDuration)gaps.push([cursor,analysedDuration]);
+  const removed=gaps.reduce((sum,gap)=>sum+gap[1]-gap[0],0);
+  if(removed<.2){notify("There is not enough silence to remove safely.");return;}
+  const removedBefore=local=>gaps.reduce((sum,gap)=>sum+Math.max(0,Math.min(local,gap[1])-gap[0]),0);
+  const original=clone(clip),newSegments=merged.map((segment,index)=>{
+   const item={...clone(original),id:index===0?original.id:uid(),name:original.name+" ("+(index+1)+")",
+    start:Number((original.start+segment[0]-removedBefore(segment[0])).toFixed(3)),
+    sourceStart:Number(((Number(original.sourceStart)||0)+segment[0]).toFixed(3)),
+    duration:Number((segment[1]-segment[0]).toFixed(3))};
+   if(item.type==="audio"){item.fadeIn=index===0?(original.fadeIn||0):.025;item.fadeOut=index===merged.length-1?(original.fadeOut||0):.025;}
+   return item;
+  });
+  snapshot();clips=clips.filter(item=>item.id!==original.id);
+  clips.forEach(item=>{if(item.start>=original.start+original.duration-.04)item.start=Number(Math.max(0,item.start-removed).toFixed(3));});
+  clips.push(...newSegments);selectedId=newSegments[0].id;renderAll();scheduleSave();
+  notify("Removed "+removed.toFixed(2)+" seconds of silence and kept "+newSegments.length+" sound section"+(newSegments.length===1?"":"s")+".");
+ }catch(error){notify(error&&error.message?error.message:"Silence removal could not finish.");}
+ finally{button.disabled=false;button.textContent=oldLabel;status("Ready · Auto-save on");}
+}
+function addCurrentExportToQueue(){
+ if(exportQueueRunning||exportBusy){notify("Wait until the current export is finished.");return;}
+ if(!clips.length){notify("Add clips before adding an export to the queue.");return;}
+ if(exportQueue.length>=8){notify("The export queue can hold up to 8 jobs at a time.");return;}
+ exportQueue.push({id:uid(),name:safeName(project&&project.name||"Video"),format:$("exportFormat").value,resolution:$("exportResolution").value,fps:$("exportFps").value,bitrate:$("exportBitrate").value,clips:clone(clips)});
+ renderExportQueue();$("exportQueueStatus").textContent="Added job "+exportQueue.length+". Change settings to add another version, or start the queue.";
+ notify("Export settings added to the queue.");
+}
+function renderExportQueue(){
+ const list=$("exportQueueList");if(!list)return;
+ list.replaceChildren();
+ if(!exportQueue.length){const empty=document.createElement("li");empty.textContent="No queued exports yet.";list.append(empty);}
+ exportQueue.forEach((job,index)=>{const item=document.createElement("li");item.textContent=(index+1)+". "+job.format.toUpperCase()+" · "+job.resolution+" · "+job.fps+" FPS · "+job.bitrate;list.append(item);});
+ $("exportQueueCount").textContent=exportQueue.length+" job"+(exportQueue.length===1?"":"s");
+ $("startExportQueueBtn").disabled=!exportQueue.length||exportQueueRunning||exportBusy;
+ $("addExportQueueBtn").disabled=exportQueueRunning||exportBusy||exportQueue.length>=8;
+}
+async function startExportQueue(){
+ if(exportQueueRunning||exportBusy||!exportQueue.length)return;
+ exportQueueRunning=true;const total=exportQueue.length;let completed=0;renderExportQueue();
+ $("exportQueueStatus").textContent="Preparing "+total+" export job"+(total===1?"":"s")+"…";
+ try{
+  while(exportQueue.length){
+   const job=exportQueue[0];showExportModal();
+   $("exportFormat").value=job.format;$("exportResolution").value=job.resolution;$("exportFps").value=job.fps;$("exportBitrate").value=job.bitrate;updateExportSummary();
+   queuedExportClipsSnapshot=clone(job.clips);
+   $("exportQueueStatus").textContent="Exporting job "+(completed+1)+" of "+total+". Keep this tab open.";
+   await exportVideo();queuedExportClipsSnapshot=null;
+   if(!(lastExportBlob instanceof Blob)){notify("Queue paused because an export could not finish. The unfinished job is still in the queue.");break;}
+   exportQueue.shift();completed++;renderExportQueue();
+  }
+ }finally{queuedExportClipsSnapshot=null;exportQueueRunning=false;renderExportQueue();}
+ if(completed===total){$("exportQueueStatus").textContent="All "+completed+" export job"+(completed===1?"":"s")+" completed successfully.";notify("Export queue completed. All videos were downloaded.");}
+ else if(exportQueue.length){$("exportQueueStatus").textContent=completed+" of "+total+" jobs finished. The remaining jobs are still queued.";}
+}
+
 function openShortcutsGuide(){
  const modal=$("shortcutsModal");if(!modal||!modal.hidden)return;
  modal.hidden=false;$("shortcutsCloseBtn").focus();
@@ -2670,6 +2975,15 @@ document.addEventListener("pointerup",previewPointerUp,true);
 document.addEventListener("pointercancel",previewPointerUp,true);
 $("exportBtn").addEventListener("click",showExportModal);
 $("exportStartBtn").addEventListener("click",exportVideo);
+$("sceneDetectBtn").addEventListener("click",detectScenes);
+$("beatSyncBtn").addEventListener("click",syncClipsToBeats);
+$("removeSilenceBtn").addEventListener("click",removeSilenceFromSelected);
+$("autoColourBtn").addEventListener("click",applyAiColourCorrection);
+$("translateCaptionsBtn").addEventListener("click",translateCaptionTrack);
+$("silenceThreshold").addEventListener("input",()=>{$("silenceThresholdValue").textContent=Number($("silenceThreshold").value)+" dB";});
+$("addExportQueueBtn").addEventListener("click",addCurrentExportToQueue);
+$("startExportQueueBtn").addEventListener("click",startExportQueue);
+renderExportQueue();
 $("exportCancelBtn").addEventListener("click",()=>{if(exportBusy)requestExportCancel();else hideExportModal();});
 $("exportCloseBtn").addEventListener("click",hideExportModal);
 $("exportDownloadBtn").addEventListener("click",downloadLastExport);
