@@ -36,10 +36,10 @@ The following optional components are downloaded by the browser only when the us
 ## FFmpeg.wasm
 
 - JavaScript wrapper: `@ffmpeg/ffmpeg@0.12.15` (MIT).
-- WebAssembly core: `@ffmpeg/core@0.12.10`.
+- WebAssembly core: `@ffmpeg/core@0.12.10` (the package metadata declares GPL-2.0-or-later).
 - Purpose: local short-clip reverse-video processing.
-- The FFmpeg core's license obligations depend on the enabled FFmpeg build options and codecs. The editor downloads the official core at runtime and does not commit or redistribute that binary.
-- Sources: https://github.com/ffmpegwasm/ffmpeg.wasm and https://ffmpeg.org/legal.html
+- The editor fetches the official core from jsDelivr at runtime; the core binary is not committed into this repository. Before self-hosting, redistributing, or combining the core with a separately distributed product, review the GPL-2.0-or-later terms and provide the applicable licence/source notices.
+- Source and package metadata: https://github.com/ffmpegwasm/ffmpeg.wasm and https://www.npmjs.com/package/@ffmpeg/core
 
 ## Network and cost notes
 
