@@ -324,6 +324,105 @@ body{background:radial-gradient(ellipse at 48% -18%,rgba(126,79,190,.18),transpa
  #previewArea{min-height:0;flex:1 1 auto;padding:10px}
 }
 .smart-tool-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:4px 0 12px}.smart-tool-btn{min-height:34px;font-size:10px;padding:7px 8px}.smart-tool-btn:disabled{opacity:.45;cursor:wait}.export-queue-panel{margin:0 0 16px;padding:12px;border:1px solid #4a3568;border-radius:12px;background:linear-gradient(145deg,#1c1430,#130e22)}.export-queue-heading{display:flex;align-items:center;justify-content:space-between;gap:8px}.export-queue-heading strong{font-size:12px}.export-queue-heading span{font-size:10px;color:#c5a5ff}.export-queue-panel p{margin:7px 0;color:#b9accf;font-size:10px;line-height:1.5}.export-queue-list{margin:7px 0 10px;padding-left:20px;max-height:92px;overflow:auto;color:#cfc0e1;font-size:10px}.export-queue-list li{padding:2px 0}.export-queue-actions{display:flex;gap:7px;flex-wrap:wrap}.export-queue-actions .btn{flex:1;min-width:125px;font-size:10px}.export-queue-actions .btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* Video Studio finishing pass */
+:root{--studio-glass:rgba(19,13,34,.92);--studio-edge:rgba(169,119,220,.25);--studio-edge-strong:rgba(194,144,247,.48);--studio-shadow:0 16px 42px rgba(0,0,0,.24)}
+html{scroll-behavior:smooth}
+body{background:radial-gradient(ellipse at 50% -18%,rgba(106,54,164,.2),transparent 42%),linear-gradient(180deg,#0b0718 0%,#090612 100%)}
+::selection{background:rgba(169,100,255,.38);color:#fff}
+.topbar{background:rgba(13,9,26,.88);border-bottom:1px solid var(--studio-edge);backdrop-filter:blur(18px);box-shadow:0 8px 28px rgba(0,0,0,.18)}
+.brand{letter-spacing:-.35px}
+.back,.btn,.tool-btn,.asset-add,.asset-proxy{transition:background .18s ease,border-color .18s ease,color .18s ease,transform .18s ease,box-shadow .18s ease}
+.back:hover,.btn:hover:not(:disabled),.tool-btn:hover,.asset-add:hover,.asset-proxy:hover{transform:translateY(-1px)}
+.btn:focus-visible,.back:focus-visible,.tool-btn:focus-visible,.asset-add:focus-visible,.asset-proxy:focus-visible,.transport button:focus-visible,.mask-guide-line:focus-visible,.mask-rotate-handle:focus-visible,.sticker-resize-handle:focus-visible{outline:2px solid #dfb9ff;outline-offset:3px}
+.editor{padding:12px;gap:10px;background:transparent;grid-template-columns:minmax(220px,250px) minmax(0,1fr) minmax(250px,290px);grid-template-rows:minmax(350px,1fr) 278px}
+.panel{border:1px solid var(--studio-edge);border-radius:15px;background:linear-gradient(155deg,rgba(24,17,41,.98),rgba(15,11,27,.98));box-shadow:var(--studio-shadow)}
+.media-panel,.inspector{padding:16px 15px}
+.center{overflow:hidden;border-radius:15px;background:#0e0a19}
+.timeline{overflow:hidden;border:1px solid var(--studio-edge);border-radius:15px;background:linear-gradient(160deg,#130d22,#0e0a19);box-shadow:var(--studio-shadow)}
+.panel-title h2,.inspector h2{font-size:14px;letter-spacing:.1px}
+.panel-title small,.inspector-title small{color:#a995c1;letter-spacing:.65px}
+.import-box{border-color:rgba(176,126,226,.56);background:linear-gradient(145deg,rgba(48,30,72,.68),rgba(24,17,41,.88));box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
+.import-box .big{color:#c795ff;text-shadow:0 0 20px rgba(167,100,255,.35)}
+.assets-hint{color:#a99abf;font-size:10px;line-height:1.55}
+.asset{border-color:rgba(142,111,176,.28);background:linear-gradient(140deg,rgba(34,24,53,.94),rgba(23,17,37,.98));box-shadow:inset 0 1px 0 rgba(255,255,255,.035)}
+.asset:hover{border-color:var(--studio-edge-strong);box-shadow:0 8px 20px rgba(0,0,0,.2)}
+.preview-toolbar{background:rgba(18,13,31,.92)}
+.preview-heading{font-size:12px;letter-spacing:.15px}
+.preview-toolbar select,.preview-toolbar-actions select{min-height:32px}
+.preview-area{padding:20px;background:radial-gradient(ellipse at 50% 45%,rgba(104,64,148,.24),transparent 64%),linear-gradient(135deg,#0e0a19,#0a0712)}
+.stage{border-color:rgba(190,146,239,.54);border-radius:14px;box-shadow:0 22px 58px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.04),0 0 42px rgba(139,79,196,.12)}
+.stage-placeholder{font-size:12px;line-height:1.6}
+.stage-placeholder span{filter:drop-shadow(0 0 14px rgba(171,100,255,.5))}
+.transport{height:54px;background:rgba(16,11,28,.96)}
+.transport .play{box-shadow:0 5px 18px rgba(126,70,210,.35);transition:transform .16s ease,filter .16s ease}
+.transport .play:hover{transform:scale(1.06);filter:brightness(1.12)}
+.timecode{font-size:11px;font-weight:700;color:#d6c7e8}
+.inspector{scrollbar-width:thin;scrollbar-color:#61417f #160f25}
+.inspector-title{position:sticky;top:-16px;z-index:4;padding:4px 0 10px;background:linear-gradient(180deg,#171027 75%,rgba(23,16,39,0));}
+.inspector-hint{font-size:10px;line-height:1.55;color:#b5a6c9}
+.property-group{border-color:rgba(149,112,184,.25);border-radius:12px;background:linear-gradient(145deg,rgba(30,21,47,.92),rgba(21,15,35,.95));box-shadow:inset 0 1px 0 rgba(255,255,255,.025);transition:border-color .18s ease,background .18s ease}
+.property-group>summary{min-height:40px;padding:11px 12px;color:#f0e5ff;font-size:11px;letter-spacing:.1px}
+.property-group>summary:after{content:"＋";font-size:14px;font-weight:500;color:#b991e8;transition:transform .18s ease}
+.property-group[open]{border-color:rgba(176,122,230,.48);background:linear-gradient(145deg,rgba(35,24,54,.98),rgba(22,15,37,.98))}
+.property-group[open]>summary{border-bottom:1px solid rgba(151,113,188,.18);color:#fff}
+.property-group[open]>summary:after{content:"−"}
+.group-body{padding:11px 12px 7px}
+.prop label{font-size:10px;color:#d8c9e9;letter-spacing:.08px}
+.prop input:not([type=checkbox]):not([type=range]),.prop select,.prop textarea{min-height:36px;border-color:rgba(133,102,166,.36);background:#120d20;border-radius:9px;transition:border-color .16s ease,box-shadow .16s ease}
+.prop input:focus,.prop select:focus,.prop textarea:focus,.voiceover-textarea:focus{outline:none;border-color:#ad72ef;box-shadow:0 0 0 3px rgba(166,100,235,.13)}
+.prop input[type=checkbox]{accent-color:#b77cff}
+.property-group .advanced-effects-note{font-size:9px;line-height:1.55;color:#aa9abd}
+.tool-guidance{display:grid;gap:6px;margin:9px 0 10px}
+.tool-guidance span{display:block;padding:7px 9px;border:1px solid rgba(153,117,189,.2);border-radius:8px;background:rgba(14,10,24,.56);color:#bbaed0;font-size:9px;line-height:1.45}
+.tool-guidance b{color:#eadbff;font-weight:800}
+.local-tools-note{padding:8px 9px;border-left:2px solid #9b64d4;border-radius:0 8px 8px 0;background:rgba(110,68,157,.08)}
+.voiceover-consent{padding:9px 10px;border:1px solid rgba(160,118,206,.26);border-radius:9px;background:rgba(112,71,158,.09)}
+.voiceover-consent input{margin-top:1px}
+.timeline-head{min-height:48px;background:rgba(20,14,34,.96)}
+.timeline-head strong{font-size:13px;letter-spacing:.15px}
+.timeline-buttons .btn{border-color:rgba(147,108,184,.35);background:#211733}
+.timeline-buttons .btn.primary{background:linear-gradient(110deg,#a33df1,#684dff)}
+.timeline-scroll{scrollbar-width:thin;scrollbar-color:#654282 #130d21}
+.track-row{background:#150f24}
+.track-label{background:#211632;color:#e0d2f0}
+.clip{box-shadow:0 2px 7px rgba(0,0,0,.18);transition:filter .14s ease,border-color .14s ease}
+.clip:hover{filter:brightness(1.14);border-color:#d0a4ff}
+.clip.selected{box-shadow:0 0 0 2px rgba(213,173,255,.2)}
+.timeline-footer{background:rgba(17,12,29,.9);color:#a99abf}
+.toast{border-color:rgba(191,137,243,.55);backdrop-filter:blur(16px);box-shadow:0 16px 40px rgba(0,0,0,.4)}
+.export-dialog,.shortcuts-dialog{border:1px solid rgba(180,131,231,.35);border-radius:19px;box-shadow:0 28px 90px rgba(0,0,0,.55),0 0 50px rgba(135,76,193,.12)}
+.export-dialog-head,.shortcuts-head{background:linear-gradient(110deg,rgba(78,43,112,.34),rgba(27,18,44,.92))}
+.export-dialog-actions{background:rgba(15,10,25,.9)}
+.export-modal-note,.captions-help{font-size:10px;line-height:1.6;color:#b5a5c9}
+input,select,textarea{accent-color:#a96bf1}
+@media(max-width:1050px){
+ .editor{padding:10px;gap:9px;grid-template-columns:minmax(195px,225px) minmax(0,1fr);grid-template-rows:minmax(340px,1fr) 268px auto;height:auto;min-height:850px}
+ .timeline{grid-column:1/-1;grid-row:2}
+ .inspector{grid-column:1/-1;grid-row:3;border-radius:14px}
+}
+@media(max-width:680px){
+ .editor{padding:9px;gap:9px}
+ .media-panel,.center,.inspector,.timeline{border-radius:13px}
+ .media-panel{max-height:250px;padding:12px}
+ .center{min-height:350px}
+ .inspector{display:block;padding:13px}
+ .timeline{min-height:300px}
+ .preview-toolbar{padding:0 10px}
+ .preview-area{padding:10px;min-height:220px}
+ .timeline-head{gap:7px}
+ .timeline-footer{gap:8px}
+ .property-group{margin-bottom:8px}
+ .tool-guidance{grid-template-columns:1fr 1fr}
+}
+@media(max-width:390px){
+ .editor{padding:6px;gap:7px}
+ .tool-guidance{grid-template-columns:1fr}
+ .timeline-buttons .btn{font-size:8px;padding:6px}
+ .preview-heading{font-size:10px}
+}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{transition:none!important;animation-duration:.01ms!important;animation-iteration-count:1!important}}
+
 </style>
 </head>
 <body>
@@ -559,7 +658,7 @@ body{background:radial-gradient(ellipse at 48% -18%,rgba(126,79,190,.18),transpa
 <button class="btn smart-tool-btn" id="removeSilenceBtn" type="button">◖ Remove Silence</button>
 <button class="btn smart-tool-btn" id="autoColourBtn" type="button">◉ AI Colour Correction</button>
 </div>
-<div class="prop" style="margin-top:12px"><strong style="font-size:10px;color:#e8dcf8">Free Local Video Tools</strong><p class="advanced-effects-note">These tools run on this device. First use downloads a free open-source engine or model; your media is not uploaded to an AI API.</p></div>
+<div class="prop" style="margin-top:12px"><strong style="font-size:10px;color:#e8dcf8">Free Local Video Tools</strong><p class="advanced-effects-note local-tools-note">These tools process your media on this device. Your original files stay unchanged.</p></div>
 <div class="smart-tool-grid">
 <button class="btn smart-tool-btn" id="reverseClipBtn" type="button">↶ Reverse Video</button>
 <button class="btn smart-tool-btn" id="motionTrackBtn" type="button">◎ Motion Tracking</button>
@@ -572,13 +671,13 @@ body{background:radial-gradient(ellipse at 48% -18%,rgba(126,79,190,.18),transpa
 <p class="advanced-effects-note" style="margin:4px 0 0">Off by default: the reversed video is silent, so speech stays clear of backwards playback. Your original video with its audio remains in the Media Library.</p>
 </div>
 <div class="prop"><label for="motionTrackTarget">Motion tracking target</label><select id="motionTrackTarget"><option value="person">Person</option><option value="any">Any visible object</option></select></div>
-<p class="advanced-effects-note">Free-version limits: Reverse Video supports clips up to 30 seconds and files under 50 MB on your 4 GB PC. Motion Tracking follows one visible person/object. Background removal isolates people only; transparent areas reveal a clip underneath, or the dark canvas if there is no background layer. For video sound, select the video and click Detach Audio first, then select its new Audio-track clip and choose Enhance Audio. Noise reduction is not full studio mastering. Keep this tab open while a tool runs.</p>
+<div class="tool-guidance" aria-label="Tool limits and tips"><span><b>Reverse Video</b> · Up to 30 sec and 50 MB</span><span><b>Motion Tracking</b> · One person or object</span><span><b>Person Background Removal</b> · Isolates people only</span><span><b>Enhance Audio</b> · Detach video audio first</span></div><p class="advanced-effects-note">Keep this tab open while a tool runs.</p>
 <div class="prop"><label for="translateLanguage">Translate captions to</label><select id="translateLanguage">
 <option value="English">English</option><option value="Urdu">Urdu</option><option value="Hindi">Hindi</option><option value="Arabic">Arabic</option><option value="Spanish">Spanish</option><option value="French">French</option><option value="German">German</option><option value="Portuguese">Portuguese</option><option value="Turkish">Turkish</option><option value="Bengali">Bengali</option><option value="Chinese (Simplified)">Chinese (Simplified)</option><option value="Japanese">Japanese</option>
 </select><button class="btn smart-tool-btn" id="translateCaptionsBtn" type="button" style="width:100%;margin-top:7px">文 Translate Captions</button></div>
 <div class="prop"><label for="silenceThreshold">Silence threshold <span id="silenceThresholdValue">−42 dB</span></label><input id="silenceThreshold" type="range" min="-60" max="-24" step="2" value="-42"></div>
 <div class="prop"><label for="silencePadding">Speech edge padding</label><select id="silencePadding"><option value="0.04">40 ms</option><option value="0.08" selected>80 ms</option><option value="0.12">120 ms</option><option value="0.18">180 ms</option></select></div>
-<p class="advanced-effects-note">Picture-in-Picture is already supported by the Overlay track: add a video or image there, then adjust its size and position in Properties. Scene detection, beat sync and silence removal run locally. AI translation and colour recommendations require approved Studio access.</p>
+<p class="advanced-effects-note">Picture-in-Picture is available on the Overlay track. Add a video or image there, then adjust its size and position in Properties. Scene detection, beat sync and silence removal run on this device.</p>
 </div></details>
 <details class="property-group" id="textGroup"><summary>Text &amp; Style</summary><div class="group-body"><div class="prop hidden" id="textProp"><label for="propText">Text overlay</label><textarea id="propText"></textarea></div>
 <div id="textStyleProps" class="hidden">
@@ -778,8 +877,8 @@ body{background:radial-gradient(ellipse at 48% -18%,rgba(126,79,190,.18),transpa
    <label for="voiceoverText" style="display:block;margin:8px 0 7px;color:#d9c9ec;font-size:11px;font-weight:750">Text for voice-over (up to 2,000 characters)</label>
    <textarea id="voiceoverText" class="voiceover-textarea" maxlength="2000" placeholder="Write the words you want the voice to speak…"></textarea>
    <div class="voiceover-counter" id="voiceoverCounter">0 / 2,000</div>
-   <p class="export-modal-note">This sends your text to Cloudflare Workers AI to create an MP3. It needs an account with Advanced access. Cloudflare lists Aura-1 at $0.015 per 1,000 input characters; free daily allowance and account-plan limits also apply. Check your Cloudflare usage before generating.</p>
-   <label class="voiceover-consent"><input id="voiceoverConsent" type="checkbox"> I understand this uses Cloudflare AI and may use paid quota.</label>
+   <p class="export-modal-note">Your text will be turned into an MP3 voice clip and added to the Audio track at the playhead.</p>
+   <label class="voiceover-consent"><input id="voiceoverConsent" type="checkbox"> I confirm that I want to generate this voice-over.</label>
    <p class="captions-status" id="voiceoverStatus" role="status" aria-live="polite">Ready. Your generated MP3 will be added to the Audio track at the current playhead.</p>
   </div>
   <footer class="export-dialog-actions"><button class="btn" id="voiceoverCloseBtn" type="button">Close</button><button class="btn primary" id="voiceoverGenerateBtn" type="button" disabled>Generate &amp; add to timeline</button></footer>
@@ -1864,11 +1963,11 @@ async function generateVoiceover(){
  const textValue=$("voiceoverText").value.trim(),voiceId=$("voiceoverVoice").value;
  if(!textValue){$("voiceoverStatus").textContent="Enter the words you want the voice to speak.";return;}
  if(textValue.length>2000){$("voiceoverStatus").textContent="Please keep the text under 2,000 characters.";return;}
- if(!$("voiceoverConsent").checked){$("voiceoverStatus").textContent="Please confirm the Cloudflare AI usage note before generating.";return;}
+ if(!$("voiceoverConsent").checked){$("voiceoverStatus").textContent="Please confirm that you want to generate this voice-over.";return;}
  if(!auth?.currentUser){$("voiceoverStatus").textContent="Your sign-in session has expired. Please sign in again.";return;}
  const button=$("voiceoverGenerateBtn"),close=$("voiceoverCloseBtn");
  voiceoverBusy=true;button.disabled=true;close.disabled=true;button.textContent="Generating voice…";
- $("voiceoverStatus").textContent="Connecting securely to Cloudflare Workers AI…";
+ $("voiceoverStatus").textContent="Creating your voice-over…";
  try{
   const token=await auth.currentUser.getIdToken();
   const response=await fetch(WORKER_URL,{
@@ -1878,9 +1977,10 @@ async function generateVoiceover(){
   });
   const contentType=(response.headers.get("Content-Type")||"").toLowerCase();
   if(!response.ok||contentType.includes("application/json")||(!contentType.includes("audio/")&&!contentType.includes("application/octet-stream"))){
-   let message="Cloudflare could not generate this voice-over.";
-   try{const data=await response.json();message=[data.error,data.details].filter(Boolean).join(" ");}catch(error){}
-   if(response.status===403)message="This feature needs an invite or admin approval. "+message;
+   let message="Voice-over generation is temporarily unavailable. Please try again.";
+   if(response.status===403)message="Your account does not currently have access to AI Voice-over.";
+   else if(response.status===400)message="Please check your text and selected voice, then try again.";
+   else if(response.status===429)message="Voice generation is busy. Please try again shortly.";
    throw new Error(message);
   }
   const blob=await response.blob();
@@ -1899,7 +1999,8 @@ async function generateVoiceover(){
   $("voiceoverText").value="";$("voiceoverCounter").textContent="0 / 2,000";$("voiceoverConsent").checked=false;
   $("voiceoverModal").hidden=true;
  }catch(error){
-  const message=error?.name==="AbortError"?"Voice generation was cancelled.":(error?.message||"Voice generation failed. Check your Cloudflare Workers AI usage and try again.");
+  const rawMessage=error?.message||"";
+  const message=error?.name==="AbortError"?"Voice generation was cancelled.":rawMessage==="Failed to fetch"?"Could not connect to the voice service. Check your internet connection and try again.":(rawMessage||"Voice generation failed. Please try again.");
   $("voiceoverStatus").textContent=message;
  }finally{
   voiceoverBusy=false;button.disabled=!$("voiceoverConsent").checked;close.disabled=false;button.textContent="Generate & add to timeline";
@@ -2027,7 +2128,11 @@ async function transcribeCaptionChunk(blob,mimeType,language,token){
  try{
   const response=await fetch(WORKER_URL,{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+token},body:JSON.stringify({action:"transcribe_audio",audioBase64,mimeType,language}),signal:controller.signal});
   const data=await response.json().catch(()=>({}));
-  if(!response.ok)throw new Error(data.error||data.details||"AI transcription request failed ("+response.status+").");
+  if(!response.ok){
+   if(response.status===403)throw new Error("AI captions are not available for this account.");
+   if(response.status===429)throw new Error("AI captions are busy. Please try again shortly.");
+   throw new Error("AI captions are temporarily unavailable. Please try again.");
+  }
   return data;
  }catch(error){
   if(error.name==="AbortError")throw new Error("AI transcription took too long. Please try again.");
@@ -2546,7 +2651,7 @@ function configureExportOptions(){
  $("exportFormatNote").textContent=nativeMp4
   ?"MP4 is supported by this browser/device. If recording fails, choose WebM."
   :localFallback
-   ?"This device cannot record MP4 directly. TrivexaAI will record WebM, then convert it to MP4 on this device. On a 4 GB PC, fallback is limited to 720p and 2 minutes; FFmpeg may download about 31 MB on first use."
+   ?"This browser uses a local MP4 fallback. It supports up to 720p and 2 minutes; temporary files are limited to 100 MB."
    :"This browser cannot create MP4 or WebM video with its current recorder. Use an updated Chrome or Edge browser.";
  if(!nativeMp4&&!localFallback&&$("exportFormat").value==="mp4")$("exportFormat").value="webm";
  if((nativeMp4||localFallback)&&$("exportFormat").dataset.userChosen!=="1")$("exportFormat").value="mp4";
@@ -2638,8 +2743,8 @@ async function exportVideo(){
   if(needsMp4Fallback){
    if(!supportedExportMime("webm"))throw new Error("This browser cannot record the temporary WebM file needed for MP4 conversion. Please use updated Chrome or Edge.");
    if(!localVideoTools||typeof localVideoTools.convertWebMToMp4!=="function")throw new Error("The local MP4 converter is not ready. Refresh Video Studio and try again.");
-   if(total>120)throw new Error("On this 4 GB PC, MP4 fallback supports timelines up to 2 minutes. Choose WebM or shorten the timeline.");
-   if(Math.max(size.width,size.height)>1280)throw new Error("On this 4 GB PC, MP4 fallback is limited to 720p. Choose 720p resolution and try again.");
+   if(total>120)throw new Error("The local MP4 fallback supports projects up to 2 minutes. Choose WebM or shorten the timeline.");
+   if(Math.max(size.width,size.height)>1280)throw new Error("The local MP4 fallback supports up to 720p. Choose 720p and try again.");
   }
   updateExportSummary();
   const hasSoundSources=exportClips.some(c=>c.type==="video"||c.type==="audio");
@@ -2790,7 +2895,7 @@ async function exportVideo(){
   if(!blob||blob.size<1000)throw new Error("The exported video is empty. Please try again with another media file.");
   let finalBlob=blob;
   if(needsMp4Fallback){
-   if(blob.size>100*1024*1024)throw new Error("This 4 GB PC's MP4 fallback accepts temporary WebM files up to 100 MB. Choose 720p, reduce the timeline length or use WebM.");
+   if(blob.size>100*1024*1024)throw new Error("The temporary file exceeds the 100 MB limit for local MP4 conversion. Choose 720p or use WebM.");
    setExportModalProgress(97,"Converting to MP4","Converting locally on this device. Keep this tab open; no video is uploaded.");
    finalBlob=await localVideoTools.convertWebMToMp4(blob,{
     duration:total,width:size.width,height:size.height,
@@ -3000,8 +3105,12 @@ async function callVideoStudioAi(prompt){
  const token=await auth.currentUser.getIdToken();
  const response=await fetch(WORKER_URL,{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+token},body:JSON.stringify({action:"video_studio",prompt})});
  let data={};try{data=await response.json();}catch(error){}
- if(!response.ok)throw new Error(data.error||data.details||"The Video Studio AI Worker could not complete this request.");
- if(typeof data.text!=="string"||!data.text.trim())throw new Error("The AI Worker returned an empty response.");
+ if(!response.ok){
+  if(response.status===403)throw new Error("Your account does not currently have access to this AI feature.");
+  if(response.status===429)throw new Error("This AI feature is busy. Please try again shortly.");
+  throw new Error("AI assistance is temporarily unavailable. Please try again.");
+ }
+ if(typeof data.text!=="string"||!data.text.trim())throw new Error("No AI suggestion was returned. Please try again.");
  return data.text.trim();
 }
 function parseStudioJsonArray(source){
