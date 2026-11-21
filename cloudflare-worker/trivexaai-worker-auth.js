@@ -5,7 +5,7 @@ let firebaseKeys = null;
 let firebaseKeysExpiry = 0;
 const ADVANCED_ACTIONS = new Set([
   "generate_image", "generate_voice", "video_studio", "video_studio_create",
-  "video_studio_export", "video_studio_ai_assistant", "transcribe_audio", "ai_editing_assistant",
+  "video_studio_export", "video_studio_ai_assistant", "transcribe_audio", "ai_editing_assistant", "ai_prompt_writer",
   "advanced_feature"
 ]);
 function b64u(s) {
@@ -827,6 +827,779 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
             details: transcriptionError?.message || "Workers AI transcription failed."
           }, 502);
         }
+      }
+
+      // VIDEO STUDIO ROMAN URDU PROMPT WRITER — converts the user's description
+      // into a ready-to-paste natural-language prompt. This route never edits media.
+      if (body.action === "ai_prompt_writer") {
+        const expectedToolId = "video-studio-prompt-writer";
+        if (body.toolId !== expectedToolId) {
+          return reply({ error: "This request is not from the Video Studio Prompt Writer.", code: "AI_PROMPT_WRITER_TOOL_MISMATCH" }, 400);
+        }
+        if (!env.GEMINI_API_KEY) {
+          return reply({ error: "The Video Studio Prompt Writer connection is not configured." }, 500);
+        }
+        const sourceRequest = typeof body.request === "string" ? body.request.trim() : "";
+        if (!sourceRequest || sourceRequest.length > 2000) {
+          return reply({ error: "Roman Urdu request 1 se 2,000 characters ke darmiyan honi chahiye." }, 400);
+        }
+
+        // Only names and media types are shared with Gemini for prompt writing.
+        // No IDs, local URLs, blobs, original media bytes, or clip settings are sent.
+        const rawContext = body.editorContext && typeof body.editorContext === "object" && !Array.isArray(body.editorContext)
+          ? body.editorContext
+          : {};
+        const rawProject = rawContext.project && typeof rawContext.project === "object" ? rawContext.project : {};
+        const rawClips = Array.isArray(rawContext.clips) ? rawContext.clips : [];
+        const rawSelectedId = typeof rawContext.selectedClipId === "string" ? rawContext.selectedClipId : "";
+        const selectedClip = rawClips.find(item => item && typeof item === "object" && String(item.id || "") === rawSelectedId);
+        const rawMedia = rawContext.mediaLibrary && typeof rawContext.mediaLibrary === "object" ? rawContext.mediaLibrary : {};
+        const rawProjects = rawContext.projects && typeof rawContext.projects === "object" ? rawContext.projects : {};
+        const promptContext = {
+          currentProject: String(rawProject.name || "Current Video Studio project").slice(0, 80),
+          selectedClip: selectedClip ? {
+            name: String(selectedClip.name || "Selected clip").slice(0, 100),
+            type: String(selectedClip.type || "").slice(0, 20),
+            track: String(selectedClip.track || "").slice(0, 20)
+          } : null,
+          timelineClips: rawClips.slice(0, 20).map(item => {
+            if (!item || typeof item !== "object") return null;
+            return {
+              name: String(item.name || "Untitled clip").slice(0, 100),
+              type: String(item.type || "").slice(0, 20),
+              track: String(item.track || "").slice(0, 20)
+            };
+          }).filter(Boolean),
+          mediaLibrary: (Array.isArray(rawMedia.assets) ? rawMedia.assets : []).slice(0, 20).map(item => {
+            if (!item || typeof item !== "object") return null;
+            return {
+              name: String(item.name || "Media asset").slice(0, 100),
+              type: String(item.type || "").slice(0, 20)
+            };
+          }).filter(Boolean),
+          savedProjects: (Array.isArray(rawProjects.projects) ? rawProjects.projects : []).slice(0, 20).map(item => {
+            if (!item || typeof item !== "object") return null;
+            return String(item.name || "Untitled project").slice(0, 80);
+          }).filter(Boolean)
+        };
+        const supportedOperations = [
+          "set_clip_properties", "split_clip", "move_clip", "duplicate_clip",
+          "delete_clip", "add_text_overlay", "set_keyframes", "run_tool",
+          "trim_clip", "set_preview_controls", "set_timeline_controls",
+          "add_asset_to_timeline", "rename_asset", "remove_asset",
+          "create_video_proxy", "set_proxy_usage", "rename_project",
+          "create_project", "open_project", "delete_project"
+        ];
+        const supportedTools = [
+          "scene_detection", "beat_sync", "remove_silence", "ai_colour_correction",
+          "caption_translation", "auto_captions", "reverse_video", "motion_tracking",
+          "enhance_audio", "remove_person_background", "auto_reframe", "detach_audio",
+          "ai_voice_over", "add_sticker"
+        ];
+        const systemInstructions = [
+          "You are TrivexaAI Video Studio Prompt Writer. Your only job is to convert the user's Roman Urdu, Urdu, Hindi, English, or mixed-language editing description into one clear, specific, ready-to-paste prompt for the TrivexaAI Video Studio AI Editor.",
+          "Return exactly one JSON object and nothing else: {\"needsClarification\":false,\"prompt\":\"...\",\"question\":\"\"}. If an essential detail is ambiguous or the request is unsupported, return {\"needsClarification\":true,\"prompt\":\"\",\"question\":\"one short helpful question or explanation in Roman Urdu\"}.",
+          "When a prompt can be written safely, write the final prompt in clear, simple English. Preserve every requested action, exact number, time, duration, language, style, and keep-unchanged instruction. Do not add creative changes the user did not request.",
+          "This writer does NOT execute edits and must not generate operation JSON, code, scripts, tool calls, HTML, CSS, URLs, or markdown. It only writes natural-language instructions that the separate Video Studio AI Editor can understand.",
+          "The Video Studio AI Editor only supports these operation types: " + supportedOperations.join(", ") + ". Its dedicated tool IDs are: " + supportedTools.join(", ") + ". Never promise or request a feature outside this supported list.",
+          "The editor does not control the 17 standalone homepage tools, video export, render/download, export settings, or export queue. If the user asks for those, do not disguise them as supported editor work; return needsClarification=true with a short Roman Urdu explanation.",
+          "Respect media types and available actions: scene detection works on video; beat sync and silence removal work on audio/video; colour correction works on video/image; caption translation requires an existing caption track; auto captions work on video/audio; reverse, motion tracking, person background removal, auto reframe, and detach audio require video; audio enhancement requires audio; voice-over and stickers add supported timeline items.",
+          "Never invent clip names, asset names, project names, times, values, or available media. Use only names in EDITOR_CONTEXT. If the user says selected clip and one is selected, refer to the selected clip. Otherwise use an exact name only when the user clearly identifies it.",
+          "If multiple clips or assets could match, or the target is unclear and cannot safely be inferred from the selected clip, ask one concise question in Roman Urdu rather than guessing.",
+          "Keep original audio unchanged for visual-only requests, and keep visuals unchanged for audio-only requests. Preserve sync for linked or detached audio unless the user explicitly requests otherwise.",
+          "Do not claim that local files can be imported by AI. User imports files with the existing file picker. The writer must never claim that export will be performed.",
+          "Output prompt must be 1 to 1,400 characters so it fits the main AI Editor prompt box. Do not include headings, preambles, quotes around the whole prompt, or markdown fences."
+        ].join("\n");
+        const userMessage = [
+          "EDITOR_CONTEXT:",
+          JSON.stringify(promptContext),
+          "",
+          "ROMAN_URDU_ORIGINAL_REQUEST:",
+          sourceRequest
+        ].join("\n");
+
+        let geminiResponse;
+        try {
+          geminiResponse = await fetch(
+            "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "x-goog-api-key": env.GEMINI_API_KEY
+              },
+              body: JSON.stringify({
+                systemInstruction: { parts: [{ text: systemInstructions }] },
+                contents: [{ role: "user", parts: [{ text: userMessage }] }],
+                generationConfig: {
+                  temperature: 0.15,
+                  maxOutputTokens: 1200,
+                  responseMimeType: "application/json"
+                }
+              })
+            }
+          );
+        } catch (geminiNetworkError) {
+          console.error("Video Studio Prompt Writer Gemini connection error:", geminiNetworkError);
+          return reply({ error: "Gemini se prompt tayyar nahi ho saka. Thori dair baad dobara try karein.", code: "AI_PROMPT_WRITER_CONNECTION_FAILED" }, 502);
+        }
+        let geminiData = {};
+        try { geminiData = await geminiResponse.json(); } catch (parseError) {}
+        if (!geminiResponse.ok) {
+          console.error("Video Studio Prompt Writer Gemini error:", {
+            status: geminiResponse.status,
+            message: geminiData.error?.message || ""
+          });
+          return reply({
+            error: "Gemini could not convert this request into a Video Studio prompt.",
+            details: String(geminiData.error?.message || "Please try again shortly.").slice(0, 400),
+            code: "AI_PROMPT_WRITER_GEMINI_FAILED"
+          }, geminiResponse.status === 429 ? 429 : 502);
+        }
+        const generatedText = geminiData.candidates?.[0]?.content?.parts
+          ?.map(part => typeof part.text === "string" ? part.text : "")
+          .join("")
+          .trim() || "";
+        if (!generatedText || generatedText.length > 6000) {
+          return reply({ error: "Gemini returned an empty or oversized prompt response. Please simplify your request.", code: "AI_PROMPT_WRITER_EMPTY" }, 502);
+        }
+        let result;
+        try {
+          const firstBrace = generatedText.indexOf("{");
+          const lastBrace = generatedText.lastIndexOf("}");
+          const jsonText = firstBrace >= 0 && lastBrace > firstBrace
+            ? generatedText.slice(firstBrace, lastBrace + 1)
+            : generatedText;
+          result = JSON.parse(jsonText);
+        } catch (parseError) {
+          return reply({ error: "Gemini ka prompt response valid format mein nahi tha. Dobara try karein.", code: "AI_PROMPT_WRITER_INVALID_JSON" }, 502);
+        }
+        if (!result || typeof result !== "object" || Array.isArray(result) || typeof result.needsClarification !== "boolean") {
+          return reply({ error: "Gemini returned an invalid prompt-writing response.", code: "AI_PROMPT_WRITER_INVALID_RESPONSE" }, 502);
+        }
+        if (result.needsClarification) {
+          const question = typeof result.question === "string" ? result.question.trim().slice(0, 300) : "";
+          if (!question || String(result.prompt || "").trim()) {
+            return reply({ error: "The clarification response was incomplete. Please describe the request more clearly.", code: "AI_PROMPT_WRITER_INVALID_CLARIFICATION" }, 502);
+          }
+          return reply({ needsClarification: true, prompt: "", question });
+        }
+        const prompt = typeof result.prompt === "string" ? result.prompt.trim() : "";
+        if (!prompt || prompt.length > 1400 || typeof result.question !== "string") {
+          return reply({ error: "Gemini ka prompt 1,400 characters ke andar clear format mein nahi tha. Dobara try karein.", code: "AI_PROMPT_WRITER_INVALID_PROMPT" }, 502);
+        }
+        return reply({ needsClarification: false, prompt, question: "" });
+      }
+
+      // VIDEO STUDIO AI EDITOR — strict, versioned, allow-listed edit plans.
+      // This route only produces a structured plan. The Video Studio frontend
+      // validates it again and previews all edits before the user can Apply.
+      if (body.action === "ai_editing_assistant") {
+        const AI_EDITOR_VERSION = "video-studio-ai-v2";
+        const AI_EDITOR_ACTIONS = [
+          "set_clip_properties", "split_clip", "move_clip", "duplicate_clip",
+          "delete_clip", "add_text_overlay", "set_keyframes", "run_tool",
+          "trim_clip", "set_preview_controls", "set_timeline_controls",
+          "add_asset_to_timeline", "rename_asset", "remove_asset",
+          "create_video_proxy", "set_proxy_usage", "rename_project",
+          "create_project", "open_project", "delete_project"
+        ];
+        const AI_VIDEO_TOOLS = [
+          "scene_detection", "beat_sync", "remove_silence", "ai_colour_correction",
+          "caption_translation", "auto_captions", "reverse_video", "motion_tracking",
+          "enhance_audio", "remove_person_background", "auto_reframe", "detach_audio",
+          "ai_voice_over", "add_sticker"
+        ];
+        const clipTypes = ["video", "image", "audio", "text"];
+        const trackTypes = ["video", "overlay", "text", "audio", "captions"];
+        const languageNames = [
+          "English", "Urdu", "Hindi", "Arabic", "Spanish", "French", "German",
+          "Portuguese", "Turkish", "Bengali", "Chinese (Simplified)", "Japanese"
+        ];
+        const autoCaptionLanguages = ["en", "ur", "hi", "ar", "es", "fr", "pt", "tr", "de"];
+        const voiceIds = [
+          "angus", "asteria", "arcas", "orion", "orpheus", "athena",
+          "luna", "zeus", "perseus", "helios", "hera", "stella"
+        ];
+        const propertyKeys = {
+          video: [
+            "name", "start", "duration", "scale", "rotation", "x", "y", "opacity",
+            "flipX", "flipY", "framingMode", "filterPreset", "brightness", "contrast",
+            "saturation", "blur", "hue", "transition", "transitionDuration", "volume",
+            "speedStart", "speedEnd", "chromaEnabled", "chromaColor", "chromaTolerance",
+            "chromaSoftness", "maskShape", "maskTop", "maskBottom", "maskFeather",
+            "maskAngle"
+          ],
+          image: [
+            "name", "start", "duration", "scale", "rotation", "x", "y", "opacity",
+            "flipX", "flipY", "framingMode", "filterPreset", "brightness", "contrast",
+            "saturation", "blur", "hue", "transition", "transitionDuration",
+            "maskShape", "maskTop", "maskBottom", "maskFeather", "maskAngle"
+          ],
+          audio: [
+            "name", "start", "duration", "volume", "fadeIn", "fadeOut",
+            "audioBass", "audioMid", "audioTreble", "audioPan"
+          ],
+          text: [
+            "name", "start", "duration", "text", "color", "fontSize", "font",
+            "weight", "align", "bgColor", "bgOpacity", "italic", "rotation",
+            "opacity", "textEffect", "textTransition", "textTransitionDuration",
+            "x", "y", "scale"
+          ]
+        };
+        const propertyTypes = {
+          numeric: new Set([
+            "start", "duration", "scale", "rotation", "x", "y", "opacity", "volume",
+            "brightness", "contrast", "saturation", "blur", "hue", "transitionDuration",
+            "speedStart", "speedEnd", "chromaTolerance", "chromaSoftness", "maskTop",
+            "maskBottom", "maskFeather", "maskAngle", "fadeIn", "fadeOut", "audioBass",
+            "audioMid", "audioTreble", "audioPan", "fontSize", "bgOpacity",
+            "textTransitionDuration", "weight"
+          ]),
+          boolean: new Set(["flipX", "flipY", "chromaEnabled", "italic"]),
+          string: new Set(["name", "text", "color", "bgColor", "chromaColor", "font",
+            "framingMode", "filterPreset", "transition", "maskShape", "align",
+            "textEffect", "textTransition"])
+        };
+        const propertyRanges = {
+          start: [0, 7200], duration: [0.2, 7200], scale: [0.1, 4],
+          rotation: [-180, 180], x: [-100, 100], y: [-100, 100],
+          opacity: [0, 1], volume: [0, 1], brightness: [0.5, 1.8],
+          contrast: [0.5, 1.8], saturation: [0, 2], blur: [0, 12],
+          hue: [-45, 45], transitionDuration: [0.1, 2.5],
+          speedStart: [0.25, 4], speedEnd: [0.25, 4],
+          chromaTolerance: [20, 220], chromaSoftness: [0, 160],
+          maskTop: [0, 95], maskBottom: [5, 100], maskFeather: [0, 20],
+          maskAngle: [-90, 90], fadeIn: [0, 7200], fadeOut: [0, 7200],
+          audioBass: [-12, 12], audioMid: [-12, 12], audioTreble: [-12, 12],
+          audioPan: [-100, 100], fontSize: [10, 120], bgOpacity: [0, 1],
+          textTransitionDuration: [0.1, 2]
+        };
+        const enumValues = {
+          framingMode: ["project", "fit", "fill", "stretch"],
+          filterPreset: ["none", "cinematic", "vivid", "warm", "cool", "noir", "vintage"],
+          transition: ["none", "fade", "zoom", "slide-left", "wipe-left", "blur-reveal"],
+          maskShape: ["none", "circle", "ellipse", "rounded", "left-half", "right-half", "horizontal"],
+          align: ["left", "center", "right"],
+          textEffect: ["none", "shadow", "glow", "neon", "outline"],
+          textTransition: ["none", "fade", "pop", "slide-up", "bounce"],
+          font: ["Arial, sans-serif", "Inter, sans-serif", "Georgia, serif", "Impact, sans-serif", "system-ui, sans-serif"],
+          weight: [500, 700, 900]
+        };
+        const toolClipTypes = {
+          scene_detection: ["video"],
+          beat_sync: ["audio", "video"],
+          remove_silence: ["audio", "video"],
+          ai_colour_correction: ["video", "image"],
+          auto_captions: ["video", "audio"],
+          reverse_video: ["video"],
+          motion_tracking: ["video"],
+          enhance_audio: ["audio"],
+          remove_person_background: ["video"],
+          auto_reframe: ["video"],
+          detach_audio: ["video"]
+        };
+        const validTracksForType = {
+          video: ["video", "overlay"],
+          image: ["video", "overlay"],
+          audio: ["audio"],
+          text: ["text", "captions"]
+        };
+        const str = (value, max = 160) =>
+          typeof value === "string" ? value.trim().slice(0, max) : "";
+        const finite = value =>
+          typeof value === "number" && Number.isFinite(value) ? value : null;
+        const boundedNumber = (value, min, max) =>
+          finite(value) !== null && value >= min && value <= max;
+        const exactSet = (provided, expected) =>
+          Array.isArray(provided) &&
+          provided.length === expected.length &&
+          new Set(provided).size === expected.length &&
+          expected.every(value => provided.includes(value));
+
+        if (!env.GEMINI_API_KEY) {
+          return reply({ error: "The AI Editor connection is not configured." }, 500);
+        }
+        if (body.toolId !== "video-studio-ai-editor") {
+          return reply({ error: "This request is not from the Video Studio AI Editor.", code: "AI_EDITOR_TOOL_MISMATCH" }, 400);
+        }
+        if (body.capabilityVersion !== AI_EDITOR_VERSION) {
+          return reply({
+            error: "The Video Studio AI Editor needs a compatible frontend update. Refresh the editor and try again.",
+            code: "AI_EDITOR_VERSION_MISMATCH"
+          }, 409);
+        }
+        if (!exactSet(body.capabilities, AI_EDITOR_ACTIONS) || !exactSet(body.toolIds, AI_VIDEO_TOOLS)) {
+          return reply({
+            error: "The Video Studio AI Editor capability list does not match this Worker version.",
+            code: "AI_EDITOR_CAPABILITY_MISMATCH"
+          }, 409);
+        }
+        const userRequest = str(body.request, 1400);
+        if (!userRequest || userRequest.length > 1400) {
+          return reply({ error: "Describe the edit in 1 to 1,400 characters." }, 400);
+        }
+
+        // Rebuild a small context from known fields only. Never forward blobs,
+        // local URLs, media bytes, unknown properties, or arbitrary client data.
+        const rawContext = body.editorContext && typeof body.editorContext === "object" && !Array.isArray(body.editorContext)
+          ? body.editorContext
+          : {};
+        const rawProject = rawContext.project && typeof rawContext.project === "object" ? rawContext.project : {};
+        const rawMedia = rawContext.mediaLibrary && typeof rawContext.mediaLibrary === "object" ? rawContext.mediaLibrary : {};
+        const rawProjects = rawContext.projects && typeof rawContext.projects === "object" ? rawContext.projects : {};
+        const allowedPropertyNames = new Set(Object.values(propertyKeys).flat());
+        const safeProperties = (source, type) => {
+          if (!source || typeof source !== "object" || Array.isArray(source)) return {};
+          const allowed = new Set(propertyKeys[type] || []);
+          const output = {};
+          for (const key of Object.keys(source)) {
+            if (!allowed.has(key) || !allowedPropertyNames.has(key)) continue;
+            const value = source[key];
+            if (typeof value === "string") output[key] = value.slice(0, 180);
+            else if (typeof value === "boolean" || (typeof value === "number" && Number.isFinite(value))) output[key] = value;
+          }
+          return output;
+        };
+        const clips = (Array.isArray(rawContext.clips) ? rawContext.clips : [])
+          .slice(0, 40)
+          .map(item => {
+            if (!item || typeof item !== "object" || Array.isArray(item)) return null;
+            const type = str(item.type, 20);
+            if (!clipTypes.includes(type)) return null;
+            const id = str(item.id, 128);
+            if (!id) return null;
+            const start = finite(item.start), duration = finite(item.duration);
+            if (start === null || duration === null || start < 0 || duration < 0) return null;
+            return {
+              id,
+              name: str(item.name || "Untitled clip", 100),
+              type,
+              track: trackTypes.includes(item.track) ? item.track : "",
+              start: Math.min(7200, start),
+              duration: Math.min(7200, duration),
+              assetId: str(item.assetId, 128),
+              sourceTiming: {
+                sourceStart: Math.max(0, Math.min(7200, finite(item.sourceTiming?.sourceStart) ?? 0)),
+                speedSourceDuration: Math.max(0, Math.min(7200, finite(item.sourceTiming?.speedSourceDuration) ?? 0))
+              },
+              properties: safeProperties(item.properties, type)
+            };
+          })
+          .filter(Boolean);
+        const mediaAssets = (Array.isArray(rawMedia.assets) ? rawMedia.assets : [])
+          .slice(0, 80)
+          .map(item => {
+            if (!item || typeof item !== "object" || Array.isArray(item)) return null;
+            const type = str(item.type, 20), id = str(item.id, 128);
+            if (!id || !["video", "audio", "image"].includes(type)) return null;
+            return {
+              id,
+              name: str(item.name || "Media asset", 100),
+              type,
+              duration: Math.max(0, Math.min(7200, finite(item.duration) ?? 0)),
+              size: Math.max(0, Math.min(100000000000, finite(item.size) ?? 0)),
+              proxyAssetId: str(item.proxyAssetId, 128),
+              proxyAvailable: item.proxyAvailable === true,
+              usingProxy: item.usingProxy === true
+            };
+          })
+          .filter(Boolean);
+        const projects = (Array.isArray(rawProjects.projects) ? rawProjects.projects : [])
+          .slice(0, 60)
+          .map(item => {
+            if (!item || typeof item !== "object" || Array.isArray(item)) return null;
+            const id = str(item.id, 128);
+            if (!id) return null;
+            return {
+              id,
+              name: str(item.name || "Untitled project", 80),
+              ratio: str(item.ratio, 24),
+              resolution: str(item.resolution, 24),
+              fps: Math.max(1, Math.min(120, finite(item.fps) ?? 30))
+            };
+          })
+          .filter(Boolean);
+        const editorContext = {
+          scope: "Video Studio only. Homepage standalone tools and all export controls are excluded.",
+          project: {
+            id: str(rawProject.id, 128),
+            name: str(rawProject.name || "Untitled project", 80),
+            ratio: str(rawProject.ratio, 24),
+            resolution: str(rawProject.resolution, 24),
+            fps: Math.max(1, Math.min(120, finite(rawProject.fps) ?? 30)),
+            duration: Math.max(0, Math.min(7200, finite(rawProject.duration) ?? 0))
+          },
+          clipCount: Math.max(clips.length, Math.min(10000, Math.floor(finite(rawContext.clipCount) ?? clips.length))),
+          clipsTruncated: rawContext.clipsTruncated === true,
+          selectedClipId: str(rawContext.selectedClipId, 128),
+          playhead: Math.max(0, Math.min(7200, finite(rawContext.playhead) ?? 0)),
+          clips,
+          mediaLibrary: {
+            assetCount: Math.max(mediaAssets.length, Math.min(10000, Math.floor(finite(rawMedia.assetCount) ?? mediaAssets.length))),
+            assetsTruncated: rawMedia.assetsTruncated === true,
+            assets: mediaAssets
+          },
+          projects: {
+            count: Math.max(projects.length, Math.min(500, Math.floor(finite(rawProjects.count) ?? projects.length))),
+            projects
+          },
+          preview: {
+            playback: rawContext.preview?.playback === "playing" ? "playing" : "paused",
+            playhead: Math.max(0, Math.min(7200, finite(rawContext.preview?.playhead) ?? 0)),
+            fit: rawContext.preview?.fit === "cover" ? "cover" : "contain",
+            guides: rawContext.preview?.guides === true
+          },
+          timeline: {
+            zoom: Math.max(24, Math.min(140, finite(rawContext.timeline?.zoom) ?? 64)),
+            snapEnabled: rawContext.timeline?.snapEnabled !== false,
+            tracks: trackTypes
+          },
+          capabilities: AI_EDITOR_ACTIONS
+        };
+        const contextJson = JSON.stringify(editorContext);
+        if (contextJson.length > 24000) {
+          return reply({
+            error: "This Video Studio project has too much context for one AI request. Select a clip or shorten the project context and try again.",
+            code: "AI_EDITOR_CONTEXT_TOO_LARGE"
+          }, 413);
+        }
+
+        const clipById = new Map(clips.map(item => [item.id, item]));
+        const assetById = new Map(mediaAssets.map(item => [item.id, item]));
+        const projectById = new Map(projects.map(item => [item.id, item]));
+        const requireClip = (id, types) => {
+          const clip = typeof id === "string" ? clipById.get(id) : null;
+          if (!clip || (types && !types.includes(clip.type))) throw new Error("An action referred to a clip that is not available in the current editor context.");
+          return clip;
+        };
+        const requireAsset = id => {
+          const asset = typeof id === "string" ? assetById.get(id) : null;
+          if (!asset) throw new Error("An action referred to media that is not available in the current Media Library context.");
+          return asset;
+        };
+        const requireProject = id => {
+          const entry = typeof id === "string" ? projectById.get(id) : null;
+          if (!entry) throw new Error("An action referred to a project that is not available in the current Project Manager context.");
+          return entry;
+        };
+        const validTrack = (clip, track) =>
+          typeof track === "string" && validTracksForType[clip.type]?.includes(track);
+        const validateChanges = (clip, changes) => {
+          if (!changes || typeof changes !== "object" || Array.isArray(changes)) throw new Error("Clip property changes must be an object.");
+          const keys = Object.keys(changes);
+          if (!keys.length || keys.length > 22) throw new Error("A clip property edit must contain 1 to 22 settings.");
+          for (const key of keys) {
+            if (!(propertyKeys[clip.type] || []).includes(key)) throw new Error("The AI proposed an unsupported property: " + key);
+            const value = changes[key];
+            if (propertyTypes.numeric.has(key) && (typeof value !== "number" || !Number.isFinite(value))) throw new Error("A numeric clip property had an invalid value.");
+            if (propertyRanges[key] && (value < propertyRanges[key][0] || value > propertyRanges[key][1])) throw new Error("A clip property is outside its safe range: " + key);
+            if ((key === "speedStart" || key === "speedEnd") && ![0.25, 0.5, 0.75, 1, 1.5, 2, 3, 4].includes(value)) throw new Error("A speed setting is not a supported preset.");
+            if (propertyTypes.boolean.has(key) && typeof value !== "boolean") throw new Error("A boolean clip property had an invalid value.");
+            if (propertyTypes.string.has(key) && typeof value !== "string") throw new Error("A text clip property had an invalid value.");
+            if (!propertyTypes.numeric.has(key) && !propertyTypes.boolean.has(key) && !propertyTypes.string.has(key)) throw new Error("A clip property had an unsupported data type.");
+            if (Object.prototype.hasOwnProperty.call(enumValues, key) && !enumValues[key].includes(value)) throw new Error("A clip property used an unavailable option: " + key);
+            if (["color", "bgColor", "chromaColor"].includes(key) && !/^#[0-9a-f]{6}$/i.test(value)) throw new Error("A clip colour must be a six-digit HEX value.");
+            if (["name", "text"].includes(key) && (!value.trim() || value.length > (key === "text" ? 180 : 80))) throw new Error("A clip text field is empty or too long.");
+            if (key === "weight" && ![500, 700, 900].includes(value)) throw new Error("Font weight is not supported.");
+          }
+          if (changes.maskTop !== undefined || changes.maskBottom !== undefined) {
+            const top = changes.maskTop ?? 0, bottom = changes.maskBottom ?? 100;
+            if (bottom < top + 5) throw new Error("Mask top and bottom lines must remain at least 5 percent apart.");
+          }
+        };
+        const checkId = (item, key) => {
+          if (typeof item[key] !== "string" || !item[key]) throw new Error("A required ID was missing from an AI action.");
+          return item[key];
+        };
+        const checkNum = (item, key, min, max) => {
+          if (!boundedNumber(item[key], min, max)) throw new Error("An AI action contains an invalid " + key + " value.");
+          return item[key];
+        };
+        const supportedTool = (item, type) => {
+          if (!AI_VIDEO_TOOLS.includes(item.tool)) throw new Error("The AI proposed a Video Studio tool that is not allowed.");
+          if (toolClipTypes[item.tool]) requireClip(item.clipId, toolClipTypes[item.tool]);
+          else if (item.tool === "caption_translation") {
+            if (!clips.some(clip => clip.track === "captions" && clip.type === "text")) throw new Error("Caption translation needs existing captions.");
+            if (!languageNames.includes(item.language)) throw new Error("Caption translation needs a supported target language.");
+          } else if (item.tool === "ai_voice_over") {
+            if (typeof item.text !== "string" || !item.text.trim() || item.text.length > 2000 || !voiceIds.includes(item.voiceId || "angus")) throw new Error("The AI voice-over details are invalid.");
+          } else if (item.tool === "add_sticker") {
+            if (!["star", "heart", "circle", "rectangle", "arrow", "speech", "lightning", "check", "emoji-star", "emoji-fire", "emoji-heart", "emoji-clap", "emoji-target"].includes(item.preset || "star")) throw new Error("The sticker preset is not supported.");
+            if (!/^#[0-9a-f]{6}$/i.test(item.color || "#a86bf2")) throw new Error("The sticker colour is invalid.");
+          }
+          if (item.tool === "auto_captions" && item.language && !autoCaptionLanguages.includes(item.language)) throw new Error("Auto Captions language is not supported.");
+          if (item.tool === "motion_tracking" && item.target && !["person", "any"].includes(item.target)) throw new Error("Motion Tracking target is not supported.");
+          if (item.tool === "reverse_video" && item.alsoReverseAudio !== undefined && typeof item.alsoReverseAudio !== "boolean") throw new Error("Reverse Video audio option must be true or false.");
+        };
+
+        const validateOperation = item => {
+          if (!item || typeof item !== "object" || Array.isArray(item) || typeof item.type !== "string") throw new Error("An AI operation was not a valid object.");
+          switch (item.type) {
+            case "set_clip_properties": {
+              const clip = requireClip(item.clipId);
+              validateChanges(clip, item.changes);
+              break;
+            }
+            case "split_clip": {
+              const clip = requireClip(item.clipId);
+              if (!["video", "audio", "image", "text"].includes(clip.type)) throw new Error("This clip cannot be split.");
+              if (!boundedNumber(item.atSeconds, clip.start + 0.151, clip.start + clip.duration - 0.151)) throw new Error("The split point must be inside the selected clip.");
+              break;
+            }
+            case "move_clip": {
+              const clip = requireClip(item.clipId);
+              checkNum(item, "start", 0, 7200);
+              if (item.track !== undefined && !validTrack(clip, item.track)) throw new Error("The clip cannot be moved to that track.");
+              break;
+            }
+            case "duplicate_clip":
+              requireClip(item.clipId);
+              checkNum(item, "start", 0, 7200);
+              break;
+            case "delete_clip":
+              requireClip(item.clipId);
+              break;
+            case "add_text_overlay":
+              if (typeof item.text !== "string" || !item.text.trim() || item.text.length > 180) throw new Error("Text overlay content is invalid.");
+              checkNum(item, "start", 0, 7200);
+              checkNum(item, "duration", 0.2, 600);
+              validateChanges({ type: "text" }, { ...(item.changes || {}), text: item.text, start: item.start, duration: item.duration });
+              break;
+            case "set_keyframes": {
+              const clip = requireClip(item.clipId, ["video", "image", "text"]);
+              if (!Array.isArray(item.keyframes) || item.keyframes.length < 2 || item.keyframes.length > 20) throw new Error("Keyframe count is outside the supported range.");
+              for (const frame of item.keyframes) {
+                if (!frame || typeof frame !== "object" || !boundedNumber(frame.time, 0, clip.duration) || !frame.values || typeof frame.values !== "object" || Array.isArray(frame.values)) throw new Error("A keyframe has invalid timing or values.");
+                const keys = Object.keys(frame.values);
+                if (!keys.length || keys.some(key => !["x", "y", "scale", "rotation", "opacity"].includes(key))) throw new Error("A keyframe contains an unsupported property.");
+                for (const key of keys) if (typeof frame.values[key] !== "number" || !Number.isFinite(frame.values[key])) throw new Error("A keyframe transform must be numeric.");
+              }
+              break;
+            }
+            case "run_tool":
+              supportedTool(item);
+              break;
+            case "trim_clip": {
+              const clip = requireClip(item.clipId);
+              checkNum(item, "start", 0, 7200);
+              checkNum(item, "duration", 0.2, 7200);
+              if (clip.type === "video" && clip.sourceTiming.speedSourceDuration > 0) throw new Error("Speed-ramped video clips must not be trimmed by AI.");
+              if (clip.assetId && ["video", "audio"].includes(clip.type)) {
+                const asset = assetById.get(clip.assetId);
+                const nextSourceStart = clip.sourceTiming.sourceStart + item.start - clip.start;
+                if (!asset || nextSourceStart < 0 || nextSourceStart + item.duration > asset.duration + 0.05) throw new Error("The requested trim exceeds the available original media.");
+              }
+              break;
+            }
+            case "set_preview_controls":
+              if (item.playback !== undefined && !["play", "pause", "stop"].includes(item.playback)) throw new Error("Preview playback mode is unsupported.");
+              if (item.playhead !== undefined) checkNum(item, "playhead", 0, 7200);
+              if (item.fit !== undefined && !["contain", "cover"].includes(item.fit)) throw new Error("Preview Fit/Fill option is unsupported.");
+              if (item.guides !== undefined && typeof item.guides !== "boolean") throw new Error("Preview guides option must be true or false.");
+              if (item.playback === undefined && item.playhead === undefined && item.fit === undefined && item.guides === undefined) throw new Error("Preview control action was empty.");
+              break;
+            case "set_timeline_controls":
+              if (item.fitAll !== undefined && typeof item.fitAll !== "boolean") throw new Error("Fit All option must be true or false.");
+              if (item.fitAll === true && item.zoom !== undefined) throw new Error("Fit All and custom zoom cannot be combined.");
+              if (item.zoom !== undefined && (!boundedNumber(item.zoom, 24, 140) || item.zoom % 4 !== 0)) throw new Error("Timeline zoom must use a supported step.");
+              if (item.snap !== undefined && typeof item.snap !== "boolean") throw new Error("Timeline snap option must be true or false.");
+              if (item.scrollToClipId !== undefined) requireClip(item.scrollToClipId);
+              if (item.fitAll === undefined && item.zoom === undefined && item.snap === undefined && item.scrollToClipId === undefined) throw new Error("Timeline control action was empty.");
+              break;
+            case "add_asset_to_timeline": {
+              const asset = requireAsset(item.assetId);
+              if (!validTracksForType[asset.type]?.includes(item.track || (asset.type === "audio" ? "audio" : asset.type === "video" ? "video" : "overlay"))) throw new Error("Media asset cannot be added to that track.");
+              checkNum(item, "start", 0, 7200);
+              checkNum(item, "duration", 0.2, 7200);
+              if (["video", "audio"].includes(asset.type) && item.duration > asset.duration + 0.05) throw new Error("The new media clip is longer than the available original asset.");
+              break;
+            }
+            case "rename_asset":
+              requireAsset(item.assetId);
+              if (typeof item.name !== "string" || !item.name.trim() || item.name.length > 100) throw new Error("The new media name is invalid.");
+              break;
+            case "remove_asset": {
+              const asset = requireAsset(item.assetId);
+              if (clips.some(clip => clip.assetId === asset.id || (asset.proxyAssetId && clip.assetId === asset.proxyAssetId))) throw new Error("An asset that is already used on the timeline cannot be removed from the Media Library.");
+              break;
+            }
+            case "create_video_proxy": {
+              const asset = requireAsset(item.assetId);
+              if (asset.type !== "video" || asset.proxyAvailable) throw new Error("A proxy can only be created for an original video without an existing proxy.");
+              break;
+            }
+            case "set_proxy_usage": {
+              const asset = requireAsset(item.assetId);
+              if (asset.type !== "video" || !asset.proxyAvailable || typeof item.useProxy !== "boolean") throw new Error("Proxy usage settings are not available for this asset.");
+              break;
+            }
+            case "rename_project":
+              if (item.projectId && item.projectId !== editorContext.project.id) throw new Error("AI may rename only the current open project.");
+              if (typeof item.name !== "string" || !item.name.trim() || item.name.length > 60) throw new Error("The new project name is invalid.");
+              break;
+            case "create_project":
+              if (typeof item.name !== "string" || !item.name.trim() || item.name.length > 60) throw new Error("New project name is invalid.");
+              if (!["16:9", "9:16", "1:1", "4:5", "custom"].includes(item.ratio || "16:9")) throw new Error("The requested project aspect ratio is not available.");
+              if (typeof item.resolution !== "string" || !/^\d{3,4}x\d{3,4}$/.test(item.resolution)) throw new Error("New project resolution is invalid.");
+              if (!boundedNumber(item.width, 240, 3840) || !boundedNumber(item.height, 240, 3840)) throw new Error("New project dimensions are outside the supported range.");
+              const ratio = item.ratio || "16:9";
+              const presetResolutions = {
+                "16:9": ["1280x720", "1920x1080", "2560x1440", "3840x2160"],
+                "9:16": ["1080x1920"], "1:1": ["1080x1080"], "4:5": ["1080x1350"]
+              };
+              if (ratio !== "custom" && !presetResolutions[ratio]?.includes(item.resolution)) throw new Error("New project resolution does not match the selected aspect-ratio preset.");
+              if (![24, 30, 60].includes(item.fps ?? 30)) throw new Error("New project frame rate is not supported.");
+              break;
+            case "open_project":
+            case "delete_project":
+              requireProject(item.projectId);
+              break;
+            default:
+              throw new Error("The AI proposed an operation that is not allowed in Video Studio.");
+          }
+        };
+
+        const systemInstructions = [
+          "You are TrivexaAI's Video Studio editing assistant. You operate ONLY the current TrivexaAI Video Studio editor and its local Project Manager.",
+          "The user writes in their own language. Understand English, Roman Urdu, Urdu, Hindi and mixed-language requests. Restate the request in the same language and use simple, clear wording.",
+          "Return exactly one JSON object, with no markdown or code fences: {\"understoodRequest\":\"...\",\"message\":\"...\",\"needsClarification\":false,\"operations\":[...]}.",
+          "The only allowed operation types are: " + AI_EDITOR_ACTIONS.join(", ") + ". The only allowed run_tool IDs are: " + AI_VIDEO_TOOLS.join(", ") + ". Never invent any other function, tool, action, property, project, asset, clip ID or track.",
+          "Never generate HTML, CSS, JavaScript, commands, URLs, shell commands, export jobs or code. You cannot run arbitrary code.",
+          "This AI assistant does NOT control the 17 separate homepage tools. It does NOT control Export, export settings, render/download, or the export queue. Never propose an export action.",
+          "Only use IDs present in EDITOR_CONTEXT. Match a clip or media asset by exact name or the selectedClipId only when the user's wording clearly identifies it. If names are ambiguous, multiple clips match, or a referenced item is missing, set needsClarification=true and operations=[]. Ask one concise question.",
+          "Use only the minimum relevant operations. Never add extra edits, effects, captions, voice-over, stickers, audio changes, or project operations unless explicitly requested. Do not alter audio for a visual-only request or visuals for an audio-only request.",
+          "Do not assume the user wants all clips changed when they say 'the video' if several candidates exist. If clipsTruncated or assetsTruncated is true, do not claim an action covers the whole project or whole library.",
+          "If needsClarification=true, operations MUST be an empty array and message must ask one specific question. Otherwise, include 1 to 8 valid operations and explain briefly.",
+          "For set_clip_properties use {\"type\":\"set_clip_properties\",\"clipId\":\"existing-clip-id\",\"changes\":{\"brightness\":1.1},\"reason\":\"...\"}. Only use properties listed for the selected clip type.",
+          "Video properties: name, start, duration, scale, rotation, x, y, opacity, flipX, flipY, framingMode, filterPreset, brightness, contrast, saturation, blur, hue, transition, transitionDuration, volume, speedStart, speedEnd, chromaEnabled, chromaColor, chromaTolerance, chromaSoftness, maskShape, maskTop, maskBottom, maskFeather, maskAngle. Image clips use their matching image properties and do not support video-only speed/chroma/background-removal settings.",
+          "Audio properties: name, start, duration, volume, fadeIn, fadeOut, audioBass, audioMid, audioTreble, audioPan. Text properties: name, start, duration, text, color, fontSize, font, weight, align, bgColor, bgOpacity, italic, rotation, opacity, textEffect, textTransition, textTransitionDuration, x, y, scale.",
+          "Property enums: framingMode project/fit/fill/stretch; filterPreset none/cinematic/vivid/warm/cool/noir/vintage; transition none/fade/zoom/slide-left/wipe-left/blur-reveal; maskShape none/circle/ellipse/rounded/left-half/right-half/horizontal; align left/center/right; textEffect none/shadow/glow/neon/outline; textTransition none/fade/pop/slide-up/bounce; font Arial, sans-serif OR Inter, sans-serif OR Georgia, serif OR Impact, sans-serif OR system-ui, sans-serif; weight 500/700/900. Colours must be six-digit HEX. Use numeric values as JSON numbers, not strings.",
+          "Use conservative adjustments. Numeric limits: start 0–7200, duration 0.2–7200, scale 0.1–4, rotation -180–180, x/y -100–100, opacity/volume 0–1, brightness/contrast 0.5–1.8, saturation 0–2, blur 0–12, hue -45–45, transitionDuration 0.1–2.5, speedStart/speedEnd only 0.25/0.5/0.75/1/1.5/2/3/4, chromaTolerance 20–220, chromaSoftness 0–160, maskTop 0–95, maskBottom 5–100, maskFeather 0–20, maskAngle -90–90, fadeIn/fadeOut 0–7200, audioBass/audioMid/audioTreble -12–12, audioPan -100–100, fontSize 10–120, bgOpacity 0–1, textTransitionDuration 0.1–2.",
+          "For split_clip use {\"type\":\"split_clip\",\"clipId\":\"id\",\"atSeconds\":number}; atSeconds is absolute timeline time and must be inside that clip, not at its edge.",
+          "For move_clip use {\"type\":\"move_clip\",\"clipId\":\"id\",\"start\":number,\"track\":\"video|overlay|audio|text|captions\"}. Move video/image clips only between Video and Overlay, audio only to Audio, and text only to Text or Captions. Keep detached audio linked and in sync when moving its video.",
+          "For duplicate_clip use {\"type\":\"duplicate_clip\",\"clipId\":\"id\",\"start\":number}. For delete_clip use {\"type\":\"delete_clip\",\"clipId\":\"id\"} only when the user clearly asks to remove that timeline clip.",
+          "For trim_clip use {\"type\":\"trim_clip\",\"clipId\":\"id\",\"start\":number,\"duration\":number}. Start is the new absolute timeline start and duration is the new duration. Do not trim speed-ramped video. Never extend beyond the original source media. Preserve detached audio timing when trimming video.",
+          "For add_text_overlay use {\"type\":\"add_text_overlay\",\"text\":\"...\",\"start\":number,\"duration\":number,\"changes\":{},\"reason\":\"...\"}. Keep text at 180 characters or less and only add it when the user asks.",
+          "For set_keyframes use {\"type\":\"set_keyframes\",\"clipId\":\"id\",\"keyframes\":[{\"time\":0,\"values\":{\"x\":0,\"y\":0,\"scale\":1,\"rotation\":0,\"opacity\":1}},{\"time\":2,\"values\":{\"x\":10}}]}. Use 2–20 frames, relative times from 0 to clip duration, and only x/y/scale/rotation/opacity values.",
+          "For run_tool use {\"type\":\"run_tool\",\"tool\":\"exact-tool-id\",\"clipId\":\"id\",\"reason\":\"...\"}. scene_detection: video; beat_sync: audio or video and existing music; remove_silence: audio or video; ai_colour_correction: video or image; caption_translation: existing captions and language exactly one of " + languageNames.join(", ") + "; auto_captions: video or audio with language empty for auto-detect or one of " + autoCaptionLanguages.join(", ") + "; reverse_video: video and alsoReverseAudio must be false unless the user explicitly asks to reverse audio too; motion_tracking: video and target person or any; enhance_audio: audio; remove_person_background: video; auto_reframe: video; detach_audio: video; ai_voice_over: exact user-provided script text (1–2000 chars) and voiceId from " + voiceIds.join(", ") + "; add_sticker: one of star/heart/circle/rectangle/arrow/speech/lightning/check/emoji-star/emoji-fire/emoji-heart/emoji-clap/emoji-target and optional six-digit HEX colour.",
+          "Cloud AI actions that process audio/text or use cloud analysis must remain explicit. Never add Auto Captions, Caption Translation, AI Voice-over or AI Colour Correction as unsolicited extras. The frontend asks the user for consent before required Cloud AI processing.",
+          "For set_preview_controls use {\"type\":\"set_preview_controls\",\"playback\":\"play|pause|stop\",\"playhead\":number,\"fit\":\"contain|cover\",\"guides\":true}. Include only the settings requested. This is preview-only and must not imply export changes.",
+          "For set_timeline_controls use {\"type\":\"set_timeline_controls\",\"fitAll\":true,\"zoom\":64,\"snap\":true,\"scrollToClipId\":\"id\"}. Include only requested settings. Zoom uses steps of 4 between 24 and 140.",
+          "For add_asset_to_timeline use {\"type\":\"add_asset_to_timeline\",\"assetId\":\"existing-media-id\",\"start\":number,\"track\":\"...\",\"duration\":number}. Choose only from Media Library assets in context; default tracks are video, audio or overlay according to media type. Do not invent or import local files.",
+          "For rename_asset use {\"type\":\"rename_asset\",\"assetId\":\"id\",\"name\":\"new name\"}. For remove_asset use {\"type\":\"remove_asset\",\"assetId\":\"id\"}; only remove unused imported media, and only when the user explicitly asks. Removing an asset must be a separate request, not combined with another operation.",
+          "For create_video_proxy use {\"type\":\"create_video_proxy\",\"assetId\":\"video-asset-id\"}. Proxies are local preview copies; original files remain available for export. For set_proxy_usage use {\"type\":\"set_proxy_usage\",\"assetId\":\"video-asset-id\",\"useProxy\":true}. Only switch on a proxy when proxyAvailable is true.",
+          "For rename_project use {\"type\":\"rename_project\",\"projectId\":\"current-project-id\",\"name\":\"new name\"}. For create_project use {\"type\":\"create_project\",\"name\":\"...\",\"ratio\":\"16:9|9:16|1:1|4:5|custom\",\"resolution\":\"1920x1080\",\"width\":1920,\"height\":1080,\"fps\":30}. Allowed fps: 24, 30, 60; dimensions: 240–3840. Use correct presets: 16:9 = 1920x1080, 9:16 = 1080x1920, 1:1 = 1080x1080, 4:5 = 1080x1350 unless the user asks another allowed landscape resolution.",
+          "For open_project use {\"type\":\"open_project\",\"projectId\":\"existing-project-id\"}. For delete_project use {\"type\":\"delete_project\",\"projectId\":\"existing-project-id\"}. Project navigation/deletion must be one separate operation only. The UI will still ask for an explicit second confirmation before deletion; do not claim it has already been deleted.",
+          "Project create/open/delete actions must not be combined with clip or media edits. Do not change other projects. Never access account settings, user records, Firebase, D1, Worker secrets, or authentication.",
+          "Return only the requested changes, in the smallest number of steps. Reasons must be short and user-friendly."
+        ].join("\n");
+
+        const userMessage = [
+          "EDITOR_CONTEXT:",
+          contextJson,
+          "",
+          "USER_REQUEST:",
+          userRequest
+        ].join("\n");
+        let geminiResponse;
+        try {
+          geminiResponse = await fetch(
+            "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "x-goog-api-key": env.GEMINI_API_KEY
+              },
+              body: JSON.stringify({
+                systemInstruction: { parts: [{ text: systemInstructions }] },
+                contents: [{ role: "user", parts: [{ text: userMessage }] }],
+                generationConfig: {
+                  temperature: 0.1,
+                  maxOutputTokens: 4500,
+                  responseMimeType: "application/json"
+                }
+              })
+            }
+          );
+        } catch (geminiNetworkError) {
+          console.error("Video Studio AI Editor Gemini connection error:", geminiNetworkError);
+          return reply({ error: "The AI Editor could not connect to Gemini. Please try again shortly.", code: "AI_EDITOR_CONNECTION_FAILED" }, 502);
+        }
+        let geminiData = {};
+        try { geminiData = await geminiResponse.json(); } catch (parseError) {}
+        if (!geminiResponse.ok) {
+          console.error("Video Studio AI Editor Gemini error:", {
+            status: geminiResponse.status,
+            message: geminiData.error?.message || ""
+          });
+          return reply({
+            error: "Gemini could not prepare the Video Studio edit plan.",
+            details: String(geminiData.error?.message || "Please try again shortly.").slice(0, 500),
+            code: "AI_EDITOR_GEMINI_FAILED"
+          }, geminiResponse.status === 429 ? 429 : 502);
+        }
+        const generatedText = geminiData.candidates?.[0]?.content?.parts
+          ?.map(part => typeof part.text === "string" ? part.text : "")
+          .join("")
+          .trim() || "";
+        if (!generatedText || generatedText.length > 30000) {
+          return reply({ error: "Gemini returned an empty or oversized edit plan. Please simplify your request.", code: "AI_EDITOR_EMPTY_PLAN" }, 502);
+        }
+
+        let plan;
+        try {
+          const firstBrace = generatedText.indexOf("{");
+          const lastBrace = generatedText.lastIndexOf("}");
+          const jsonText = firstBrace >= 0 && lastBrace > firstBrace
+            ? generatedText.slice(firstBrace, lastBrace + 1)
+            : generatedText;
+          plan = JSON.parse(jsonText);
+        } catch (planParseError) {
+          return reply({ error: "The AI response was not a valid edit plan. Please try a clearer prompt.", code: "AI_EDITOR_INVALID_JSON" }, 502);
+        }
+        if (!plan || typeof plan !== "object" || Array.isArray(plan)) {
+          return reply({ error: "The AI returned an invalid edit plan.", code: "AI_EDITOR_INVALID_PLAN" }, 502);
+        }
+        const needsClarification = plan.needsClarification === true;
+        const operations = Array.isArray(plan.operations) ? plan.operations : null;
+        if (needsClarification) {
+          if (!operations || operations.length !== 0) {
+            return reply({ error: "The AI clarification response did not follow the required safe format. Please try again.", code: "AI_EDITOR_PLAN_REJECTED" }, 502);
+          }
+        } else if (!operations || operations.length < 1 || operations.length > 8) {
+          return reply({ error: "The AI did not return a complete set of editing steps. Please make your request more specific.", code: "AI_EDITOR_PLAN_REJECTED" }, 502);
+        }
+        if (!str(plan.understoodRequest, 500)) {
+          return reply({ error: "The AI did not clearly restate your requested edit. Please try again.", code: "AI_EDITOR_PLAN_REJECTED" }, 502);
+        }
+        if (operations) {
+          try {
+            for (const operation of operations) {
+              if (!AI_EDITOR_ACTIONS.includes(operation?.type)) throw new Error("The AI proposed an unsupported operation.");
+              validateOperation(operation);
+              if (operation.reason !== undefined && typeof operation.reason !== "string") throw new Error("An action explanation must be plain text.");
+              if (typeof operation.reason === "string") operation.reason = operation.reason.slice(0, 220);
+            }
+            const navigation = operations.filter(operation => ["create_project", "open_project", "delete_project"].includes(operation.type));
+            if (navigation.length && operations.length !== 1) throw new Error("Project actions must be separate from editor changes.");
+            if (operations.some(operation => operation.type === "remove_asset") && operations.length !== 1) throw new Error("Removing a Media Library asset must be a separate request.");
+          } catch (validationError) {
+            console.warn("Video Studio AI Editor plan rejected:", validationError?.message || validationError);
+            return reply({
+              error: "The AI suggested an edit that is not safe or does not match this project. Nothing was changed. Please select the correct clip or make the prompt more specific.",
+              code: "AI_EDITOR_PLAN_REJECTED"
+            }, 422);
+          }
+        }
+        const cleanPlan = {
+          understoodRequest: str(plan.understoodRequest, 500),
+          message: str(plan.message, 700),
+          needsClarification,
+          operations: operations || []
+        };
+        return reply({ text: JSON.stringify(cleanPlan) });
       }
 
       // EXISTING GEMINI AI TOOLS

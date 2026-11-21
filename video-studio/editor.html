@@ -513,6 +513,110 @@ input,select,textarea{accent-color:#a96bf1}
  .tool-subgroup-heading{padding:8px}
 }
 
+
+/* TrivexaAI AI Editor — focused assistant drawer and review controls. */
+.ai-launch-btn{border-color:rgba(198,135,255,.66)!important;background:linear-gradient(112deg,#7339b7,#4b43a8)!important;color:#fff!important;box-shadow:0 4px 18px rgba(139,81,220,.25)!important;font-weight:850}
+.ai-launch-btn:hover{border-color:#e0bdff!important;background:linear-gradient(112deg,#8745d2,#5b50c7)!important;box-shadow:0 7px 22px rgba(153,95,241,.34)!important}
+.ai-assistant-overlay{position:fixed;inset:0;z-index:1400;pointer-events:none}
+.ai-assistant-overlay[hidden]{display:none!important}
+.ai-assistant-backdrop{position:absolute;inset:0;background:rgba(7,4,16,.46);backdrop-filter:blur(4px);pointer-events:auto}
+.ai-assistant-panel{position:absolute;top:78px;right:16px;bottom:16px;width:min(462px,calc(100vw - 32px));display:flex;flex-direction:column;overflow:hidden;pointer-events:auto;border:1px solid rgba(193,145,246,.5);border-radius:19px;background:linear-gradient(155deg,rgba(28,19,47,.99),rgba(13,10,25,.99));box-shadow:0 28px 90px rgba(0,0,0,.55),0 0 38px rgba(154,91,224,.18);color:#fbf7ff}
+.ai-assistant-head{display:flex;align-items:center;gap:12px;padding:16px 17px;border-bottom:1px solid rgba(185,139,232,.2);background:radial-gradient(ellipse at 0 0,rgba(151,86,218,.23),transparent 72%),rgba(27,18,44,.95)}
+.ai-assistant-mark{width:42px;height:42px;display:grid;place-items:center;flex:none;border:1px solid rgba(211,169,255,.52);border-radius:13px;background:linear-gradient(145deg,#813fc0,#4f43a3);box-shadow:0 0 22px rgba(164,102,235,.24);font-size:21px}
+.ai-assistant-title{min-width:0;flex:1}
+.ai-assistant-title h2{margin:0;color:#fff;font-size:16px;letter-spacing:.1px}
+.ai-assistant-title p{margin:4px 0 0;color:#c7b5df;font-size:10px;line-height:1.45}
+.ai-assistant-close{width:32px;height:32px;display:grid;place-items:center;flex:none;border:1px solid #594270;border-radius:9px;background:#211731;color:#e8d9fa;font-size:17px;cursor:pointer}
+.ai-assistant-close:hover{border-color:#bd8bee;background:#352149}
+.ai-assistant-body{min-height:0;flex:1;display:flex;flex-direction:column;gap:12px;overflow:auto;padding:14px}
+.ai-assistant-context{display:flex;align-items:center;gap:8px;min-height:34px;padding:7px 9px;border:1px solid rgba(157,125,196,.25);border-radius:9px;background:rgba(31,23,47,.7);color:#cbb9df;font-size:10px;line-height:1.4}
+.ai-assistant-context strong{color:#eadbfa}
+.ai-assistant-spark{color:#d7a5ff;font-size:13px}
+.ai-assistant-welcome{padding:11px 12px;border:1px solid rgba(156,116,206,.24);border-radius:12px;background:linear-gradient(120deg,rgba(86,56,129,.24),rgba(28,21,43,.72));color:#d9cbe9;font-size:11px;line-height:1.65}
+.ai-assistant-welcome strong{color:#fff}
+.ai-assistant-suggestions{display:flex;flex-wrap:wrap;gap:7px}
+.ai-suggestion-chip{min-height:31px;padding:6px 9px;border:1px solid #49345f;border-radius:999px;background:rgba(31,22,48,.8);color:#dfcef3;font-size:9px;font-weight:750;cursor:pointer;transition:.16s}
+.ai-suggestion-chip:hover{border-color:#b17ce6;background:#352148;color:#fff;transform:translateY(-1px)}
+.ai-prompt-label{display:flex;align-items:center;justify-content:space-between;gap:8px;color:#e6d8f4;font-size:10px;font-weight:850}
+.ai-prompt-label span:last-child{color:#a99ab9;font-size:9px;font-weight:600}
+.ai-prompt-input{width:100%;min-height:104px;max-height:190px;resize:vertical;padding:11px 12px;border:1px solid #61467c;border-radius:11px;background:#100c1d;color:#fff;font:inherit;font-size:11px;line-height:1.6;outline:none}
+.ai-prompt-input:focus{border-color:#c08bf2;box-shadow:0 0 0 3px rgba(167,108,225,.15)}
+.ai-assistant-actions{display:flex;align-items:center;gap:8px}
+.ai-assistant-actions .btn{min-height:38px}
+.ai-assistant-primary{flex:1;border:0!important;background:linear-gradient(110deg,#9848da,#6554d9)!important;color:#fff!important;box-shadow:0 6px 18px rgba(131,79,214,.22)}
+.ai-assistant-primary:hover:not(:disabled){background:linear-gradient(110deg,#ae58eb,#7665ed)!important}
+.ai-assistant-status{min-height:15px;color:#b9a9cc;font-size:9px;line-height:1.5}
+.ai-plan-card{padding:12px;border:1px solid rgba(178,131,225,.38);border-radius:13px;background:linear-gradient(145deg,rgba(53,35,77,.62),rgba(20,15,32,.95));}
+.ai-plan-card[hidden],.ai-cloud-consent[hidden]{display:none!important}
+.ai-plan-eyebrow{display:flex;align-items:center;gap:7px;margin-bottom:9px;color:#d8b2ff;font-size:9px;font-weight:900;letter-spacing:1px;text-transform:uppercase}
+.ai-plan-understood{padding:10px;border-left:3px solid #a66bdd;border-radius:0 8px 8px 0;background:rgba(129,83,171,.15);color:#f3e9ff;font-size:11px;line-height:1.6}
+.ai-plan-message{margin:9px 0;color:#c8bad8;font-size:10px;line-height:1.55}
+.ai-plan-steps{display:grid;gap:7px;margin:10px 0 11px;padding:0;list-style:none;counter-reset:aiStep}
+.ai-plan-steps li{position:relative;padding:8px 9px 8px 33px;border:1px solid rgba(157,124,191,.2);border-radius:9px;background:rgba(16,12,26,.75);color:#e6d9f3;font-size:10px;line-height:1.5;counter-increment:aiStep}
+.ai-plan-steps li:before{content:counter(aiStep);position:absolute;left:9px;top:8px;width:17px;height:17px;display:grid;place-items:center;border:1px solid rgba(192,148,236,.4);border-radius:6px;background:#36224b;color:#e2c5ff;font-size:9px;font-weight:900}
+.ai-plan-refine{margin:0 0 10px;padding:0;border:0;background:none;color:#d5aaff;font-size:9px;font-weight:800;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.ai-cloud-consent{display:flex;align-items:flex-start;gap:8px;margin:10px 0;padding:9px;border:1px solid rgba(221,169,104,.38);border-radius:9px;background:rgba(110,70,24,.16);color:#f0dfc7;font-size:9px;line-height:1.5}
+.ai-cloud-consent input{margin:2px 0 0;accent-color:#b47ce9;flex:none}
+.ai-plan-notice{margin:8px 0 0;color:#b7a6c8;font-size:9px;line-height:1.5}
+.ai-plan-actions{display:flex;gap:7px;margin-top:10px}
+.ai-plan-actions .btn{flex:1;min-height:36px;padding:8px 9px;font-size:10px}
+.ai-apply-btn{border:0!important;background:linear-gradient(110deg,#238d6c,#277d8a)!important;color:#fff!important}
+.ai-cancel-btn{border-color:#75516d!important;background:#2b1c31!important;color:#f2d9ed!important}
+.ai-preview-state{display:flex;align-items:center;gap:7px;margin:0 0 8px;padding:8px 9px;border:1px solid rgba(91,205,167,.35);border-radius:9px;background:rgba(32,120,91,.14);color:#c8f7e7;font-size:9px;line-height:1.5}
+.ai-preview-state[hidden]{display:none!important}
+.ai-assistant-foot{padding:9px 14px;border-top:1px solid rgba(185,139,232,.16);color:#9989ad;font-size:8px;line-height:1.5;text-align:center}
+body.ai-assistant-open .topbar{pointer-events:none}
+body.ai-assistant-open .editor .media-panel,body.ai-assistant-open .editor .inspector,body.ai-assistant-open .editor .timeline{pointer-events:none}
+body.ai-preview-active .ai-assistant-backdrop{background:rgba(6,4,14,.08);backdrop-filter:none}
+body.ai-preview-active .editor .media-panel,body.ai-preview-active .editor .inspector,body.ai-preview-active .editor .timeline{opacity:.84}
+body.ai-preview-active #previewStage,body.ai-preview-active .preview-toolbar{pointer-events:none}
+body.ai-preview-active #playBtn,body.ai-preview-active #stopBtn{pointer-events:auto}
+@media(max-width:680px){
+ .ai-assistant-panel{top:auto;left:9px;right:9px;bottom:9px;width:auto;max-height:min(82vh,720px);border-radius:16px}
+ .ai-assistant-head{padding:12px}
+ .ai-assistant-body{padding:11px;gap:10px}
+ .ai-prompt-input{min-height:82px}
+ .ai-assistant-foot{padding:7px}
+}
+@media(prefers-reduced-motion:reduce){.ai-assistant-panel,.ai-suggestion-chip{transition:none!important}}
+
+.ai-assistant-overlay.is-preview-mode .ai-assistant-backdrop{pointer-events:none}
+.ai-assistant-overlay.is-preview-mode .ai-assistant-panel{top:auto;right:16px;bottom:16px;width:min(350px,calc(100vw - 32px));max-height:250px}
+.ai-assistant-overlay.is-preview-mode .ai-assistant-body{gap:7px;padding:9px;overflow:auto}
+.ai-assistant-overlay.is-preview-mode .ai-assistant-context,.ai-assistant-overlay.is-preview-mode .ai-assistant-welcome,.ai-assistant-overlay.is-preview-mode .ai-assistant-suggestions,.ai-assistant-overlay.is-preview-mode .ai-prompt-label,.ai-assistant-overlay.is-preview-mode .ai-prompt-input,.ai-assistant-overlay.is-preview-mode .ai-assistant-actions,.ai-assistant-overlay.is-preview-mode .ai-plan-refine,.ai-assistant-overlay.is-preview-mode .ai-cloud-consent{display:none!important}
+.ai-assistant-overlay.is-preview-mode .ai-plan-card{padding:9px}
+.ai-assistant-overlay.is-preview-mode .ai-plan-steps{max-height:54px;overflow:auto;margin:5px 0}
+.ai-assistant-overlay.is-preview-mode .ai-assistant-foot{padding:6px}
+@media(max-width:680px){.ai-assistant-overlay.is-preview-mode .ai-assistant-panel{left:auto;right:9px;bottom:9px;width:min(340px,calc(100vw - 18px));max-height:210px}}
+
+
+/* Roman Urdu Prompt Writer — Step 1, separate from the actual edit planner. */
+.ai-prompt-writer{border:1px solid rgba(181,130,230,.48);border-radius:13px;background:linear-gradient(145deg,rgba(64,39,91,.48),rgba(23,17,37,.94));overflow:hidden}
+.ai-prompt-writer>summary{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:11px 12px;cursor:pointer;list-style:none;color:#f7eaff;font-size:11px;font-weight:900}
+.ai-prompt-writer>summary::-webkit-details-marker{display:none}
+.ai-prompt-writer>summary:after{content:"⌄";color:#d6a7ff;font-size:16px}
+.ai-prompt-writer[open]>summary{border-bottom:1px solid rgba(181,130,230,.25);background:rgba(112,66,155,.14)}
+.ai-prompt-writer-step{display:inline-grid;place-items:center;width:23px;height:23px;margin-right:7px;border-radius:8px;background:linear-gradient(145deg,#a34de4,#5e55d9);color:white;font-size:11px}
+.ai-prompt-writer-tag{margin-left:auto;color:#c8a0ed;font-size:8px;letter-spacing:1px}
+.ai-prompt-writer-content{display:grid;gap:8px;padding:11px}
+.ai-prompt-writer-content>p:first-child{margin:0;color:#d2c2e3;font-size:10px;line-height:1.55}
+.ai-prompt-writer-label{display:flex;justify-content:space-between;align-items:center;gap:8px;color:#e7d9f5;font-size:10px;font-weight:850}
+.ai-prompt-writer-label span:last-child{color:#ad9abb;font-size:9px;font-weight:600}
+.ai-prompt-writer-input{width:100%;min-height:88px;max-height:170px;resize:vertical;padding:10px 11px;border:1px solid #61467c;border-radius:10px;background:#100c1d;color:#fff;font:inherit;font-size:11px;line-height:1.6;outline:none}
+.ai-prompt-writer-input:focus{border-color:#c08bf2;box-shadow:0 0 0 3px rgba(167,108,225,.15)}
+.ai-prompt-writer-output{min-height:105px;background:#130d20;border-color:#8862ad}
+.ai-prompt-writer-generate{width:100%;min-height:38px;border:0!important;background:linear-gradient(110deg,#9848da,#6554d9)!important;color:#fff!important;font-size:10px}
+.ai-prompt-writer-generate:disabled{opacity:.5;cursor:wait}
+.ai-prompt-writer-status{min-height:14px;margin:0;color:#c0afd3;font-size:9px;line-height:1.5}
+.ai-prompt-writer-question{margin:0;padding:8px 9px;border-left:3px solid #e7b35f;border-radius:0 7px 7px 0;background:rgba(157,105,40,.15);color:#ffe3b4;font-size:10px;line-height:1.5}
+.ai-prompt-writer-result{display:grid;gap:8px;padding-top:8px;border-top:1px solid rgba(181,130,230,.22)}
+.ai-prompt-writer-buttons{display:flex;gap:7px;flex-wrap:wrap}
+.ai-prompt-writer-buttons .btn{flex:1;min-height:35px;font-size:10px}
+.ai-prompt-writer-use{border:0!important;background:linear-gradient(110deg,#864bd0,#5554bd)!important;color:white!important}
+.ai-prompt-writer-disclosure{color:#9f91b3;font-size:8px;line-height:1.5}
+.ai-assistant-overlay.is-preview-mode .ai-prompt-writer{display:none!important}
+@media(max-width:680px){.ai-prompt-writer>summary{padding:10px}.ai-prompt-writer-content{padding:9px}.ai-prompt-writer-input{min-height:78px}}
+
 </style>
 </head>
 <body>
@@ -632,7 +736,8 @@ input,select,textarea{accent-color:#a96bf1}
 <button class="btn" id="undoBtn" type="button" disabled title="Undo (Ctrl+Z)" aria-label="Undo">↶</button>
 <button class="btn" id="redoBtn" type="button" disabled title="Redo (Ctrl+Shift+Z)" aria-label="Redo">↷</button>
 <a class="btn" href="help.html" target="_blank" rel="noopener" title="Open the Video Studio Help Guide">? Help</a>
-<button class="btn" id="saveBtn" type="button" title="Save this project on your device">Save</button>
+<button class="btn ai-launch-btn" id="aiEditorOpenBtn" type="button" title="Ask AI to edit this project with a reviewable preview">✦ AI Editor</button>
+ <button class="btn" id="saveBtn" type="button" title="Save this project on your device">Save</button>
 <button class="btn primary" id="exportBtn" type="button" title="Choose your video export settings">Export</button>
 </div>
 </header>
@@ -975,6 +1080,75 @@ input,select,textarea{accent-color:#a96bf1}
   <footer class="export-dialog-actions"><button class="btn" id="voiceoverCloseBtn" type="button">Close</button><button class="btn primary" id="voiceoverGenerateBtn" type="button" disabled>Generate &amp; add to timeline</button></footer>
  </section>
 </div>
+<div class="ai-assistant-overlay" id="aiAssistantOverlay" hidden>
+ <div class="ai-assistant-backdrop" id="aiAssistantBackdrop"></div>
+ <section class="ai-assistant-panel" role="dialog" aria-modal="true" aria-labelledby="aiAssistantHeading">
+  <header class="ai-assistant-head">
+   <div class="ai-assistant-mark" aria-hidden="true">✦</div>
+   <div class="ai-assistant-title"><h2 id="aiAssistantHeading">TrivexaAI AI Editor</h2><p>Describe the edit. Review the plan. Preview before applying.</p></div>
+   <button class="ai-assistant-close" id="aiAssistantCloseBtn" type="button" aria-label="Close AI Editor">×</button>
+  </header>
+  <div class="ai-assistant-body">
+   <div class="ai-assistant-context" id="aiAssistantContext"><span class="ai-assistant-spark">✦</span><span>Reading your current project…</span></div>
+   <div class="ai-assistant-welcome"><strong>Your Video Studio co-pilot</strong><br>Apni request simple alfaaz mein likhein. AI clips edit kar sakta hai, timeline arrange/trim kar sakta hai, preview controls chala sakta hai, imported media aur video proxies manage kar sakta hai, aur projects create/open/rename kar sakta hai. AI sirf relevant Video Studio tools use karega aur Apply se pehle review preview dikhayega.<br><br><strong>Prompt likhne ka easy tareeqa:</strong> batayein <em>kis clip ya project par</em>, <em>kya change</em>, aur <em>kya bilkul same rakhna hai</em>. Misal: “Selected video ko 12 seconds par move karo, 8 seconds tak trim karo, aur detached audio sync rakho.”<br><br>Planning ke liye prompt, project/clip names, settings aur media-library metadata securely AI ko bheje ja sakte hain. Aapki local video files planning ke liye upload nahi hotin. New file import karne ke liye aapko khud <strong>Choose files</strong> click karna hoga. Export system AI control mein nahi hai.</div>
+   <details class="ai-prompt-writer" id="aiPromptWriterPanel" open>
+    <summary><span><span class="ai-prompt-writer-step">1</span> Roman Urdu Prompt Writer</span><span class="ai-prompt-writer-tag">STEP 1</span></summary>
+    <div class="ai-prompt-writer-content">
+     <p>Apna kaam Roman Urdu mein likhein. Gemini isay clear English prompt mein badlega jo Video Studio AI Editor samajh sakta hai. Is step se koi editing nahi hogi.</p>
+     <label class="ai-prompt-writer-label" for="aiPromptWriterInput"><span>Aap kya karwana chahte hain?</span><span id="aiPromptWriterCount">0 / 2,000</span></label>
+     <textarea id="aiPromptWriterInput" class="ai-prompt-writer-input" maxlength="2000" placeholder="Misal: meri selected video ko vertical 9:16 mein set karo, subject center mein rahe aur audio bilkul change na karna."></textarea>
+     <button class="btn ai-prompt-writer-generate" id="aiPromptWriterGenerateBtn" type="button">✦ Roman Urdu ko proper prompt mein badlein</button>
+     <p class="ai-prompt-writer-status" id="aiPromptWriterStatus" role="status" aria-live="polite">Gemini sirf prompt likhega; editing neeche Step 2 mein hogi.</p>
+     <p class="ai-prompt-writer-question" id="aiPromptWriterQuestion" hidden></p>
+     <div class="ai-prompt-writer-result" id="aiPromptWriterResultWrap" hidden>
+      <label class="ai-prompt-writer-label" for="aiPromptWriterResult">Ready-to-use English prompt <span>1,400 characters max</span></label>
+      <textarea id="aiPromptWriterResult" class="ai-prompt-writer-input ai-prompt-writer-output" maxlength="1400" readonly></textarea>
+      <div class="ai-prompt-writer-buttons">
+       <button class="btn" id="aiPromptWriterCopyBtn" type="button">Copy prompt</button>
+       <button class="btn ai-prompt-writer-use" id="aiPromptWriterUseBtn" type="button">Use in AI Editor ↓</button>
+      </div>
+     </div>
+     <small class="ai-prompt-writer-disclosure">Aapka likha hua text prompt banane ke liye securely Cloudflare ke zariye Gemini ko bheja jayega. Local video files ya media bytes nahi bheje jayenge. AI quota ya charges apply ho sakte hain.</small>
+    </div>
+   </details>
+   <div class="ai-assistant-suggestions" aria-label="Example editing requests">
+    <button class="ai-suggestion-chip" type="button" data-ai-suggestion="Make the selected video brighter and more cinematic, but keep its natural colours. Do not change audio.">Cinematic colour</button>
+    <button class="ai-suggestion-chip" type="button" data-ai-suggestion="Reframe the selected video for a vertical 9:16 social video and keep the subject centred.">Vertical 9:16</button>
+    <button class="ai-suggestion-chip" type="button" data-ai-suggestion="Move the selected clip to 12 seconds, trim its duration to 8 seconds, and keep its linked audio in sync.">Timeline edit</button>
+    <button class="ai-suggestion-chip" type="button" data-ai-suggestion="Set preview to Fill, show composition guides, and play from 15 seconds.">Preview controls</button>
+    <button class="ai-suggestion-chip" type="button" data-ai-suggestion="Create a lightweight proxy for the imported video so preview playback is smoother. Keep the original for export.">Create proxy</button>
+    <button class="ai-suggestion-chip" type="button" data-ai-suggestion="Add the imported audio named background-music.mp3 to the timeline at 0 seconds.">Add library media</button>
+    <button class="ai-suggestion-chip" type="button" data-ai-suggestion="Create a new Shorts project called Cricket Shorts in 9:16, 1080x1920, at 30 FPS.">New project</button>
+    <button class="ai-suggestion-chip" type="button" data-ai-suggestion="Open my project named Cricket Highlights.">Open project</button>
+    <button class="ai-suggestion-chip" type="button" data-ai-suggestion="Detect scene changes in the selected video and split it at the detected cuts.">Detect scenes</button>
+    <button class="ai-suggestion-chip" type="button" data-ai-suggestion="Translate the existing captions into Urdu and keep their timing unchanged.">Translate captions</button>
+   </div>
+   <label class="ai-prompt-label" for="aiEditPrompt"><span>Step 2 — Main AI Editor prompt</span><span id="aiPromptCount">0 / 1,400</span></label>
+   <textarea class="ai-prompt-input" id="aiEditPrompt" maxlength="1400" placeholder="Yahan Step 1 se bana hua prompt use karein, ya apna ready English prompt paste karein."></textarea>
+   <div class="ai-assistant-actions">
+    <button class="btn ai-assistant-primary" id="aiGeneratePlanBtn" type="button">✦ Understand &amp; create edit plan</button>
+   </div>
+   <div class="ai-assistant-status" id="aiAssistantStatus" role="status" aria-live="polite">AI will ask before making unclear or unsupported changes.</div>
+   <section class="ai-plan-card" id="aiPlanCard" hidden>
+    <div class="ai-plan-eyebrow"><span>✦</span> AI edit plan</div>
+    <div class="ai-plan-understood" id="aiPlanUnderstood"></div>
+    <p class="ai-plan-message" id="aiPlanMessage"></p>
+    <ol class="ai-plan-steps" id="aiPlanSteps"></ol>
+    <button class="ai-plan-refine" type="button" id="aiUseRefinedPrompt">Use the clearer version in my prompt</button>
+    <label class="ai-cloud-consent" id="aiCloudConsentRow" hidden><input type="checkbox" id="aiCloudConsent"><span>I approve the required AI processing for this step. Depending on the tool, text/audio or analysis data may be sent securely to Cloudflare or Gemini AI. Account quota or charges may apply.</span></label>
+    <div class="ai-preview-state" id="aiPreviewState" hidden><span>●</span><span>Preview mode: your original project is safe. Play the preview, then Apply or Cancel.</span></div>
+    <div class="ai-plan-actions">
+     <button class="btn ai-assistant-primary" id="aiPreviewPlanBtn" type="button">▶ Preview changes</button>
+     <button class="btn ai-apply-btn" id="aiApplyPlanBtn" type="button" hidden>✓ Apply changes</button>
+     <button class="btn ai-cancel-btn" id="aiCancelPreviewBtn" type="button" hidden>Cancel preview</button>
+    </div>
+    <p class="ai-plan-notice">Preview temporary hai. Apply timeline aur media-library changes save karta hai; timeline edits ke liye one-step Undo available hai. Cancel preview ko restore karta hai. Project delete par next screen par dobara confirmation zaroori hai.</p>
+   </section>
+  </div>
+  <footer class="ai-assistant-foot">AI sirf Video Studio controls use karta hai. Original media aur Export controls protected hain. Apply aur Cancel aapke control mein hain.</footer>
+ </section>
+</div>
+
 <script type="module">
 import {authReady,auth,getAccountProfile} from "../auth/auth-client.js";
 import {createLocalVideoTools,renderPersonCutoutFrame} from "./local-video-tools.js";
@@ -983,6 +1157,8 @@ const projectKey="trivexaai_video_studio_projects_v1",dbName="trivexaai-video-st
 let db=null,project=null,clips=[],assets=[],urls=new Map(),selectedId=null,scale=scaleDefault,playhead=0,isPlaying=false,raf=0,lastFrame=0,activeVideoId=null,activeOverlayVideoId=null,activeBaseImageId=null,activeImageId=null,previewStickerElements=new Map(),audioNodes=new Map(),audioGraphs=new Map(),previewAudioContext=null,audioWaveforms=new Map(),audioWaveformPending=new Map(),audioWaveformUnavailable=new Set(),audioWaveformQueue=Promise.resolve(),saveTimer=0,saveQueue=Promise.resolve(),saveRevision=0,savedRevision=0,undoStack=[],redoStack=[],dragState=null,playheadDrag=null,previewDraft=null,exportBusy=false,exportController=null,lastExportBlob=null,lastExportFileName="",snapEnabled=true,proxyBusy=false,captionsBusy=false,voiceoverBusy=false,copiedKeyframe=null,activeKeyframeTime=null,exportQueue=[],exportQueueRunning=false,queuedExportClipsSnapshot=null;
 const chromaCanvasCache=new WeakMap();
 let localVideoTools=null,backgroundPreviewWarningShown=false;
+let aiAssistantOpen=false,aiPlanBusy=false,aiPreviewActive=false,aiPreviewOriginal=null,aiPreviewAssetIds=null,aiCurrentPlan=null,aiPreviewCloudConsent=false,aiPendingProjectAction=null;
+let aiPromptWriterBusy=false;
 const horizontalMaskCanvasCache=new WeakMap();
 const params=new URLSearchParams(location.search),projectId=params.get("id"),WORKER_URL="https://creatorkit-ai.abubakar647648.workers.dev";
 function notify(msg){const el=$("toast");el.textContent=msg;el.classList.add("show");clearTimeout(window.__editorToast);window.__editorToast=setTimeout(()=>el.classList.remove("show"),3600);}
@@ -995,13 +1171,13 @@ function openDB(){return new Promise((resolve,reject)=>{const req=indexedDB.open
 function dbRequest(store,mode,fn){return new Promise((resolve,reject)=>{const tx=db.transaction(store,mode),s=tx.objectStore(store);let req,result;try{req=fn(s);}catch(e){reject(e);return;}if(req){req.onsuccess=()=>{result=req.result;};req.onerror=()=>reject(req.error||new Error("Database request failed"));}tx.oncomplete=()=>resolve(result);tx.onerror=()=>reject(tx.error||new Error("Database transaction failed"));tx.onabort=()=>reject(tx.error||new Error("Database transaction was aborted"));});}
 function projectFromLocal(){try{return (JSON.parse(localStorage.getItem(projectKey)||"[]")).find(p=>p.id===projectId)||null;}catch{return null;}}
 function status(t){$("saveStatus").textContent=t;}
-function snapshot(){undoStack.push(clone(clips));if(undoStack.length>40)undoStack.shift();redoStack=[];updateHistoryButtons();}
+function snapshot(){if(aiPreviewActive)return;undoStack.push(clone(clips));if(undoStack.length>40)undoStack.shift();redoStack=[];updateHistoryButtons();}
 function updateHistoryButtons(){$("undoBtn").disabled=!undoStack.length;$("redoBtn").disabled=!redoStack.length;}
 function recoveryKey(){return "trivexaai_video_studio_recovery_"+projectId;}
-function writeRecoveryDraft(){if(!project)return;try{localStorage.setItem(recoveryKey(),JSON.stringify({projectId:project.id,name:safeName($("projectTitle").value||project.name),clips:clone(clips),updatedAt:new Date().toISOString()}));}catch(error){status("Recovery backup unavailable · saving to device…");}}
+function writeRecoveryDraft(){if(aiPreviewActive||!project)return;try{localStorage.setItem(recoveryKey(),JSON.stringify({projectId:project.id,name:safeName($("projectTitle").value||project.name),clips:clone(clips),updatedAt:new Date().toISOString()}));}catch(error){status("Recovery backup unavailable · saving to device…");}}
 function readRecoveryDraft(){try{const raw=localStorage.getItem(recoveryKey());if(!raw)return null;const draft=JSON.parse(raw);return draft&&draft.projectId===projectId&&Array.isArray(draft.clips)&&Number.isFinite(Date.parse(draft.updatedAt))?draft:null;}catch(error){return null;}}
-function scheduleSave(){saveRevision++;writeRecoveryDraft();status("Saving…");clearTimeout(saveTimer);saveTimer=setTimeout(()=>{saveProject();},450);}
-function saveProject(){if(!project||!db)return Promise.resolve();clearTimeout(saveTimer);if(savedRevision>=saveRevision)saveRevision++;saveQueue=saveQueue.catch(()=>{}).then(async()=>{while(savedRevision<saveRevision){const revision=saveRevision,snapshot={...project,name:safeName($("projectTitle").value||project.name),clips:clone(clips),updatedAt:new Date().toISOString()};await dbRequest("projects","readwrite",s=>s.put(snapshot));project.name=snapshot.name;project.clips=clone(snapshot.clips);project.updatedAt=snapshot.updatedAt;const list=JSON.parse(localStorage.getItem(projectKey)||"[]"),i=list.findIndex(p=>p.id===project.id);if(i>=0){list[i].name=snapshot.name;list[i].updatedAt=snapshot.updatedAt;localStorage.setItem(projectKey,JSON.stringify(list));}savedRevision=revision;const draft=readRecoveryDraft();if(draft&&Date.parse(draft.updatedAt)<=Date.parse(snapshot.updatedAt)){try{localStorage.removeItem(recoveryKey());}catch(error){}}}status("Saved on this device");}).catch(error=>{status("Save failed · recovery backup kept");notify("Project save failed. Your recovery backup is kept on this device. Check browser storage space.");throw error;});return saveQueue;}
+function scheduleSave(){if(aiPreviewActive)return;saveRevision++;writeRecoveryDraft();status("Saving…");clearTimeout(saveTimer);saveTimer=setTimeout(()=>{saveProject();},450);}
+function saveProject(){if(aiPreviewActive||!project||!db)return Promise.resolve();clearTimeout(saveTimer);if(savedRevision>=saveRevision)saveRevision++;saveQueue=saveQueue.catch(()=>{}).then(async()=>{while(savedRevision<saveRevision){const revision=saveRevision,snapshot={...project,name:safeName($("projectTitle").value||project.name),clips:clone(clips),updatedAt:new Date().toISOString()};await dbRequest("projects","readwrite",s=>s.put(snapshot));project.name=snapshot.name;project.clips=clone(snapshot.clips);project.updatedAt=snapshot.updatedAt;const list=JSON.parse(localStorage.getItem(projectKey)||"[]"),i=list.findIndex(p=>p.id===project.id);if(i>=0){list[i].name=snapshot.name;list[i].updatedAt=snapshot.updatedAt;localStorage.setItem(projectKey,JSON.stringify(list));}savedRevision=revision;const draft=readRecoveryDraft();if(draft&&Date.parse(draft.updatedAt)<=Date.parse(snapshot.updatedAt)){try{localStorage.removeItem(recoveryKey());}catch(error){}}}status("Saved on this device");}).catch(error=>{status("Save failed · recovery backup kept");notify("Project save failed. Your recovery backup is kept on this device. Check browser storage space.");throw error;});return saveQueue;}
 function assetUrl(id){return urls.get(id)||"";}
 function assetById(id){return assets.find(a=>a.id===id);}
 function isImportedAsset(asset){
@@ -1050,7 +1226,7 @@ function renderAssets(){
  $("assetCount").textContent=importedAssets.length+" imported";list.replaceChildren();
  if(!importedAssets.length){const e=document.createElement("div");e.className="empty";e.textContent="No imported files yet. Import a video, audio file or image to get started.";list.append(e);return;}
  for(const a of importedAssets){
-  const row=document.createElement("div");row.className="asset";
+  const row=document.createElement("div");row.className="asset";row.dataset.assetId=a.id;
   const ico=document.createElement("div");ico.className="asset-icon";ico.textContent=a.type==="video"?"▶":a.type==="audio"?"♫":"▧";
   const info=document.createElement("div");info.className="asset-info";
   const name=document.createElement("strong");name.textContent=a.name;name.title=a.name;
@@ -3204,6 +3380,1035 @@ async function callVideoStudioAi(prompt){
  if(typeof data.text!=="string"||!data.text.trim())throw new Error("No AI suggestion was returned. Please try again.");
  return data.text.trim();
 }
+
+const AI_VIDEO_TOOLS = new Set([
+ "scene_detection","beat_sync","remove_silence","ai_colour_correction",
+ "caption_translation","auto_captions","reverse_video","motion_tracking",
+ "enhance_audio","remove_person_background","auto_reframe","detach_audio","ai_voice_over","add_sticker"
+]);
+const AI_VOICE_IDS = new Set(["angus","asteria","arcas","orion","orpheus","athena","luna","zeus","perseus","helios","hera","stella"]);
+const AI_LANGUAGES = new Set(["English","Urdu","Hindi","Arabic","Spanish","French","German","Portuguese","Turkish","Bengali","Chinese (Simplified)","Japanese"]);
+const AI_PROPERTY_FIELDS = {
+ video:new Set(["name","start","duration","scale","rotation","x","y","opacity","flipX","flipY","framingMode","filterPreset","brightness","contrast","saturation","blur","hue","transition","transitionDuration","volume","speedStart","speedEnd","chromaEnabled","chromaColor","chromaTolerance","chromaSoftness","maskShape","maskTop","maskBottom","maskFeather","maskAngle"]),
+ image:new Set(["name","start","duration","scale","rotation","x","y","opacity","flipX","flipY","framingMode","filterPreset","brightness","contrast","saturation","blur","hue","transition","transitionDuration","maskShape","maskTop","maskBottom","maskFeather","maskAngle"]),
+ audio:new Set(["name","start","duration","volume","fadeIn","fadeOut","audioBass","audioMid","audioTreble","audioPan"]),
+ text:new Set(["name","start","duration","text","color","fontSize","font","weight","align","bgColor","bgOpacity","italic","rotation","opacity","textEffect","textTransition","textTransitionDuration","x","y","scale"])
+};
+const AI_FIELD_CONTROLS = {
+ name:"propName",start:"propStart",duration:"propDuration",scale:"propScale",rotation:"propRotation",x:"propX",y:"propY",opacity:"propOpacity",
+ flipX:"propFlipX",flipY:"propFlipY",framingMode:"propFramingMode",filterPreset:"propFilterPreset",brightness:"propBrightness",contrast:"propContrast",
+ saturation:"propSaturation",blur:"propBlur",hue:"propHue",transition:"propTransition",transitionDuration:"propTransitionDuration",volume:"propVolume",
+ speedStart:"propSpeedStart",speedEnd:"propSpeedEnd",chromaEnabled:"propChromaEnabled",chromaColor:"propChromaColor",chromaTolerance:"propChromaTolerance",
+ chromaSoftness:"propChromaSoftness",maskShape:"propMaskShape",maskTop:"propMaskTop",maskBottom:"propMaskBottom",maskFeather:"propMaskFeather",maskAngle:"propMaskAngle",
+ fadeIn:"propFadeIn",fadeOut:"propFadeOut",audioBass:"propAudioBass",audioMid:"propAudioMid",audioTreble:"propAudioTreble",audioPan:"propAudioPan",
+ text:"propText",color:"propTextColor",fontSize:"propFontSize",font:"propFont",weight:"propWeight",align:"propTextAlign",bgColor:"propBgColor",
+ bgOpacity:"propBgOpacity",italic:"propItalic",textEffect:"propTextEffect",textTransition:"propTextTransition",textTransitionDuration:"propTextTransitionDuration"
+};
+function aiSetStatus(message){$("aiAssistantStatus").textContent=String(message||"");}
+function aiSetBusy(busy){
+ aiPlanBusy=!!busy;
+ $("aiGeneratePlanBtn").disabled=aiPlanBusy||aiPreviewActive;
+ $("aiPromptWriterGenerateBtn").disabled=aiPlanBusy||aiPreviewActive||aiPromptWriterBusy;
+ $("aiPreviewPlanBtn").disabled=aiPlanBusy||aiPreviewActive||!aiCurrentPlan||aiCurrentPlan.needsClarification||(!aiCloudConsentIsReady());
+ $("aiApplyPlanBtn").disabled=aiPlanBusy||!aiPreviewActive;
+ $("aiCancelPreviewBtn").disabled=aiPlanBusy;
+}
+function aiCloudConsentIsReady(){
+ return !$("aiCloudConsentRow").hidden && aiCurrentPlan && aiCurrentPlan.requiresCloudConsent
+  ? $("aiCloudConsent").checked
+  : true;
+}
+function aiUpdateContextLabel(){
+ const count=clips.length,selected=selectedClip(),imported=assets.filter(isImportedAsset).length,proxyCount=assets.filter(a=>a.sourceVideoAssetId).length;
+ const selectedLabel=selected?(selected.name||selected.type):"No clip selected";
+ $("aiAssistantContext").replaceChildren();
+ const spark=document.createElement("span");spark.className="ai-assistant-spark";spark.textContent="✦";
+ const label=document.createElement("span");label.textContent=(project?.name||"Current project")+" · "+count+" timeline clips · "+imported+" media assets · "+proxyCount+" proxies · "+selectedLabel;
+ $("aiAssistantContext").append(spark,label);
+}
+function openAiEditorAssistant(){
+ if(!auth?.currentUser){notify("Please sign in with Google to use the AI Editor.");return;}
+ if(!project||!Array.isArray(clips)){notify("Open a Video Studio project before using the AI Editor.");return;}
+ if(aiPreviewActive){$("aiAssistantOverlay").hidden=false;return;}
+ aiAssistantOpen=true;
+ $("aiAssistantOverlay").hidden=false;
+ document.body.classList.add("ai-assistant-open");
+ [".topbar",".media-panel",".inspector",".timeline"].forEach(selector=>{const element=document.querySelector(selector);if(element)element.inert=true;});
+ aiUpdateContextLabel();
+ $("aiAssistantStatus").textContent="Ready. Describe one edit or a set of related edits for this project.";
+ $("aiPromptWriterPanel").open=true;
+ $("aiPromptWriterInput").focus();
+}
+async function closeAiEditorAssistant(){
+ if(aiPlanBusy||aiPromptWriterBusy)return;
+ if(aiPreviewActive)await cancelAiEditorPreview(true);
+ aiAssistantOpen=false;
+ $("aiAssistantOverlay").hidden=true;
+ [".topbar",".media-panel",".inspector",".timeline"].forEach(selector=>{const element=document.querySelector(selector);if(element)element.inert=false;});
+ document.body.classList.remove("ai-assistant-open","ai-preview-active");
+}
+function aiEditorContext(){
+ const allowed=["name","start","duration","scale","rotation","x","y","opacity","volume","flipX","flipY","framingMode","filterPreset","brightness","contrast","saturation","blur","hue","transition","transitionDuration","speedStart","speedEnd","chromaEnabled","chromaColor","chromaTolerance","chromaSoftness","maskShape","maskTop","maskBottom","maskFeather","maskAngle","fadeIn","fadeOut","audioBass","audioMid","audioTreble","audioPan","fontSize","font","weight","align","bgColor","bgOpacity","italic","textEffect","textTransition","textTransitionDuration","bgRemoveEnabled"];
+ const contextClips=clips.slice(0,40).map(clip=>{
+  const properties={};allowed.forEach(key=>{if(clip[key]!==undefined){const value=clip[key];if(typeof value==="string")properties[key]=value.slice(0,180);else if(typeof value==="boolean"||Number.isFinite(value))properties[key]=value;}});
+  return {id:String(clip.id),name:String(clip.name||clip.type||"Clip").slice(0,100),type:clip.type,track:clip.track,start:Number(clip.start)||0,duration:Number(clip.duration)||0,assetId:String(clip.assetId||""),sourceTiming:{sourceStart:Number(clip.sourceStart)||0,speedSourceDuration:Number(clip.speedSourceDuration)||0},properties};
+ });
+ if(selectedId&&!contextClips.some(item=>item.id===selectedId)){
+  const selected=clips.find(item=>item.id===selectedId);
+  if(selected&&contextClips.length>=40)contextClips.pop();
+  if(selected)contextClips.push({id:String(selected.id),name:String(selected.name||selected.type||"Clip").slice(0,100),type:selected.type,track:selected.track,start:Number(selected.start)||0,duration:Number(selected.duration)||0,assetId:String(selected.assetId||""),sourceTiming:{sourceStart:Number(selected.sourceStart)||0,speedSourceDuration:Number(selected.speedSourceDuration)||0},properties:Object.fromEntries(allowed.filter(key=>selected[key]!==undefined).map(key=>[key,typeof selected[key]==="string"?selected[key].slice(0,180):selected[key]]))});
+ }
+ const allImported=assets.filter(isImportedAsset);
+ const library=allImported.slice(0,80).map(asset=>({id:String(asset.id),name:String(asset.name||"Media").slice(0,100),type:asset.type,duration:Number(asset.duration)||0,size:Number(asset.size)||0,proxyAssetId:String(asset.proxyAssetId||""),proxyAvailable:!!(asset.proxyAssetId&&assetById(asset.proxyAssetId)),usingProxy:asset.useProxy!==false&&!!asset.proxyAssetId}));
+ const projectList=aiProjectList();
+ return {
+  scope:"Video Studio only. Never operate homepage standalone tools. Export and export queue are not AI-controllable.",
+  project:{id:String(project.id),name:String(project.name||"Untitled project"),ratio:String(project.ratio||""),resolution:String(project.resolution||""),fps:Number(project.fps)||30,duration:Number(duration())||0},
+  clipCount:clips.length,clipsTruncated:clips.length>contextClips.length,selectedClipId:selectedId||"",playhead:Number(playhead)||0,clips:contextClips,
+  mediaLibrary:{assetCount:allImported.length,assetsTruncated:allImported.length>library.length,assets:library},
+  projects:{count:projectList.length,projects:projectList},
+  preview:{playback:isPlaying?"playing":"paused",playhead:Number(playhead)||0,fit:$("previewFit").value,guides:!$("previewGuides").hidden},
+  timeline:{zoom:Number(scale)||64,snapEnabled:!!snapEnabled,tracks:["video","overlay","text","audio","captions"]},
+  capabilities:AI_EDITOR_CAPABILITIES
+ };
+}
+function aiParsePlan(source){
+ let value=String(source||"").trim().replace(/^\x60{3}(?:json)?\s*/i,"").replace(/\s*\x60{3}$/,"").trim();
+ const first=value.indexOf("{"),last=value.lastIndexOf("}");
+ if(first<0||last<=first)throw new Error("AI ka jawab valid edit plan JSON mein nahi tha. Dobara try karein.");
+ return JSON.parse(value.slice(first,last+1));
+}
+function aiFinite(value,label){
+ if(typeof value!=="number"||!Number.isFinite(value))throw new Error(label+" ki value valid number nahi hai.");
+ return value;
+}
+function aiClamp(value,min,max,label){
+ const number=aiFinite(value,label);
+ if(number<min||number>max)throw new Error(label+" ki value "+min+" se "+max+" ke darmiyan honi chahiye.");
+ return number;
+}
+function aiValidateChanges(clipType,changes){
+ if(!changes||typeof changes!=="object"||Array.isArray(changes))throw new Error("AI edit mein clip settings missing hain.");
+ const allowed=AI_PROPERTY_FIELDS[clipType];
+ if(!allowed)throw new Error("Is clip type ki editing AI se supported nahi.");
+ const keys=Object.keys(changes);
+ if(!keys.length||keys.length>22)throw new Error("AI edit mein settings ki tadaad valid nahi.");
+ const result={};
+ const numericRanges={
+  start:[0,7200],duration:[.2,7200],scale:[.1,4],rotation:[-180,180],x:[-100,100],y:[-100,100],opacity:[0,1],volume:[0,1],
+  brightness:[.5,1.8],contrast:[.5,1.8],saturation:[0,2],blur:[0,12],hue:[-45,45],transitionDuration:[.1,2.5],
+  speedStart:[.25,4],speedEnd:[.25,4],chromaTolerance:[20,220],chromaSoftness:[0,160],
+  maskTop:[0,95],maskBottom:[5,100],maskFeather:[0,20],maskAngle:[-90,90],
+  fadeIn:[0,7200],fadeOut:[0,7200],audioBass:[-12,12],audioMid:[-12,12],audioTreble:[-12,12],audioPan:[-100,100],
+  fontSize:[10,120],bgOpacity:[0,1],textTransitionDuration:[.1,2]
+ };
+ const allowedSpeedSteps=new Set([.25,.5,.75,1,1.5,2,3,4]);
+ const propertySteps={
+  start:.1,duration:.1,scale:.1,rotation:1,x:1,y:1,opacity:.05,volume:.05,
+  brightness:.05,contrast:.05,saturation:.05,blur:.5,hue:1,transitionDuration:.1,
+  chromaTolerance:5,chromaSoftness:5,maskTop:1,maskBottom:1,maskFeather:1,maskAngle:1,
+  fadeIn:.1,fadeOut:.1,audioBass:1,audioMid:1,audioTreble:1,audioPan:5,
+  fontSize:2,bgOpacity:.05,textTransitionDuration:.1
+ };
+ const enums={
+  framingMode:new Set(["project","fit","fill","stretch"]),
+  filterPreset:new Set(["none","cinematic","vivid","warm","cool","noir","vintage"]),
+  transition:new Set(["none","fade","zoom","slide-left","wipe-left","blur-reveal"]),
+  maskShape:new Set(["none","circle","ellipse","rounded","left-half","right-half","horizontal"]),
+  align:new Set(["left","center","right"]),
+  textEffect:new Set(["none","shadow","glow","neon","outline"]),
+  textTransition:new Set(["none","fade","pop","slide-up","bounce"]),
+  font:new Set(["Arial, sans-serif","Inter, sans-serif","Georgia, serif","Impact, sans-serif","system-ui, sans-serif"]),
+  weight:new Set([500,700,900])
+ };
+ const booleans=new Set(["flipX","flipY","chromaEnabled","italic"]);
+ const strings=new Set(["name","text","color","bgColor","chromaColor"]);
+ for(const key of keys){
+  if(!allowed.has(key))throw new Error("AI ne unsupported setting '"+key+"' change karne ki koshish ki. Is edit ko roka gaya.");
+  const value=changes[key];
+  if(Object.prototype.hasOwnProperty.call(numericRanges,key)){
+   const [min,max]=numericRanges[key];let number=aiClamp(value,min,max,key);
+   if(key==="speedStart"||key==="speedEnd"){
+    if(!allowedSpeedSteps.has(number))throw new Error(key+" ke liye editor ke supported speed steps use karein.");
+   }else if(propertySteps[key]){
+    const step=propertySteps[key];number=Number((Math.round(number/step)*step).toFixed(3));
+    number=Math.max(min,Math.min(max,number));
+   }
+   result[key]=number;
+  }else if(booleans.has(key)){
+   if(typeof value!=="boolean")throw new Error(key+" ka value true ya false hona chahiye.");
+   result[key]=value;
+  }else if(enums[key]){
+   if(!enums[key].has(value))throw new Error(key+" ka option editor mein available nahi hai.");
+   result[key]=value;
+  }else if(strings.has(key)){
+   if(typeof value!=="string")throw new Error(key+" ka value text hona chahiye.");
+   const max=key==="text"?180:key==="name"?80:16;
+   const textValue=value.trim().slice(0,max);
+   if(key==="color"||key==="bgColor"||key==="chromaColor"){
+    if(!/^#[0-9a-f]{6}$/i.test(textValue))throw new Error(key+" ke liye valid HEX colour use karein.");
+   }
+   if((key==="text"||key==="name")&&!textValue)throw new Error(key+" khaali nahi ho sakta.");
+   result[key]=textValue;
+  }else{
+   throw new Error("AI edit mein ek unsupported setting aa gayi.");
+  }
+ }
+ if(result.maskTop!==undefined||result.maskBottom!==undefined){
+  const top=result.maskTop??0,bottom=result.maskBottom??100;
+  if(bottom<top+5)throw new Error("Mask ki top aur bottom lines ke darmiyan kam az kam 5% gap hona chahiye.");
+ }
+ return result;
+}
+function aiProjectList(){
+ try{
+  const saved=JSON.parse(localStorage.getItem(projectKey)||"[]");
+  const list=Array.isArray(saved)?saved.filter(item=>item&&typeof item.id==="string"&&typeof item.name==="string"):[];
+  if(project&&project.id&&!list.some(item=>item.id===project.id))list.unshift({id:project.id,name:project.name||"Untitled project",ratio:project.ratio||"",resolution:project.resolution||"",fps:project.fps||30});
+  return list.slice(0,60).map(item=>({id:String(item.id),name:String(item.name||"Untitled project").slice(0,80),ratio:String(item.ratio||item.ratioLabel||""),resolution:String(item.resolution||item.resolutionLabel||""),fps:Number(item.fps)||30}));
+ }catch(error){return project?[{id:String(project.id),name:String(project.name||"Untitled project"),ratio:String(project.ratio||""),resolution:String(project.resolution||""),fps:Number(project.fps)||30}]:[];}
+}
+function aiResolveProjectTarget(item){
+ const list=aiProjectList();
+ if(item.projectId){
+  const found=list.find(entry=>entry.id===String(item.projectId));
+  if(!found)throw new Error("AI jis project ko refer kar raha hai woh is device par nahi mila. Project list refresh karein.");
+  return found;
+ }
+ const wanted=String(item.projectName||item.name||"").trim().toLocaleLowerCase();
+ if(!wanted)throw new Error("Project ka exact naam ya project ID required hai.");
+ const matches=list.filter(entry=>entry.name.trim().toLocaleLowerCase()===wanted);
+ if(matches.length>1)throw new Error("Same naam ke multiple projects hain. Project ka exact naam ya ID clear karein.");
+ if(!matches.length)throw new Error("Project '"+wanted+"' is device par nahi mila. Pehle project list check karein.");
+ return matches[0];
+}
+function aiCanUseTrack(clip,track){
+ if(clip.type==="video"||clip.type==="image")return track==="video"||track==="overlay";
+ if(clip.type==="audio")return track==="audio";
+ if(clip.type==="text")return track==="text"||track==="captions";
+ return false;
+}
+const AI_EDITOR_CAPABILITIES=[
+ "set_clip_properties","split_clip","move_clip","duplicate_clip","delete_clip","add_text_overlay","set_keyframes","run_tool",
+ "trim_clip","set_preview_controls","set_timeline_controls","add_asset_to_timeline","rename_asset","remove_asset",
+ "create_video_proxy","set_proxy_usage","rename_project","create_project","open_project","delete_project"
+];
+function aiValidatePlan(raw){
+ if(!raw||typeof raw!=="object"||Array.isArray(raw))throw new Error("AI edit plan ka format valid nahi.");
+ const plan={
+  understoodRequest:String(raw.understoodRequest||"").trim().slice(0,500),
+  message:String(raw.message||"").trim().slice(0,700),
+  needsClarification:raw.needsClarification===true,
+  operations:[],
+  requiresCloudConsent:false
+ };
+ if(plan.needsClarification)return plan;
+ if(!plan.understoodRequest)throw new Error("AI ne aapki request ko clear words mein confirm nahi kiya.");
+ if(!Array.isArray(raw.operations)||raw.operations.length<1||raw.operations.length>8)throw new Error("AI plan mein 1 se 8 relevant actions hone chahiye.");
+ const ids=new Set(clips.map(clip=>clip.id));
+ const requireClip=(id,typeList)=>{
+  if(typeof id!=="string"||!ids.has(id))throw new Error("AI ne current project mein na-mojood clip select ki. Please target clip dobara select karein.");
+  const clip=clips.find(item=>item.id===id);
+  if(typeList&&!typeList.includes(clip.type))throw new Error("Selected clip par yeh tool supported nahi. Sahi media type select karein.");
+  return clip;
+ };
+ for(const item of raw.operations){
+  if(!item||typeof item!=="object"||Array.isArray(item)||typeof item.type!=="string")throw new Error("AI plan mein ek action ka format valid nahi.");
+  const reason=String(item.reason||item.type.replace(/_/g," ")).slice(0,220);
+  let operation;
+  switch(item.type){
+   case "set_clip_properties":{
+    const clip=requireClip(item.clipId);
+    operation={type:item.type,clipId:clip.id,changes:aiValidateChanges(clip.type,item.changes),reason};
+    break;
+   }
+   case "split_clip":{
+    const clip=requireClip(item.clipId,["video","audio","image","text"]);
+    const atSeconds=aiClamp(item.atSeconds,clip.start+.151,clip.start+clip.duration-.151,"Split position");
+    operation={type:item.type,clipId:clip.id,atSeconds,reason};
+    break;
+   }
+   case "move_clip":{
+    const clip=requireClip(item.clipId);
+    const start=aiClamp(item.start,0,7200,"New clip start");
+    let track;
+    if(item.track!==undefined){track=String(item.track);if(!aiCanUseTrack(clip,track))throw new Error("Selected clip ko is track par move nahi kiya ja sakta.");}
+    operation={type:item.type,clipId:clip.id,start,track,reason};
+    break;
+   }
+   case "duplicate_clip":{
+    const clip=requireClip(item.clipId);
+    operation={type:item.type,clipId:clip.id,start:aiClamp(item.start,0,7200,"Duplicate start"),reason};
+    break;
+   }
+   case "delete_clip":{
+    const clip=requireClip(item.clipId);
+    operation={type:item.type,clipId:clip.id,reason};
+    break;
+   }
+   case "add_text_overlay":{
+    if(typeof item.text!=="string"||!item.text.trim()||item.text.length>180)throw new Error("Text overlay 1 se 180 characters ka hona chahiye.");
+    const start=aiClamp(item.start,0,7200,"Text start"),durationValue=aiClamp(item.duration??5,.2,600,"Text duration");
+    const changes=aiValidateChanges("text",{...(item.changes||{}),text:item.text.trim().slice(0,180),start,duration:durationValue});
+    operation={type:item.type,text:item.text.trim().slice(0,180),start,duration:durationValue,changes,reason};
+    break;
+   }
+   case "set_keyframes":{
+    const clip=requireClip(item.clipId,["video","image","text"]);
+    if(!Array.isArray(item.keyframes)||item.keyframes.length<2||item.keyframes.length>20)throw new Error("Keyframe edit mein 2 se 20 keyframes required hain.");
+    const frames=item.keyframes.map(frame=>{
+     if(!frame||typeof frame!=="object"||!frame.values||typeof frame.values!=="object"||Array.isArray(frame.values))throw new Error("AI keyframe ka format valid nahi.");
+     const values={};
+     for(const [key,value] of Object.entries(frame.values)){
+      if(key==="x"||key==="y")values[key]=aiClamp(value,-100,100,key);
+      else if(key==="scale")values[key]=aiClamp(value,.1,4,key);
+      else if(key==="rotation")values[key]=aiClamp(value,-180,180,key);
+      else if(key==="opacity")values[key]=aiClamp(value,0,1,key);
+      else throw new Error("Keyframe mein unsupported property di gayi hai.");
+     }
+     if(!Object.keys(values).length)throw new Error("Keyframe mein koi valid transform nahi diya gaya.");
+     return {time:aiClamp(frame.time,0,clip.duration,"Keyframe time"),values};
+    }).sort((a,b)=>a.time-b.time);
+    if(frames[0].time!==0||frames[frames.length-1].time>clip.duration)throw new Error("Keyframes ko clip ke start aur duration ke andar rehna chahiye.");
+    operation={type:item.type,clipId:clip.id,keyframes:frames,reason};
+    break;
+   }
+   case "trim_clip":{
+    const clip=requireClip(item.clipId,["video","audio","image","text"]);
+    if(clip.type==="video"&&Number(clip.speedSourceDuration)>0)throw new Error("Speed-ramp clip ko AI trim nahi karega, kyun ke source timing ko badalne ka risk hai. Pehle speed ramp normal karein.");
+    const start=aiClamp(item.start??clip.start,0,7200,"Trim start");
+    const durationValue=aiClamp(item.duration??clip.duration,.2,7200,"Trim duration");
+    if(clip.type==="video"||clip.type==="audio"){
+     const asset=assetById(clip.assetId);
+     if(!asset||!Number.isFinite(Number(asset.duration)))throw new Error("Is clip ka original media duration available nahi.");
+     const sourceStart=(Number(clip.sourceStart)||0)+(start-(Number(clip.start)||0));
+     if(sourceStart<-.001)throw new Error("Clip ko is se pehle trim nahi kiya ja sakta, kyun ke original media mein pehle ka footage/audio available nahi.");
+     if(sourceStart+durationValue>Number(asset.duration)+.05)throw new Error("Trim range original media ki available duration se bahar ja rahi hai.");
+    }
+    operation={type:item.type,clipId:clip.id,start,duration:durationValue,reason};break;
+   }
+   case "set_preview_controls":{
+    const playback=item.playback===undefined?undefined:String(item.playback);
+    if(playback!==undefined&&!["play","pause","stop"].includes(playback))throw new Error("Preview playback ke liye play, pause ya stop use karein.");
+    const playheadValue=item.playhead===undefined?undefined:aiClamp(item.playhead,0,duration(),"Preview playhead");
+    const fit=item.fit===undefined?undefined:String(item.fit);
+    if(fit!==undefined&&!["contain","cover"].includes(fit))throw new Error("Preview fit ke liye Fit ya Fill select karein.");
+    if(item.guides!==undefined&&typeof item.guides!=="boolean")throw new Error("Preview guides ka value true ya false hona chahiye.");
+    if(playback===undefined&&playheadValue===undefined&&fit===undefined&&item.guides===undefined)throw new Error("Preview controls mein koi setting nahi di gayi.");
+    operation={type:item.type,playback,playhead:playheadValue,fit,guides:item.guides,reason};break;
+   }
+   case "set_timeline_controls":{
+    const fitAll=item.fitAll===undefined?undefined:item.fitAll;
+    if(fitAll!==undefined&&typeof fitAll!=="boolean")throw new Error("Fit All ka value true ya false hona chahiye.");
+    const zoom=item.zoom===undefined?undefined:aiClamp(item.zoom,24,140,"Timeline zoom");
+    if(zoom!==undefined&&Math.abs(zoom/4-Math.round(zoom/4))>.001)throw new Error("Timeline zoom ko 4 ke supported steps mein set karein.");
+    if(item.snap!==undefined&&typeof item.snap!=="boolean")throw new Error("Timeline snapping ka value true ya false hona chahiye.");
+    let scrollToClipId;if(item.scrollToClipId!==undefined)scrollToClipId=requireClip(item.scrollToClipId).id;
+    if(fitAll===undefined&&zoom===undefined&&item.snap===undefined&&scrollToClipId===undefined)throw new Error("Timeline controls mein koi setting nahi di gayi.");
+    if(fitAll===true&&zoom!==undefined)throw new Error("Fit All aur custom zoom ek hi request mein use na karein.");
+    operation={type:item.type,fitAll,zoom,snap:item.snap,scrollToClipId,reason};break;
+   }
+   case "add_asset_to_timeline":{
+    const asset=assets.find(entry=>entry.id===item.assetId);
+    if(!asset||asset.projectId!==project.id||!isImportedAsset(asset))throw new Error("Media Library mein yeh imported asset nahi mila. Derived proxies ko original media ke bajaye direct timeline par add nahi kiya ja sakta.");
+    if(!["video","audio","image"].includes(asset.type))throw new Error("Is media type ko timeline par add nahi kiya ja sakta.");
+    const start=aiClamp(item.start??playhead,0,7200,"New clip start");
+    const track=item.track===undefined?(asset.type==="audio"?"audio":asset.type==="video"?"video":"overlay"):String(item.track);
+    if(!aiCanUseTrack({type:asset.type},track))throw new Error("Is media type ke liye selected timeline track allowed nahi.");
+    const durationValue=aiClamp(item.duration??Math.max(.2,Number(asset.duration)||5),.2,7200,"New clip duration");
+    if((asset.type==="video"||asset.type==="audio")&&durationValue>Number(asset.duration||0)+.05)throw new Error("New clip duration original media se zyada nahi ho sakti.");
+    operation={type:item.type,assetId:asset.id,start,track,duration:durationValue,reason};break;
+   }
+   case "rename_asset":{
+    const asset=assets.find(entry=>entry.id===item.assetId);
+    if(!asset||asset.projectId!==project.id||!isImportedAsset(asset))throw new Error("Rename karne ke liye imported media asset select karein.");
+    if(typeof item.name!=="string"||!item.name.trim()||item.name.trim().length>100)throw new Error("Media file ka naya naam 1 se 100 characters ka hona chahiye.");
+    operation={type:item.type,assetId:asset.id,name:item.name.trim(),reason};break;
+   }
+   case "remove_asset":{
+    const asset=assets.find(entry=>entry.id===item.assetId);
+    if(!asset||asset.projectId!==project.id||!isImportedAsset(asset))throw new Error("Remove karne ke liye imported original media asset select karein.");
+    const linkedProxy=asset.proxyAssetId?assets.find(entry=>entry.id===asset.proxyAssetId):null;
+    if(clips.some(clip=>clip.assetId===asset.id||linkedProxy&&clip.assetId===linkedProxy.id))throw new Error("Yeh media timeline mein use ho raha hai. Pehle iski timeline clip remove karein; phir Media Library se asset remove kar sakte hain.");
+    operation={type:item.type,assetId:asset.id,reason};break;
+   }
+   case "create_video_proxy":{
+    const asset=assets.find(entry=>entry.id===item.assetId);
+    if(!asset||asset.projectId!==project.id||asset.type!=="video"||!isImportedAsset(asset))throw new Error("Proxy sirf Media Library ke original imported video ke liye ban sakta hai.");
+    if(asset.proxyAssetId&&assets.some(entry=>entry.id===asset.proxyAssetId))throw new Error("Is video ka proxy pehle se maujood hai. Use Proxy option select karein.");
+    if(proxyBusy)throw new Error("Ek proxy task pehle se chal raha hai. Pehle uske complete hone dein.");
+    operation={type:item.type,assetId:asset.id,reason};break;
+   }
+   case "set_proxy_usage":{
+    const asset=assets.find(entry=>entry.id===item.assetId);
+    if(!asset||asset.projectId!==project.id||asset.type!=="video"||!asset.proxyAssetId||!assets.some(entry=>entry.id===asset.proxyAssetId))throw new Error("Is video ke liye ready proxy available nahi. Pehle Create Video Proxy karein.");
+    if(typeof item.useProxy!=="boolean")throw new Error("useProxy ka value true ya false hona chahiye.");
+    operation={type:item.type,assetId:asset.id,useProxy:item.useProxy,reason};break;
+   }
+   case "rename_project":{
+    if(item.projectId&&String(item.projectId)!==String(projectId))throw new Error("AI current open project ka naam hi change kar sakta hai. Doosra project pehle open karein.");
+    if(typeof item.name!=="string"||!item.name.trim()||item.name.trim().length>60)throw new Error("Project ka naya naam 1 se 60 characters ka hona chahiye.");
+    operation={type:item.type,projectId:String(projectId),name:safeName(item.name.trim()),reason};break;
+   }
+   case "create_project":{
+    const name=String(item.name||item.projectName||"").trim();
+    if(!name||name.length>60)throw new Error("New project ka naam 1 se 60 characters ka hona chahiye.");
+    const ratio=String(item.ratio||"16:9");
+    if(!["16:9","9:16","1:1","4:5","custom"].includes(ratio))throw new Error("Project aspect ratio available preset mein se select karein.");
+    const defaults={"16:9":"1920x1080","9:16":"1080x1920","1:1":"1080x1080","4:5":"1080x1350"};
+    const resolution=String(item.resolution||defaults[ratio]||"");
+    const allowedByRatio={
+     "16:9":new Set(["1280x720","1920x1080","2560x1440","3840x2160"]),
+     "9:16":new Set(["1080x1920"]),
+     "1:1":new Set(["1080x1080"]),
+     "4:5":new Set(["1080x1350"])
+    };
+    const dimensions=/^(\d{3,4})x(\d{3,4})$/.exec(resolution);
+    if(!dimensions)throw new Error("Project resolution widthxheight format mein honi chahiye, misal 1920x1080.");
+    const width=Number(dimensions[1]),height=Number(dimensions[2]);
+    if(width<240||height<240||width>3840||height>3840)throw new Error("Project width aur height 240 se 3840 pixels ke darmiyan honi chahiye.");
+    if(ratio!=="custom"&&!allowedByRatio[ratio].has(resolution))throw new Error("Selected resolution aspect ratio ke preset se match nahi karti.");
+    const fps=Number(item.fps??30);if(![24,30,60].includes(fps))throw new Error("Project FPS 24, 30 ya 60 mein se select karein.");
+    operation={type:item.type,name:safeName(name),ratio,resolution,width,height,fps,ratioLabel:ratio==="custom"?"Custom ("+width+":"+height+")":ratio,resolutionLabel:width+" × "+height,reason};break;
+   }
+   case "open_project":{
+    const target=aiResolveProjectTarget(item);
+    operation={type:item.type,projectId:target.id,projectName:target.name,reason};break;
+   }
+   case "delete_project":{
+    const target=aiResolveProjectTarget(item);
+    operation={type:item.type,projectId:target.id,projectName:target.name,reason};break;
+   }
+   case "run_tool":{
+    if(!AI_VIDEO_TOOLS.has(item.tool))throw new Error("AI ne koi aisa tool choose kiya jo editor mein allowed nahi.");
+    const needsClip=!["caption_translation","ai_voice_over","add_sticker"].includes(item.tool);
+    let clip=null;
+    if(needsClip){
+     const types={
+      scene_detection:["video"],beat_sync:["audio","video"],remove_silence:["audio","video"],ai_colour_correction:["video","image"],
+      auto_captions:["video","audio"],reverse_video:["video"],motion_tracking:["video"],enhance_audio:["audio"],
+      remove_person_background:["video"],auto_reframe:["video"],detach_audio:["video"]
+     };
+     clip=requireClip(item.clipId||selectedId,types[item.tool]);
+    }
+    if(item.tool==="caption_translation"&&!clips.some(c=>c.track==="captions"&&c.type==="text"))throw new Error("Translate karne ke liye project mein pehle se captions hone chahiye.");
+    if(item.tool==="caption_translation"||item.tool==="auto_captions"){
+     const language=item.language===undefined?"":String(item.language);
+     if(item.tool==="caption_translation"&&!AI_LANGUAGES.has(language))throw new Error("Caption translation ke liye supported language select karein.");
+     if(item.tool==="auto_captions"&&language&&!["en","ur","hi","ar","es","fr","pt","tr","de"].includes(language))throw new Error("Auto Captions ke liye selected spoken language available nahi.");
+     operation={type:item.type,tool:item.tool,clipId:clip?.id||"",language,reason};
+     plan.requiresCloudConsent=true;
+    }else if(item.tool==="ai_voice_over"){
+     if(typeof item.text!=="string"||!item.text.trim()||item.text.length>2000)throw new Error("AI Voice-over ke liye 1 se 2,000 characters ka script chahiye.");
+     const voiceId=item.voiceId||"angus";if(!AI_VOICE_IDS.has(voiceId))throw new Error("AI Voice-over ke liye selected voice available nahi.");
+     operation={type:item.type,tool:item.tool,text:item.text.trim(),voiceId,reason};plan.requiresCloudConsent=true;
+    }else if(item.tool==="add_sticker"){
+     const preset=item.preset||"star",valid=new Set(["star","heart","circle","rectangle","arrow","speech","lightning","check","emoji-star","emoji-fire","emoji-heart","emoji-clap","emoji-target"]);
+     if(!valid.has(preset))throw new Error("Sticker preset available nahi.");
+     const color=item.color||"#a86bf2";if(typeof color!=="string"||!/^#[0-9a-f]{6}$/i.test(color))throw new Error("Sticker colour valid HEX mein dein.");
+     operation={type:item.type,tool:item.tool,preset,color,reason};
+    }else if(item.tool==="motion_tracking"){
+     const target=item.target||"person";if(!["person","any"].includes(target))throw new Error("Motion tracking target supported nahi.");
+     operation={type:item.type,tool:item.tool,clipId:clip.id,target,reason};
+    }else if(item.tool==="reverse_video"){
+     const alsoReverseAudio=item.alsoReverseAudio===true;
+     operation={type:item.type,tool:item.tool,clipId:clip.id,alsoReverseAudio,reason};
+    }else{
+     operation={type:item.type,tool:item.tool,clipId:clip?.id||"",reason};
+     if(item.tool==="ai_colour_correction")plan.requiresCloudConsent=true;
+    }
+    break;
+   }
+   default:throw new Error("AI ne unsupported action propose kiya. Is plan ko run nahi kiya gaya.");
+  }
+  plan.operations.push(operation);
+ }
+ const navigationOperations=plan.operations.filter(operation=>["create_project","open_project","delete_project"].includes(operation.type));
+ if(navigationOperations.length&&plan.operations.length!==1)throw new Error("New, open ya delete project ko ek separate request mein karein. Isay clip/media edits ke saath mix nahi kiya ja sakta.");
+ if(plan.operations.some(operation=>operation.type==="remove_asset")&&plan.operations.length!==1)throw new Error("Media Library se asset permanently remove karne ka action alag request mein karein.");
+ return plan;
+}
+function aiOperationLabel(operation){
+ if(operation.type==="set_clip_properties")return "Update "+(clips.find(c=>c.id===operation.clipId)?.name||"selected clip")+" settings";
+ if(operation.type==="split_clip")return "Split "+(clips.find(c=>c.id===operation.clipId)?.name||"clip")+" at "+operation.atSeconds.toFixed(1)+" seconds";
+ if(operation.type==="move_clip")return "Move "+(clips.find(c=>c.id===operation.clipId)?.name||"clip")+" to "+operation.start.toFixed(1)+" seconds"+(operation.track?" on the "+operation.track+" track":"");
+ if(operation.type==="trim_clip")return "Trim "+(clips.find(c=>c.id===operation.clipId)?.name||"clip")+" to "+operation.start.toFixed(1)+"s – "+(operation.start+operation.duration).toFixed(1)+"s";
+ if(operation.type==="duplicate_clip")return "Duplicate "+(clips.find(c=>c.id===operation.clipId)?.name||"clip");
+ if(operation.type==="delete_clip")return "Remove "+(clips.find(c=>c.id===operation.clipId)?.name||"clip");
+ if(operation.type==="add_text_overlay")return "Add text overlay: "+operation.text;
+ if(operation.type==="set_keyframes")return "Create "+operation.keyframes.length+" animation keyframes";
+ if(operation.type==="set_preview_controls")return "Set preview playback, playhead, Fit/Fill or composition guides";
+ if(operation.type==="set_timeline_controls")return "Adjust timeline zoom, Fit All, snapping or focus";
+ if(operation.type==="add_asset_to_timeline")return "Add "+(assetById(operation.assetId)?.name||"Media Library asset")+" to the "+operation.track+" track";
+ if(operation.type==="rename_asset")return "Rename Media Library asset to "+operation.name;
+ if(operation.type==="remove_asset")return "Remove "+(assetById(operation.assetId)?.name||"media asset")+" and its proxy from this device";
+ if(operation.type==="create_video_proxy")return "Create a lightweight local proxy for "+(assetById(operation.assetId)?.name||"video");
+ if(operation.type==="set_proxy_usage")return (operation.useProxy?"Use proxy for preview: ":"Use original for preview: ")+(assetById(operation.assetId)?.name||"video");
+ if(operation.type==="rename_project")return "Rename current project to "+operation.name;
+ if(operation.type==="create_project")return "Create project '"+operation.name+"' · "+operation.ratio+" · "+operation.resolution+" · "+operation.fps+" FPS";
+ if(operation.type==="open_project")return "Open project '"+operation.projectName+"'";
+ if(operation.type==="delete_project")return "Open the extra delete-confirmation screen for '"+operation.projectName+"'";
+ const names={scene_detection:"Detect scenes and split the selected video",beat_sync:"Align selected clips to music beats",remove_silence:"Remove silent sections from the selected clip",ai_colour_correction:"Analyse and correct selected clip colours",caption_translation:"Translate existing captions into "+operation.language,auto_captions:"Generate AI captions from the selected clip",reverse_video:"Reverse the selected video clip",motion_tracking:"Track "+operation.target+" movement in the selected video",enhance_audio:"Enhance the selected audio",remove_person_background:"Remove the person background from the selected video",auto_reframe:"Reframe the selected video around the subject",detach_audio:"Extract the selected video's audio to a new Audio track",ai_voice_over:"Generate an AI voice-over clip",add_sticker:"Add a "+operation.preset+" sticker"};
+ return names[operation.tool]||"Run "+operation.tool;
+}
+function aiRenderPlan(plan){
+ $("aiPlanCard").hidden=false;
+ $("aiPlanUnderstood").textContent=plan.understoodRequest||"";
+ $("aiPlanMessage").textContent=plan.message||"";
+ $("aiPlanSteps").replaceChildren();
+ plan.operations.forEach(operation=>{
+  const li=document.createElement("li");
+  li.textContent=aiOperationLabel(operation)+(operation.reason&&operation.reason!==operation.type?": "+operation.reason:"");
+  $("aiPlanSteps").append(li);
+ });
+ $("aiUseRefinedPrompt").hidden=!plan.understoodRequest;
+ $("aiCloudConsentRow").hidden=!plan.requiresCloudConsent;
+ $("aiCloudConsent").checked=false;
+ $("aiPreviewState").hidden=true;
+ $("aiPreviewPlanBtn").hidden=plan.needsClarification||!plan.operations.length;
+ $("aiApplyPlanBtn").hidden=true;
+ $("aiCancelPreviewBtn").hidden=true;
+ $("aiPreviewPlanBtn").textContent="▶ Preview changes";
+ $("aiPreviewPlanBtn").disabled=plan.needsClarification||!plan.operations.length;
+ aiSetBusy(false);
+ if(plan.needsClarification){
+  aiSetStatus(plan.message||"AI ko ek cheez clear karni hai. Prompt ko update karke dobara plan banayein.");
+ }else{
+  aiSetStatus("Plan ready. Preview chalayein; original project abhi change nahi hua.");
+ }
+}
+async function generateAiEditPlan(){
+ if(aiPlanBusy||aiPreviewActive||aiPromptWriterBusy)return;
+ const request=$("aiEditPrompt").value.trim();
+ if(!request){aiSetStatus("Pehle likhein ke video mein kya edit karna hai.");$("aiEditPrompt").focus();return;}
+ if(request.length>1400){aiSetStatus("Prompt 1,400 characters se chhota rakhein.");return;}
+ if(previewDraft){aiSetStatus("Pehle Properties panel ka Apply ya cancel complete karein, phir AI Editor use karein.");notify("Aapke pending Properties preview ko AI edit change nahi karega.");return;}
+ if(!auth?.currentUser){aiSetStatus("Session expire ho gaya. Dobara Google sign-in karein.");return;}
+ aiCurrentPlan=null;$("aiPlanCard").hidden=true;aiSetBusy(true);aiSetStatus("AI aapki request aur current timeline samajh raha hai…");
+ try{
+  const token=await auth.currentUser.getIdToken();
+  const response=await fetch(WORKER_URL,{
+   method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+token},
+   body:JSON.stringify({action:"ai_editing_assistant",toolId:"video-studio-ai-editor",capabilityVersion:"video-studio-ai-v2",capabilities:AI_EDITOR_CAPABILITIES,toolIds:[...AI_VIDEO_TOOLS],request,editorContext:aiEditorContext()})
+  });
+  const data=await response.json().catch(()=>({}));
+  if(!response.ok){
+   if(response.status===401)throw new Error("Google sign-in dobara karein. AI request authenticate nahi ho saki.");
+   if(response.status===403)throw new Error("AI Editor advanced access ke liye invite ya admin approval zaroori hai.");
+   if(response.status===429)throw new Error("AI Editor busy hai. Thori dair baad dobara try karein.");
+   throw new Error(data.error||"AI edit plan tayyar nahi ho saka. Dobara try karein.");
+  }
+  const raw=aiParsePlan(data.text);
+  const plan=aiValidatePlan(raw);
+  aiCurrentPlan=plan;
+  aiRenderPlan(plan);
+ }catch(error){
+  aiCurrentPlan=null;
+  $("aiPlanCard").hidden=true;
+  aiSetStatus(error?.message||"AI Editor se rabta nahi ho saka.");
+ }finally{
+  aiSetBusy(false);
+ }
+}
+function aiSetPromptWriterStatus(message){
+ $("aiPromptWriterStatus").textContent=String(message||"");
+}
+async function generateAiPrompt(){
+ if(aiPromptWriterBusy||aiPlanBusy||aiPreviewActive)return;
+ const request=$("aiPromptWriterInput").value.trim();
+ if(!request){aiSetPromptWriterStatus("Pehle Roman Urdu mein batayein ke aap kya karwana chahte hain.");$("aiPromptWriterInput").focus();return;}
+ if(request.length>2000){aiSetPromptWriterStatus("Request 2,000 characters se chhoti rakhein.");return;}
+ if(!auth?.currentUser){aiSetPromptWriterStatus("Google sign-in session expire ho gaya. Dobara sign-in karein.");return;}
+ aiPromptWriterBusy=true;
+ $("aiPromptWriterGenerateBtn").textContent="Gemini prompt bana raha hai…";
+ $("aiPromptWriterResultWrap").hidden=true;
+ $("aiPromptWriterQuestion").hidden=true;
+ aiSetPromptWriterStatus("Gemini aapki Roman Urdu request ko supported Video Studio prompt mein badal raha hai…");
+ aiSetBusy(false);
+ try{
+  const token=await auth.currentUser.getIdToken();
+  const response=await fetch(WORKER_URL,{
+   method:"POST",
+   headers:{"Content-Type":"application/json","Authorization":"Bearer "+token},
+   body:JSON.stringify({
+    action:"ai_prompt_writer",
+    toolId:"video-studio-prompt-writer",
+    request,
+    editorContext:aiEditorContext()
+   })
+  });
+  const data=await response.json().catch(()=>({}));
+  if(!response.ok){
+   if(response.status===401)throw new Error("Google sign-in dobara karein. Request authenticate nahi ho saki.");
+   if(response.status===403)throw new Error("AI Prompt Writer advanced access ke liye invite ya admin approval zaroori hai.");
+   if(response.status===429)throw new Error("Prompt Writer busy hai. Thori dair baad dobara try karein.");
+   throw new Error(data.error||"Prompt tayyar nahi ho saka. Dobara try karein.");
+  }
+  if(data.needsClarification===true){
+   $("aiPromptWriterQuestion").textContent=data.question||"Is request ke liye ek detail clear karni hogi. Apni request update karein.";
+   $("aiPromptWriterQuestion").hidden=false;
+   aiSetPromptWriterStatus("Gemini ko ek baat clear karni hai. Neeche sawal dekhein aur apni request update karein.");
+  }else{
+   const prompt=typeof data.prompt==="string"?data.prompt.trim():"";
+   if(!prompt||prompt.length>1400)throw new Error("Gemini ka prompt main AI Editor ki 1,400-character limit mein nahi hai. Dobara try karein.");
+   $("aiPromptWriterResult").value=prompt;
+   $("aiPromptWriterResultWrap").hidden=false;
+   aiSetPromptWriterStatus("Prompt ready hai. Copy karein ya neeche Step 2 ke AI Editor mein bhej dein. Abhi koi edit nahi hui.");
+  }
+ }catch(error){
+  aiSetPromptWriterStatus(error?.message||"Prompt Writer se rabta nahi ho saka.");
+ }finally{
+  aiPromptWriterBusy=false;
+  $("aiPromptWriterGenerateBtn").textContent="✦ Roman Urdu ko proper prompt mein badlein";
+  aiSetBusy(false);
+ }
+}
+async function copyAiGeneratedPrompt(){
+ const value=$("aiPromptWriterResult").value.trim();
+ if(!value)return;
+ try{
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+   await navigator.clipboard.writeText(value);
+  }else{
+   const field=$("aiPromptWriterResult");
+   field.focus();field.select();
+   if(!document.execCommand("copy"))throw new Error("Copy command unavailable");
+  }
+  aiSetPromptWriterStatus("Prompt copy ho gaya. Ab Step 2 mein paste kar sakte hain.");
+ }catch(error){
+  $("aiPromptWriterResult").focus();$("aiPromptWriterResult").select();
+  aiSetPromptWriterStatus("Prompt select kar diya hai. Ctrl+C dabakar copy kar lein.");
+ }
+}
+function aiUseGeneratedPrompt(){
+ const value=$("aiPromptWriterResult").value.trim();
+ if(!value)return;
+ $("aiEditPrompt").value=value;
+ $("aiPromptCount").textContent=value.length+" / 1,400";
+ $("aiEditPrompt").focus();
+ $("aiEditPrompt").scrollIntoView({behavior:"smooth",block:"center"});
+ aiSetStatus("Step 1 ka prompt Step 2 mein aa gaya. Ab Understand & create edit plan dabayein.");
+}
+function aiUseRefinedPrompt(){
+ if(!aiCurrentPlan?.understoodRequest)return;
+ $("aiEditPrompt").value=aiCurrentPlan.understoodRequest.slice(0,1400);
+ $("aiPromptCount").textContent=$("aiEditPrompt").value.length+" / 1,400";
+ $("aiEditPrompt").focus();
+ aiSetStatus("Clear version prompt mein aa gaya. Zaroorat ho to edit karke naya plan banayein.");
+}
+function aiWriteClipChanges(clip,changes){
+ const oldDuration=Number(clip.duration)||0;
+ selectedId=clip.id;previewDraft=null;renderInspector();
+ for(const [key,value] of Object.entries(changes)){
+  const directTextField=clip.type==="text"&&["x","y","scale"].includes(key);
+  const id=clip.type==="text"&&key==="rotation"?"propTextRotation":clip.type==="text"&&key==="opacity"?"propTextOpacity":AI_FIELD_CONTROLS[key];
+  if(directTextField)continue;
+  const field=id?$(id):null;
+  if(!field)throw new Error("Editor setting '"+key+"' is currently unavailable. No partial edit was applied.");
+  if(field.type==="checkbox")field.checked=!!value;
+  else field.value=String(value);
+ }
+ const draft=readPropertiesDraft(clip);
+ Object.assign(clip,draft);
+ if(clip.type==="text")for(const key of ["x","y","scale"])if(changes[key]!==undefined)clip[key]=changes[key];
+ if(clip.type==="video"&&Array.isArray(clip.keyframes)&&Math.abs(clip.duration-oldDuration)>.001){
+  const factor=clip.duration/Math.max(.001,oldDuration);
+  clip.keyframes=clip.keyframes.map(frame=>({...frame,time:Number((frame.time*factor).toFixed(3))}));
+ }
+ if(clip.type==="video"){
+  const linkedAudio=clips.find(item=>item.type==="audio"&&item.detachedFromVideoId===clip.id);
+  if(linkedAudio){
+   linkedAudio.start=clip.start;linkedAudio.duration=clip.duration;
+   linkedAudio.speedStart=clip.speedStart??1;linkedAudio.speedEnd=clip.speedEnd??1;
+   if(Number(clip.speedSourceDuration)>0)linkedAudio.speedSourceDuration=clip.speedSourceDuration;
+   else delete linkedAudio.speedSourceDuration;
+  }
+ }
+}
+function aiSyncDerivedClip(clip){
+ if(clip.type!=="video")return;
+ const linked=clips.find(item=>item.type==="audio"&&item.detachedFromVideoId===clip.id);
+ if(linked){
+  linked.start=clip.start;linked.duration=clip.duration;linked.speedStart=clip.speedStart??1;linked.speedEnd=clip.speedEnd??1;
+  if(Number(clip.speedSourceDuration)>0)linked.speedSourceDuration=clip.speedSourceDuration;
+  else delete linked.speedSourceDuration;
+ }
+}
+async function aiExecuteTool(operation){
+ const tool=operation.tool,clipId=operation.clipId;
+ if(tool==="caption_translation"){
+  const previousLanguage=$("translateLanguage").value,before=JSON.stringify(clips);
+  try{
+   $("translateLanguage").value=operation.language;
+   await translateCaptionTrack();
+   if(JSON.stringify(clips)===before)throw new Error("Caption translation ne koi confirmed change nahi banaya.");
+  }finally{$("translateLanguage").value=previousLanguage;}
+  return;
+ }
+ if(tool==="add_sticker"){
+  const previousPreset=$("stickerPreset").value,previousColor=$("stickerColor").value,before=clips.length;
+  try{
+   $("stickerPreset").value=operation.preset;$("stickerColor").value=operation.color;
+   await addStickerToTimeline();
+   if(clips.length!==before+1)throw new Error("Sticker add nahi ho saka.");
+  }finally{$("stickerPreset").value=previousPreset;$("stickerColor").value=previousColor;}
+  return;
+ }
+ if(tool==="ai_voice_over"){
+  const beforeClipCount=clips.length,beforeAssetCount=assets.length;
+  const previous={
+   text:$("voiceoverText").value,voice:$("voiceoverVoice").value,consent:$("voiceoverConsent").checked,
+   counter:$("voiceoverCounter").textContent,status:$("voiceoverStatus").textContent,
+   disabled:$("voiceoverGenerateBtn").disabled,modalHidden:$("voiceoverModal").hidden
+  };
+  try{
+   $("voiceoverText").value=operation.text;$("voiceoverVoice").value=operation.voiceId;
+   $("voiceoverCounter").textContent=operation.text.length+" / 2,000";
+   $("voiceoverConsent").checked=true;$("voiceoverGenerateBtn").disabled=false;
+   await generateVoiceover();
+   if(clips.length!==beforeClipCount+1||assets.length!==beforeAssetCount+1)throw new Error("Voice-over generate nahi hua. Quota ya connection check karein.");
+  }finally{
+   $("voiceoverText").value=previous.text;$("voiceoverVoice").value=previous.voice;$("voiceoverConsent").checked=previous.consent;
+   $("voiceoverCounter").textContent=previous.counter;$("voiceoverStatus").textContent=previous.status;
+   $("voiceoverGenerateBtn").disabled=previous.disabled;$("voiceoverModal").hidden=previous.modalHidden;
+  }
+  return;
+ }
+ selectedId=clipId;
+ const before=JSON.stringify(clips),assetsBefore=assets.length;
+ if(tool==="scene_detection")await detectScenes();
+ else if(tool==="beat_sync")await syncClipsToBeats();
+ else if(tool==="remove_silence")await removeSilenceFromSelected();
+ else if(tool==="ai_colour_correction")await applyAiColourCorrection();
+ else if(tool==="auto_captions"){
+  const previousLanguage=$("captionsLanguage").value;
+  const previous={
+   hidden:$("captionsModal").hidden,title:$("captionsGenerateBtn").textContent,disabled:$("captionsGenerateBtn").disabled,
+   status:$("captionsStatus").textContent,progress:$("captionsProgressFill").style.width,
+   downloadHidden:$("captionsDownloadBtn").hidden
+  };
+  try{
+   $("captionsLanguage").value=operation.language||"";
+   openCaptionsModal();
+   await generateCaptions();
+   if(JSON.stringify(clips)===before)throw new Error("Auto Captions ne koi subtitle clip create nahi ki.");
+  }finally{
+   $("captionsLanguage").value=previousLanguage;
+   $("captionsModal").hidden=previous.hidden;
+   $("captionsGenerateBtn").textContent=previous.title;$("captionsGenerateBtn").disabled=previous.disabled;
+   $("captionsStatus").textContent=previous.status;$("captionsProgressFill").style.width=previous.progress;
+   $("captionsDownloadBtn").hidden=previous.downloadHidden;
+  }
+ }else if(tool==="reverse_video"){
+  const previousReverseAudio=$("reverseAudioToo").checked;
+  let success=false;
+  try{$("reverseAudioToo").checked=operation.alsoReverseAudio===true;success=await localVideoTools.runTool("reverseClipBtn");}
+  finally{$("reverseAudioToo").checked=previousReverseAudio;}
+  if(!success)throw new Error("Reverse Video tool complete nahi ho saka.");
+ }else if(tool==="motion_tracking"){
+  const previousTarget=$("motionTrackTarget").value;
+  let success=false;
+  try{$("motionTrackTarget").value=operation.target;success=await localVideoTools.runTool("motionTrackBtn");}
+  finally{$("motionTrackTarget").value=previousTarget;}
+  if(!success)throw new Error("Motion Tracking complete nahi ho saki.");
+ }else if(tool==="enhance_audio"){
+  const success=await localVideoTools.runTool("enhanceAudioBtn");
+  if(!success)throw new Error("Audio Enhance complete nahi ho saka.");
+ }else if(tool==="remove_person_background"){
+  if(selectedClip()?.bgRemoveEnabled)throw new Error("Person background removal pehle se enabled hai. Koi doosri change apply nahi ki gayi.");
+  const success=await localVideoTools.runTool("removeVideoBgBtn");
+  if(!success)throw new Error("Person Background Removal complete nahi ho saka.");
+ }else if(tool==="auto_reframe"){
+  const success=await localVideoTools.runTool("autoReframeBtn");
+  if(!success)throw new Error("Auto Reframe complete nahi ho saka.");
+ }else if(tool==="detach_audio"){
+  await detachAudioFromVideo();
+  if(clips.length<1||!clips.some(c=>c.type==="audio"&&c.detachedFromVideoId===clipId))throw new Error("Audio extraction complete nahi ho saki.");
+ }
+ const changed=JSON.stringify(clips)!==before||assets.length!==assetsBefore;
+ if(!changed)throw new Error("Selected tool ne is clip par koi change nahi banaya. Original preview restore ki ja rahi hai.");
+}
+async function aiExecuteOperation(operation){
+ if(operation.type==="set_clip_properties"){
+  const clip=clips.find(c=>c.id===operation.clipId);if(!clip)throw new Error("Preview ke dauran selected clip nahi mila.");
+  aiWriteClipChanges(clip,operation.changes);return;
+ }
+ if(operation.type==="split_clip"){
+  const clip=clips.find(c=>c.id===operation.clipId);if(!clip)throw new Error("Split karne wala clip nahi mila.");
+  selectedId=clip.id;playhead=operation.atSeconds;
+  const before=clips.length,hasLinkedAudio=clips.some(item=>item.type==="audio"&&item.detachedFromVideoId===clip.id);splitSelected();
+  const expectedIncrease=hasLinkedAudio?2:1;if(clips.length!==before+expectedIncrease)throw new Error("Clip split nahi ho saka. Original project restore hoga.");return;
+ }
+ if(operation.type==="move_clip"){
+  const clip=clips.find(c=>c.id===operation.clipId);if(!clip)throw new Error("Move karne wala clip nahi mila.");
+  clip.start=operation.start;if(operation.track)clip.track=operation.track;
+  if(clip.type==="video")aiSyncDerivedClip(clip);
+  const linked=clips.find(c=>c.type==="audio"&&c.detachedFromVideoId===clip.id);if(linked)linked.start=operation.start;
+  selectedId=clip.id;return;
+ }
+ if(operation.type==="trim_clip"){
+  const clip=clips.find(c=>c.id===operation.clipId);if(!clip)throw new Error("Trim karne wala clip nahi mila.");
+  const before=clone(clip),sourceLimited=clip.type==="video"||clip.type==="audio";
+  if(sourceLimited){const delta=operation.start-(Number(clip.start)||0);clip.sourceStart=Math.max(0,(Number(clip.sourceStart)||0)+delta);}
+  clip.start=operation.start;clip.duration=operation.duration;
+  if(clip.type==="video"){
+   const linked=clips.find(c=>c.type==="audio"&&c.detachedFromVideoId===clip.id);
+   if(linked){linked.start=clip.start;linked.duration=clip.duration;linked.sourceStart=Math.max(0,(Number(linked.sourceStart)||0)+(Number(clip.sourceStart)||0)-(Number(before.sourceStart)||0));linked.speedStart=clip.speedStart??1;linked.speedEnd=clip.speedEnd??1;if(Number(clip.speedSourceDuration)>0)linked.speedSourceDuration=clip.speedSourceDuration;else delete linked.speedSourceDuration;}
+  }
+  selectedId=clip.id;return;
+ }
+ if(operation.type==="duplicate_clip"){
+  const original=clips.find(c=>c.id===operation.clipId);if(!original)throw new Error("Duplicate karne wala clip nahi mila.");
+  const copy={...clone(original),id:uid(),name:(original.name||"Clip")+" copy",start:operation.start};if(copy.type==="video")delete copy.audioDetached;clips.push(copy);selectedId=copy.id;return;
+ }
+ if(operation.type==="delete_clip"){
+  const index=clips.findIndex(c=>c.id===operation.clipId);if(index<0)throw new Error("Delete karne wala clip nahi mila.");
+  clips.splice(index,1);if(selectedId===operation.clipId)selectedId=null;return;
+ }
+ if(operation.type==="add_text_overlay"){
+  const clip={id:uid(),name:"AI Text Overlay",type:"text",track:"text",text:operation.text,color:"#ffffff",fontSize:42,font:"Arial, sans-serif",weight:800,align:"center",bgColor:"#000000",bgOpacity:0,x:0,y:0,start:operation.start,duration:operation.duration,sourceStart:0,scale:1,rotation:0,opacity:1};
+  clips.push(clip);selectedId=clip.id;const changes={...operation.changes};delete changes.text;delete changes.start;delete changes.duration;if(Object.keys(changes).length)aiWriteClipChanges(clip,{...changes,text:operation.text,start:operation.start,duration:operation.duration});return;
+ }
+ if(operation.type==="set_keyframes"){
+  const clip=clips.find(c=>c.id===operation.clipId);if(!clip)throw new Error("Animation clip nahi mila.");
+  clip.keyframes=operation.keyframes.map(frame=>({time:frame.time,values:{...frame.values}}));clip.autoNextKeyframe=false;selectedId=clip.id;return;
+ }
+ if(operation.type==="set_preview_controls"){
+  if(operation.fit!==undefined){$("previewFit").value=operation.fit;$("previewFit").dispatchEvent(new Event("change",{bubbles:true}));}
+  if(operation.guides!==undefined){const guideButton=$("previewGuidesBtn");if((guideButton.getAttribute("aria-pressed")==="true")!==operation.guides)guideButton.click();}
+  if(operation.playhead!==undefined)setPlayhead(Math.min(operation.playhead,duration()));
+  if(operation.playback==="play")play();else if(operation.playback==="pause")pause();else if(operation.playback==="stop"){pause();setPlayhead(0);}return;
+ }
+ if(operation.type==="set_timeline_controls"){
+  if(operation.fitAll===true)fitTimeline();else if(operation.zoom!==undefined){scale=operation.zoom;$("zoomSlider").value=String(scale);renderTimeline();}
+  if(operation.snap!==undefined&&operation.snap!==snapEnabled)$("snapToggleBtn").click();
+  if(operation.scrollToClipId){const target=clips.find(c=>c.id===operation.scrollToClipId);if(target){renderTimeline();$("timelineScroll").scrollLeft=Math.max(0,116+target.start*scale-180);}}return;
+ }
+ if(operation.type==="add_asset_to_timeline"){
+  const asset=assetById(operation.assetId);if(!asset)throw new Error("Media Library asset preview ke dauran nahi mila.");
+  const clip={id:uid(),assetId:asset.id,name:asset.name,type:asset.type,track:operation.track,start:operation.start,sourceStart:0,duration:operation.duration,volume:1};
+  clips.push(clip);selectedId=clip.id;return;
+ }
+ if(operation.type==="rename_asset"){
+  const asset=assetById(operation.assetId);if(!asset)throw new Error("Media Library asset nahi mila.");
+  asset.name=operation.name;clips.filter(c=>c.assetId===asset.id).forEach(c=>{c.name=operation.name;});renderAssets();return;
+ }
+ if(operation.type==="remove_asset"){
+  const asset=assetById(operation.assetId);if(!asset)throw new Error("Media Library asset nahi mila.");
+  const ids=new Set([asset.id]);if(asset.proxyAssetId)ids.add(asset.proxyAssetId);
+  assets=assets.filter(entry=>!ids.has(entry.id));renderAssets();renderPreview();return;
+ }
+ if(operation.type==="create_video_proxy"){
+  const asset=assetById(operation.assetId);if(!asset)throw new Error("Original video asset nahi mila.");
+  const row=[...document.querySelectorAll(".asset")].find(node=>node.dataset.assetId===asset.id),proxyButton=row?.querySelector(".asset-proxy");
+  await createVideoProxy(asset.id,proxyButton||{disabled:false,textContent:"Create proxy"});
+  if(!asset.proxyAssetId||!assetById(asset.proxyAssetId))throw new Error("Video proxy create nahi ho saka. Original video unchanged hai.");return;
+ }
+ if(operation.type==="set_proxy_usage"){
+  const asset=assetById(operation.assetId);if(!asset)throw new Error("Original video asset nahi mila.");
+  asset.useProxy=operation.useProxy;renderAssets();renderPreview();return;
+ }
+ if(operation.type==="rename_project"){project.name=operation.name;$("projectTitle").value=operation.name;return;}
+ if(operation.type==="create_project"){aiPendingProjectAction={...operation,type:"create",id:uid()};return;}
+ if(operation.type==="open_project"){aiPendingProjectAction={...operation,type:"open"};return;}
+ if(operation.type==="delete_project"){aiPendingProjectAction={...operation,type:"delete"};return;}
+ if(operation.type==="run_tool"){
+  if(operation.clipId)selectedId=operation.clipId;
+  if(operation.tool==="beat_sync"&&selectedClip()?.type==="video"&&!clips.some(c=>c.type==="audio"&&c.track==="audio"))throw new Error("Beat Sync ke liye audio/music clip bhi required hai.");
+  if(operation.tool==="ai_voice_over"||operation.tool==="add_sticker")setPlayhead(playhead);
+  else if(operation.clipId){const target=clips.find(c=>c.id===operation.clipId);if(target)setPlayhead(Math.min(Math.max(playhead,target.start),target.start+target.duration-.01));}
+  await aiExecuteTool(operation);return;
+ }
+ throw new Error("AI plan mein unknown action hai. Preview cancel kar di gayi.");
+}
+async function cleanupAiPreviewAssets(){
+ if(!aiPreviewAssetIds)return;
+ const originalIds=aiPreviewAssetIds,failedIds=new Set();
+ const newAssets=assets.filter(asset=>!originalIds.has(asset.id));
+ for(const asset of newAssets){
+  try{
+   await dbRequest("assets","readwrite",store=>store.delete(asset.id));
+   const url=urls.get(asset.id);if(url){URL.revokeObjectURL(url);urls.delete(asset.id);}
+  }catch(error){
+   failedIds.add(asset.id);
+   console.warn("AI preview asset cleanup failed:",error);
+  }
+ }
+ assets=assets.filter(asset=>originalIds.has(asset.id)||failedIds.has(asset.id));
+ aiPreviewAssetIds=null;
+ if(failedIds.size)notify("Some temporary preview media could not be removed from this device. Check the Project Assets panel.");
+}
+async function cancelAiEditorPreview(closing=false){
+ if(!aiPreviewActive||!aiPreviewOriginal)return;
+ pause();const original=aiPreviewOriginal;clearTimeout(saveTimer);
+ const changedAssets=assets.filter(current=>{
+  const old=original.assets.find(entry=>entry.id===current.id);
+  return old&&(old.name!==current.name||old.proxyAssetId!==current.proxyAssetId||old.useProxy!==current.useProxy);
+ });
+ await cleanupAiPreviewAssets();
+ project=clone(original.project);clips=clone(original.clips);selectedId=original.selectedId;playhead=original.playhead;
+ assets=original.assets.map(asset=>({...asset}));
+ try{
+  if(changedAssets.length){const oldById=new Map(original.assets.map(asset=>[asset.id,asset]));await dbRequest("assets","readwrite",store=>changedAssets.forEach(asset=>{const old=oldById.get(asset.id);if(old)store.put(old);}));}
+  await dbRequest("projects","readwrite",store=>store.put(original.project));
+ }catch(error){console.warn("Could not fully restore original project/media metadata after AI preview cancellation:",error);}
+ undoStack=clone(original.undoStack);redoStack=clone(original.redoStack);previewDraft=original.previewDraft?clone(original.previewDraft):null;
+ scale=original.scale;$("zoomSlider").value=String(scale);
+ snapEnabled=original.snapEnabled;$("snapToggleBtn").setAttribute("aria-pressed",String(snapEnabled));$("snapToggleBtn").textContent=snapEnabled?"⌁ Snap On":"⌁ Snap Off";$("snapToggleBtn").title=snapEnabled?"Magnetic snapping is on":"Magnetic snapping is off";
+ $("previewFit").value=original.previewFit;$("previewFit").dispatchEvent(new Event("change",{bubbles:true}));
+ const guideButton=$("previewGuidesBtn");if((guideButton.getAttribute("aria-pressed")==="true")!==original.previewGuides)guideButton.click();
+ $("projectTitle").value=project.name||"Untitled project";
+ try{
+  const saved=JSON.parse(localStorage.getItem(projectKey)||"[]"),index=saved.findIndex(item=>item.id===project.id);
+  if(index>=0){saved[index].name=project.name;saved[index].updatedAt=project.updatedAt;localStorage.setItem(projectKey,JSON.stringify(saved));}
+  if(original.recoveryDraftRaw===null)localStorage.removeItem(recoveryKey());else localStorage.setItem(recoveryKey(),original.recoveryDraftRaw);
+ }catch(error){}
+ aiPendingProjectAction=null;aiPreviewActive=false;aiPreviewOriginal=null;aiPreviewAssetIds=null;
+ document.body.classList.remove("ai-preview-active");$("aiAssistantOverlay").classList.remove("is-preview-mode");
+ renderAll();setPlayhead(Math.min(playhead,duration()));$("timelineScroll").scrollLeft=original.timelineScrollLeft||0;
+ $("aiPreviewState").hidden=true;$("aiApplyPlanBtn").hidden=true;$("aiCancelPreviewBtn").hidden=true;
+ $("aiPreviewPlanBtn").hidden=!aiCurrentPlan||aiCurrentPlan.needsClarification;$("aiPreviewPlanBtn").textContent="▶ Preview changes";
+ $("aiPreviewPlanBtn").disabled=!aiCurrentPlan||aiCurrentPlan.needsClarification||!aiCloudConsentIsReady();
+ aiSetBusy(false);aiSetStatus(closing?"Preview cancel ho gaya. Original project aur media restore ho gaye.":"Preview cancel kar diya. Original timeline aur media restore ho gaye.");
+ if(closing)document.body.classList.remove("ai-assistant-open");
+}
+function aiPreviewHasChanges(){
+ if(!aiPreviewOriginal)return false;const original=aiPreviewOriginal;
+ const mediaState=list=>list.map(a=>({id:a.id,name:a.name,proxyAssetId:a.proxyAssetId||"",useProxy:a.useProxy!==false}));
+ return JSON.stringify(clips)!==JSON.stringify(original.clips)
+  ||JSON.stringify(mediaState(assets))!==JSON.stringify(mediaState(original.assets))
+  ||String(project?.name||"")!==String(original.project?.name||"")
+  ||Number(playhead)!==Number(original.playhead)||Number(scale)!==Number(original.scale)
+  ||!!snapEnabled!==!!original.snapEnabled||$("previewFit").value!==original.previewFit
+  ||(!$("previewGuides").hidden)!==original.previewGuides||!!isPlaying!==!!original.isPlaying
+  ||!!aiPendingProjectAction;
+}
+async function aiPersistPreviewAssets(){
+ if(!aiPreviewOriginal)return;
+ const oldById=new Map(aiPreviewOriginal.assets.map(asset=>[asset.id,asset]));
+ const currentIds=new Set(assets.map(asset=>asset.id));
+ const removed=aiPreviewOriginal.assets.filter(asset=>!currentIds.has(asset.id));
+ const changedOrNew=assets.filter(asset=>{
+  const old=oldById.get(asset.id);
+  return !old||old.name!==asset.name||old.proxyAssetId!==asset.proxyAssetId||old.useProxy!==asset.useProxy;
+ });
+ await dbRequest("assets","readwrite",store=>{
+  changedOrNew.forEach(asset=>store.put(asset));
+  removed.forEach(asset=>store.delete(asset.id));
+ });
+ for(const asset of removed){const url=urls.get(asset.id);if(url){URL.revokeObjectURL(url);urls.delete(asset.id);}}
+}
+function aiSetProjectWorkspaceRoute(action){
+ if(action.type==="create"){
+  const createdAt=new Date().toISOString();
+  const entry={id:action.id,name:action.name,ratio:action.ratio,ratioLabel:action.ratioLabel,resolution:action.resolution,resolutionLabel:action.resolutionLabel,fps:action.fps,createdAt,updatedAt:createdAt};
+  const saved=JSON.parse(localStorage.getItem(projectKey)||"[]");
+  if(saved.some(item=>item.id===entry.id))throw new Error("New project ID duplicate ho gaya. Dobara try karein.");
+  saved.push(entry);localStorage.setItem(projectKey,JSON.stringify(saved));
+  location.assign("editor.html?id="+encodeURIComponent(entry.id)+"&v=20261121-ai-project");return;
+ }
+ if(action.type==="open"){location.assign("editor.html?id="+encodeURIComponent(action.projectId)+"&v=20261121-ai-project");return;}
+ if(action.type==="delete"){location.assign("./?aiDeleteProject="+encodeURIComponent(action.projectId));return;}
+}
+async function previewAiEditorPlan(){
+ if(aiPlanBusy||aiPreviewActive||!aiCurrentPlan||aiCurrentPlan.needsClarification)return;
+ if(aiCurrentPlan.requiresCloudConsent&&!$("aiCloudConsent").checked){aiSetStatus("Cloud AI processing se pehle consent checkbox tick karein.");return;}
+ if(previewDraft){aiSetStatus("Aapke Properties preview mein pending changes hain. Pehle unhein Apply ya cancel karein.");return;}
+ pause();
+ aiPreviewOriginal={
+  project:clone(project),clips:clone(clips),assets:assets.map(asset=>({...asset})),selectedId,playhead,scale,snapEnabled,
+  previewFit:$("previewFit").value,previewGuides:!$("previewGuides").hidden,isPlaying:false,
+  undoStack:clone(undoStack),redoStack:clone(redoStack),previewDraft:previewDraft?clone(previewDraft):null,
+  recoveryDraftRaw:(()=>{try{return localStorage.getItem(recoveryKey());}catch(error){return null;}})(),timelineScrollLeft:$("timelineScroll").scrollLeft
+ };
+ aiPreviewAssetIds=new Set(assets.map(asset=>asset.id));aiPendingProjectAction=null;
+ clips=clone(aiPreviewOriginal.clips);previewDraft=null;aiPreviewActive=true;
+ document.body.classList.add("ai-preview-active","ai-assistant-open");$("aiAssistantOverlay").classList.add("is-preview-mode");
+ $("aiPreviewPlanBtn").hidden=true;$("aiApplyPlanBtn").hidden=true;$("aiCancelPreviewBtn").hidden=false;$("aiPreviewState").hidden=false;
+ aiSetBusy(true);aiSetStatus("Temporary preview tayyar ho raha hai. Project aur media abhi save nahi honge.");
+ try{
+  for(let index=0;index<aiCurrentPlan.operations.length;index++){
+   const operation=aiCurrentPlan.operations[index];aiSetStatus("Step "+(index+1)+" / "+aiCurrentPlan.operations.length+": "+aiOperationLabel(operation));await aiExecuteOperation(operation);
+  }
+  if(!aiPreviewHasChanges())throw new Error("Is plan se koi visible change nahi bana.");
+  renderAll();setPlayhead(Math.min(playhead,duration()));
+  $("aiApplyPlanBtn").hidden=false;$("aiCancelPreviewBtn").hidden=false;$("aiPreviewState").hidden=false;
+  aiSetStatus(aiPendingProjectAction?.type==="delete"?"Review complete. Apply ke baad project page par alag Delete Project confirmation aayegi.":aiPendingProjectAction?"Review complete. Apply ke baad project action complete hoga.":"Preview ready. Video ko ▶ Play karke check karein. Apply sirf aapke kehne par hoga.");
+  notify("AI preview ready. Apply ya Cancel aapke control mein hai.");
+ }catch(error){
+  const message=error?.message||"AI preview nahi ban saka.";await cancelAiEditorPreview(false);aiSetStatus("Preview nahi ban saka: "+message+" Original project safe hai.");
+ }finally{
+  aiSetBusy(false);if(aiPreviewActive){$("aiApplyPlanBtn").hidden=false;$("aiCancelPreviewBtn").hidden=false;$("aiPreviewPlanBtn").hidden=true;}
+ }
+}
+async function commitAiEditorPreview(){
+ if(!aiPreviewActive||!aiPreviewOriginal||aiPlanBusy)return;
+ pause();const original=aiPreviewOriginal,navigation=aiPendingProjectAction;
+ if(navigation){
+  try{
+   aiPreviewActive=false;document.body.classList.remove("ai-preview-active");$("aiAssistantOverlay").classList.remove("is-preview-mode");
+   await saveProject();
+   aiPreviewOriginal=null;aiPreviewAssetIds=null;aiPendingProjectAction=null;
+   $("aiPreviewState").hidden=true;$("aiApplyPlanBtn").hidden=true;$("aiCancelPreviewBtn").hidden=true;aiSetBusy(false);
+   aiSetStatus("Project action approved.");aiSetProjectWorkspaceRoute(navigation);
+  }catch(error){
+   aiPreviewActive=true;aiPreviewOriginal=original;aiPreviewAssetIds=new Set(original.assets.map(asset=>asset.id));aiPendingProjectAction=navigation;
+   await cancelAiEditorPreview(false);aiSetStatus("Project action start nahi ho saka. Aapka existing project restore kar diya gaya: "+(error?.message||"Storage error."));
+  }
+  return;
+ }
+ const clipsChanged=JSON.stringify(clips)!==JSON.stringify(original.clips);
+ try{
+  await aiPersistPreviewAssets();aiPreviewActive=false;document.body.classList.remove("ai-preview-active");$("aiAssistantOverlay").classList.remove("is-preview-mode");
+  if(clipsChanged){undoStack.push(clone(original.clips));if(undoStack.length>40)undoStack.shift();redoStack=[];updateHistoryButtons();}
+  renderAll();scheduleSave();await saveProject();
+  aiPreviewOriginal=null;aiPreviewAssetIds=null;aiPendingProjectAction=null;
+  $("aiPreviewState").hidden=true;$("aiApplyPlanBtn").hidden=true;$("aiCancelPreviewBtn").hidden=true;$("aiPreviewPlanBtn").hidden=false;$("aiPreviewPlanBtn").textContent="Preview another version";
+  aiSetBusy(false);aiSetStatus("AI changes apply ho gayi hain. Timeline changes aik Undo step se reverse ho sakti hain.");
+  notify("AI changes applied. Timeline edits Undo se reverse ho sakti hain.");
+ }catch(error){
+  aiPreviewActive=true;aiPreviewOriginal=original;aiPreviewAssetIds=new Set(original.assets.map(asset=>asset.id));
+  await cancelAiEditorPreview(false);aiSetStatus("Save complete nahi ho saka, is liye original project restore kiya gaya. Recovery backup check karein: "+(error?.message||"Storage error."));
+ }
+}
+function wireAiEditorAssistant(){
+ $("aiEditorOpenBtn").addEventListener("click",openAiEditorAssistant);
+ $("aiAssistantCloseBtn").addEventListener("click",()=>closeAiEditorAssistant());
+ $("aiAssistantBackdrop").addEventListener("click",()=>closeAiEditorAssistant());
+ $("aiGeneratePlanBtn").addEventListener("click",generateAiEditPlan);
+ $("aiPromptWriterGenerateBtn").addEventListener("click",generateAiPrompt);
+ $("aiPromptWriterCopyBtn").addEventListener("click",copyAiGeneratedPrompt);
+ $("aiPromptWriterUseBtn").addEventListener("click",aiUseGeneratedPrompt);
+ $("aiPromptWriterInput").addEventListener("input",()=>{
+  $("aiPromptWriterCount").textContent=$("aiPromptWriterInput").value.length+" / 2,000";
+  $("aiPromptWriterResultWrap").hidden=true;
+  $("aiPromptWriterQuestion").hidden=true;
+  aiSetPromptWriterStatus("Request update ho gayi. Naya prompt generate karein.");
+ });
+ $("aiPromptWriterInput").addEventListener("keydown",event=>{
+  if((event.ctrlKey||event.metaKey)&&event.key==="Enter"){event.preventDefault();generateAiPrompt();}
+ });
+ $("aiPreviewPlanBtn").addEventListener("click",previewAiEditorPlan);
+ $("aiApplyPlanBtn").addEventListener("click",commitAiEditorPreview);
+ $("aiCancelPreviewBtn").addEventListener("click",()=>cancelAiEditorPreview(false));
+ $("aiUseRefinedPrompt").addEventListener("click",aiUseRefinedPrompt);
+ $("aiEditPrompt").addEventListener("input",()=>{
+  $("aiPromptCount").textContent=$("aiEditPrompt").value.length+" / 1,400";
+  if(!aiPreviewActive&&aiCurrentPlan){aiCurrentPlan=null;$("aiPlanCard").hidden=true;aiSetStatus("Prompt update ho gaya. Naya edit plan banayein.");aiSetBusy(false);}
+ });
+ $("aiCloudConsent").addEventListener("change",()=>{$("aiPreviewPlanBtn").disabled=aiPlanBusy||aiPreviewActive||!aiCloudConsentIsReady();});
+ document.querySelectorAll("[data-ai-suggestion]").forEach(button=>{
+  button.addEventListener("click",()=>{
+   $("aiEditPrompt").value=button.dataset.aiSuggestion||"";
+   $("aiPromptCount").textContent=$("aiEditPrompt").value.length+" / 1,400";
+   $("aiEditPrompt").focus();
+  });
+ });
+ $("aiEditPrompt").addEventListener("keydown",event=>{
+  if((event.ctrlKey||event.metaKey)&&event.key==="Enter"){event.preventDefault();generateAiEditPlan();}
+ });
+}
+
 function parseStudioJsonArray(source){
  const value=String(source||"").replace(/\x60{3}(?:json)?/gi,"").trim(),start=value.indexOf("["),end=value.lastIndexOf("]");
  if(start<0||end<=start)throw new Error("The AI response did not contain the expected caption list.");
@@ -3346,6 +4551,16 @@ function isTypingTarget(target){
 }
 function handleEditorShortcuts(event){
  if($("editorApp").hidden)return;
+ if(aiAssistantOpen&&event.key==="Escape"){
+  if(aiPlanBusy)return;
+  event.preventDefault();
+  if(aiPreviewActive)cancelAiEditorPreview(false);else closeAiEditorAssistant();
+  return;
+ }
+ if(aiPreviewActive){
+  if((event.ctrlKey||event.metaKey)&&["z","y"].includes(event.key.toLowerCase()))event.preventDefault();
+  return;
+ }
  const guide=$("shortcutsModal");
  if(event.key==="Escape"&&guide&&!guide.hidden){event.preventDefault();closeShortcutsGuide();return;}
  const captionsModal=$("captionsModal");if(event.key==="Escape"&&captionsModal&&!captionsModal.hidden&&!captionsBusy){closeCaptionsModal();return;}if((guide&&!guide.hidden)||(captionsModal&&!captionsModal.hidden)||exportBusy||!$("exportModal").hidden||isTypingTarget(event.target))return;
@@ -3433,7 +4648,7 @@ $("shortcutsModal").addEventListener("click",event=>{if(event.target===$("shortc
 window.addEventListener("keydown",handleEditorShortcuts);
 $("importBtn").addEventListener("click",()=>$("fileInput").click());
 $("fileInput").addEventListener("change",async e=>{if(e.target.files?.length)await importFiles([...e.target.files]);e.target.value="";});
-$("addTextBtn").addEventListener("click",addText);$("openVoiceoverModalBtn").addEventListener("click",openVoiceoverModal);$("voiceoverCloseBtn").addEventListener("click",closeVoiceoverModal);$("voiceoverGenerateBtn").addEventListener("click",generateVoiceover);$("voiceoverConsent").addEventListener("change",()=>{$("voiceoverGenerateBtn").disabled=!$("voiceoverConsent").checked||voiceoverBusy;});$("voiceoverText").addEventListener("input",()=>{$("voiceoverCounter").textContent=$("voiceoverText").value.length+" / 2,000";});$("voiceoverModal").addEventListener("click",event=>{if(event.target===$("voiceoverModal"))closeVoiceoverModal();});$("openStickerModalBtn").addEventListener("click",openStickerModal);$("stickerCloseBtn").addEventListener("click",closeStickerModal);$("stickerAddBtn").addEventListener("click",addStickerToTimeline);$("stickerModal").addEventListener("click",event=>{if(event.target===$("stickerModal"))closeStickerModal();});$("autoCaptionsBtn").addEventListener("click",openCaptionsModal);$("captionsCloseBtn").addEventListener("click",closeCaptionsModal);$("captionsGenerateBtn").addEventListener("click",generateCaptions);$("captionsDownloadBtn").addEventListener("click",downloadCaptionsSrt);$("captionsModal").addEventListener("click",event=>{if(event.target===$("captionsModal")&&!captionsBusy)closeCaptionsModal();});
+$("addTextBtn").addEventListener("click",addText);wireAiEditorAssistant();$("openVoiceoverModalBtn").addEventListener("click",openVoiceoverModal);$("voiceoverCloseBtn").addEventListener("click",closeVoiceoverModal);$("voiceoverGenerateBtn").addEventListener("click",generateVoiceover);$("voiceoverConsent").addEventListener("change",()=>{$("voiceoverGenerateBtn").disabled=!$("voiceoverConsent").checked||voiceoverBusy;});$("voiceoverText").addEventListener("input",()=>{$("voiceoverCounter").textContent=$("voiceoverText").value.length+" / 2,000";});$("voiceoverModal").addEventListener("click",event=>{if(event.target===$("voiceoverModal"))closeVoiceoverModal();});$("openStickerModalBtn").addEventListener("click",openStickerModal);$("stickerCloseBtn").addEventListener("click",closeStickerModal);$("stickerAddBtn").addEventListener("click",addStickerToTimeline);$("stickerModal").addEventListener("click",event=>{if(event.target===$("stickerModal"))closeStickerModal();});$("autoCaptionsBtn").addEventListener("click",openCaptionsModal);$("captionsCloseBtn").addEventListener("click",closeCaptionsModal);$("captionsGenerateBtn").addEventListener("click",generateCaptions);$("captionsDownloadBtn").addEventListener("click",downloadCaptionsSrt);$("captionsModal").addEventListener("click",event=>{if(event.target===$("captionsModal")&&!captionsBusy)closeCaptionsModal();});
 $("playBtn").addEventListener("click",()=>isPlaying?pause():play());
 $("stopBtn").addEventListener("click",()=>{pause();setPlayhead(0);});
 $("splitBtn").addEventListener("click",splitSelected);
