@@ -501,7 +501,7 @@ body{background:radial-gradient(ellipse at 48% -18%,rgba(126,79,190,.18),transpa
 <div class="prop"><label for="propY">Position Y (%)</label><input id="propY" type="number" min="-100" max="100" step="1" value="0"></div>
 </div>
 <div class="prop-grid"><div class="prop"><label><input id="propFlipX" type="checkbox"> Flip Horizontal</label></div><div class="prop"><label><input id="propFlipY" type="checkbox"> Flip Vertical</label></div></div>
-<div class="prop"><label for="propFramingMode">Crop &amp; Resize</label><select id="propFramingMode"><option value="fit">Fit — show full clip</option><option value="fill">Fill — crop to frame</option><option value="stretch">Stretch — fill frame</option></select></div>
+<div class="prop"><label for="propFramingMode">Crop &amp; Resize</label><select id="propFramingMode"><option value="project">Use Preview Fit setting</option><option value="fit">Fit — show full clip</option><option value="fill">Fill — crop to frame</option><option value="stretch">Stretch — fill frame</option></select></div>
 <div class="prop"><label for="propOpacity">Opacity</label><input id="propOpacity" type="range" min="0" max="1" step="0.05" value="1"></div>
 </div>
 </div></details>
@@ -1022,7 +1022,7 @@ function renderInspector(){
  $("propX").value=shown.x??0;
  $("propY").value=shown.y??0;
  $("propOpacity").value=shown.opacity??1;
- $("propFlipX").checked=!!shown.flipX;$("propFlipY").checked=!!shown.flipY;$("propFramingMode").value=shown.framingMode||"fit";
+ $("propFlipX").checked=!!shown.flipX;$("propFlipY").checked=!!shown.flipY;$("propFramingMode").value=shown.framingMode||"project";
  $("textProp").classList.toggle("hidden",!isText);
  $("textStyleProps").classList.toggle("hidden",!isText);
  $("keyframeProps").classList.toggle("hidden",!visual);
@@ -1094,7 +1094,7 @@ function applyVisualStyle(el,c,local,stageRelative=false){
  else if(type==="slide-left"){x+=(1-p)*18;opacity*=Math.min(1,p*1.4);}
  else if(type==="blur-reveal"){extraBlur=(1-p)*14;opacity*=Math.min(1,p*1.5);}
  const flipScaleX=scale*(c.flipX?-1:1),flipScaleY=scale*(c.flipY?-1:1);
- const selectedFraming=c.framingMode||($("previewFit")?$("previewFit").value:"contain");el.style.objectFit=selectedFraming==="fill"?"cover":selectedFraming==="stretch"?"fill":"contain";el.style.objectPosition="center center";
+ const selectedFraming=c.framingMode||"project",effectiveFraming=selectedFraming==="project"?($("previewFit")?$("previewFit").value:"contain"):selectedFraming;el.style.objectFit=effectiveFraming==="cover"||effectiveFraming==="fill"?"cover":effectiveFraming==="stretch"?"fill":"contain";el.style.objectPosition="center center";
  if(stageRelative){el.style.inset="auto";el.style.left="calc(50% + "+x+"%)";el.style.top="calc(50% + "+motion.y+"%)";el.style.transform="translate(-50%, -50%) rotate("+motion.rotation+"deg) scale("+flipScaleX+","+flipScaleY+")";}
  else{el.style.transform="translate("+x+"%, "+motion.y+"%) rotate("+motion.rotation+"deg) scale("+flipScaleX+","+flipScaleY+")";}
  el.style.opacity=String(Math.max(0,Math.min(1,opacity)));
@@ -2660,7 +2660,8 @@ async function syncClipsToBeats(){
    const nearest=beats.reduce((best,time)=>Math.abs(time-item.start)<Math.abs(best-item.start)?time:best,beats[0]);
    if(Math.abs(nearest-item.start)>.34)continue;
    const collides=clips.some(other=>other.id!==item.id&&other.track===item.track&&nearest<other.start+other.duration-.03&&nearest+item.duration>other.start+.03);
-   if(!collides)moved.push({clip:item,start:nearest});
+   const plannedCollision=moved.some(planned=>planned.clip.track===item.track&&nearest<planned.start+planned.clip.duration-.03&&nearest+item.duration>planned.start+.03);
+   if(!collides&&!plannedCollision)moved.push({clip:item,start:nearest});
   }
   if(!moved.length){notify("No visual clip could be aligned to a nearby beat without overlapping another clip.");return;}
   snapshot();moved.forEach(item=>{item.clip.start=Number(item.start.toFixed(3));});renderAll();scheduleSave();
@@ -2764,6 +2765,7 @@ async function removeSilenceFromSelected(){
   const thresholdDb=Number($("silenceThreshold").value)||-42,threshold=Math.pow(10,thresholdDb/20),hop=Math.max(256,Math.floor(sampleRate*.02)),frameCount=Math.ceil(buffer.length/hop),padding=clampStudioNumber($("silencePadding").value,.02,.25);
   const from=Math.max(0,Number(clip.sourceStart)||0),to=Math.min(buffer.duration,from+clip.duration),analysedDuration=Math.min(clip.duration,to-from);
   if(analysedDuration<.2)throw new Error("The selected clip has no readable audio range.");
+  if(analysedDuration<clip.duration-.15)throw new Error("The source audio is shorter than this clip range. Trim the clip to the available media before removing silence.");
   const active=[];let run=null,lastLoudEnd=0;
   for(let frame=0;frame<frameCount;frame++){
    const sourceTime=frame*hop/sampleRate;
