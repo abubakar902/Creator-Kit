@@ -2531,6 +2531,7 @@ function setExportModalProgress(percent,title,detail){
  $("exportModalDetail").textContent=detail||"";
 }
 function supportedExportMime(format){
+ if(typeof MediaRecorder==="undefined"||typeof MediaRecorder.isTypeSupported!=="function")return "";
  const candidates=format==="mp4"
   ?["video/mp4;codecs=avc1.424028,mp4a.40.2","video/mp4;codecs=avc1,mp4a.40.2","video/mp4"]
   :["video/webm;codecs=vp9,opus","video/webm;codecs=vp8,opus","video/webm"];
@@ -2538,12 +2539,17 @@ function supportedExportMime(format){
 }
 function configureExportOptions(){
  const mp4Option=$("exportFormat").querySelector('option[value="mp4"]');
- const mp4Supported=!!supportedExportMime("mp4");
- mp4Option.disabled=!mp4Supported;
- $("exportFormatNote").textContent=mp4Supported
-  ?"MP4 is supported by this browser/device. If encoding fails, choose WebM.": "This browser/device does not currently offer MP4 recording. WebM is available; MP4 needs a compatible H.264/AAC encoder.";
- if(!mp4Supported&&$("exportFormat").value==="mp4")$("exportFormat").value="webm";
- if(mp4Supported&&$("exportFormat").dataset.userChosen!=="1")$("exportFormat").value="mp4";
+ const nativeMp4=!!supportedExportMime("mp4");
+ const webmAvailable=!!supportedExportMime("webm");
+ const localFallback=!!(webmAvailable&&localVideoTools&&typeof localVideoTools.convertWebMToMp4==="function");
+ mp4Option.disabled=!(nativeMp4||localFallback);
+ $("exportFormatNote").textContent=nativeMp4
+  ?"MP4 is supported by this browser/device. If recording fails, choose WebM."
+  :localFallback
+   ?"This device cannot record MP4 directly. TrivexaAI will record WebM, then convert it to MP4 on this device. On a 4 GB PC, fallback is limited to 720p and 2 minutes; FFmpeg may download about 31 MB on first use."
+   :"This browser cannot create MP4 or WebM video with its current recorder. Use an updated Chrome or Edge browser.";
+ if(!nativeMp4&&!localFallback&&$("exportFormat").value==="mp4")$("exportFormat").value="webm";
+ if((nativeMp4||localFallback)&&$("exportFormat").dataset.userChosen!=="1")$("exportFormat").value="mp4";
  updateExportSummary();
 }
 function getSelectedExportFps(){
@@ -2627,6 +2633,14 @@ async function exportVideo(){
  let timelineFinished=false,recordingFailure=null;
  try{
   const size=getSelectedExportSize(),format=$("exportFormat").value,fps=getSelectedExportFps();
+  const nativeMp4Mime=supportedExportMime("mp4");
+  const needsMp4Fallback=format==="mp4"&&!nativeMp4Mime;
+  if(needsMp4Fallback){
+   if(!supportedExportMime("webm"))throw new Error("This browser cannot record the temporary WebM file needed for MP4 conversion. Please use updated Chrome or Edge.");
+   if(!localVideoTools||typeof localVideoTools.convertWebMToMp4!=="function")throw new Error("The local MP4 converter is not ready. Refresh Video Studio and try again.");
+   if(total>120)throw new Error("On this 4 GB PC, MP4 fallback supports timelines up to 2 minutes. Choose WebM or shorten the timeline.");
+   if(Math.max(size.width,size.height)>1280)throw new Error("On this 4 GB PC, MP4 fallback is limited to 720p. Choose 720p resolution and try again.");
+  }
   updateExportSummary();
   const hasSoundSources=exportClips.some(c=>c.type==="video"||c.type==="audio");
   const AudioContextClass=window.AudioContext||window.webkitAudioContext;
@@ -2693,8 +2707,9 @@ async function exportVideo(){
   const tracks=[...canvasStream.getVideoTracks()];
   if(audioDestination)tracks.push(...audioDestination.stream.getAudioTracks());
   recordingStream=new MediaStream(tracks);
-  const mimeType=supportedExportMime(format);
-  if(!mimeType)throw new Error(format.toUpperCase()+" export is not supported by this browser/device. Choose another format.");
+  const recorderFormat=needsMp4Fallback?"webm":format;
+  const mimeType=supportedExportMime(recorderFormat);
+  if(!mimeType)throw new Error(recorderFormat.toUpperCase()+" recording is not supported by this browser/device. Choose another format.");
   const bitrates={small:1500000,standard:3500000,high:7000000};
   const videoBitrate=bitrates[$("exportBitrate").value]||bitrates.standard;
   recorder=new MediaRecorder(recordingStream,{mimeType,videoBitsPerSecond:videoBitrate,audioBitsPerSecond:128000});
@@ -2763,7 +2778,7 @@ async function exportVideo(){
     }
     if(elapsed>=total){
      timelineFinished=true;
-     setExportModalProgress(97,"Finishing your video","Finalizing the WebM file. Please keep this tab open.");
+     setExportModalProgress(97,"Finishing your video",needsMp4Fallback?"Finalizing the temporary WebM file before local MP4 conversion.":"Finalizing the "+format.toUpperCase()+" file. Please keep this tab open.");
      stopTimer=setTimeout(()=>{if(recorder&&recorder.state!=="inactive"){try{recorder.stop();}catch(e){recordingFailure=e;}}},250);
      return;
     }
@@ -2773,7 +2788,25 @@ async function exportVideo(){
   renderTick(startedAt);
   const blob=await recordingPromise;
   if(!blob||blob.size<1000)throw new Error("The exported video is empty. Please try again with another media file.");
-  lastExportBlob=blob;
+  let finalBlob=blob;
+  if(needsMp4Fallback){
+   if(blob.size>100*1024*1024)throw new Error("This 4 GB PC's MP4 fallback accepts temporary WebM files up to 100 MB. Choose 720p, reduce the timeline length or use WebM.");
+   setExportModalProgress(97,"Converting to MP4","Converting locally on this device. Keep this tab open; no video is uploaded.");
+   finalBlob=await localVideoTools.convertWebMToMp4(blob,{
+    duration:total,width:size.width,height:size.height,
+    isCancelled:()=>!!exportController?.cancelled,
+    onReady:terminate=>{
+     if(exportController?.cancelled)terminate();
+     else if(exportController)exportController.stopRecording=terminate;
+    },
+    onProgress:value=>{
+     if(!exportController?.cancelled)setExportModalProgress(97+Math.min(2,Math.max(0,Number(value)||0)*2),"Converting to MP4","Local H.264/AAC conversion · "+Math.round(Math.max(0,Math.min(1,Number(value)||0))*100)+"%");
+    }
+   });
+   if(exportController?.cancelled){const cancelled=new Error("Export cancelled by you.");cancelled.name="AbortError";throw cancelled;}
+  }
+  if(!finalBlob||finalBlob.size<1000)throw new Error("The final exported video is empty. Please try again.");
+  lastExportBlob=finalBlob;
   const extension=format==="mp4"?"mp4":"webm";
   lastExportFileName=(safeName(project.name).replace(/\s+/g,"-")||"trivexaai-video")+"."+extension;
   setExportModalProgress(100,"Your video is ready!","The "+format.toUpperCase()+" export is complete. Download it now, or use Download again later in this window.");
@@ -2783,7 +2816,7 @@ async function exportVideo(){
   $("exportCancelBtn").hidden=true;
   $("exportDownloadBtn").hidden=false;
   $("exportCloseBtn").hidden=false;$("exportCloseBtn").disabled=false;
-  const url=URL.createObjectURL(blob),link=document.createElement("a");
+  const url=URL.createObjectURL(finalBlob),link=document.createElement("a");
   link.href=url;link.download=lastExportFileName;
   document.body.append(link);link.click();link.remove();
   setTimeout(()=>URL.revokeObjectURL(url),60000);
