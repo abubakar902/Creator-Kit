@@ -1,0 +1,468 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0b0718">
+<meta name="robots" content="noindex,nofollow">
+<meta name="description" content="Learn how to use TrivexaAI Video Studio tools, edit your timeline, create captions, work with audio and export videos.">
+<title>Video Studio Help Center · TrivexaAI</title>
+<style>
+:root{color-scheme:dark;--bg:#0b0718;--panel:#151027;--panel2:#1d1532;--line:#3a2858;--muted:#b9accf;--text:#fbf8ff;--purple:#9b59f0;--pink:#df73e8;--blue:#6c7aff;--green:#95e6c0;--shadow:0 18px 52px rgba(0,0,0,.27)}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:90px}
+body{margin:0;min-height:100vh;color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Arial,sans-serif;background:radial-gradient(ellipse at 75% -12%,rgba(106,47,164,.25),transparent 38%),radial-gradient(ellipse at 0% 35%,rgba(80,57,150,.1),transparent 32%),linear-gradient(180deg,#0b0718,#090612)}
+a{color:inherit;text-decoration:none}
+button,input{font:inherit}
+::selection{background:#9255d6;color:#fff}
+.topbar{height:70px;position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 clamp(15px,4vw,44px);border-bottom:1px solid rgba(160,118,207,.2);background:rgba(11,7,24,.88);backdrop-filter:blur(18px)}
+.brand{display:flex;align-items:center;gap:10px;font-size:17px;font-weight:850;letter-spacing:-.4px}
+.brand img{width:35px;height:35px;object-fit:contain}
+.brand small{display:block;margin-top:-2px;color:#bba9d5;font-size:9px;letter-spacing:1.8px}
+.brand em{font-style:normal;color:#cb85ff}
+.top-actions{display:flex;align-items:center;gap:9px}
+.top-link{display:inline-flex;align-items:center;justify-content:center;min-height:37px;padding:0 13px;border:1px solid #493565;border-radius:10px;background:#19122a;color:#e9ddfa;font-size:11px;font-weight:750;transition:.18s}
+.top-link:hover{border-color:#ad79e8;background:#291a41;transform:translateY(-1px)}
+.top-link.primary{border:0;background:linear-gradient(110deg,#a33eff,#684dff);color:#fff;box-shadow:0 7px 20px rgba(125,61,205,.28)}
+.shell{width:min(1440px,100%);margin:0 auto;padding:30px clamp(14px,3vw,36px) 70px}
+.hero{position:relative;overflow:hidden;padding:clamp(25px,4vw,48px);border:1px solid rgba(184,128,239,.4);border-radius:25px;background:radial-gradient(ellipse at 84% 48%,rgba(164,70,231,.27),transparent 36%),linear-gradient(115deg,#24123e 0%,#17102d 53%,#211038 100%);box-shadow:var(--shadow)}
+.hero:after{content:"?";position:absolute;right:8%;top:50%;transform:translateY(-54%);font-size:clamp(120px,18vw,230px);font-weight:950;line-height:1;color:rgba(195,137,255,.09);text-shadow:0 0 55px rgba(164,89,255,.2);pointer-events:none}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;color:#d7a8ff;font-size:10px;font-weight:850;letter-spacing:2px;text-transform:uppercase}
+.eyebrow:before{content:"";width:7px;height:7px;border-radius:50%;background:#c784ff;box-shadow:0 0 13px #b86cff}
+.hero h1{position:relative;z-index:1;margin:13px 0 9px;font-size:clamp(32px,5vw,54px);line-height:1.08;letter-spacing:-1.8px}
+.gradient{background:linear-gradient(90deg,#c17aff,#f08ae1 56%,#9f9cff);background-clip:text;-webkit-background-clip:text;color:transparent}
+.hero p{position:relative;z-index:1;max-width:690px;margin:0;color:#d0c0e4;font-size:14px;line-height:1.75}
+.hero-badges{position:relative;z-index:1;display:flex;flex-wrap:wrap;gap:8px;margin-top:22px}
+.hero-badges span{padding:7px 11px;border:1px solid rgba(196,146,244,.28);border-radius:999px;background:rgba(14,9,26,.35);color:#eadcff;font-size:10px;font-weight:750}
+.search-panel{position:relative;z-index:2;display:flex;align-items:center;gap:12px;max-width:760px;margin:-22px auto 26px;padding:10px 13px;border:1px solid rgba(191,143,238,.42);border-radius:15px;background:#171027;box-shadow:0 18px 45px rgba(0,0,0,.35)}
+.search-icon{flex:none;color:#c59aff;font-size:19px}
+.search-panel input{width:100%;min-width:0;height:40px;border:0;outline:0;background:transparent;color:#fff;font-size:13px}
+.search-panel input::placeholder{color:#9f90b2}
+.search-panel:focus-within{border-color:#be87ff;box-shadow:0 0 0 3px rgba(164,101,233,.14),0 18px 45px rgba(0,0,0,.3)}
+.clear-search{flex:none;border:1px solid #4c3767;border-radius:8px;padding:7px 9px;background:#241735;color:#ddc9f3;font-size:10px;cursor:pointer}
+.layout{display:grid;grid-template-columns:236px minmax(0,1fr);gap:22px;align-items:start}
+.sidebar{position:sticky;top:92px;max-height:calc(100vh - 112px);overflow:auto;padding:16px 12px;border:1px solid rgba(161,121,199,.23);border-radius:16px;background:rgba(18,13,31,.88);box-shadow:var(--shadow);scrollbar-width:thin;scrollbar-color:#5c4078 #151027}
+.sidebar-title{padding:3px 9px 12px;color:#9f8eb8;font-size:9px;font-weight:850;letter-spacing:1.5px;text-transform:uppercase}
+.sidebar a{display:flex;align-items:center;gap:10px;margin:3px 0;padding:10px 11px;border-radius:9px;color:#c8badc;font-size:11px;font-weight:680;transition:.16s}
+.sidebar a span{width:18px;color:#bf91f5;text-align:center;font-size:14px}
+.sidebar a:hover{background:#2a1b40;color:#fff}
+.sidebar .sidebar-feedback{margin-top:13px;border:1px solid rgba(176,122,227,.35);background:linear-gradient(110deg,rgba(107,52,155,.2),rgba(50,38,104,.18));color:#f2e6ff}
+.content{min-width:0}
+.intro-row{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin:0 0 14px}
+.intro-row h2{margin:0;font-size:21px;letter-spacing:-.4px}
+.intro-row p{margin:5px 0 0;color:#a99abd;font-size:11px;line-height:1.6}
+.result-count{flex:none;color:#a992c1;font-size:10px}
+.quick-start{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:0 0 28px}
+.step{position:relative;overflow:hidden;min-height:128px;padding:15px;border:1px solid rgba(151,111,190,.25);border-radius:13px;background:linear-gradient(145deg,rgba(30,21,47,.95),rgba(17,12,29,.96))}
+.step-num{display:grid;place-items:center;width:25px;height:25px;margin-bottom:11px;border:1px solid rgba(183,126,235,.42);border-radius:8px;background:rgba(125,67,177,.2);color:#e0bdff;font-size:10px;font-weight:900}
+.step b{display:block;margin-bottom:5px;color:#f5eaff;font-size:12px}
+.step p{margin:0;color:#b4a4c8;font-size:10px;line-height:1.6}
+.guide-section{margin:0 0 28px;scroll-margin-top:90px}
+.section-heading{display:flex;align-items:center;gap:11px;margin:0 0 12px;padding-bottom:10px;border-bottom:1px solid rgba(154,118,189,.2)}
+.section-icon{display:grid;place-items:center;flex:none;width:35px;height:35px;border:1px solid rgba(184,131,234,.32);border-radius:11px;background:linear-gradient(145deg,rgba(114,61,168,.28),rgba(64,48,126,.2));color:#d7a9ff;font-size:16px}
+.section-heading h2{margin:0;color:#f8efff;font-size:16px;letter-spacing:-.2px}
+.section-heading p{margin:3px 0 0;color:#9f91b2;font-size:10px;line-height:1.5}
+.entry-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.guide-entry{overflow:hidden;border:1px solid rgba(145,111,180,.27);border-radius:13px;background:linear-gradient(145deg,rgba(27,20,43,.96),rgba(17,12,28,.98));box-shadow:0 8px 22px rgba(0,0,0,.13);transition:border-color .18s ease,transform .18s ease,box-shadow .18s ease}
+.guide-entry:hover{border-color:rgba(184,135,234,.46);box-shadow:0 13px 28px rgba(0,0,0,.22)}
+.guide-entry[open]{border-color:rgba(183,129,232,.48);background:linear-gradient(145deg,rgba(34,24,53,.98),rgba(18,13,30,.98))}
+.guide-entry[hidden]{display:none}
+.guide-entry summary{position:relative;display:flex;align-items:center;gap:10px;min-height:56px;padding:12px 43px 12px 14px;list-style:none;cursor:pointer;color:#f2e9ff;font-size:12px;font-weight:820}
+.guide-entry summary::-webkit-details-marker{display:none}
+.guide-entry summary:after{content:"＋";position:absolute;right:15px;top:50%;transform:translateY(-50%);color:#c29ae9;font-size:17px;font-weight:500}
+.guide-entry[open] summary:after{content:"−"}
+.entry-icon{display:grid;place-items:center;flex:none;width:29px;height:29px;border-radius:9px;background:rgba(136,80,192,.18);color:#d0a0ff;font-size:14px}
+.entry-body{padding:0 14px 15px;border-top:1px solid rgba(145,112,181,.14)}
+.entry-body p{margin:12px 0 8px;color:#bdaeD0;font-size:10.5px;line-height:1.7}
+.entry-body b{color:#f0e4ff}
+.entry-body ol,.entry-body ul{margin:8px 0 0;padding-left:18px;color:#c9badb;font-size:10px;line-height:1.8}
+.entry-body li{padding-left:2px;margin:2px 0}
+.entry-body .tip{margin-top:11px;padding:9px 10px;border-left:2px solid #a56ce1;border-radius:0 8px 8px 0;background:rgba(111,67,159,.12);color:#cdb9e2;font-size:9.5px;line-height:1.65}
+.entry-body .limit{margin-top:9px;padding:8px 10px;border:1px solid rgba(222,173,115,.2);border-radius:8px;background:rgba(150,100,39,.08);color:#e0c49d;font-size:9px;line-height:1.6}
+.entry-body .privacy{margin-top:9px;padding:8px 10px;border:1px solid rgba(120,201,165,.18);border-radius:8px;background:rgba(67,142,108,.08);color:#b7dcc8;font-size:9px;line-height:1.6}
+.badge{display:inline-flex;vertical-align:middle;align-items:center;margin:0 3px 0 0;padding:3px 7px;border:1px solid rgba(172,128,215,.25);border-radius:999px;background:rgba(103,67,145,.15);color:#d7baff;font-size:8px;font-weight:850;letter-spacing:.4px}
+.single-entry{display:grid;grid-template-columns:1fr}
+.notice{margin:13px 0;padding:12px 14px;border:1px solid rgba(162,128,195,.22);border-radius:12px;background:rgba(24,17,39,.74);color:#b9a9ca;font-size:10px;line-height:1.7}
+.notice strong{color:#f2e6ff}
+.shortcut-table{width:100%;border-collapse:collapse;overflow:hidden;border:1px solid rgba(151,113,186,.23);border-radius:12px;background:#171027}
+.shortcut-table th,.shortcut-table td{padding:10px 12px;border-bottom:1px solid rgba(151,113,186,.15);text-align:left;font-size:10px}
+.shortcut-table th{color:#d5b5fa;background:#211632;font-size:9px;letter-spacing:.7px;text-transform:uppercase}
+.shortcut-table td{color:#c7b8d7}
+.shortcut-table tr:last-child td{border-bottom:0}
+kbd{display:inline-block;padding:3px 7px;border:1px solid #5a4273;border-bottom-width:2px;border-radius:6px;background:#211733;color:#f0e5ff;font-size:9px;font-weight:800;white-space:nowrap}
+.trouble-list{display:grid;gap:8px}
+.trouble-row{padding:12px 13px;border:1px solid rgba(145,111,180,.22);border-radius:11px;background:rgba(25,18,40,.84)}
+.trouble-row b{display:block;margin-bottom:4px;color:#f0e5ff;font-size:11px}
+.trouble-row p{margin:0;color:#b5a5c8;font-size:10px;line-height:1.65}
+.support-card{position:relative;overflow:hidden;margin-top:24px;padding:23px;border:1px solid rgba(189,132,242,.4);border-radius:18px;background:radial-gradient(ellipse at 100% 0,rgba(157,77,222,.24),transparent 40%),linear-gradient(120deg,#211338,#17102b);box-shadow:var(--shadow)}
+.support-card h2{margin:0 0 7px;font-size:19px}
+.support-card p{max-width:660px;margin:0;color:#c1b1d6;font-size:11px;line-height:1.7}
+.support-actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:15px}
+.support-actions a{display:inline-flex;align-items:center;justify-content:center;min-height:39px;padding:0 14px;border-radius:10px;background:linear-gradient(110deg,#a33eff,#684dff);color:#fff;font-size:10px;font-weight:850;box-shadow:0 8px 21px rgba(112,62,191,.25)}
+.support-actions a.secondary{border:1px solid #63477e;background:#211634;color:#eadcff;box-shadow:none}
+.no-results{display:none;margin:14px 0;padding:20px;border:1px dashed #745392;border-radius:12px;color:#c9b6dc;text-align:center;font-size:12px}
+.no-results.show{display:block}
+.footer{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:26px;padding-top:15px;border-top:1px solid rgba(151,116,187,.17);color:#827391;font-size:9px}
+.footer a{color:#c9a4f2;text-decoration:underline;text-underline-offset:3px}
+/* Readable help text on desktop and mobile */
+.sidebar a{font-size:12px}
+.intro-row p{font-size:12px}
+.step b{font-size:13px}
+.step p{font-size:11px}
+.entry-body p{font-size:12px;line-height:1.72}
+.entry-body ol,.entry-body ul{font-size:11px;line-height:1.85}
+.entry-body .tip{font-size:10.5px;line-height:1.7}
+.entry-body .limit,.entry-body .privacy{font-size:10px;line-height:1.7}
+.trouble-row p{font-size:11px;line-height:1.72}
+.support-card p{font-size:12px;line-height:1.75}
+@media(max-width:980px){.layout{grid-template-columns:205px minmax(0,1fr);gap:14px}.quick-start{grid-template-columns:repeat(2,minmax(0,1fr))}.entry-grid{grid-template-columns:1fr}}
+@media(max-width:720px){.topbar{height:62px;padding:0 12px}.brand{font-size:14px}.brand img{width:30px;height:30px}.top-link{min-height:33px;padding:0 9px;font-size:9px}.shell{padding:18px 12px 45px}.hero{padding:23px 18px;border-radius:18px}.hero h1{font-size:32px}.hero p{font-size:12px}.hero:after{right:1%;font-size:130px}.search-panel{margin:-15px 7px 19px}.layout{display:block}.sidebar{position:relative;top:auto;display:flex;gap:4px;max-height:none;overflow-x:auto;margin-bottom:20px;padding:8px;white-space:nowrap}.sidebar-title{display:none}.sidebar a{flex:none;margin:0;padding:9px 10px;font-size:9px}.sidebar a span{width:auto}.sidebar .sidebar-feedback{margin:0}.quick-start{grid-template-columns:repeat(2,minmax(0,1fr))}.step{min-height:115px;padding:12px}.section-heading h2{font-size:14px}.intro-row h2{font-size:18px}.support-card{padding:18px}.footer{align-items:flex-start;flex-direction:column}}
+@media(max-width:390px){.top-actions .top-link.secondary{display:none}.hero h1{font-size:28px}.quick-start{grid-template-columns:1fr 1fr;gap:7px}.step p{font-size:10px}.guide-entry summary{font-size:11px}.entry-body p{font-size:11px}.entry-body ol,.entry-body ul{font-size:10.5px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<header class="topbar">
+ <a class="brand" href="../" aria-label="TrivexaAI home"><img src="../trivexaai-icon.png" alt=""><span>Trivexa<em>AI</em><small>VIDEO STUDIO HELP</small></span></a>
+ <div class="top-actions"><a class="top-link secondary" href="./">← Back to Studio</a><a class="top-link primary" href="../feedback.html?tool=video-studio">Get help / Report issue ↗</a></div>
+</header>
+<div class="shell">
+ <section class="hero">
+  <span class="eyebrow">Your editing companion</span>
+  <h1>Video Studio <span class="gradient">Help Center</span></h1>
+  <p>Everything you need to create, edit and export a video with TrivexaAI. Choose a topic below, open its guide, and follow the steps. Search any tool or question to find help quickly.</p>
+  <div class="hero-badges"><span>Step-by-step tutorials</span><span>All editor tools</span><span>Quick answers</span><span>Mobile & desktop</span></div>
+ </section>
+ <div class="search-panel"><span class="search-icon" aria-hidden="true">⌕</span><input id="guideSearch" type="search" autocomplete="off" placeholder="Search a tool, setting or question…"><button class="clear-search" id="clearSearch" type="button">Clear</button></div>
+ <div class="layout">
+  <nav class="sidebar" aria-label="Help topics">
+   <div class="sidebar-title">Browse the guide</div>
+   <a href="#quick-start"><span>✦</span>Quick Start</a>
+   <a href="#projects"><span>▣</span>Projects & Media</a>
+   <a href="#timeline"><span>⌁</span>Timeline & Preview</a>
+   <a href="#clip-editing"><span>◈</span>Clip Editing</a>
+   <a href="#smart-tools"><span>✧</span>Smart Tools</a>
+   <a href="#local-tools"><span>◉</span>Local Video Tools</a>
+   <a href="#text-motion"><span>T</span>Text & Animation</a>
+   <a href="#audio"><span>♫</span>Audio</a>
+   <a href="#captions"><span>CC</span>Captions</a>
+   <a href="#graphics-voice"><span>✿</span>Stickers & Voice</a>
+   <a href="#export"><span>⇩</span>Export</a>
+   <a href="#shortcuts"><span>⌨</span>Shortcuts</a>
+   <a href="#troubleshooting"><span>?</span>Troubleshooting</a>
+   <a class="sidebar-feedback" href="../feedback.html?tool=video-studio"><span>✉</span>Ask for help</a>
+  </nav>
+  <main class="content">
+   <div class="intro-row" id="quick-start"><div><h2>Start here</h2><p>Make your first video in six simple steps.</p></div><span class="result-count" id="resultCount">All topics shown</span></div>
+   <div class="quick-start">
+    <div class="step"><span class="step-num">01</span><b>Create a project</b><p>Choose a name, video shape, resolution and frame rate.</p></div>
+    <div class="step"><span class="step-num">02</span><b>Import your media</b><p>Add videos, images and audio from your device.</p></div>
+    <div class="step"><span class="step-num">03</span><b>Build the timeline</b><p>Add clips, arrange tracks, trim edges and split where needed.</p></div>
+    <div class="step"><span class="step-num">04</span><b>Edit your clips</b><p>Use Properties to adjust position, colour, speed, sound and text.</p></div>
+    <div class="step"><span class="step-num">05</span><b>Preview your video</b><p>Play from the timeline and check every scene and audio section.</p></div>
+    <div class="step"><span class="step-num">06</span><b>Export your video</b><p>Choose MP4 or WebM, quality and frame rate, then start export.</p></div>
+   </div>
+   <div class="notice"><strong>Good to know:</strong> Your Video Studio projects and imported media are saved in the same browser on the same device. They do not automatically sync to another browser or device. Keep the browser data for this website safe.</div>
+
+   <section class="guide-section" id="projects">
+    <div class="section-heading"><span class="section-icon">▣</span><div><h2>Projects & Media</h2><p>Set up a project and bring your files into the editor.</p></div></div>
+    <div class="entry-grid">
+     <details class="guide-entry" data-search="create project new project aspect ratio youtube shorts reels square portrait custom canvas resolution fps frame rate">
+      <summary><span class="entry-icon">＋</span>Create a Project & Choose Settings</summary>
+      <div class="entry-body">
+       <p><b>What it does:</b> Creates the video canvas that all your clips, text and overlays will use.</p>
+       <ol><li>Open Video Studio and choose <b>Create New Project</b>.</li><li>Enter a project name.</li><li>Choose an aspect ratio: <b>16:9</b> for YouTube, <b>9:16</b> for Shorts/Reels, <b>1:1</b> for square posts, <b>4:5</b> for portrait posts, or <b>Custom</b>.</li><li>For Custom, enter a width and height from 240 to 3,840 pixels.</li><li>Choose a resolution: 720p, Full HD (1080p), 2K or 4K.</li><li>Choose 24, 30 or 60 FPS, then click <b>Create Project</b>.</li></ol>
+       <div class="tip">Tip: Match the project shape to the place where you will post. Use 9:16 for vertical Shorts and Reels.</div>
+      </div>
+     </details>
+     <details class="guide-entry" data-search="project saved save auto save local device browser open existing project delete remove storage">
+      <summary><span class="entry-icon">▤</span>Open, Save & Manage Projects</summary>
+      <div class="entry-body">
+       <p><b>What it does:</b> Keeps your work available from the Video Studio project page.</p>
+       <ol><li>Return to the Studio dashboard and find <b>Open Existing Project</b>.</li><li>Choose <b>Open Editor</b> beside a saved project.</li><li>The editor saves changes automatically. Use <b>Save</b> to save immediately.</li><li>Use Undo and Redo if you make an unwanted change.</li><li>Use Delete only when you really want to remove a project and its saved media.</li></ol>
+       <div class="limit">Projects are stored in this browser on this device. Clearing site data, using a different browser or moving to another device can make local projects unavailable. Project deletion also removes the media saved with that project.</div>
+      </div>
+     </details>
+     <details class="guide-entry" data-search="import choose files video image audio formats file size unsupported media">
+      <summary><span class="entry-icon">⇧</span>Import Videos, Images & Audio</summary>
+      <div class="entry-body">
+       <p><b>What it does:</b> Adds files from your device to Project Assets so you can place them on the timeline.</p>
+       <ol><li>Open a project and click <b>Choose files</b> under Project Assets.</li><li>Select one or more video, image or audio files.</li><li>Imported files appear in the media list.</li><li>Click the <b>Add</b> button beside a file to place it at the current playhead.</li><li>Videos go to Video, images to Overlay, and audio to Audio by default. You can move visual clips between Video and Overlay.</li></ol>
+       <div class="limit">Each imported file must be 750 MB or smaller. The browser must support the file's media format to preview and process it.</div>
+      </div>
+     </details>
+     <details class="guide-entry" data-search="proxy preview performance smooth lightweight original video use proxy">
+      <summary><span class="entry-icon">◫</span>Create a Lightweight Video Proxy</summary>
+      <div class="entry-body">
+       <p><b>What it does:</b> Creates a smaller preview copy of a video to make timeline playback smoother on slower devices.</p>
+       <ol><li>Find a video in Project Assets.</li><li>Click <b>Create proxy</b> and let it finish.</li><li>Use <b>Use proxy</b> for smoother preview, or <b>Use original</b> for full-quality preview.</li></ol>
+       <div class="tip">A proxy is only for preview. Video export always uses your original imported file, so the proxy does not lower final export quality.</div>
+      </div>
+     </details>
+    </div>
+   </section>
+
+   <section class="guide-section" id="timeline">
+    <div class="section-heading"><span class="section-icon">⌁</span><div><h2>Preview & Timeline</h2><p>Understand the editor screen and arrange your video.</p></div></div>
+    <div class="entry-grid">
+     <details class="guide-entry" data-search="preview fit fill guides safe area play pause stop playback">
+      <summary><span class="entry-icon">▶</span>Preview, Fit, Fill & Guides</summary>
+      <div class="entry-body">
+       <p><b>What it does:</b> Shows the frame at the current playhead position.</p>
+       <ol><li>Press <b>Play</b> to preview or <b>Stop</b> to return to the beginning.</li><li>Choose <b>Fit</b> to see the full clip inside the preview, or <b>Fill</b> to cover the preview area.</li><li>Click <b>Guides</b> to show safe-area and composition lines. Click it again to hide them.</li><li>Drag a selected video, image, sticker or text on the preview to change its position. Use the corner handle to resize items that show it.</li></ol>
+       <div class="tip">Guides are only visual helpers. They are not included in the exported video.</div>
+      </div>
+     </details>
+     <details class="guide-entry" data-search="timeline tracks video image overlay text audio captions playhead trim move split drag">
+      <summary><span class="entry-icon">▥</span>Timeline Tracks & Clip Controls</summary>
+      <div class="entry-body">
+       <p><b>What it does:</b> Controls when each video, image, text, audio or caption appears.</p>
+       <ul><li><b>Video / Image:</b> Main video clips and image clips.</li><li><b>Overlay:</b> Extra videos, images and stickers placed above the main picture. For picture-in-picture, add a second video or image here, then resize and position it in Preview or Properties.</li><li><b>Text:</b> Text layers and titles.</li><li><b>Audio:</b> Music, sound effects, detached video audio and generated voice-over clips.</li><li><b>Captions:</b> Timed subtitles created by Auto Captions.</li></ul>
+       <ol><li>Drag a clip to move it along the timeline.</li><li>Drag either end of a clip to trim its duration.</li><li>Drag the pink playhead to seek. Click the ruler to move to a time.</li><li>Click a clip to open its Properties.</li><li>Use <b>Split at playhead</b> to cut the selected clip at the pink line.</li><li>Use Duplicate or Delete for the selected clip.</li></ol>
+      </div>
+     </details>
+     <details class="guide-entry" data-search="snap snapping magnetic snap toggle N zoom fit all timeline">
+      <summary><span class="entry-icon">⌖</span>Snap, Zoom & Fit All</summary>
+      <div class="entry-body">
+       <p><b>Snap On</b> helps clips line up neatly with nearby clip edges and timeline points.</p>
+       <ol><li>Click <b>Snap On</b> to turn magnetic snapping on or off.</li><li>Use the Zoom slider to see more detail or more of the timeline.</li><li>Click <b>Fit All</b> to fit the whole project duration into the timeline view.</li></ol>
+       <div class="tip">Press <b>N</b> to toggle snapping while you are not typing in an input field.</div>
+      </div>
+     </details>
+    </div>
+   </section>
+
+   <section class="guide-section" id="clip-editing">
+    <div class="section-heading"><span class="section-icon">◈</span><div><h2>Clip Editing & Properties</h2><p>Select a clip first. Its available controls appear in the Properties panel.</p></div></div>
+    <div class="entry-grid">
+     <details class="guide-entry" data-search="properties apply name timing start duration rename clip">
+      <summary><span class="entry-icon">⚙</span>Name & Timing</summary>
+      <div class="entry-body"><p><b>What it does:</b> Changes the clip name, its start time and its duration.</p><ol><li>Select a clip on the timeline.</li><li>Open <b>Name & Timing</b> in Properties.</li><li>Change the clip name, Start (seconds) or Duration (seconds).</li><li>Check the preview and timeline, then click <b>Apply</b>.</li></ol><div class="tip">Start controls when the clip appears. Duration controls how long it stays on screen or plays.</div></div>
+     </details>
+     <details class="guide-entry" data-search="transform position scale rotation flip horizontal vertical opacity crop resize fit fill stretch">
+      <summary><span class="entry-icon">⤢</span>Transform, Position & Crop / Resize</summary>
+      <div class="entry-body"><p><b>What it does:</b> Changes the size, position, direction and framing of a clip.</p><ol><li>Select a video or image clip and open <b>Transform & Position</b>.</li><li>Adjust Scale, Rotation, Position X and Position Y.</li><li>Use Flip Horizontal or Flip Vertical to mirror the clip.</li><li>Choose Fit to show the whole clip, Fill to crop the edges, or Stretch to fill the canvas.</li><li>Lower Opacity to make the clip transparent, then click <b>Apply</b>.</li></ol><div class="tip">You can also drag the selected visual clip in the Preview to position it.</div></div>
+     </details>
+     <details class="guide-entry" data-search="effects transitions cinematic vivid warm cool black white vintage brightness contrast saturation blur hue fade zoom slide wipe blur reveal">
+      <summary><span class="entry-icon">✦</span>Effects & Clip Transitions</summary>
+      <div class="entry-body"><p><b>What it does:</b> Changes the look of a visual clip and adds an entrance effect.</p><ol><li>Select a video or image clip.</li><li>Open <b>Effects & Transitions</b>.</li><li>Choose a preset: Original, Cinematic, Vivid, Warm, Cool, Black & White or Vintage.</li><li>Fine-tune Brightness, Contrast, Saturation, Blur and Color tone.</li><li>Choose an entrance transition: Fade In, Zoom In, Slide from Left, Wipe from Left or Blur Reveal.</li><li>Set its duration and click <b>Apply</b>.</li></ol><div class="tip">The clip entrance transition plays when the playhead reaches the start of that clip.</div></div>
+     </details>
+     <details class="guide-entry" data-search="speed ramp slow motion fast motion speed start end playback">
+      <summary><span class="entry-icon">⏩</span>Speed Ramp</summary>
+      <div class="entry-body"><p><b>What it does:</b> Changes clip speed smoothly from its start to its end.</p><ol><li>Select a video clip and open <b>Speed Ramp, Chroma Key & Masking</b>.</li><li>Choose a Start speed and End speed (0.25× to 4×).</li><li>For slow motion, choose a lower speed. For fast motion, choose a higher speed.</li><li>Use different start and end speeds for a gradual speed change, then click <b>Apply</b>.</li></ol><div class="tip">The clip duration adjusts automatically to keep the full selected source section.</div></div>
+     </details>
+     <details class="guide-entry" data-search="chroma key green screen blue screen remove color tolerance softness">
+      <summary><span class="entry-icon">◩</span>Chroma Key / Green Screen</summary>
+      <div class="entry-body"><p><b>What it does:</b> Makes a chosen background colour transparent.</p><ol><li>Select a video or image clip and open <b>Speed Ramp, Chroma Key & Masking</b>.</li><li>Turn on <b>Enable Chroma Key</b>.</li><li>Choose the background colour with the colour picker.</li><li>Increase Colour tolerance to remove more shades of that colour.</li><li>Adjust Edge softness to smooth the cut-out edges.</li><li>Place a background clip underneath on Video or Overlay and click <b>Apply</b>.</li></ol><div class="tip">A green or blue background works best when the colour is even and does not appear on the subject.</div></div>
+     </details>
+     <details class="guide-entry" data-search="mask circle ellipse rounded corners left half right half horizontal mask feather rotate">
+      <summary><span class="entry-icon">◒</span>Clip Masks</summary>
+      <div class="entry-body"><p><b>What it does:</b> Shows only a selected shape or part of a video or image.</p><ol><li>Select a visual clip and choose a shape in <b>Clip mask shape</b>.</li><li>Choose Circle, Ellipse, Rounded corners, Left half, Right half or Horizontal adjustable mask.</li><li>For the horizontal mask, drag TOP or BOTTOM to move one edge.</li><li>Drag the centre handle to move both lines together. Drag ↻ to rotate, or use the angle slider.</li><li>Adjust Line softness and click <b>Apply</b>.</li></ol><div class="tip">Masks are included in the final export.</div></div>
+     </details>
+    </div>
+   </section>
+
+   <section class="guide-section" id="smart-tools">
+    <div class="section-heading"><span class="section-icon">✧</span><div><h2>Smart Editing Tools</h2><p>Automatic editing helpers inside the Properties panel.</p></div></div>
+    <div class="entry-grid">
+     <details class="guide-entry" data-search="detect scenes scene detection split cuts shot changes video">
+      <summary><span class="entry-icon">◫</span>Detect Scenes</summary>
+      <div class="entry-body"><p><b>What it does:</b> Looks for scene changes in a selected video and splits the clip at detected cuts.</p><ol><li>Select a video clip on the timeline.</li><li>Open <b>Smart Editing Tools</b> in Properties.</li><li>Click <b>Detect Scenes</b> and let the scan finish.</li><li>Review the new clip sections and adjust any split that you do not need.</li></ol><div class="limit">Choose a video clip at least 2 seconds long. Very similar scenes or fast camera movement can affect detection.</div></div>
+     </details>
+     <details class="guide-entry" data-search="sync beats beat sync music rhythm song audio video align clips">
+      <summary><span class="entry-icon">♫</span>Sync to Beats</summary>
+      <div class="entry-body"><p><b>What it does:</b> Detects beats in music and moves nearby visual clips towards matching beats.</p><ol><li>Select an audio or video clip that contains music.</li><li>Click <b>Sync to Beats</b> in Smart Editing Tools.</li><li>Wait for beat detection.</li><li>Review the visual clips that moved and adjust their timing if needed.</li></ol><div class="tip">Use a clear music track at normal speed. Clips move only when a nearby beat is available and the move will not overlap another clip.</div></div>
+     </details>
+     <details class="guide-entry" data-search="remove silence cut quiet pauses speech threshold padding ripple">
+      <summary><span class="entry-icon">◖</span>Remove Silence</summary>
+      <div class="entry-body"><p><b>What it does:</b> Finds quiet parts in an audio or video clip, keeps the sound sections and closes the gaps.</p><ol><li>Select an audio clip or a video clip that has sound.</li><li>Set <b>Silence threshold</b>. A higher value removes more quiet sound; a lower value keeps softer speech.</li><li>Choose Speech edge padding to keep a little space before and after speech.</li><li>Click <b>Remove Silence</b> and review the new sections.</li></ol><div class="limit">For safe cutting, use a normal-speed clip without keyframes. Other clips must not overlap its timeline range. If video audio is detached, select the Audio clip instead.</div></div>
+     </details>
+     <details class="guide-entry" data-search="AI colour correction color correction exposure brightness contrast saturation hue recommendations">
+      <summary><span class="entry-icon">◉</span>AI Colour Correction</summary>
+      <div class="entry-body"><p><b>What it does:</b> Analyses a frame from a selected video or image and suggests subtle brightness, contrast, saturation and colour-tone corrections.</p><ol><li>Select a video or image clip.</li><li>Click <b>AI Colour Correction</b>.</li><li>Review the applied result in Preview.</li><li>Open Effects & Transitions to fine-tune the correction, or use Undo to return to the previous look.</li></ol><div class="tip">This feature needs an internet connection and available AI service. It applies a starting correction, not a guaranteed perfect grade for every scene.</div></div>
+     </details>
+     <details class="guide-entry" data-search="translate captions subtitle translate language english urdu hindi arabic">
+      <summary><span class="entry-icon">文</span>Translate Captions</summary>
+      <div class="entry-body"><p><b>What it does:</b> Translates captions that are already on the Captions track into another language.</p><ol><li>Generate captions first, or add caption clips to the Captions track.</li><li>Choose a target language in <b>Translate captions to</b>.</li><li>Click <b>Translate Captions</b>.</li><li>Review the translated lines in Preview and edit any names or words that need correction.</li></ol><div class="tip">Translation changes the existing caption text. Download a copy of your SRT first if you want to keep the original wording separately.</div></div>
+     </details>
+    </div>
+   </section>
+
+   <section class="guide-section" id="local-tools">
+    <div class="section-heading"><span class="section-icon">◉</span><div><h2>Free Local Video Tools</h2><p>These tools process media in your browser on your device.</p></div></div>
+    <div class="notice"><strong>First use:</strong> Some tools need to load a processing engine or AI model before they start. Keep the editor tab open while processing. The original imported media remains in Project Assets.</div>
+    <div class="entry-grid">
+     <details class="guide-entry" data-search="reverse video play backwards reverse audio sound backwards ffmpeg">
+      <summary><span class="entry-icon">↶</span>Reverse Video</summary>
+      <div class="entry-body"><p><b>What it does:</b> Creates a reversed copy of the selected video clip.</p><ol><li>Select a video clip.</li><li>Choose whether to turn on <b>Also reverse audio</b>. It is off by default so speech is not played backwards.</li><li>Click <b>Reverse Video</b> and wait for the new reversed clip.</li><li>Preview the result. The original file stays in Project Assets.</li></ol><div class="limit">The selected section must be 30 seconds or shorter and the source file must be 50 MB or smaller. Split a longer clip first.</div></div>
+     </details>
+     <details class="guide-entry" data-search="motion tracking track person object follow movement keyframes">
+      <summary><span class="entry-icon">◎</span>Motion Tracking</summary>
+      <div class="entry-body"><p><b>What it does:</b> Detects a person or visible object and adds keyframes so the selected video follows its movement.</p><ol><li>Select a video clip.</li><li>Choose <b>Person</b> or <b>Any visible object</b> as the tracking target.</li><li>Click <b>Motion Tracking</b> and let the scan finish.</li><li>Play the clip and review the automatic movement. You can adjust the keyframes if needed.</li></ol><div class="tip">Use a bright clip where the subject is easy to see. The clip should be at least 1.2 seconds long.</div></div>
+     </details>
+     <details class="guide-entry" data-search="enhance audio noise reduction remove background hiss audio denoise">
+      <summary><span class="entry-icon">♫</span>Enhance Audio</summary>
+      <div class="entry-body"><p><b>What it does:</b> Reduces steady background noise in an audio clip.</p><ol><li>Select a clip on the Audio track.</li><li>For sound inside a video, select the video and click <b>Detach Audio</b> first.</li><li>Select the new Audio clip and click <b>Enhance Audio</b>.</li><li>Preview the processed clip and adjust its volume if needed.</li></ol><div class="limit">The source audio file must be 80 MB or smaller and under 3 minutes. The selected section can be up to 2 minutes. This is noise reduction, not full music mastering.</div></div>
+     </details>
+     <details class="guide-entry" data-search="remove person background remove bg cutout transparent subject">
+      <summary><span class="entry-icon">✂</span>Remove Person Background</summary>
+      <div class="entry-body"><p><b>What it does:</b> Removes the background around a person in a selected video, creating a person cut-out preview.</p><ol><li>Select a video clip.</li><li>Click <b>Remove Person BG</b> to turn the person cut-out on.</li><li>Place another video or image underneath on the Video or Overlay track to use it as a background.</li><li>Click the button again to turn the effect off.</li></ol><div class="tip">This tool detects people only, not every kind of object. Transparent areas show the clip below or the dark canvas if there is no background layer.</div></div>
+     </details>
+     <details class="guide-entry" data-search="auto reframe vertical portrait shorts reels center follow person">
+      <summary><span class="entry-icon">▣</span>Auto Reframe</summary>
+      <div class="entry-body"><p><b>What it does:</b> Follows the detected person and automatically adjusts the framing as they move.</p><ol><li>Select a video clip with one clearly visible person.</li><li>Set your project to the target shape, such as 9:16 for a vertical Short or Reel.</li><li>Click <b>Auto Reframe</b>.</li><li>Review the framing and adjust keyframes if the subject moves out of view.</li></ol><div class="tip">Auto Reframe follows a person. It works best when the person stays visible and is not hidden for long periods.</div></div>
+     </details>
+    </div>
+   </section>
+
+   <section class="guide-section" id="text-motion">
+    <div class="section-heading"><span class="section-icon">T</span><div><h2>Text & Animation</h2><p>Add titles, style them and animate movement.</p></div></div>
+    <div class="entry-grid">
+     <details class="guide-entry" data-search="add text title heading overlay text layer">
+      <summary><span class="entry-icon">T</span>Add Text</summary>
+      <div class="entry-body"><p><b>What it does:</b> Adds a text layer at the current playhead position.</p><ol><li>Move the playhead to where the title should begin.</li><li>Click <b>+ Text</b> above the timeline.</li><li>Enter your words in the prompt and confirm.</li><li>The text clip appears on the Text track. Select it to edit its style and timing.</li></ol><div class="tip">A new text clip starts with a 5-second duration. You can trim it on the timeline or change Duration in Properties.</div></div>
+     </details>
+     <details class="guide-entry" data-search="text style font color size font size bold italic alignment background opacity glow neon outline transition">
+      <summary><span class="entry-icon">Aa</span>Text & Style</summary>
+      <div class="entry-body"><p><b>What it does:</b> Changes how a text layer or caption looks.</p><ol><li>Select a text or caption clip.</li><li>Open <b>Text & Style</b> in Properties.</li><li>Change the words, text colour, font size, font, weight, alignment and background.</li><li>Adjust background opacity, italic style, rotation and text opacity.</li><li>Choose a text effect: None, Soft shadow, Glow, Neon or Bold outline.</li><li>Choose an entrance: Fade in, Pop in, Slide up or Bounce in.</li><li>Click <b>Apply</b> and check the Preview.</li></ol><div class="tip">You can drag the text on Preview to move it and use its corner handle to resize it.</div></div>
+     </details>
+     <details class="guide-entry" data-search="keyframes animation animate move scale position rotation opacity easing linear ease">
+      <summary><span class="entry-icon">◆</span>Keyframes & Animation</summary>
+      <div class="entry-body"><p><b>What it does:</b> Animates a visual clip or text by saving its position, size, rotation and opacity at different times.</p><ol><li>Select a video, image or text clip.</li><li>Move the playhead to the first animation point and click <b>Add keyframe</b>.</li><li>Move the playhead to another time and change the item's position, scale or other supported values. The next keyframe can be created automatically.</li><li>Use Previous and Next to jump between keyframes.</li><li>Use Copy and Paste to reuse a keyframe.</li><li>Choose Linear, Ease in, Ease out or Ease in & out for the motion between points.</li></ol><div class="tip">Add two or more keyframes to create movement. Check the clip from before the first keyframe to after the last one.</div></div>
+     </details>
+    </div>
+   </section>
+
+   <section class="guide-section" id="audio">
+    <div class="section-heading"><span class="section-icon">♫</span><div><h2>Audio Editing</h2><p>Control sound, clean up noise and balance your mix.</p></div></div>
+    <div class="entry-grid">
+     <details class="guide-entry" data-search="audio editor volume fade in fade out bass mid treble EQ balance pan left right">
+      <summary><span class="entry-icon">♫</span>Audio Editor: Volume, Fades, EQ & Balance</summary>
+      <div class="entry-body"><p><b>What it does:</b> Adjusts the loudness and tone of a selected Audio clip.</p><ol><li>Select an Audio clip on the timeline.</li><li>Open <b>Audio Editor</b> in Properties.</li><li>Use Volume to make it quieter or louder.</li><li>Set Fade in and Fade out times to make the sound start or end smoothly.</li><li>Adjust Bass, Mid and Treble to shape the sound.</li><li>Use Balance to move sound towards the left or right channel.</li><li>Click <b>Apply</b>, play the video and listen again.</li></ol><div class="tip">EQ and stereo balance affect playback and video export. Start with small changes and listen on headphones.</div></div>
+     </details>
+     <details class="guide-entry" data-search="detach audio extract audio from video separate track mute built in sound">
+      <summary><span class="entry-icon">⇢</span>Detach Audio from a Video</summary>
+      <div class="entry-body"><p><b>What it does:</b> Extracts a video's sound into its own Audio track clip so you can edit it separately.</p><ol><li>Select the video clip.</li><li>Click <b>Detach Audio</b> in Properties.</li><li>Wait for extraction to finish. A separate clip appears on the Audio track.</li><li>Select that Audio clip to change volume, fades, EQ, balance or use Enhance Audio.</li></ol><div class="tip">After detaching, the video's built-in sound is turned off. Use the separate Audio clip to control it.</div><div class="limit">For reliable extraction, use a video under 10 minutes and 300 MB.</div></div>
+     </details>
+    </div>
+   </section>
+
+   <section class="guide-section" id="captions">
+    <div class="section-heading"><span class="section-icon">CC</span><div><h2>Captions & Subtitles</h2><p>Create timed subtitles, edit them and download an SRT file.</p></div></div>
+    <div class="entry-grid">
+     <details class="guide-entry" data-search="AI auto captions subtitles speech transcription spoken language auto detect edit caption track SRT">
+      <summary><span class="entry-icon">CC</span>AI Auto Captions</summary>
+      <div class="entry-body"><p><b>What it does:</b> Listens to a selected video or audio clip and creates timed subtitle clips.</p><ol><li>Select a video or audio clip that contains speech.</li><li>Click <b>Auto Captions</b> above the timeline.</li><li>Choose a spoken language or <b>Auto detect</b>.</li><li>Click <b>Generate captions</b> and wait for the transcript.</li><li>Captions appear on the Captions track. Select a caption to edit its words, style, position or timing.</li><li>Click <b>Download SRT</b> in the captions window to save subtitle text and timestamps.</li></ol><div class="privacy">The selected clip's audio is sent securely to the AI transcription service to create the captions. Only generate captions when you are ready to process that audio.</div><div class="tip">Clear speech gives better results. Check names, numbers and punctuation before exporting.</div></div>
+     </details>
+     <details class="guide-entry" data-search="translate captions language urdu hindi English Arabic Spanish German Portuguese Turkish Bengali Chinese Japanese">
+      <summary><span class="entry-icon">文</span>Translate Existing Captions</summary>
+      <div class="entry-body"><p><b>What it does:</b> Changes existing caption text into another language while keeping the same caption timing.</p><ol><li>Generate captions first.</li><li>Choose the target language from <b>Translate captions to</b>.</li><li>Click <b>Translate Captions</b> inside Smart Editing Tools.</li><li>Review the translated captions and make corrections if needed.</li></ol><div class="tip">Available target languages include English, Urdu, Hindi, Arabic, Spanish, French, German, Portuguese, Turkish, Bengali, Chinese (Simplified) and Japanese.</div></div>
+     </details>
+    </div>
+   </section>
+
+   <section class="guide-section" id="graphics-voice">
+    <div class="section-heading"><span class="section-icon">✿</span><div><h2>Stickers, Shapes & Voice-over</h2><p>Add visual decorations or create a spoken voice clip.</p></div></div>
+    <div class="entry-grid">
+     <details class="guide-entry" data-search="stickers shapes star heart circle arrow speech bubble lightning check emoji colour overlay resize">
+      <summary><span class="entry-icon">✦</span>Stickers & Shapes</summary>
+      <div class="entry-body"><p><b>What it does:</b> Adds a graphic or emoji to the Overlay track.</p><ol><li>Move the playhead to where the sticker should begin.</li><li>Click <b>Stickers & Shapes</b> above the timeline.</li><li>Choose a shape or emoji and select its colour.</li><li>Click <b>Add to timeline</b>.</li><li>Drag the sticker in Preview to move it. Use the corner handle to resize it.</li><li>Trim or move the clip on the Overlay track to set when it appears.</li></ol><div class="tip">Available designs include Star, Heart, Circle, Rounded rectangle, Arrow, Speech bubble, Lightning bolt, Check mark, and five emoji stickers. You can add more than one image sticker.</div></div>
+     </details>
+     <details class="guide-entry" data-search="AI voiceover voice text to speech MP3 Angus Asteria Arcas Orion Orpheus Athena Luna Zeus Perseus Helios Hera Stella">
+      <summary><span class="entry-icon">♫</span>AI Voice-over</summary>
+      <div class="entry-body"><p><b>What it does:</b> Turns your written words into an MP3 voice clip and adds it to the Audio track.</p><ol><li>Move the playhead to the point where the voice should begin.</li><li>Click <b>AI Voice-over</b>.</li><li>Choose one of the available voices.</li><li>Type up to 2,000 characters.</li><li>Confirm that you want to generate the voice-over, then click <b>Generate & add to timeline</b>.</li><li>The MP3 is added to the Audio track at the playhead. Select it to adjust volume, fades and EQ.</li></ol><div class="tip">Voices: Angus, Asteria, Arcas, Orion, Orpheus, Athena, Luna, Zeus, Perseus, Helios, Hera and Stella. Generation needs an internet connection and may be subject to AI service or account usage limits.</div></div>
+     </details>
+    </div>
+   </section>
+
+   <section class="guide-section" id="export">
+    <div class="section-heading"><span class="section-icon">⇩</span><div><h2>Export & Export Queue</h2><p>Save the finished video to your device.</p></div></div>
+    <div class="entry-grid">
+     <details class="guide-entry" data-search="export render MP4 WebM format resolution 480p 720p 1080p project fps quality smaller standard high">
+      <summary><span class="entry-icon">⇩</span>Export a Video</summary>
+      <div class="entry-body"><p><b>What it does:</b> Renders your timeline into a video file that you can download.</p><ol><li>Click <b>Export</b> in the top bar.</li><li>Choose <b>MP4</b> for broad compatibility or <b>WebM</b> for a smaller web-friendly file.</li><li>Choose resolution: 480p, 720p, 1080p or Project resolution.</li><li>Choose the frame rate: Project FPS, 24, 30 or 60 FPS.</li><li>Choose Smaller file, Standard or High quality.</li><li>Click <b>Start export</b>. Keep the tab open until it finishes.</li><li>Your finished video downloads automatically. Use <b>Download again</b> to save it again while the export window is open.</li></ol><div class="tip">For a first test, export a short section at 720p. Higher resolution and quality need more time and memory.</div><div class="limit">When the browser cannot record MP4 directly, the local MP4 fallback supports up to 720p, projects up to 2 minutes and temporary files up to 100 MB. If MP4 is not available, choose WebM. Native MP4 support may allow different limits.</div></div>
+     </details>
+     <details class="guide-entry" data-search="export queue multiple export jobs versions add current settings start queue download automatically">
+      <summary><span class="entry-icon">☷</span>Export Queue</summary>
+      <div class="entry-body"><p><b>What it does:</b> Runs several export settings one after another, such as 720p and 1080p versions.</p><ol><li>Open Export and choose the first set of settings.</li><li>Click <b>Add current settings</b>.</li><li>Change the format, resolution, frame rate or quality and add another job.</li><li>Repeat for the versions you need, up to 8 jobs.</li><li>Click <b>Start Queue</b>. Each completed job downloads automatically.</li></ol><div class="tip">Keep the browser tab open until every queued job is finished. If one job fails, the queue pauses and the remaining jobs stay listed.</div></div>
+     </details>
+    </div>
+   </section>
+
+   <section class="guide-section" id="shortcuts">
+    <div class="section-heading"><span class="section-icon">⌨</span><div><h2>Keyboard Shortcuts</h2><p>Use these shortcuts when you are not typing in a text or number field.</p></div></div>
+    <table class="shortcut-table">
+     <thead><tr><th>Action</th><th>Windows / PC</th></tr></thead>
+     <tbody>
+      <tr><td>Play / Pause</td><td><kbd>Space</kbd></td></tr>
+      <tr><td>Undo</td><td><kbd>Ctrl</kbd> + <kbd>Z</kbd></td></tr>
+      <tr><td>Redo</td><td><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd> or <kbd>Ctrl</kbd> + <kbd>Y</kbd></td></tr>
+      <tr><td>Save project</td><td><kbd>Ctrl</kbd> + <kbd>S</kbd></td></tr>
+      <tr><td>Split selected clip</td><td><kbd>S</kbd></td></tr>
+      <tr><td>Duplicate selected clip</td><td><kbd>Ctrl</kbd> + <kbd>D</kbd></td></tr>
+      <tr><td>Delete selected clip</td><td><kbd>Delete</kbd></td></tr>
+      <tr><td>Toggle timeline snapping</td><td><kbd>N</kbd></td></tr>
+     </tbody>
+    </table>
+    <div class="notice">On Mac, use <strong>Command (⌘)</strong> instead of Ctrl for the project shortcuts. Shortcuts pause while you type or while a dialog is open. You can also click <strong>Shortcuts</strong> above the timeline to open this list inside the editor.</div>
+   </section>
+
+   <section class="guide-section" id="troubleshooting">
+    <div class="section-heading"><span class="section-icon">?</span><div><h2>Quick Troubleshooting</h2><p>Try these steps when something does not work as expected.</p></div></div>
+    <div class="trouble-list">
+     <div class="trouble-row"><b>The preview is blank or a video will not play</b><p>Check that the file type is supported by your browser. Try an MP4 video in an updated Chrome or Edge browser, re-import the file, and make sure the clip is on the Video or Overlay track.</p></div>
+     <div class="trouble-row"><b>Preview playback is slow or stutters</b><p>Create a lightweight proxy for the video in Project Assets and choose Use proxy. Close other heavy browser tabs and try editing a shorter clip.</p></div>
+     <div class="trouble-row"><b>I cannot hear the video's sound</b><p>The video may have detached audio. Find its Audio clip on the Audio track, select it, check its Volume setting and make sure the playhead is inside the audio clip.</p></div>
+     <div class="trouble-row"><b>Auto Captions did not create subtitles</b><p>Check that the selected video or audio contains clear speech, choose the correct spoken language, and make sure the clip has sound. Try a shorter section if processing takes too long.</p></div>
+     <div class="trouble-row"><b>Motion Tracking or Auto Reframe cannot find the subject</b><p>Use a brighter clip with the person or object clearly visible. Motion Tracking can use Any visible object; Auto Reframe follows a person.</p></div>
+     <div class="trouble-row"><b>Reverse Video will not start</b><p>Check the selected clip is 30 seconds or shorter and the source file is 50 MB or smaller. Split a longer clip and try again.</p></div>
+     <div class="trouble-row"><b>MP4 is unavailable or export fails</b><p>Choose WebM, or try MP4 at 720p with a timeline under 2 minutes. Keep the editor tab open and try a smaller export if the browser runs out of memory.</p></div>
+     <div class="trouble-row"><b>I cannot find a saved project</b><p>Open Video Studio in the same browser and on the same device where you created it. Projects are stored locally and do not automatically move between devices.</p></div>
+     <div class="trouble-row"><b>A local tool is still processing</b><p>Keep the tab open. Some tools download a processing model the first time. Click the same local-tool button again to cancel; your original media remains in Project Assets.</p></div>
+    </div>
+   </section>
+
+   <section class="support-card" id="get-help">
+    <span class="eyebrow">Need a hand?</span>
+    <h2>Still not sure how to use a tool?</h2>
+    <p>Open the TrivexaAI feedback form. Choose a star rating, select <b>Report a problem</b> and choose the problem type. <b>Video Studio</b> will already be selected. Tell us the tool name, what you clicked, what you expected, what happened and any error message. A screenshot can make the issue easier to understand. Never include your password or private account details.</p>
+    <div class="support-actions"><a href="../feedback.html?tool=video-studio">Get help / Report an issue ↗</a><a class="secondary" href="./">Back to Video Studio</a></div>
+   </section>
+   <div class="footer"><span>TrivexaAI Video Studio Help Center</span><span>Need another answer? <a href="../feedback.html?tool=video-studio">Send feedback</a></span></div>
+   <div class="no-results" id="noResults">No matching topic found. Try a shorter search, such as “audio”, “captions” or “export”.</div>
+  </main>
+ </div>
+</div>
+<script>
+(function(){
+ const input=document.getElementById("guideSearch");
+ const clear=document.getElementById("clearSearch");
+ const entries=[...document.querySelectorAll(".guide-entry")];
+ const sections=[...document.querySelectorAll(".guide-section")];
+ const result=document.getElementById("resultCount");
+ const empty=document.getElementById("noResults");
+ function filter(){
+  const query=input.value.trim().toLowerCase();
+  let shown=0;
+  entries.forEach(entry=>{
+   const haystack=(entry.textContent+" "+(entry.dataset.search||"")).toLowerCase();
+   const match=!query||haystack.includes(query);
+   entry.hidden=!match;
+   if(match)shown++;
+  });
+  sections.forEach(section=>{
+   const sectionEntries=[...section.querySelectorAll(".guide-entry")];
+   section.hidden=!!query&&sectionEntries.length>0&&!sectionEntries.some(entry=>!entry.hidden);
+  });
+  empty.classList.toggle("show",!!query&&shown===0);
+  result.textContent=query?(shown+" topic"+(shown===1?"":"s")+" found"):"All topics shown";
+ }
+ input.addEventListener("input",filter);
+ clear.addEventListener("click",()=>{input.value="";filter();input.focus();});
+ document.querySelectorAll(".sidebar a[href^='#']").forEach(link=>{
+  link.addEventListener("click",()=>{const target=document.querySelector(link.getAttribute("href"));if(target)target.scrollIntoView({behavior:"smooth",block:"start"});});
+ });
+})();
+</script>
+</body>
+</html>
