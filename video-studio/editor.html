@@ -3838,7 +3838,7 @@ async function generateAiEditPlan(){
   const token=await auth.currentUser.getIdToken();
   const response=await fetch(WORKER_URL,{
    method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+token},
-   body:JSON.stringify({action:"ai_editing_assistant",toolId:"video-studio-ai-editor",capabilityVersion:"video-studio-ai-v2",capabilities:AI_EDITOR_CAPABILITIES,request,editorContext:aiEditorContext()})
+   body:JSON.stringify({action:"ai_editing_assistant",toolId:"video-studio-ai-editor",capabilityVersion:"video-studio-ai-v2",capabilities:AI_EDITOR_CAPABILITIES,toolIds:[...AI_VIDEO_TOOLS],request,editorContext:aiEditorContext()})
   });
   const data=await response.json().catch(()=>({}));
   if(!response.ok){
