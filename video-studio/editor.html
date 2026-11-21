@@ -3623,8 +3623,10 @@ function aiValidatePlan(raw){
  const requireClip=(id,typeList,clipName,clipStart,clipTrack,allowImplicit=true)=>{
   const accepted=clip=>!!clip&&(!typeList||typeList.includes(clip.type));
   const targetName=typeof clipName==="string"?clipName.trim():"";
-  let clip=typeof id==="string"&&ids.has(id)?clips.find(item=>item.id===id):null;
-  if(clip&&targetName&&normalizeClipTargetName(clip.name)!==normalizeClipTargetName(targetName))throw new Error("AI ne clip ID aur clip name ko match nahi kiya. Clip ka naam dobara confirm karein.");
+  const idProvided=typeof id==="string"&&!!id;
+  let clip=idProvided&&ids.has(id)?clips.find(item=>item.id===id):null;
+  let resolvedFromSelection=false;
+  if(!clip&&idProvided&&!targetName)throw new Error("AI ne current project mein na-mojood clip ID di. Target clip dobara identify karein.");
   if(!clip&&targetName){
    let matches=clips.filter(item=>accepted(item)&&normalizeClipTargetName(item.name)===normalizeClipTargetName(targetName));
    if(typeof clipTrack==="string"&&clipTrack)matches=matches.filter(item=>item.track===clipTrack);
@@ -3633,18 +3635,26 @@ function aiValidatePlan(raw){
    if(matches.length===1)clip=matches[0];
    else throw new Error("Is naam ka clip current timeline mein nahi mila. Timeline par dikhne wala exact clip name check karein.");
   }
-  if(!clip&&typeof id==="string"&&id)throw new Error("AI ne current project mein na-mojood clip ID di. Target clip dobara identify karein.");
-  if(!clip&&allowImplicit&&!id&&!targetName&&selectedId){
+  if(clip&&targetName&&normalizeClipTargetName(clip.name)!==normalizeClipTargetName(targetName))throw new Error("AI ne clip ID aur clip name ko match nahi kiya. Clip ka naam dobara confirm karein.");
+  if(!clip&&allowImplicit&&!idProvided&&!targetName&&selectedId){
    const selected=clips.find(item=>item.id===selectedId);
-   if(accepted(selected))clip=selected;
+   if(accepted(selected)){clip=selected;resolvedFromSelection=true;}
   }
-  if(!clip&&allowImplicit&&!id&&!targetName){
+  if(!clip&&allowImplicit&&!idProvided&&!targetName){
    const candidates=clips.filter(accepted);
    if(candidates.length===1)clip=candidates[0];
    else if(candidates.length>1)throw new Error("Project mein multiple suitable clips hain. Request mein clip ka exact naam, track ya start time batayein.");
   }
   if(!clip)throw new Error("Is edit ke liye suitable timeline clip nahi mila. Clip ka exact naam batayein ya usay select karein.");
   if(!accepted(clip))throw new Error("Selected clip par yeh tool supported nahi. Sahi media type ka clip batayein.");
+  const collisionMatches=clips.filter(item=>accepted(item)&&normalizeClipTargetName(item.name)===normalizeClipTargetName(clip.name));
+  let narrowed=collisionMatches;
+  if(typeof clipTrack==="string"&&clipTrack)narrowed=narrowed.filter(item=>item.track===clipTrack);
+  if(typeof clipStart==="number"&&Number.isFinite(clipStart))narrowed=narrowed.filter(item=>Math.abs(Number(item.start)-clipStart)<=.25);
+  if(narrowed.length>1&&!(resolvedFromSelection||(!targetName&&idProvided&&id===selectedId))){
+   throw new Error("Is naam ke multiple clips hain. AI ne abhi ek ko confirm nahi kiya. Sahi clip ke liye uska track ya timeline start time batayein.");
+  }
+  if(narrowed.length===1&&narrowed[0].id!==clip.id)throw new Error("AI ki clip ID aur track/start-time details ek doosre se match nahi kartin. Target clip dobara confirm karein.");
   return clip;
  };
  for(const item of raw.operations){
