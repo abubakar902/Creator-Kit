@@ -5,7 +5,7 @@ let firebaseKeys = null;
 let firebaseKeysExpiry = 0;
 const ADVANCED_ACTIONS = new Set([
   "generate_image", "generate_voice", "video_studio", "video_studio_create",
-  "video_studio_export", "video_studio_ai_assistant", "transcribe_audio", "ai_editing_assistant",
+  "video_studio_export", "video_studio_ai_assistant", "transcribe_audio", "ai_editing_assistant", "ai_prompt_writer",
   "advanced_feature"
 ]);
 function b64u(s) {
@@ -827,6 +827,168 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
             details: transcriptionError?.message || "Workers AI transcription failed."
           }, 502);
         }
+      }
+
+      // VIDEO STUDIO ROMAN URDU PROMPT WRITER — converts the user's description
+      // into a ready-to-paste natural-language prompt. This route never edits media.
+      if (body.action === "ai_prompt_writer") {
+        const expectedToolId = "video-studio-prompt-writer";
+        if (body.toolId !== expectedToolId) {
+          return reply({ error: "This request is not from the Video Studio Prompt Writer.", code: "AI_PROMPT_WRITER_TOOL_MISMATCH" }, 400);
+        }
+        if (!env.GEMINI_API_KEY) {
+          return reply({ error: "The Video Studio Prompt Writer connection is not configured." }, 500);
+        }
+        const sourceRequest = typeof body.request === "string" ? body.request.trim() : "";
+        if (!sourceRequest || sourceRequest.length > 2000) {
+          return reply({ error: "Roman Urdu request 1 se 2,000 characters ke darmiyan honi chahiye." }, 400);
+        }
+
+        // Only names and media types are shared with Gemini for prompt writing.
+        // No IDs, local URLs, blobs, original media bytes, or clip settings are sent.
+        const rawContext = body.editorContext && typeof body.editorContext === "object" && !Array.isArray(body.editorContext)
+          ? body.editorContext
+          : {};
+        const rawProject = rawContext.project && typeof rawContext.project === "object" ? rawContext.project : {};
+        const rawClips = Array.isArray(rawContext.clips) ? rawContext.clips : [];
+        const rawSelectedId = typeof rawContext.selectedClipId === "string" ? rawContext.selectedClipId : "";
+        const selectedClip = rawClips.find(item => item && typeof item === "object" && String(item.id || "") === rawSelectedId);
+        const rawMedia = rawContext.mediaLibrary && typeof rawContext.mediaLibrary === "object" ? rawContext.mediaLibrary : {};
+        const rawProjects = rawContext.projects && typeof rawContext.projects === "object" ? rawContext.projects : {};
+        const promptContext = {
+          currentProject: String(rawProject.name || "Current Video Studio project").slice(0, 80),
+          selectedClip: selectedClip ? {
+            name: String(selectedClip.name || "Selected clip").slice(0, 100),
+            type: String(selectedClip.type || "").slice(0, 20),
+            track: String(selectedClip.track || "").slice(0, 20)
+          } : null,
+          timelineClips: rawClips.slice(0, 20).map(item => {
+            if (!item || typeof item !== "object") return null;
+            return {
+              name: String(item.name || "Untitled clip").slice(0, 100),
+              type: String(item.type || "").slice(0, 20),
+              track: String(item.track || "").slice(0, 20)
+            };
+          }).filter(Boolean),
+          mediaLibrary: (Array.isArray(rawMedia.assets) ? rawMedia.assets : []).slice(0, 20).map(item => {
+            if (!item || typeof item !== "object") return null;
+            return {
+              name: String(item.name || "Media asset").slice(0, 100),
+              type: String(item.type || "").slice(0, 20)
+            };
+          }).filter(Boolean),
+          savedProjects: (Array.isArray(rawProjects.projects) ? rawProjects.projects : []).slice(0, 20).map(item => {
+            if (!item || typeof item !== "object") return null;
+            return String(item.name || "Untitled project").slice(0, 80);
+          }).filter(Boolean)
+        };
+        const supportedOperations = [
+          "set_clip_properties", "split_clip", "move_clip", "duplicate_clip",
+          "delete_clip", "add_text_overlay", "set_keyframes", "run_tool",
+          "trim_clip", "set_preview_controls", "set_timeline_controls",
+          "add_asset_to_timeline", "rename_asset", "remove_asset",
+          "create_video_proxy", "set_proxy_usage", "rename_project",
+          "create_project", "open_project", "delete_project"
+        ];
+        const supportedTools = [
+          "scene_detection", "beat_sync", "remove_silence", "ai_colour_correction",
+          "caption_translation", "auto_captions", "reverse_video", "motion_tracking",
+          "enhance_audio", "remove_person_background", "auto_reframe", "detach_audio",
+          "ai_voice_over", "add_sticker"
+        ];
+        const systemInstructions = [
+          "You are TrivexaAI Video Studio Prompt Writer. Your only job is to convert the user's Roman Urdu, Urdu, Hindi, English, or mixed-language editing description into one clear, specific, ready-to-paste prompt for the TrivexaAI Video Studio AI Editor.",
+          "Return exactly one JSON object and nothing else: {\"needsClarification\":false,\"prompt\":\"...\",\"question\":\"\"}. If an essential detail is ambiguous or the request is unsupported, return {\"needsClarification\":true,\"prompt\":\"\",\"question\":\"one short helpful question or explanation in Roman Urdu\"}.",
+          "When a prompt can be written safely, write the final prompt in clear, simple English. Preserve every requested action, exact number, time, duration, language, style, and keep-unchanged instruction. Do not add creative changes the user did not request.",
+          "This writer does NOT execute edits and must not generate operation JSON, code, scripts, tool calls, HTML, CSS, URLs, or markdown. It only writes natural-language instructions that the separate Video Studio AI Editor can understand.",
+          "The Video Studio AI Editor only supports these operation types: " + supportedOperations.join(", ") + ". Its dedicated tool IDs are: " + supportedTools.join(", ") + ". Never promise or request a feature outside this supported list.",
+          "The editor does not control the 17 standalone homepage tools, video export, render/download, export settings, or export queue. If the user asks for those, do not disguise them as supported editor work; return needsClarification=true with a short Roman Urdu explanation.",
+          "Respect media types and available actions: scene detection works on video; beat sync and silence removal work on audio/video; colour correction works on video/image; caption translation requires an existing caption track; auto captions work on video/audio; reverse, motion tracking, person background removal, auto reframe, and detach audio require video; audio enhancement requires audio; voice-over and stickers add supported timeline items.",
+          "Never invent clip names, asset names, project names, times, values, or available media. Use only names in EDITOR_CONTEXT. If the user says selected clip and one is selected, refer to the selected clip. Otherwise use an exact name only when the user clearly identifies it.",
+          "If multiple clips or assets could match, or the target is unclear and cannot safely be inferred from the selected clip, ask one concise question in Roman Urdu rather than guessing.",
+          "Keep original audio unchanged for visual-only requests, and keep visuals unchanged for audio-only requests. Preserve sync for linked or detached audio unless the user explicitly requests otherwise.",
+          "Do not claim that local files can be imported by AI. User imports files with the existing file picker. The writer must never claim that export will be performed.",
+          "Output prompt must be 1 to 1,400 characters so it fits the main AI Editor prompt box. Do not include headings, preambles, quotes around the whole prompt, or markdown fences."
+        ].join("\n");
+        const userMessage = [
+          "EDITOR_CONTEXT:",
+          JSON.stringify(promptContext),
+          "",
+          "ROMAN_URDU_ORIGINAL_REQUEST:",
+          sourceRequest
+        ].join("\n");
+
+        let geminiResponse;
+        try {
+          geminiResponse = await fetch(
+            "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "x-goog-api-key": env.GEMINI_API_KEY
+              },
+              body: JSON.stringify({
+                systemInstruction: { parts: [{ text: systemInstructions }] },
+                contents: [{ role: "user", parts: [{ text: userMessage }] }],
+                generationConfig: {
+                  temperature: 0.15,
+                  maxOutputTokens: 1200,
+                  responseMimeType: "application/json"
+                }
+              })
+            }
+          );
+        } catch (geminiNetworkError) {
+          console.error("Video Studio Prompt Writer Gemini connection error:", geminiNetworkError);
+          return reply({ error: "Gemini se prompt tayyar nahi ho saka. Thori dair baad dobara try karein.", code: "AI_PROMPT_WRITER_CONNECTION_FAILED" }, 502);
+        }
+        let geminiData = {};
+        try { geminiData = await geminiResponse.json(); } catch (parseError) {}
+        if (!geminiResponse.ok) {
+          console.error("Video Studio Prompt Writer Gemini error:", {
+            status: geminiResponse.status,
+            message: geminiData.error?.message || ""
+          });
+          return reply({
+            error: "Gemini could not convert this request into a Video Studio prompt.",
+            details: String(geminiData.error?.message || "Please try again shortly.").slice(0, 400),
+            code: "AI_PROMPT_WRITER_GEMINI_FAILED"
+          }, geminiResponse.status === 429 ? 429 : 502);
+        }
+        const generatedText = geminiData.candidates?.[0]?.content?.parts
+          ?.map(part => typeof part.text === "string" ? part.text : "")
+          .join("")
+          .trim() || "";
+        if (!generatedText || generatedText.length > 6000) {
+          return reply({ error: "Gemini returned an empty or oversized prompt response. Please simplify your request.", code: "AI_PROMPT_WRITER_EMPTY" }, 502);
+        }
+        let result;
+        try {
+          const firstBrace = generatedText.indexOf("{");
+          const lastBrace = generatedText.lastIndexOf("}");
+          const jsonText = firstBrace >= 0 && lastBrace > firstBrace
+            ? generatedText.slice(firstBrace, lastBrace + 1)
+            : generatedText;
+          result = JSON.parse(jsonText);
+        } catch (parseError) {
+          return reply({ error: "Gemini ka prompt response valid format mein nahi tha. Dobara try karein.", code: "AI_PROMPT_WRITER_INVALID_JSON" }, 502);
+        }
+        if (!result || typeof result !== "object" || Array.isArray(result) || typeof result.needsClarification !== "boolean") {
+          return reply({ error: "Gemini returned an invalid prompt-writing response.", code: "AI_PROMPT_WRITER_INVALID_RESPONSE" }, 502);
+        }
+        if (result.needsClarification) {
+          const question = typeof result.question === "string" ? result.question.trim().slice(0, 300) : "";
+          if (!question || String(result.prompt || "").trim()) {
+            return reply({ error: "The clarification response was incomplete. Please describe the request more clearly.", code: "AI_PROMPT_WRITER_INVALID_CLARIFICATION" }, 502);
+          }
+          return reply({ needsClarification: true, prompt: "", question });
+        }
+        const prompt = typeof result.prompt === "string" ? result.prompt.trim() : "";
+        if (!prompt || prompt.length > 1400 || typeof result.question !== "string") {
+          return reply({ error: "Gemini ka prompt 1,400 characters ke andar clear format mein nahi tha. Dobara try karein.", code: "AI_PROMPT_WRITER_INVALID_PROMPT" }, 502);
+        }
+        return reply({ needsClarification: false, prompt, question: "" });
       }
 
       // VIDEO STUDIO AI EDITOR — strict, versioned, allow-listed edit plans.
