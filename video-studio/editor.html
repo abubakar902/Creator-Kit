@@ -592,6 +592,15 @@ body.ai-preview-active #playBtn,body.ai-preview-active #stopBtn{pointer-events:a
 
 /* Roman Urdu Prompt Writer — Step 1, separate from the actual edit planner. */
 .ai-prompt-writer{border:1px solid rgba(181,130,230,.48);border-radius:13px;background:linear-gradient(145deg,rgba(64,39,91,.48),rgba(23,17,37,.94));overflow:hidden}
+.ai-assistant-guide{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 10px;border:1px solid rgba(157,125,196,.25);border-radius:9px;background:rgba(31,23,47,.7);color:#e5d8f2;font-size:10px;line-height:1.45}
+.ai-assistant-help{position:relative;flex:none}
+.ai-assistant-help>summary{list-style:none;cursor:pointer;padding:5px 10px;border:1px solid #654782;border-radius:7px;background:#281a3c;color:#e8d5ff;font-size:10px;font-weight:800}
+.ai-assistant-help>summary::-webkit-details-marker{display:none}
+.ai-assistant-help[open]{z-index:5}
+.ai-assistant-help p{position:absolute;right:0;top:calc(100% + 6px);width:min(260px,calc(100vw - 70px));margin:0;padding:10px;border:1px solid #76539a;border-radius:9px;background:#211632;color:#e6d8f3;font-size:10px;line-height:1.55;box-shadow:0 10px 28px #0009}
+.ai-prompt-writer-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;border-bottom:1px solid rgba(181,130,230,.25);background:rgba(112,66,155,.14);color:#f7eaff;font-size:11px}
+.ai-prompt-writer-heading span{color:#c8a0ed;font-size:9px}
+
 .ai-prompt-writer>summary{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:11px 12px;cursor:pointer;list-style:none;color:#f7eaff;font-size:11px;font-weight:900}
 .ai-prompt-writer>summary::-webkit-details-marker{display:none}
 .ai-prompt-writer>summary:after{content:"⌄";color:#d6a7ff;font-size:16px}
@@ -1090,27 +1099,25 @@ body.ai-preview-active #playBtn,body.ai-preview-active #stopBtn{pointer-events:a
   </header>
   <div class="ai-assistant-body">
    <div class="ai-assistant-context" id="aiAssistantContext"><span class="ai-assistant-spark">✦</span><span>Reading your current project…</span></div>
-   <div class="ai-assistant-welcome"><strong>Your Video Studio co-pilot</strong><br>Apni request simple alfaaz mein likhein. AI clips edit kar sakta hai, timeline arrange/trim kar sakta hai, preview controls chala sakta hai, imported media aur video proxies manage kar sakta hai, aur projects create/open/rename kar sakta hai. AI sirf relevant Video Studio tools use karega aur Apply se pehle review preview dikhayega.<br><br><strong>Prompt likhne ka easy tareeqa:</strong> batayein <em>kis clip ya project par</em>, <em>kya change</em>, aur <em>kya bilkul same rakhna hai</em>. Misal: “Selected video ko 12 seconds par move karo, 8 seconds tak trim karo, aur detached audio sync rakho.”<br><br>Planning ke liye prompt, project/clip names, settings aur media-library metadata securely AI ko bheje ja sakte hain. Aapki local video files planning ke liye upload nahi hotin. New file import karne ke liye aapko khud <strong>Choose files</strong> click karna hoga. Export system AI control mein nahi hai.</div>
-   <details class="ai-prompt-writer" id="aiPromptWriterPanel" open>
-    <summary><span><span class="ai-prompt-writer-step">1</span> Roman Urdu Prompt Writer</span><span class="ai-prompt-writer-tag">STEP 1</span></summary>
+   <div class="ai-assistant-guide"><span>Roman Urdu mein likhein ke video mein kya edit karna hai.</span><details class="ai-assistant-help"><summary>Help</summary><p>Misal: “Meri video ko vertical 9:16 karo aur subject center mein rakho.” Generate Prompt dabayein. AI prompt banayega; phir neeche edit plan dekh kar Preview aur Apply karein.</p></details></div>
+   <section class="ai-prompt-writer" id="aiPromptWriterPanel">
+    <div class="ai-prompt-writer-heading"><strong>1. Apni request likhein</strong><span>Roman Urdu</span></div>
     <div class="ai-prompt-writer-content">
-     <p>Apna kaam Roman Urdu mein likhein. Gemini isay clear English prompt mein badlega jo Video Studio AI Editor samajh sakta hai. Is step se koi editing nahi hogi.</p>
-     <label class="ai-prompt-writer-label" for="aiPromptWriterInput"><span>Aap kya karwana chahte hain?</span><span id="aiPromptWriterCount">0 / 2,000</span></label>
-     <textarea id="aiPromptWriterInput" class="ai-prompt-writer-input" maxlength="2000" placeholder="Misal: meri selected video ko vertical 9:16 mein set karo, subject center mein rahe aur audio bilkul change na karna."></textarea>
-     <button class="btn ai-prompt-writer-generate" id="aiPromptWriterGenerateBtn" type="button">✦ Roman Urdu ko proper prompt mein badlein</button>
-     <p class="ai-prompt-writer-status" id="aiPromptWriterStatus" role="status" aria-live="polite">Gemini sirf prompt likhega; editing neeche Step 2 mein hogi.</p>
+     <label class="ai-prompt-writer-label" for="aiPromptWriterInput"><span>Aap kya edit karwana chahte hain?</span><span id="aiPromptWriterCount">0 / 2,000</span></label>
+     <textarea id="aiPromptWriterInput" class="ai-prompt-writer-input" maxlength="2000" placeholder="Yahan Roman Urdu mein apni editing request likhein..."></textarea>
+     <button class="btn ai-prompt-writer-generate" id="aiPromptWriterGenerateBtn" type="button">✦ Generate Prompt</button>
+     <p class="ai-prompt-writer-status" id="aiPromptWriterStatus" role="status" aria-live="polite">Apni request likhein aur Generate Prompt dabayein.</p>
      <p class="ai-prompt-writer-question" id="aiPromptWriterQuestion" hidden></p>
      <div class="ai-prompt-writer-result" id="aiPromptWriterResultWrap" hidden>
-      <label class="ai-prompt-writer-label" for="aiPromptWriterResult">Ready-to-use English prompt <span>1,400 characters max</span></label>
+      <label class="ai-prompt-writer-label" for="aiPromptWriterResult">Ready-to-use prompt <span>1,400 characters max</span></label>
       <textarea id="aiPromptWriterResult" class="ai-prompt-writer-input ai-prompt-writer-output" maxlength="1400" readonly></textarea>
       <div class="ai-prompt-writer-buttons">
        <button class="btn" id="aiPromptWriterCopyBtn" type="button">Copy prompt</button>
        <button class="btn ai-prompt-writer-use" id="aiPromptWriterUseBtn" type="button">Use in AI Editor ↓</button>
       </div>
      </div>
-     <small class="ai-prompt-writer-disclosure">Aapka likha hua text prompt banane ke liye securely Cloudflare ke zariye Gemini ko bheja jayega. Local video files ya media bytes nahi bheje jayenge. AI quota ya charges apply ho sakte hain.</small>
     </div>
-   </details>
+   </section>
    <div class="ai-assistant-suggestions" aria-label="Example editing requests">
     <button class="ai-suggestion-chip" type="button" data-ai-suggestion="Make the selected video brighter and more cinematic, but keep its natural colours. Do not change audio.">Cinematic colour</button>
     <button class="ai-suggestion-chip" type="button" data-ai-suggestion="Reframe the selected video for a vertical 9:16 social video and keep the subject centred.">Vertical 9:16</button>
