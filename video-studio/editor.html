@@ -3521,6 +3521,10 @@ function aiUpdateContextLabel(){
  const label=document.createElement("span");label.textContent=(project?.name||"Current project")+" · "+count+" timeline clips · "+imported+" media assets · "+proxyCount+" proxies · "+selectedLabel;
  $("aiAssistantContext").append(spark,label);
 }
+function setAiTimelineInert(value){
+ const timeline=document.querySelector(".timeline");
+ if(timeline)timeline.inert=Boolean(value);
+}
 function openAiEditorAssistant(){
  if(!auth?.currentUser){notify("Please sign in with Google to use the AI Editor.");return;}
  if(!project||!Array.isArray(clips)){notify("Open a Video Studio project before using the AI Editor.");return;}
@@ -3529,7 +3533,7 @@ function openAiEditorAssistant(){
  $("aiAssistantOverlay").hidden=false;
  document.body.classList.add("ai-assistant-open");
  [".topbar",".media-panel",".inspector"].forEach(selector=>{const element=document.querySelector(selector);if(element)element.inert=true;});
- $(".timeline").inert=false;
+ setAiTimelineInert(false);
  aiUpdateContextLabel();
  $("aiAssistantStatus").textContent="Ready. Describe one edit or a set of related edits for this project.";
  $("aiPromptWriterPanel").open=true;
@@ -4442,7 +4446,7 @@ async function cancelAiEditorPreview(closing=false){
  }catch(error){}
  aiPendingProjectAction=null;aiPreviewActive=false;aiPreviewOriginal=null;aiPreviewAssetIds=null;
  document.body.classList.remove("ai-preview-active");$("aiAssistantOverlay").classList.remove("is-preview-mode");
- $(".timeline").inert=false;
+ setAiTimelineInert(false);
  renderAll();setPlayhead(Math.min(playhead,duration()));$("timelineScroll").scrollLeft=original.timelineScrollLeft||0;
  $("aiPreviewState").hidden=true;$("aiApplyPlanBtn").hidden=true;$("aiCancelPreviewBtn").hidden=true;
  $("aiPreviewPlanBtn").hidden=!aiCurrentPlan||aiCurrentPlan.needsClarification;$("aiPreviewPlanBtn").textContent="▶ Preview changes";
@@ -4511,7 +4515,7 @@ async function previewAiEditorPlan(){
  };
  aiPreviewAssetIds=new Set(assets.map(asset=>asset.id));aiPendingProjectAction=null;
  clips=clone(aiPreviewOriginal.clips);previewDraft=null;aiPreviewActive=true;
- $(".timeline").inert=false;
+ setAiTimelineInert(false);
  document.body.classList.add("ai-preview-active","ai-assistant-open");$("aiAssistantOverlay").classList.add("is-preview-mode");
  const assistantBody=$("aiAssistantBody");
  if(assistantBody)assistantBody.scrollTo({top:0,behavior:"auto"});
@@ -4546,7 +4550,7 @@ async function commitAiEditorPreview(){
   try{
    aiPreviewActive=false;document.body.classList.remove("ai-preview-active");$("aiAssistantOverlay").classList.remove("is-preview-mode");
    await saveProject();
-   $(".timeline").inert=false;
+   setAiTimelineInert(false);
    aiPreviewOriginal=null;aiPreviewAssetIds=null;aiPendingProjectAction=null;
    $("aiPreviewState").hidden=true;$("aiApplyPlanBtn").hidden=true;$("aiCancelPreviewBtn").hidden=true;aiSetBusy(false);
    aiSetStatus("Project action approved.");aiSetProjectWorkspaceRoute(navigation);
@@ -4563,7 +4567,7 @@ async function commitAiEditorPreview(){
   renderAll();scheduleSave();await saveProject();
   aiPreviewOriginal=null;aiPreviewAssetIds=null;aiPendingProjectAction=null;
   $("aiPreviewState").hidden=true;$("aiApplyPlanBtn").hidden=true;$("aiCancelPreviewBtn").hidden=true;$("aiPreviewPlanBtn").hidden=false;$("aiPreviewPlanBtn").textContent="Preview another version";
-  $(".timeline").inert=false;
+  setAiTimelineInert(false);
   aiSetBusy(false);aiSetPreviewFeedback("");aiSetStatus("AI changes apply ho gayi hain. Timeline changes aik Undo step se reverse ho sakti hain.","success");
   aiReturnToPromptWriter();
   notify("AI changes applied. Timeline edits Undo se reverse ho sakti hain.");
