@@ -4,7 +4,7 @@ The following optional components are downloaded by the browser only when the us
 
 ## MediaPipe Tasks Vision
 
-- Package: `@mediapipe/tasks-vision@1.2.3`
+- Package: `@mediapipe/tasks-vision@1.2.3` (pinned; CDN ESM entry: `vision_bundle.mjs`).
 - Purpose: on-device object detection and person segmentation for Motion Tracking, Auto Reframe and Person Background Removal.
 - Package license: Apache License 2.0.
 - Package source: https://www.npmjs.com/package/@mediapipe/tasks-vision
