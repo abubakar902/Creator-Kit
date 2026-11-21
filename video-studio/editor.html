@@ -580,6 +580,14 @@ body.ai-preview-active #playBtn,body.ai-preview-active #stopBtn{pointer-events:a
 }
 @media(prefers-reduced-motion:reduce){.ai-assistant-panel,.ai-suggestion-chip{transition:none!important}}
 
+.ai-assistant-overlay.is-preview-mode .ai-assistant-panel{top:auto;right:16px;bottom:16px;width:min(350px,calc(100vw - 32px));max-height:250px}
+.ai-assistant-overlay.is-preview-mode .ai-assistant-body{gap:7px;padding:9px;overflow:auto}
+.ai-assistant-overlay.is-preview-mode .ai-assistant-context,.ai-assistant-overlay.is-preview-mode .ai-assistant-welcome,.ai-assistant-overlay.is-preview-mode .ai-assistant-suggestions,.ai-assistant-overlay.is-preview-mode .ai-prompt-label,.ai-assistant-overlay.is-preview-mode .ai-prompt-input,.ai-assistant-overlay.is-preview-mode .ai-assistant-actions,.ai-assistant-overlay.is-preview-mode .ai-plan-refine,.ai-assistant-overlay.is-preview-mode .ai-cloud-consent{display:none!important}
+.ai-assistant-overlay.is-preview-mode .ai-plan-card{padding:9px}
+.ai-assistant-overlay.is-preview-mode .ai-plan-steps{max-height:54px;overflow:auto;margin:5px 0}
+.ai-assistant-overlay.is-preview-mode .ai-assistant-foot{padding:6px}
+@media(max-width:680px){.ai-assistant-overlay.is-preview-mode .ai-assistant-panel{left:auto;right:9px;bottom:9px;width:min(340px,calc(100vw - 18px));max-height:210px}}
+
 </style>
 </head>
 <body>
@@ -1053,7 +1061,7 @@ body.ai-preview-active #playBtn,body.ai-preview-active #stopBtn{pointer-events:a
   </header>
   <div class="ai-assistant-body">
    <div class="ai-assistant-context" id="aiAssistantContext"><span class="ai-assistant-spark">✦</span><span>Reading your current project…</span></div>
-   <div class="ai-assistant-welcome"><strong>Your editing co-pilot</strong><br>Tell me what you want in plain language. I will choose only the relevant existing Video Studio tools, explain the changes, and show a temporary video preview. Nothing is saved until you press <strong>Apply changes</strong>.</div>
+   <div class="ai-assistant-welcome"><strong>Your editing co-pilot</strong><br>Tell me what you want in plain language. I will choose only the relevant existing Video Studio tools, explain the changes, and show a temporary video preview. Nothing is saved until you press <strong>Apply changes</strong>.<br><br>Your prompt and current clip names/settings are sent securely to TrivexaAI AI to prepare the plan. Your original video files are not uploaded for planning. Audio or text is sent for processing only when you approve an AI tool that needs it.</div>
    <div class="ai-assistant-suggestions" aria-label="Example editing requests">
     <button class="ai-suggestion-chip" type="button" data-ai-suggestion="Make the selected video brighter and more cinematic, but keep its natural colours. Do not change audio.">Cinematic colour</button>
     <button class="ai-suggestion-chip" type="button" data-ai-suggestion="Reframe the selected video for a vertical 9:16 social video and keep the subject centred.">Vertical 9:16</button>
@@ -3348,7 +3356,7 @@ function aiSetBusy(busy){
  $("aiGeneratePlanBtn").disabled=aiPlanBusy||aiPreviewActive;
  $("aiPreviewPlanBtn").disabled=aiPlanBusy||aiPreviewActive||!aiCurrentPlan||aiCurrentPlan.needsClarification||(!aiCloudConsentIsReady());
  $("aiApplyPlanBtn").disabled=aiPlanBusy||!aiPreviewActive;
- $("aiCancelPreviewBtn").disabled=aiPlanBusy&&!aiPreviewActive;
+ $("aiCancelPreviewBtn").disabled=aiPlanBusy;
 }
 function aiCloudConsentIsReady(){
  return !$("aiCloudConsentRow").hidden && aiCurrentPlan && aiCurrentPlan.requiresCloudConsent
@@ -3434,8 +3442,8 @@ function aiValidateChanges(clipType,changes){
  const enums={
   framingMode:new Set(["project","fit","fill","stretch"]),
   filterPreset:new Set(["none","cinematic","vivid","warm","cool","noir","vintage"]),
-  transition:new Set(["none","fade","slide","slide-up","slide-down","zoom","wipe","blur","pop"]),
-  maskShape:new Set(["none","horizontal"]),
+  transition:new Set(["none","fade","zoom","slide-left","wipe-left","blur-reveal"]),
+  maskShape:new Set(["none","circle","ellipse","rounded","left-half","right-half","horizontal"]),
   align:new Set(["left","center","right"]),
   textEffect:new Set(["none","shadow","glow","neon","outline"]),
   textTransition:new Set(["none","fade","pop","slide-up","bounce"]),
@@ -3685,13 +3693,17 @@ function aiWriteClipChanges(clip,changes){
  const oldDuration=Number(clip.duration)||0;
  selectedId=clip.id;previewDraft=null;renderInspector();
  for(const [key,value] of Object.entries(changes)){
-  const id=AI_FIELD_CONTROLS[key],field=id?$(id):null;
+  const directTextField=clip.type==="text"&&["x","y","scale"].includes(key);
+  const id=clip.type==="text"&&key==="rotation"?"propTextRotation":clip.type==="text"&&key==="opacity"?"propTextOpacity":AI_FIELD_CONTROLS[key];
+  if(directTextField)continue;
+  const field=id?$(id):null;
   if(!field)throw new Error("Editor setting '"+key+"' is currently unavailable. No partial edit was applied.");
   if(field.type==="checkbox")field.checked=!!value;
   else field.value=String(value);
  }
  const draft=readPropertiesDraft(clip);
  Object.assign(clip,draft);
+ if(clip.type==="text")for(const key of ["x","y","scale"])if(changes[key]!==undefined)clip[key]=changes[key];
  if(clip.type==="video"&&Array.isArray(clip.keyframes)&&Math.abs(clip.duration-oldDuration)>.001){
   const factor=clip.duration/Math.max(.001,oldDuration);
   clip.keyframes=clip.keyframes.map(frame=>({...frame,time:Number((frame.time*factor).toFixed(3))}));
@@ -3718,8 +3730,10 @@ function aiSyncDerivedClip(clip){
 async function aiExecuteTool(operation){
  const tool=operation.tool,clipId=operation.clipId;
  if(tool==="caption_translation"){
+  const before=JSON.stringify(clips);
   $("translateLanguage").value=operation.language;
   await translateCaptionTrack();
+  if(JSON.stringify(clips)===before)throw new Error("Caption translation ne koi confirmed change nahi banaya. Original captions restore kiye ja rahe hain.");
   return;
  }
  if(tool==="add_sticker"){
@@ -3730,11 +3744,12 @@ async function aiExecuteTool(operation){
   return;
  }
  if(tool==="ai_voice_over"){
+  const beforeClipCount=clips.length,beforeAssetCount=assets.length;
   $("voiceoverText").value=operation.text;$("voiceoverVoice").value=operation.voiceId;
   $("voiceoverCounter").textContent=operation.text.length+" / 2,000";
   $("voiceoverConsent").checked=true;$("voiceoverGenerateBtn").disabled=false;
   await generateVoiceover();
-  if(!clips.some(c=>c.name&&c.name.startsWith("AI Voice-over —")&&c.start===playhead))throw new Error("Voice-over generate nahi hua. Quota ya connection check karein.");
+  if(clips.length!==beforeClipCount+1||assets.length!==beforeAssetCount+1)throw new Error("Voice-over generate nahi hua. Quota ya connection check karein.");
   return;
  }
  selectedId=clipId;
@@ -3779,13 +3794,14 @@ async function aiExecuteOperation(operation){
  if(operation.type==="split_clip"){
   const clip=clips.find(c=>c.id===operation.clipId);if(!clip)throw new Error("Split karne wala clip nahi mila.");
   selectedId=clip.id;playhead=operation.atSeconds;
-  const before=clips.length;splitSelected();
-  if(clips.length!==before+1)throw new Error("Clip split nahi ho saka. Original project restore hoga.");
+  const before=clips.length,hasLinkedAudio=clips.some(item=>item.type==="audio"&&item.detachedFromVideoId===clip.id);splitSelected();
+  const expectedIncrease=hasLinkedAudio?2:1;
+  if(clips.length!==before+expectedIncrease)throw new Error("Clip split nahi ho saka. Original project restore hoga.");
   return;
  }
  if(operation.type==="move_clip"){
   const clip=clips.find(c=>c.id===operation.clipId);if(!clip)throw new Error("Move karne wala clip nahi mila.");
-  const delta=operation.start-clip.start;clip.start=operation.start;
+  clip.start=operation.start;
   if(clip.type==="video")aiSyncDerivedClip(clip);
   const linked=clips.find(c=>c.type==="audio"&&c.detachedFromVideoId===clip.id);
   if(linked)linked.start=operation.start;
@@ -3845,6 +3861,7 @@ async function cancelAiEditorPreview(closing=false){
  previewDraft=original.previewDraft?clone(original.previewDraft):null;
  aiPreviewActive=false;aiPreviewOriginal=null;aiCurrentPlan=aiCurrentPlan;
  document.body.classList.remove("ai-preview-active");
+ $("aiAssistantOverlay").classList.remove("is-preview-mode");
  renderAll();setPlayhead(Math.min(playhead,duration()));
  $("aiPreviewState").hidden=true;$("aiApplyPlanBtn").hidden=true;$("aiCancelPreviewBtn").hidden=true;
  $("aiPreviewPlanBtn").hidden=!aiCurrentPlan||aiCurrentPlan.needsClarification;
@@ -3863,6 +3880,7 @@ async function previewAiEditorPlan(){
  aiPreviewAssetIds=new Set(assets.map(asset=>asset.id));
  clips=clone(aiPreviewOriginal.clips);previewDraft=null;aiPreviewActive=true;
  document.body.classList.add("ai-preview-active","ai-assistant-open");
+ $("aiAssistantOverlay").classList.add("is-preview-mode");
  $("aiPreviewPlanBtn").hidden=true;$("aiApplyPlanBtn").hidden=true;$("aiCancelPreviewBtn").hidden=false;
  $("aiPreviewState").hidden=false;
  aiSetBusy(true);aiSetStatus("Temporary preview tayyar ho raha hai. Project abhi save nahi hoga.");
@@ -3905,6 +3923,7 @@ async function commitAiEditorPreview(){
  undoStack.push(clone(original.clips));if(undoStack.length>40)undoStack.shift();redoStack=[];updateHistoryButtons();
  aiPreviewActive=false;aiPreviewOriginal=null;aiPreviewAssetIds=null;
  document.body.classList.remove("ai-preview-active");
+ $("aiAssistantOverlay").classList.remove("is-preview-mode");
  renderAll();scheduleSave();
  $("aiPreviewState").hidden=true;$("aiApplyPlanBtn").hidden=true;$("aiCancelPreviewBtn").hidden=true;
  $("aiPreviewPlanBtn").hidden=false;$("aiPreviewPlanBtn").textContent="Preview another version";
@@ -3921,7 +3940,10 @@ function wireAiEditorAssistant(){
  $("aiApplyPlanBtn").addEventListener("click",commitAiEditorPreview);
  $("aiCancelPreviewBtn").addEventListener("click",()=>cancelAiEditorPreview(false));
  $("aiUseRefinedPrompt").addEventListener("click",aiUseRefinedPrompt);
- $("aiEditPrompt").addEventListener("input",()=>{$("aiPromptCount").textContent=$("aiEditPrompt").value.length+" / 1,400";});
+ $("aiEditPrompt").addEventListener("input",()=>{
+  $("aiPromptCount").textContent=$("aiEditPrompt").value.length+" / 1,400";
+  if(!aiPreviewActive&&aiCurrentPlan){aiCurrentPlan=null;$("aiPlanCard").hidden=true;aiSetStatus("Prompt update ho gaya. Naya edit plan banayein.");aiSetBusy(false);}
+ });
  $("aiCloudConsent").addEventListener("change",()=>{$("aiPreviewPlanBtn").disabled=aiPlanBusy||aiPreviewActive||!aiCloudConsentIsReady();});
  document.querySelectorAll("[data-ai-suggestion]").forEach(button=>{
   button.addEventListener("click",()=>{
