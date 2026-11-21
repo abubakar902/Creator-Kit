@@ -3619,7 +3619,7 @@ function aiValidatePlan(raw){
  if(!plan.understoodRequest)throw new Error("AI ne aapki request ko clear words mein confirm nahi kiya.");
  if(!Array.isArray(raw.operations)||raw.operations.length<1||raw.operations.length>8)throw new Error("AI plan mein 1 se 8 relevant actions hone chahiye.");
  const ids=new Set(clips.map(clip=>clip.id));
- const normalizeClipTargetName=value=>String(value||"").trim().replace(/\\s+/g," ").toLowerCase();
+ const normalizeClipTargetName=value=>String(value||"").trim().replace(/\s+/g," ").toLowerCase();
  const requireClip=(id,typeList,clipName,clipStart,clipTrack,allowImplicit=true)=>{
   const accepted=clip=>!!clip&&(!typeList||typeList.includes(clip.type));
   const targetName=typeof clipName==="string"?clipName.trim():"";
