@@ -529,6 +529,11 @@ input,select,textarea{accent-color:#a96bf1}
 .ai-assistant-close{width:32px;height:32px;display:grid;place-items:center;flex:none;border:1px solid #594270;border-radius:9px;background:#211731;color:#e8d9fa;font-size:17px;cursor:pointer}
 .ai-assistant-close:hover{border-color:#bd8bee;background:#352149}
 .ai-assistant-body{min-height:0;flex:1;display:flex;flex-direction:column;gap:12px;overflow:auto;padding:14px}
+.ai-assistant-body{scrollbar-width:thin;scrollbar-color:#9866d6 #171027}
+.ai-assistant-body::-webkit-scrollbar{width:9px}
+.ai-assistant-body::-webkit-scrollbar-track{background:#171027;border-radius:99px}
+.ai-assistant-body::-webkit-scrollbar-thumb{background:#8056b5;border:2px solid #171027;border-radius:99px}
+.ai-assistant-body::-webkit-scrollbar-thumb:hover{background:#b17be9}
 .ai-assistant-context{display:flex;align-items:center;gap:8px;min-height:34px;padding:7px 9px;border:1px solid rgba(157,125,196,.25);border-radius:9px;background:rgba(31,23,47,.7);color:#cbb9df;font-size:10px;line-height:1.4}
 .ai-assistant-context strong{color:#eadbfa}
 .ai-assistant-spark{color:#d7a5ff;font-size:13px}
@@ -602,6 +607,17 @@ body.ai-preview-active #playBtn,body.ai-preview-active #stopBtn{pointer-events:a
 
 /* Roman Urdu Prompt Writer — Step 1, separate from the actual edit planner. */
 .ai-prompt-writer{border:1px solid rgba(181,130,230,.48);border-radius:13px;background:linear-gradient(145deg,rgba(64,39,91,.48),rgba(23,17,37,.94));overflow:hidden}
+.ai-prompt-writer-input-panel{position:sticky;top:0;z-index:15;flex:none;overflow:visible;background:linear-gradient(145deg,#2a1b40,#171127 92%);box-shadow:0 10px 24px rgba(0,0,0,.34),0 5px 18px rgba(137,81,190,.12)}
+.ai-prompt-writer-input-panel .ai-prompt-writer-question{margin:0 0 4px}
+.ai-prompt-writer-output-panel{flex:none;border:1px solid rgba(181,130,230,.38);border-radius:13px;background:linear-gradient(145deg,rgba(49,32,70,.72),rgba(20,15,32,.97));overflow:hidden}
+.ai-prompt-writer-output-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;border-bottom:1px solid rgba(181,130,230,.22);background:rgba(112,66,155,.12);color:#f3e7ff;font-size:11px;font-weight:850}
+.ai-prompt-writer-output-heading span{color:#c8a0ed;font-size:9px;font-weight:600}
+.ai-prompt-writer-output-content{display:grid;gap:8px;padding:10px 11px}
+.ai-prompt-writer-output-placeholder{margin:0;padding:10px;border:1px dashed #5b456f;border-radius:9px;background:#130e20;color:#b9a9cc;font-size:10px;line-height:1.55}
+.ai-prompt-writer-output-placeholder[hidden]{display:none!important}
+.ai-step-two-input-panel{display:grid;gap:9px;flex:none;padding:12px;border:1px solid rgba(181,130,230,.4);border-radius:13px;background:linear-gradient(145deg,rgba(54,37,77,.64),rgba(20,15,32,.97))}
+.ai-step-two-input-panel .ai-plan-clarification{margin:0}
+.ai-assistant-overlay.is-preview-mode .ai-prompt-writer-output-panel,.ai-assistant-overlay.is-preview-mode .ai-step-two-input-panel{display:none!important}
 .ai-assistant-guide{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 10px;border:1px solid rgba(157,125,196,.25);border-radius:9px;background:rgba(31,23,47,.7);color:#e5d8f2;font-size:10px;line-height:1.45}
 .ai-assistant-help{position:relative;flex:none}
 .ai-assistant-help>summary{list-style:none;cursor:pointer;padding:5px 10px;border:1px solid #654782;border-radius:7px;background:#281a3c;color:#e8d5ff;font-size:10px;font-weight:800}
@@ -1117,20 +1133,26 @@ body.ai-preview-active #playBtn,body.ai-preview-active #stopBtn{pointer-events:a
   <div class="ai-assistant-body" id="aiAssistantBody">
    <div class="ai-assistant-context" id="aiAssistantContext"><span class="ai-assistant-spark">✦</span><span>Reading your current project…</span></div>
    <div class="ai-assistant-guide"><span>Roman Urdu mein likhein ke video mein kya edit karna hai.</span><details class="ai-assistant-help"><summary>Help</summary><p>Misal: “Meri video ko vertical 9:16 karo aur subject center mein rakho.” Generate Prompt dabayein. AI prompt banayega; phir neeche edit plan dekh kar Preview aur Apply karein.</p></details></div>
-   <section class="ai-prompt-writer" id="aiPromptWriterPanel">
-    <div class="ai-prompt-writer-heading"><strong>1. Apni request likhein</strong><span>Roman Urdu</span></div>
+   <section class="ai-prompt-writer ai-prompt-writer-input-panel" id="aiPromptWriterPanel">
+    <div class="ai-prompt-writer-heading"><strong>1. Apni request likhein</strong><span>INPUT · HAMESHA VISIBLE</span></div>
     <div class="ai-prompt-writer-content">
+     <div class="ai-prompt-writer-question" id="aiPromptWriterQuestion" role="alert" aria-live="assertive" hidden>
+      <div class="ai-clarification-heading">✦ Gemini ko yeh baat clear karni hai</div>
+      <p id="aiPromptWriterQuestionText"></p>
+      <small>Sawal ka jawab neeche isi input box mein add karein. Sawal type karte waqt bhi yahin visible rahega.</small>
+     </div>
      <label class="ai-prompt-writer-label" for="aiPromptWriterInput"><span>Aap kya edit karwana chahte hain?</span><span id="aiPromptWriterCount">0 / 2,000</span></label>
      <textarea id="aiPromptWriterInput" class="ai-prompt-writer-input" maxlength="2000" placeholder="Yahan Roman Urdu mein apni editing request likhein..."></textarea>
      <button class="btn ai-prompt-writer-generate" id="aiPromptWriterGenerateBtn" type="button">✦ Generate Prompt</button>
      <p class="ai-prompt-writer-status" id="aiPromptWriterStatus" role="status" aria-live="polite">Apni request likhein aur Generate Prompt dabayein.</p>
-     <div class="ai-prompt-writer-question" id="aiPromptWriterQuestion" role="alert" aria-live="assertive" hidden>
-      <div class="ai-clarification-heading">✦ Gemini ko yeh baat clear karni hai</div>
-      <p id="aiPromptWriterQuestionText"></p>
-      <small>Apni Roman Urdu request mein is detail ka jawab add karein, phir dobara Generate Prompt dabayein.</small>
-     </div>
+    </div>
+   </section>
+   <section class="ai-prompt-writer-output-panel" id="aiPromptWriterOutputPanel" aria-label="Step 1 generated output">
+    <div class="ai-prompt-writer-output-heading"><strong>Step 1 — Output</strong><span>Gemini result</span></div>
+    <div class="ai-prompt-writer-output-content">
+     <p class="ai-prompt-writer-output-placeholder" id="aiPromptWriterOutputPlaceholder" aria-live="polite">Gemini ka tayyar prompt yahan nazar aayega.</p>
      <div class="ai-prompt-writer-result" id="aiPromptWriterResultWrap" hidden>
-      <label class="ai-prompt-writer-label" for="aiPromptWriterResult">Ready-to-use prompt <span>1,400 characters max</span></label>
+      <label class="ai-prompt-writer-label" for="aiPromptWriterResult"><span>Ready-to-use prompt</span><span>1,400 characters max</span></label>
       <textarea id="aiPromptWriterResult" class="ai-prompt-writer-input ai-prompt-writer-output" maxlength="1400" readonly></textarea>
       <div class="ai-prompt-writer-buttons">
        <button class="btn" id="aiPromptWriterCopyBtn" type="button">Copy prompt</button>
@@ -1151,20 +1173,22 @@ body.ai-preview-active #playBtn,body.ai-preview-active #stopBtn{pointer-events:a
     <button class="ai-suggestion-chip" type="button" data-ai-suggestion="Detect scene changes in the selected video and split it at the detected cuts.">Detect scenes</button>
     <button class="ai-suggestion-chip" type="button" data-ai-suggestion="Translate the existing captions into Urdu and keep their timing unchanged.">Translate captions</button>
    </div>
-   <label class="ai-prompt-label" for="aiEditPrompt"><span>Step 2 — Main AI Editor prompt</span><span id="aiPromptCount">0 / 1,400</span></label>
-   <textarea class="ai-prompt-input" id="aiEditPrompt" maxlength="1400" placeholder="Yahan Step 1 se bana hua prompt use karein, ya apna ready English prompt paste karein."></textarea>
-   <div class="ai-assistant-actions">
-    <button class="btn ai-assistant-primary" id="aiGeneratePlanBtn" type="button">✦ Understand &amp; create edit plan</button>
-   </div>
-   <div class="ai-assistant-status" id="aiAssistantStatus" role="status" aria-live="polite">AI will ask before making unclear or unsupported changes.</div>
-   <section class="ai-plan-card" id="aiPlanCard" hidden>
-    <div class="ai-plan-eyebrow"><span>✦</span> AI edit plan</div>
-    <div class="ai-plan-understood" id="aiPlanUnderstood"></div>
+   <section class="ai-step-two-input-panel" id="aiStepTwoInputPanel">
     <div class="ai-plan-clarification" id="aiPlanClarification" role="alert" aria-live="assertive" hidden>
      <div class="ai-clarification-heading">✦ Gemini ko ek detail chahiye</div>
      <p id="aiPlanClarificationText"></p>
-     <small>Step 2 ke prompt box mein jawab add karein, phir “Understand &amp; create edit plan” dobara dabayein.</small>
+     <small>Sawal ka jawab neeche isi Step 2 prompt box mein add karein. Sawal type karte waqt bhi visible rahega.</small>
     </div>
+    <label class="ai-prompt-label" for="aiEditPrompt"><span>Step 2 — Main AI Editor prompt</span><span id="aiPromptCount">0 / 1,400</span></label>
+    <textarea class="ai-prompt-input" id="aiEditPrompt" maxlength="1400" placeholder="Yahan Step 1 se bana hua prompt use karein, ya apna ready English prompt paste karein."></textarea>
+    <div class="ai-assistant-actions">
+     <button class="btn ai-assistant-primary" id="aiGeneratePlanBtn" type="button">✦ Understand &amp; create edit plan</button>
+    </div>
+    <div class="ai-assistant-status" id="aiAssistantStatus" role="status" aria-live="polite">AI will ask before making unclear or unsupported changes.</div>
+   </section>
+   <section class="ai-plan-card" id="aiPlanCard" hidden>
+    <div class="ai-plan-eyebrow"><span>✦</span> AI edit plan</div>
+    <div class="ai-plan-understood" id="aiPlanUnderstood"></div>
     <p class="ai-plan-message" id="aiPlanMessage"></p>
     <ol class="ai-plan-steps" id="aiPlanSteps"></ol>
     <button class="ai-plan-refine" type="button" id="aiUseRefinedPrompt">Use the clearer version in my prompt</button>
@@ -3933,7 +3957,7 @@ function aiOperationLabel(operation){
  return names[operation.tool]||"Run "+operation.tool;
 }
 function aiRenderPlan(plan){
- $("aiPlanCard").hidden=false;
+ $("aiPlanCard").hidden=!!plan.needsClarification;
  $("aiPlanUnderstood").textContent=plan.understoodRequest||"";
  $("aiPlanMessage").textContent=plan.message||"";
  $("aiPlanClarificationText").textContent=plan.message||"Please add the missing detail to the Step 2 prompt and try again.";
@@ -3956,8 +3980,13 @@ function aiRenderPlan(plan){
  $("aiPreviewPlanBtn").disabled=plan.needsClarification||!plan.operations.length;
  aiSetBusy(false);
  if(plan.needsClarification){
-  aiSetStatus("Gemini ko ek detail clear karni hai. Sawal neeche highlight kiya hai; Step 2 ke prompt mein jawab add karke dobara try karein.");
-  requestAnimationFrame(()=>$("aiPlanCard").scrollIntoView({behavior:"smooth",block:"nearest"}));
+  aiSetStatus("Gemini ko ek detail clear karni hai. Sawal Step 2 input ke upar hai; jawab usi prompt box mein add karke dobara try karein.");
+  requestAnimationFrame(()=>{
+   const field=$("aiEditPrompt");
+   field.focus({preventScroll:true});
+   const end=field.value.length;
+   field.setSelectionRange(end,end);
+  });
  }else{
   aiSetStatus("Plan ready. Preview chalayein; original project abhi change nahi hua.","success");
  }
@@ -3969,7 +3998,7 @@ async function generateAiEditPlan(){
  if(request.length>1400){aiSetStatus("Prompt 1,400 characters se chhota rakhein.");return;}
  if(previewDraft){aiSetStatus("Pehle Properties panel ka Apply ya cancel complete karein, phir AI Editor use karein.");notify("Aapke pending Properties preview ko AI edit change nahi karega.");return;}
  if(!auth?.currentUser){aiSetStatus("Session expire ho gaya. Dobara Google sign-in karein.");return;}
- aiCurrentPlan=null;$("aiPlanCard").hidden=true;aiSetBusy(true);aiSetStatus("AI aapki request aur current timeline samajh raha hai…");
+ aiCurrentPlan=null;$("aiPlanCard").hidden=true;$("aiPlanClarification").hidden=true;aiSetBusy(true);aiSetStatus("AI aapki request aur current timeline samajh raha hai…");
  try{
   const token=await auth.currentUser.getIdToken();
   const response=await fetch(WORKER_URL,{
@@ -4009,6 +4038,10 @@ async function generateAiPrompt(){
  $("aiPromptWriterGenerateBtn").textContent="Gemini prompt bana raha hai…";
 
  $("aiPromptWriterQuestion").hidden=true;
+ $("aiPromptWriterResultWrap").hidden=true;
+ $("aiPromptWriterResult").value="";
+ $("aiPromptWriterOutputPlaceholder").hidden=false;
+ $("aiPromptWriterOutputPlaceholder").textContent="Gemini ka jawab tayyar ho raha hai…";
  aiSetPromptWriterStatus("Gemini aapki Roman Urdu request ko supported Video Studio prompt mein badal raha hai…");
  aiSetBusy(false);
  try{
@@ -4033,18 +4066,27 @@ async function generateAiPrompt(){
   if(data.needsClarification===true){
    $("aiPromptWriterQuestionText").textContent=data.question||"Is request ke liye ek detail clear karni hogi. Apni request update karein.";
    $("aiPromptWriterQuestion").hidden=false;
-   if(!$("aiPromptWriterResult").value.trim())$("aiPromptWriterResult").value="Prompt abhi tayyar nahi hua. Pehle upar diye gaye sawal ka jawab dein, phir dobara Generate Prompt dabayein.";
-   $("aiPromptWriterResultWrap").hidden=false;
-   aiSetPromptWriterStatus("Gemini ko ek baat clear karni hai. Sawal upar highlight kiya hai; request update karke dobara Generate Prompt dabayein.");
-   requestAnimationFrame(()=>$("aiPromptWriterQuestion").scrollIntoView({behavior:"smooth",block:"nearest"}));
+   $("aiPromptWriterResultWrap").hidden=true;
+   $("aiPromptWriterOutputPlaceholder").hidden=false;
+   $("aiPromptWriterOutputPlaceholder").textContent="Clarification ka jawab dene ke baad Gemini ka final prompt yahan nazar aayega.";
+   aiSetPromptWriterStatus("Gemini ko ek baat clear karni hai. Sawal input box ke upar hai; jawab isi box mein add karke dobara Generate Prompt dabayein.");
+   requestAnimationFrame(()=>{
+    const field=$("aiPromptWriterInput");
+    field.focus({preventScroll:true});
+    const end=field.value.length;
+    field.setSelectionRange(end,end);
+   });
   }else{
    const prompt=typeof data.prompt==="string"?data.prompt.trim():"";
    if(!prompt||prompt.length>1400)throw new Error("Gemini ka prompt main AI Editor ki 1,400-character limit mein nahi hai. Dobara try karein.");
    $("aiPromptWriterResult").value=prompt;
    $("aiPromptWriterResultWrap").hidden=false;
-   aiSetPromptWriterStatus("Prompt neeche tayyar hai. Pehle prompt check karein, phir Use in AI Editor dabayein. Abhi video mein koi edit nahi hui.");
+   $("aiPromptWriterOutputPlaceholder").hidden=true;
+   aiSetPromptWriterStatus("Alag Output section mein prompt tayyar hai. Check karein, phir Use in AI Editor dabayein. Abhi video mein koi edit nahi hui.");
   }
  }catch(error){
+  $("aiPromptWriterOutputPlaceholder").hidden=false;
+  $("aiPromptWriterOutputPlaceholder").textContent="Prompt abhi generate nahi hua. Request check karke dobara try karein.";
   aiSetPromptWriterStatus(aiFriendlyConnectionError(error,"Prompt Writer"));
   if(error?.name==="TypeError")$("aiPromptWriterStatus").style.color="#ffd9dc";
  }finally{
@@ -4500,9 +4542,17 @@ function wireAiEditorAssistant(){
  $("aiPromptWriterUseBtn").addEventListener("click",aiUseGeneratedPrompt);
  $("aiPromptWriterInput").addEventListener("input",()=>{
   $("aiPromptWriterCount").textContent=$("aiPromptWriterInput").value.length+" / 2,000";
-  $("aiPromptWriterQuestion").hidden=true;
   $("aiPromptWriterStatus").style.color="";
-  aiSetPromptWriterStatus("Request update ho gayi. Naya prompt generate karein.");
+  $("aiPromptWriterResultWrap").hidden=true;
+  $("aiPromptWriterResult").value="";
+  $("aiPromptWriterOutputPlaceholder").hidden=false;
+  const hasQuestion=!$("aiPromptWriterQuestion").hidden;
+  $("aiPromptWriterOutputPlaceholder").textContent=hasQuestion
+   ?"Gemini ke sawal ka jawab submit karne ke baad final prompt yahan nazar aayega."
+   :"Gemini ka tayyar prompt yahan nazar aayega.";
+  aiSetPromptWriterStatus(hasQuestion
+   ?"Gemini ka sawal upar visible hai. Jawab isi input box mein add karke dobara Generate Prompt dabayein."
+   :"Request update ho gayi. Naya prompt generate karein.");
  });
  $("aiPromptWriterInput").addEventListener("keydown",event=>{
   if((event.ctrlKey||event.metaKey)&&event.key==="Enter"){event.preventDefault();generateAiPrompt();}
