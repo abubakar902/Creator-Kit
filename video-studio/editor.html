@@ -580,6 +580,7 @@ body.ai-preview-active #playBtn,body.ai-preview-active #stopBtn{pointer-events:a
 }
 @media(prefers-reduced-motion:reduce){.ai-assistant-panel,.ai-suggestion-chip{transition:none!important}}
 
+.ai-assistant-overlay.is-preview-mode .ai-assistant-backdrop{pointer-events:none}
 .ai-assistant-overlay.is-preview-mode .ai-assistant-panel{top:auto;right:16px;bottom:16px;width:min(350px,calc(100vw - 32px));max-height:250px}
 .ai-assistant-overlay.is-preview-mode .ai-assistant-body{gap:7px;padding:9px;overflow:auto}
 .ai-assistant-overlay.is-preview-mode .ai-assistant-context,.ai-assistant-overlay.is-preview-mode .ai-assistant-welcome,.ai-assistant-overlay.is-preview-mode .ai-assistant-suggestions,.ai-assistant-overlay.is-preview-mode .ai-prompt-label,.ai-assistant-overlay.is-preview-mode .ai-prompt-input,.ai-assistant-overlay.is-preview-mode .ai-assistant-actions,.ai-assistant-overlay.is-preview-mode .ai-plan-refine,.ai-assistant-overlay.is-preview-mode .ai-cloud-consent{display:none!important}
