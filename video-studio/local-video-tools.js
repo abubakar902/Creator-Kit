@@ -111,7 +111,12 @@ async function ensurePersonSegmenter() {
   return segmenterPromise;
 }
 function personMaskCanvas(result) {
-  const confidence = result && Array.isArray(result.confidenceMasks) ? result.confidenceMasks[1] : null;
+  const labels = imageSegmenter && typeof imageSegmenter.getLabels === "function" ? imageSegmenter.getLabels() : [];
+  const personIndex = Array.isArray(labels) ? labels.findIndex(label => String(label).toLowerCase() === "person") : -1;
+  const masks = result && Array.isArray(result.confidenceMasks) ? result.confidenceMasks : [];
+  const confidence = masks.length
+    ? (masks[personIndex >= 0 ? personIndex : (masks.length > 1 ? 1 : 0)] || masks[0])
+    : null;
   const category = result && result.categoryMask;
   const mask = confidence || category;
   if (!mask || typeof mask.getAsUint8Array !== "function" && typeof mask.getAsFloat32Array !== "function") {
@@ -120,8 +125,8 @@ function personMaskCanvas(result) {
   const width = Number(mask.width) || 0;
   const height = Number(mask.height) || 0;
   if (!width || !height) throw new Error("The person mask has an invalid size.");
-  const floats = typeof mask.getAsFloat32Array === "function" ? mask.getAsFloat32Array() : null;
-  const bytes = floats ? null : mask.getAsUint8Array();
+  const floats = confidence && typeof confidence.getAsFloat32Array === "function" ? confidence.getAsFloat32Array() : null;
+  const bytes = floats ? null : (category || mask).getAsUint8Array();
   const canvas = document.createElement("canvas");
   canvas.width = width;
   canvas.height = height;
