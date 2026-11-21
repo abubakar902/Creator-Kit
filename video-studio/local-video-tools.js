@@ -393,6 +393,72 @@ async function loadFFmpeg() {
   }
   return ffmpegPromise;
 }
+async function convertWebMToMp4(blob,options={}){
+ const duration=Number(options.duration)||0,width=Number(options.width)||0,height=Number(options.height)||0;
+ if(!(blob instanceof Blob)||!blob.size)throw new Error("The temporary WebM recording is missing.");
+ if(duration<=0||duration>120)throw new Error("Local MP4 conversion supports clips up to 2 minutes on this PC. Choose WebM or shorten the timeline.");
+ if(Math.max(width,height)>1280||!width||!height)throw new Error("Local MP4 conversion is limited to 720p on this 4 GB PC. Choose 720p and try again.");
+ if(blob.size>100*1024*1024)throw new Error("The temporary WebM file is larger than the 100 MB safety limit for this PC. Choose 720p or use WebM.");
+ const isCancelled=()=>typeof options.isCancelled==="function"&&options.isCancelled();
+ if(isCancelled()){const error=new Error("MP4 conversion cancelled.");error.name="AbortError";throw error;}
+ const ffmpeg=await loadFFmpeg();
+ let cancelled=false,terminated=false;
+ const inputName="trivexa-export-input.webm",outputName="trivexa-export-output.mp4",logLines=[];
+ const onLog=({message})=>{if(message)logLines.push(message);};
+ const onProgress=({progress})=>{if(typeof options.onProgress==="function")options.onProgress(Math.max(0,Math.min(1,Number(progress)||0)));};
+ const terminate=()=>{
+  if(terminated)return;
+  cancelled=true;terminated=true;
+  try{ffmpeg.terminate();}catch(error){}
+  ffmpegPromise=null;ffmpegInstance=null;
+ };
+ const checkCancel=()=>{
+  if(cancelled||isCancelled()){
+   const error=new Error("MP4 conversion cancelled.");error.name="AbortError";throw error;
+  }
+ };
+ ffmpeg.on("log",onLog);ffmpeg.on("progress",onProgress);
+ try{
+  if(typeof options.onReady==="function")options.onReady(terminate);
+  checkCancel();
+  try{await ffmpeg.deleteFile(inputName);}catch(error){}
+  try{await ffmpeg.deleteFile(outputName);}catch(error){}
+  await ffmpeg.writeFile(inputName,new Uint8Array(await blob.arrayBuffer()));
+  checkCancel();
+  const scanResult=await ffmpeg.exec(["-hide_banner","-encoders"]);
+  if(scanResult!==0)throw new Error("The local video engine could not inspect its MP4 encoders.");
+  const encoderText=logLines.join("\n");
+  if(!encoderText.includes("libx264"))throw new Error("This free FFmpeg build does not include the H.264 encoder needed for MP4 on this device.");
+  if(!encoderText.includes("aac"))throw new Error("This free FFmpeg build does not include the AAC audio encoder. Your video has not been downloaded as a silent MP4.");
+  checkCancel();
+  const result=await ffmpeg.exec([
+   "-y","-hide_banner","-i",inputName,"-t",String(duration.toFixed(3)),
+   "-map","0:v:0","-map","0:a?",
+   "-vf","scale='min(1280,iw)':-2",
+   "-c:v","libx264","-preset","ultrafast","-crf","28","-threads","1","-pix_fmt","yuv420p",
+   "-c:a","aac","-b:a","128k",
+   "-movflags","+faststart",outputName
+  ]);
+  checkCancel();
+  if(result!==0){
+   const details=logLines.slice(-8).join(" | ").replace(/\s+/g," ").slice(-520);
+   throw new Error("The local H.264/AAC conversion could not finish. "+(details?"FFmpeg details: "+details:"Try a shorter 720p video or export WebM."));
+  }
+  const output=await ffmpeg.readFile(outputName);
+  checkCancel();
+  if(!output||output.length<1000)throw new Error("The local MP4 converter produced an empty file. Please retry or choose WebM.");
+  const resultBlob=new Blob([output.buffer.slice(output.byteOffset,output.byteOffset+output.byteLength)],{type:"video/mp4"});
+  if(typeof options.onProgress==="function")options.onProgress(1);
+  return resultBlob;
+ }finally{
+  try{ffmpeg.off("log",onLog);}catch(error){}
+  try{ffmpeg.off("progress",onProgress);}catch(error){}
+  if(!cancelled){
+   try{await ffmpeg.deleteFile(inputName);}catch(error){}
+   try{await ffmpeg.deleteFile(outputName);}catch(error){}
+  }
+ }
+}
 function extensionForAsset(asset) {
   const match = String(asset && asset.name || "").match(/\.([a-z0-9]{2,5})$/i);
   if (match) return match[1].toLowerCase();
@@ -689,6 +755,7 @@ export function createLocalVideoTools(api) {
     }
   };
   return {
+    convertWebMToMp4,
     bind() {
       byId("reverseClipBtn")?.addEventListener("click", () => run("reverseClipBtn", "Preparing…", token => reverseSelectedClip(api, token)));
       byId("motionTrackBtn")?.addEventListener("click", () => run("motionTrackBtn", "Tracking…", async token => {
