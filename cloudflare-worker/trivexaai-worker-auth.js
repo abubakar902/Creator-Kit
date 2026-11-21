@@ -1273,6 +1273,67 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
           if (!clip || (types && !types.includes(clip.type))) throw new Error("An action referred to a clip that is not available in the current editor context.");
           return clip;
         };
+        const normalizeClipName = value => String(value || "").trim().replace(/\s+/g, " ").toLowerCase();
+        const resolveClipTarget = (item, types) => {
+          const requestedName = typeof item.clipName === "string" ? item.clipName.trim() : "";
+          const requestedId = typeof item.clipId === "string" ? item.clipId : "";
+          const requestedTrack = item.clipTrack === undefined ? "" : str(item.clipTrack, 20);
+          const requestedStart = item.clipStart === undefined ? null : finite(item.clipStart);
+          if (item.clipStart !== undefined && requestedStart === null) {
+            throw new Error("AI_CLIP_TARGET_CLARIFICATION: Clip start time must be a valid number of seconds.");
+          }
+          if (requestedTrack && !trackTypes.includes(requestedTrack)) {
+            throw new Error("AI_CLIP_TARGET_CLARIFICATION: Clip track is not recognised. Use Video, Overlay, Audio, Text or Captions.");
+          }
+          let clip = requestedId ? clipById.get(requestedId) || null : null;
+          if (clip && requestedName && normalizeClipName(clip.name) !== normalizeClipName(requestedName)) {
+            throw new Error("AI_CLIP_TARGET_CLARIFICATION: The clip ID and clip name point to different timeline clips. Please identify the correct clip.");
+          }
+          if (clip && types && !types.includes(clip.type)) {
+            throw new Error("AI_CLIP_TARGET_CLARIFICATION: The named clip is not a supported media type for this tool.");
+          }
+          if (!clip && requestedName) {
+            let matches = clips.filter(candidate =>
+              normalizeClipName(candidate.name) === normalizeClipName(requestedName) &&
+              (!types || types.includes(candidate.type))
+            );
+            if (requestedTrack) matches = matches.filter(candidate => candidate.track === requestedTrack);
+            if (requestedStart !== null) matches = matches.filter(candidate => Math.abs(candidate.start - requestedStart) <= 0.25);
+            if (matches.length > 1) {
+              const choices = matches.slice(0, 5).map(candidate =>
+                candidate.name + " (" + candidate.track + " track, starts at " + candidate.start.toFixed(1) + "s)"
+              );
+              throw new Error("AI_CLIP_TARGET_CLARIFICATION: Same-name clips match this request: " + choices.join("; ") + ". Please specify the correct track or start time.");
+            }
+            if (matches.length === 1) clip = matches[0];
+            else throw new Error("AI_CLIP_TARGET_CLARIFICATION: No compatible timeline clip is named '" + requestedName + "'. Please check the exact clip name shown on the timeline.");
+          } else if (!clip && requestedId) {
+            throw new Error("AI_CLIP_TARGET_CLARIFICATION: The requested clip ID is not available in the current project. Please identify the clip by its exact timeline name.");
+          }
+          if (!clip && !requestedName && !requestedId) {
+            const selected = editorContext.selectedClipId ? clipById.get(editorContext.selectedClipId) : null;
+            if (selected && (!types || types.includes(selected.type))) clip = selected;
+          }
+          if (!clip && !requestedName && !requestedId) {
+            const candidates = clips.filter(candidate => !types || types.includes(candidate.type));
+            if (candidates.length === 1 && !editorContext.clipsTruncated) {
+              clip = candidates[0];
+            } else if (candidates.length > 1 || editorContext.clipsTruncated) {
+              const choices = candidates.slice(0, 5).map(candidate =>
+                candidate.name + " (" + candidate.track + " track, starts at " + candidate.start.toFixed(1) + "s)"
+              );
+              throw new Error("AI_CLIP_TARGET_CLARIFICATION: Multiple clips could match this edit" +
+                (choices.length ? ": " + choices.join("; ") : "") +
+                ". Please give the exact clip name, track or start time.");
+            }
+          }
+          if (!clip) throw new Error("AI_CLIP_TARGET_CLARIFICATION: No suitable timeline clip was found. Please name the clip you want to edit.");
+          if (types && !types.includes(clip.type)) {
+            throw new Error("AI_CLIP_TARGET_CLARIFICATION: This tool cannot be used on the identified clip type.");
+          }
+          item.clipId = clip.id;
+          return clip;
+        };
         const requireAsset = id => {
           const asset = typeof id === "string" ? assetById.get(id) : null;
           if (!asset) throw new Error("An action referred to media that is not available in the current Media Library context.");
@@ -1318,7 +1379,7 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
         };
         const supportedTool = (item, type) => {
           if (!AI_VIDEO_TOOLS.includes(item.tool)) throw new Error("The AI proposed a Video Studio tool that is not allowed.");
-          if (toolClipTypes[item.tool]) requireClip(item.clipId, toolClipTypes[item.tool]);
+          if (toolClipTypes[item.tool]) resolveClipTarget(item, toolClipTypes[item.tool]);
           else if (item.tool === "caption_translation") {
             if (!clips.some(clip => clip.track === "captions" && clip.type === "text")) throw new Error("Caption translation needs existing captions.");
             if (!languageNames.includes(item.language)) throw new Error("Caption translation needs a supported target language.");
@@ -1337,28 +1398,28 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
           if (!item || typeof item !== "object" || Array.isArray(item) || typeof item.type !== "string") throw new Error("An AI operation was not a valid object.");
           switch (item.type) {
             case "set_clip_properties": {
-              const clip = requireClip(item.clipId);
+              const clip = resolveClipTarget(item);
               validateChanges(clip, item.changes);
               break;
             }
             case "split_clip": {
-              const clip = requireClip(item.clipId);
+              const clip = resolveClipTarget(item);
               if (!["video", "audio", "image", "text"].includes(clip.type)) throw new Error("This clip cannot be split.");
               if (!boundedNumber(item.atSeconds, clip.start + 0.151, clip.start + clip.duration - 0.151)) throw new Error("The split point must be inside the selected clip.");
               break;
             }
             case "move_clip": {
-              const clip = requireClip(item.clipId);
+              const clip = resolveClipTarget(item);
               checkNum(item, "start", 0, 7200);
               if (item.track !== undefined && !validTrack(clip, item.track)) throw new Error("The clip cannot be moved to that track.");
               break;
             }
             case "duplicate_clip":
-              requireClip(item.clipId);
+              resolveClipTarget(item);
               checkNum(item, "start", 0, 7200);
               break;
             case "delete_clip":
-              requireClip(item.clipId);
+              resolveClipTarget(item);
               break;
             case "add_text_overlay":
               if (typeof item.text !== "string" || !item.text.trim() || item.text.length > 180) throw new Error("Text overlay content is invalid.");
@@ -1367,7 +1428,7 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
               validateChanges({ type: "text" }, { ...(item.changes || {}), text: item.text, start: item.start, duration: item.duration });
               break;
             case "set_keyframes": {
-              const clip = requireClip(item.clipId, ["video", "image", "text"]);
+              const clip = resolveClipTarget(item, ["video", "image", "text"]);
               if (!Array.isArray(item.keyframes) || item.keyframes.length < 2 || item.keyframes.length > 20) throw new Error("Keyframe count is outside the supported range.");
               for (const frame of item.keyframes) {
                 if (!frame || typeof frame !== "object" || !boundedNumber(frame.time, 0, clip.duration) || !frame.values || typeof frame.values !== "object" || Array.isArray(frame.values)) throw new Error("A keyframe has invalid timing or values.");
@@ -1381,7 +1442,7 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
               supportedTool(item);
               break;
             case "trim_clip": {
-              const clip = requireClip(item.clipId);
+              const clip = resolveClipTarget(item);
               checkNum(item, "start", 0, 7200);
               checkNum(item, "duration", 0.2, 7200);
               if (clip.type === "video" && clip.sourceTiming.speedSourceDuration > 0) throw new Error("Speed-ramped video clips must not be trimmed by AI.");
@@ -1467,11 +1528,11 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
           "The only allowed operation types are: " + AI_EDITOR_ACTIONS.join(", ") + ". The only allowed run_tool IDs are: " + AI_VIDEO_TOOLS.join(", ") + ". Never invent any other function, tool, action, property, project, asset, clip ID or track.",
           "Never generate HTML, CSS, JavaScript, commands, URLs, shell commands, export jobs or code. You cannot run arbitrary code.",
           "This AI assistant does NOT control the 17 separate homepage tools. It does NOT control Export, export settings, render/download, or the export queue. Never propose an export action.",
-          "Only use IDs present in EDITOR_CONTEXT. Match a clip or media asset by exact name or the selectedClipId only when the user's wording clearly identifies it. If names are ambiguous, multiple clips match, or a referenced item is missing, set needsClarification=true and operations=[]. Ask one concise question.",
+          "Only use IDs present in EDITOR_CONTEXT. For clip-target actions, use clipId when the ID is clear. If no reliable ID is available, include clipName using the exact timeline clip name; when same-name clips exist, also use clipTrack and/or clipStart only if the user clearly identifies the correct one. An empty selectedClipId is NOT a reason to ask the user to select a clip: if exactly one compatible clip exists in the full context, target that clip. If several compatible clips remain, or duplicate names cannot be distinguished from the request, set needsClarification=true and operations=[]. Ask one concise question naming the matching track/start-time choices. Never guess between duplicate clips.",
           "Use only the minimum relevant operations. Never add extra edits, effects, captions, voice-over, stickers, audio changes, or project operations unless explicitly requested. Do not alter audio for a visual-only request or visuals for an audio-only request.",
           "Do not assume the user wants all clips changed when they say 'the video' if several candidates exist. If clipsTruncated or assetsTruncated is true, do not claim an action covers the whole project or whole library.",
           "If needsClarification=true, operations MUST be an empty array and message must ask one specific question. Otherwise, include 1 to 8 valid operations and explain briefly.",
-          "For set_clip_properties use {\"type\":\"set_clip_properties\",\"clipId\":\"existing-clip-id\",\"changes\":{\"brightness\":1.1},\"reason\":\"...\"}. Only use properties listed for the selected clip type.",
+          "For clip-target actions (set_clip_properties, split_clip, move_clip, duplicate_clip, delete_clip, set_keyframes, trim_clip and clip-based run_tool), include clipId when known. If needed, clipName may be the exact timeline name; clipTrack and clipStart (absolute timeline seconds) may disambiguate duplicate names. Example: {\"type\":\"set_clip_properties\",\"clipName\":\"match-highlight.mp4\",\"clipTrack\":\"video\",\"clipStart\":0,\"changes\":{\"brightness\":1.1},\"reason\":\"...\"}. Only use properties listed for the target clip type.",
           "Video properties: name, start, duration, scale, rotation, x, y, opacity, flipX, flipY, framingMode, filterPreset, brightness, contrast, saturation, blur, hue, transition, transitionDuration, volume, speedStart, speedEnd, chromaEnabled, chromaColor, chromaTolerance, chromaSoftness, maskShape, maskTop, maskBottom, maskFeather, maskAngle. Image clips use their matching image properties and do not support video-only speed/chroma/background-removal settings.",
           "Audio properties: name, start, duration, volume, fadeIn, fadeOut, audioBass, audioMid, audioTreble, audioPan. Text properties: name, start, duration, text, color, fontSize, font, weight, align, bgColor, bgOpacity, italic, rotation, opacity, textEffect, textTransition, textTransitionDuration, x, y, scale.",
           "Property enums: framingMode project/fit/fill/stretch; filterPreset none/cinematic/vivid/warm/cool/noir/vintage; transition none/fade/zoom/slide-left/wipe-left/blur-reveal; maskShape none/circle/ellipse/rounded/left-half/right-half/horizontal; align left/center/right; textEffect none/shadow/glow/neon/outline; textTransition none/fade/pop/slide-up/bounce; font Arial, sans-serif OR Inter, sans-serif OR Georgia, serif OR Impact, sans-serif OR system-ui, sans-serif; weight 500/700/900. Colours must be six-digit HEX. Use numeric values as JSON numbers, not strings.",
@@ -1586,9 +1647,21 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
             if (navigation.length && operations.length !== 1) throw new Error("Project actions must be separate from editor changes.");
             if (operations.some(operation => operation.type === "remove_asset") && operations.length !== 1) throw new Error("Removing a Media Library asset must be a separate request.");
           } catch (validationError) {
-            console.warn("Video Studio AI Editor plan rejected:", validationError?.message || validationError);
+            const validationMessage = String(validationError?.message || validationError);
+            const clarificationPrefix = "AI_CLIP_TARGET_CLARIFICATION:";
+            if (validationMessage.startsWith(clarificationPrefix)) {
+              return reply({
+                text: JSON.stringify({
+                  understoodRequest: str(plan.understoodRequest, 500),
+                  message: validationMessage.slice(clarificationPrefix.length).trim(),
+                  needsClarification: true,
+                  operations: []
+                })
+              });
+            }
+            console.warn("Video Studio AI Editor plan rejected:", validationMessage);
             return reply({
-              error: "The AI suggested an edit that is not safe or does not match this project. Nothing was changed. Please select the correct clip or make the prompt more specific.",
+              error: "The AI suggested an edit that is not safe or does not match this project. Nothing was changed. Please identify the target clip by its exact name or location.",
               code: "AI_EDITOR_PLAN_REJECTED"
             }, 422);
           }
