@@ -415,18 +415,33 @@ async function reverseSelectedClip(api, token) {
     await ffmpeg.writeFile(inputName, new Uint8Array(await asset.blob.arrayBuffer()));
     await ffmpeg.exec(["-hide_banner", "-encoders"]);
     const encoderText = logLines.join("\n");
-    let videoCodec = "mpeg4", outputName = "trivexa-reversed.mp4", mime = "video/mp4";
-    let videoArgs = ["-c:v", "mpeg4", "-q:v", "5", "-threads", "1"];
-    if (encoderText.includes("libx264")) videoArgs = ["-c:v", "libx264", "-preset", "ultrafast", "-crf", "28", "-threads", "1"];
-    else if (encoderText.includes("libvpx")) {
+    let videoCodec = "", outputName = "trivexa-reversed.mp4", mime = "video/mp4";
+    let videoArgs = [];
+    if (encoderText.includes("libx264")) {
+      videoCodec = "libx264";
+      videoArgs = ["-c:v", "libx264", "-preset", "ultrafast", "-crf", "28", "-threads", "1"];
+    } else if (encoderText.includes("libvpx")) {
       videoCodec = "libvpx";
       outputName = "trivexa-reversed.webm";
       mime = "video/webm";
       videoArgs = ["-c:v", "libvpx", "-deadline", "realtime", "-cpu-used", "8", "-b:v", "900k", "-threads", "1"];
+    } else if (encoderText.includes("mpeg4")) {
+      videoCodec = "mpeg4";
+      videoArgs = ["-c:v", "mpeg4", "-q:v", "5", "-threads", "1"];
+    } else {
+      throw new Error("This browser's free FFmpeg build has no compatible video encoder. Try again on an updated Chrome or Edge browser.");
     }
-    const audioArgs = videoCodec === "libvpx"
-      ? (encoderText.includes("libopus") ? ["-c:a", "libopus", "-b:a", "96k"] : ["-an"])
-      : ["-c:a", "aac", "-b:a", "128k"];
+    let audioArgs = [];
+    if (videoCodec === "libvpx") {
+      if (encoderText.includes("libopus")) audioArgs = ["-c:a", "libopus", "-b:a", "96k"];
+      else if (encoderText.includes("libvorbis")) audioArgs = ["-c:a", "libvorbis", "-q:a", "4"];
+      else audioArgs = ["-an"];
+    } else if (encoderText.includes("aac")) {
+      audioArgs = ["-c:a", "aac", "-b:a", "128k"];
+    } else {
+      audioArgs = ["-an"];
+    }
+    const audioFilterArgs = audioArgs[0] === "-an" ? [] : ["-af", "areverse"];
     checkCancelled(token);
     const result = await ffmpeg.exec([
       // Restrict the input range before applying reverse, so only the
@@ -437,7 +452,7 @@ async function reverseSelectedClip(api, token) {
       "-map", "0:v:0",
       "-map", "0:a?",
       "-vf", "scale='min(720,iw)':-2,reverse",
-      "-af", "areverse",
+      ...audioFilterArgs,
       ...videoArgs,
       ...audioArgs,
       ...(mime === "video/mp4" ? ["-movflags", "+faststart"] : []),
