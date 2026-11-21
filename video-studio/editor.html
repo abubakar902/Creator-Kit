@@ -3453,6 +3453,14 @@ function aiValidateChanges(clipType,changes){
   fadeIn:[0,7200],fadeOut:[0,7200],audioBass:[-12,12],audioMid:[-12,12],audioTreble:[-12,12],audioPan:[-100,100],
   fontSize:[10,120],bgOpacity:[0,1],textTransitionDuration:[.1,2]
  };
+ const allowedSpeedSteps=new Set([.25,.5,.75,1,1.5,2,3,4]);
+ const propertySteps={
+  start:.1,duration:.1,scale:.1,rotation:1,x:1,y:1,opacity:.05,volume:.05,
+  brightness:.05,contrast:.05,saturation:.05,blur:.5,hue:1,transitionDuration:.1,
+  chromaTolerance:5,chromaSoftness:5,maskTop:1,maskBottom:1,maskFeather:1,maskAngle:1,
+  fadeIn:.1,fadeOut:.1,audioBass:1,audioMid:1,audioTreble:1,audioPan:5,
+  fontSize:2,bgOpacity:.05,textTransitionDuration:.1
+ };
  const enums={
   framingMode:new Set(["project","fit","fill","stretch"]),
   filterPreset:new Set(["none","cinematic","vivid","warm","cool","noir","vintage"]),
@@ -3470,8 +3478,14 @@ function aiValidateChanges(clipType,changes){
   if(!allowed.has(key))throw new Error("AI ne unsupported setting '"+key+"' change karne ki koshish ki. Is edit ko roka gaya.");
   const value=changes[key];
   if(Object.prototype.hasOwnProperty.call(numericRanges,key)){
-   const [min,max]=numericRanges[key];result[key]=aiClamp(value,min,max,key);
-   if(key==="weight"&&!enums.weight.has(result[key]))throw new Error("Text weight supported option se match nahi karta.");
+   const [min,max]=numericRanges[key];let number=aiClamp(value,min,max,key);
+   if(key==="speedStart"||key==="speedEnd"){
+    if(!allowedSpeedSteps.has(number))throw new Error(key+" ke liye editor ke supported speed steps use karein.");
+   }else if(propertySteps[key]){
+    const step=propertySteps[key];number=Number((Math.round(number/step)*step).toFixed(3));
+    number=Math.max(min,Math.min(max,number));
+   }
+   result[key]=number;
   }else if(booleans.has(key)){
    if(typeof value!=="boolean")throw new Error(key+" ka value true ya false hona chahiye.");
    result[key]=value;
