@@ -47,7 +47,7 @@
 #previewStage video,#previewStage img{pointer-events:auto;touch-action:none;cursor:move}
 #textPreview>[data-clip-id]{pointer-events:auto;touch-action:none;cursor:move;user-select:none}
 .text-resize-handle{z-index:20}
-#overlayStickerLayer{position:absolute;inset:0;z-index:4;pointer-events:none;overflow:hidden}#overlayStickerLayer .overlay-sticker-item{pointer-events:auto;background:transparent}#previewStage.is-dragging{outline:2px solid #a75cff;outline-offset:2px}.sticker-resize-handle[hidden]{display:none!important}.sticker-resize-handle{position:absolute;z-index:18;width:25px;height:25px;padding:0;border:2px solid #fff;border-radius:50%;background:linear-gradient(145deg,#b45dff,#6944ff);color:#fff;font-size:15px;font-weight:900;line-height:1;display:grid;place-items:center;transform:translate(-50%,-50%);box-shadow:0 2px 12px #000b,0 0 0 2px #a45cff66;cursor:nwse-resize;touch-action:none;user-select:none}
+#overlayStickerLayer{position:absolute;inset:0;z-index:4;pointer-events:none;overflow:hidden}.voiceover-textarea{display:block;width:100%;min-height:132px;max-height:240px;resize:vertical;padding:11px;border:1px solid #49365f;border-radius:10px;background:#171027;color:#fff;font:12px/1.55 inherit}.voiceover-textarea:focus{outline:2px solid #a66be3;outline-offset:1px}.voiceover-counter{margin:5px 0 12px;text-align:right;color:#9f91b3;font-size:10px}.voiceover-consent{display:flex;align-items:flex-start;gap:8px;margin:12px 0;color:#e0d1f0;font-size:11px;line-height:1.5}.voiceover-consent input{margin:2px 0 0;accent-color:#a75cff;flex:none}#overlayStickerLayer .overlay-sticker-item{pointer-events:auto;background:transparent}#previewStage.is-dragging{outline:2px solid #a75cff;outline-offset:2px}.sticker-resize-handle[hidden]{display:none!important}.sticker-resize-handle{position:absolute;z-index:18;width:25px;height:25px;padding:0;border:2px solid #fff;border-radius:50%;background:linear-gradient(145deg,#b45dff,#6944ff);color:#fff;font-size:15px;font-weight:900;line-height:1;display:grid;place-items:center;transform:translate(-50%,-50%);box-shadow:0 2px 12px #000b,0 0 0 2px #a45cff66;cursor:nwse-resize;touch-action:none;user-select:none}
 @media(max-width:680px){.property-group>summary{padding:12px;font-size:12px}.group-body{padding:9px}}
 
 .export-modal{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(5,3,13,.78);backdrop-filter:blur(14px)}
@@ -637,7 +637,7 @@ body{background:radial-gradient(ellipse at 48% -18%,rgba(126,79,190,.18),transpa
 <div class="timeline-head">
 <strong>Timeline</strong>
 <div class="timeline-buttons">
-<button class="btn" type="button" id="addTextBtn">＋ Text</button><button class="btn" type="button" id="openStickerModalBtn">✦ Stickers &amp; Shapes</button><button class="btn" type="button" id="autoCaptionsBtn" title="Generate timed captions from the selected video or audio clip">✦ Auto Captions</button>
+<button class="btn" type="button" id="addTextBtn">＋ Text</button><button class="btn" type="button" id="openStickerModalBtn">✦ Stickers &amp; Shapes</button><button class="btn" type="button" id="openVoiceoverModalBtn">♫ AI Voice-over</button><button class="btn" type="button" id="autoCaptionsBtn" title="Generate timed captions from the selected video or audio clip">✦ Auto Captions</button>
 <button class="btn" type="button" id="splitBtn" disabled>Split at playhead</button>
 <button class="btn" type="button" id="deleteTimelineBtn" disabled>Delete</button>
 <button class="btn" type="button" id="shortcutsBtn" aria-haspopup="dialog" aria-controls="shortcutsModal" title="Show keyboard shortcuts">⌨ Shortcuts</button>
@@ -768,12 +768,29 @@ body{background:radial-gradient(ellipse at 48% -18%,rgba(126,79,190,.18),transpa
   <footer class="export-dialog-actions"><button class="btn" id="stickerCloseBtn" type="button">Close</button><button class="btn primary" id="stickerAddBtn" type="button">Add to timeline</button></footer>
  </section>
 </div>
+<div class="export-modal" id="voiceoverModal" hidden role="dialog" aria-modal="true" aria-labelledby="voiceoverDialogTitle">
+ <section class="export-dialog">
+  <header class="export-dialog-head"><div class="export-dialog-icon" aria-hidden="true">♫</div><div><h2 id="voiceoverDialogTitle">AI Voice-over</h2><p>Turn your text into a voice clip on the timeline</p></div></header>
+  <div class="export-dialog-body">
+   <div class="export-quality"><label for="voiceoverVoice">Voice</label><select id="voiceoverVoice">
+    <option value="angus">Angus</option><option value="asteria">Asteria</option><option value="arcas">Arcas</option><option value="orion">Orion</option><option value="orpheus">Orpheus</option><option value="athena">Athena</option><option value="luna">Luna</option><option value="zeus">Zeus</option><option value="perseus">Perseus</option><option value="helios">Helios</option><option value="hera">Hera</option><option value="stella">Stella</option>
+   </select></div>
+   <label for="voiceoverText" style="display:block;margin:8px 0 7px;color:#d9c9ec;font-size:11px;font-weight:750">Text for voice-over (up to 2,000 characters)</label>
+   <textarea id="voiceoverText" class="voiceover-textarea" maxlength="2000" placeholder="Write the words you want the voice to speak…"></textarea>
+   <div class="voiceover-counter" id="voiceoverCounter">0 / 2,000</div>
+   <p class="export-modal-note">This sends your text to Cloudflare Workers AI to create an MP3. It needs an account with Advanced access. Cloudflare lists Aura-1 at $0.015 per 1,000 input characters; free daily allowance and account-plan limits also apply. Check your Cloudflare usage before generating.</p>
+   <label class="voiceover-consent"><input id="voiceoverConsent" type="checkbox"> I understand this uses Cloudflare AI and may use paid quota.</label>
+   <p class="captions-status" id="voiceoverStatus" role="status" aria-live="polite">Ready. Your generated MP3 will be added to the Audio track at the current playhead.</p>
+  </div>
+  <footer class="export-dialog-actions"><button class="btn" id="voiceoverCloseBtn" type="button">Close</button><button class="btn primary" id="voiceoverGenerateBtn" type="button" disabled>Generate &amp; add to timeline</button></footer>
+ </section>
+</div>
 <script type="module">
 import {authReady,auth,getAccountProfile} from "../auth/auth-client.js";
 import {createLocalVideoTools,renderPersonCutoutFrame} from "./local-video-tools.js";
 const $=id=>document.getElementById(id);
 const projectKey="trivexaai_video_studio_projects_v1",dbName="trivexaai-video-studio",dbVersion=1,scaleDefault=64;
-let db=null,project=null,clips=[],assets=[],urls=new Map(),selectedId=null,scale=scaleDefault,playhead=0,isPlaying=false,raf=0,lastFrame=0,activeVideoId=null,activeOverlayVideoId=null,activeBaseImageId=null,activeImageId=null,previewStickerElements=new Map(),audioNodes=new Map(),audioGraphs=new Map(),previewAudioContext=null,audioWaveforms=new Map(),audioWaveformPending=new Map(),audioWaveformUnavailable=new Set(),audioWaveformQueue=Promise.resolve(),saveTimer=0,saveQueue=Promise.resolve(),saveRevision=0,savedRevision=0,undoStack=[],redoStack=[],dragState=null,playheadDrag=null,previewDraft=null,exportBusy=false,exportController=null,lastExportBlob=null,lastExportFileName="",snapEnabled=true,proxyBusy=false,captionsBusy=false,copiedKeyframe=null,activeKeyframeTime=null,exportQueue=[],exportQueueRunning=false,queuedExportClipsSnapshot=null;
+let db=null,project=null,clips=[],assets=[],urls=new Map(),selectedId=null,scale=scaleDefault,playhead=0,isPlaying=false,raf=0,lastFrame=0,activeVideoId=null,activeOverlayVideoId=null,activeBaseImageId=null,activeImageId=null,previewStickerElements=new Map(),audioNodes=new Map(),audioGraphs=new Map(),previewAudioContext=null,audioWaveforms=new Map(),audioWaveformPending=new Map(),audioWaveformUnavailable=new Set(),audioWaveformQueue=Promise.resolve(),saveTimer=0,saveQueue=Promise.resolve(),saveRevision=0,savedRevision=0,undoStack=[],redoStack=[],dragState=null,playheadDrag=null,previewDraft=null,exportBusy=false,exportController=null,lastExportBlob=null,lastExportFileName="",snapEnabled=true,proxyBusy=false,captionsBusy=false,voiceoverBusy=false,copiedKeyframe=null,activeKeyframeTime=null,exportQueue=[],exportQueueRunning=false,queuedExportClipsSnapshot=null;
 const chromaCanvasCache=new WeakMap();
 let localVideoTools=null,backgroundPreviewWarningShown=false;
 const horizontalMaskCanvasCache=new WeakMap();
@@ -1833,6 +1850,61 @@ function previewPointerUp(e){
  dragState=null;
 }
 
+function openVoiceoverModal(){
+ if(!auth?.currentUser){notify("Please sign in with Google before creating a voice-over.");return;}
+ $("voiceoverModal").hidden=false;
+ $("voiceoverStatus").textContent="Ready. Your generated MP3 will be added to the Audio track at the current playhead.";
+}
+function closeVoiceoverModal(){
+ if(voiceoverBusy)return;
+ $("voiceoverModal").hidden=true;
+}
+async function generateVoiceover(){
+ if(voiceoverBusy)return;
+ const textValue=$("voiceoverText").value.trim(),voiceId=$("voiceoverVoice").value;
+ if(!textValue){$("voiceoverStatus").textContent="Enter the words you want the voice to speak.";return;}
+ if(textValue.length>2000){$("voiceoverStatus").textContent="Please keep the text under 2,000 characters.";return;}
+ if(!$("voiceoverConsent").checked){$("voiceoverStatus").textContent="Please confirm the Cloudflare AI usage note before generating.";return;}
+ if(!auth?.currentUser){$("voiceoverStatus").textContent="Your sign-in session has expired. Please sign in again.";return;}
+ const button=$("voiceoverGenerateBtn"),close=$("voiceoverCloseBtn");
+ voiceoverBusy=true;button.disabled=true;close.disabled=true;button.textContent="Generating voice…";
+ $("voiceoverStatus").textContent="Connecting securely to Cloudflare Workers AI…";
+ try{
+  const token=await auth.currentUser.getIdToken();
+  const response=await fetch(WORKER_URL,{
+   method:"POST",
+   headers:{"Content-Type":"application/json","Authorization":"Bearer "+token},
+   body:JSON.stringify({action:"generate_voice",toolId:"video-studio-voiceover",text:textValue,voiceId})
+  });
+  const contentType=(response.headers.get("Content-Type")||"").toLowerCase();
+  if(!response.ok||contentType.includes("application/json")){
+   let message="Cloudflare could not generate this voice-over.";
+   try{const data=await response.json();message=[data.error,data.details].filter(Boolean).join(" ");}catch(error){}
+   if(response.status===403)message="This feature needs an invite or admin approval. "+message;
+   throw new Error(message);
+  }
+  const blob=await response.blob();
+  if(!blob||blob.size<1000)throw new Error("The voice service returned an empty MP3. Please try again.");
+  const audioBlob=blob.type.includes("audio/")?blob:new Blob([blob],{type:"audio/mpeg"});
+  $("voiceoverStatus").textContent="Voice created. Preparing your Audio track clip…";
+  const audioDuration=Math.max(.2,await measureDuration(audioBlob,"audio"));
+  const assetId=uid(),voiceName=$("voiceoverVoice").selectedOptions[0]?.textContent||voiceId;
+  const asset={id:assetId,projectId:project.id,name:"AI Voice-over — "+voiceName+".mp3",type:"audio",mime:"audio/mpeg",size:audioBlob.size,duration:audioDuration,blob:audioBlob,origin:"generated",generatedBy:"TrivexaAI Voice-over",voiceId,createdAt:new Date().toISOString()};
+  await dbRequest("assets","readwrite",store=>store.put(asset));
+  assets.push(asset);urls.set(asset.id,URL.createObjectURL(audioBlob));snapshot();
+  const clip={id:uid(),assetId:asset.id,name:"AI Voice-over — "+voiceName,type:"audio",track:"audio",start:playhead,sourceStart:0,duration:audioDuration,volume:1,fadeIn:0,fadeOut:0};
+  clips.push(clip);selectedId=clip.id;previewDraft=null;renderAll();scheduleSave();
+  $("voiceoverStatus").textContent="Voice-over added to the Audio track.";
+  notify("AI Voice-over added to the Audio track at the playhead.");
+  $("voiceoverText").value="";$("voiceoverCounter").textContent="0 / 2,000";$("voiceoverConsent").checked=false;
+  $("voiceoverModal").hidden=true;
+ }catch(error){
+  const message=error?.name==="AbortError"?"Voice generation was cancelled.":(error?.message||"Voice generation failed. Check your Cloudflare Workers AI usage and try again.");
+  $("voiceoverStatus").textContent=message;
+ }finally{
+  voiceoverBusy=false;button.disabled=!$("voiceoverConsent").checked;close.disabled=false;button.textContent="Generate & add to timeline";
+ }
+}
 function openStickerModal(){$("stickerModal").hidden=false;}
 function closeStickerModal(){$("stickerModal").hidden=true;}
 function makeStickerSvg(preset,color){
@@ -3128,7 +3200,7 @@ $("shortcutsModal").addEventListener("click",event=>{if(event.target===$("shortc
 window.addEventListener("keydown",handleEditorShortcuts);
 $("importBtn").addEventListener("click",()=>$("fileInput").click());
 $("fileInput").addEventListener("change",async e=>{if(e.target.files?.length)await importFiles([...e.target.files]);e.target.value="";});
-$("addTextBtn").addEventListener("click",addText);$("openStickerModalBtn").addEventListener("click",openStickerModal);$("stickerCloseBtn").addEventListener("click",closeStickerModal);$("stickerAddBtn").addEventListener("click",addStickerToTimeline);$("stickerModal").addEventListener("click",event=>{if(event.target===$("stickerModal"))closeStickerModal();});$("autoCaptionsBtn").addEventListener("click",openCaptionsModal);$("captionsCloseBtn").addEventListener("click",closeCaptionsModal);$("captionsGenerateBtn").addEventListener("click",generateCaptions);$("captionsDownloadBtn").addEventListener("click",downloadCaptionsSrt);$("captionsModal").addEventListener("click",event=>{if(event.target===$("captionsModal")&&!captionsBusy)closeCaptionsModal();});
+$("addTextBtn").addEventListener("click",addText);$("openVoiceoverModalBtn").addEventListener("click",openVoiceoverModal);$("voiceoverCloseBtn").addEventListener("click",closeVoiceoverModal);$("voiceoverGenerateBtn").addEventListener("click",generateVoiceover);$("voiceoverConsent").addEventListener("change",()=>{$("voiceoverGenerateBtn").disabled=!$("voiceoverConsent").checked||voiceoverBusy;});$("voiceoverText").addEventListener("input",()=>{$("voiceoverCounter").textContent=$("voiceoverText").value.length+" / 2,000";});$("voiceoverModal").addEventListener("click",event=>{if(event.target===$("voiceoverModal"))closeVoiceoverModal();});$("openStickerModalBtn").addEventListener("click",openStickerModal);$("stickerCloseBtn").addEventListener("click",closeStickerModal);$("stickerAddBtn").addEventListener("click",addStickerToTimeline);$("stickerModal").addEventListener("click",event=>{if(event.target===$("stickerModal"))closeStickerModal();});$("autoCaptionsBtn").addEventListener("click",openCaptionsModal);$("captionsCloseBtn").addEventListener("click",closeCaptionsModal);$("captionsGenerateBtn").addEventListener("click",generateCaptions);$("captionsDownloadBtn").addEventListener("click",downloadCaptionsSrt);$("captionsModal").addEventListener("click",event=>{if(event.target===$("captionsModal")&&!captionsBusy)closeCaptionsModal();});
 $("playBtn").addEventListener("click",()=>isPlaying?pause():play());
 $("stopBtn").addEventListener("click",()=>{pause();setPlayhead(0);});
 $("splitBtn").addEventListener("click",splitSelected);
