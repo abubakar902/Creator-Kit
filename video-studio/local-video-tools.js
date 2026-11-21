@@ -29,6 +29,13 @@ function byId(id) {
 function clamp(value, min, max) {
   return Math.max(min, Math.min(max, Number(value) || 0));
 }
+function checkCancelled(token) {
+  if (token && token.cancelled) {
+    const error = new Error("You cancelled this tool. Your original media is safe.");
+    error.name = "AbortError";
+    throw error;
+  }
+}
 function waitForPaint() {
   return new Promise(resolve => requestAnimationFrame(() => resolve()));
 }
@@ -256,7 +263,7 @@ function chooseDetection(detections, width, height, target, previous) {
     return (distanceA + classPenaltyA - a.score * 0.08) - (distanceB + classPenaltyB - b.score * 0.08);
   })[0];
 }
-async function analyseClip(api, clip, mode) {
+async function analyseClip(api, clip, mode, token) {
   if (!clip || clip.type !== "video") throw new Error("Select a video clip on the timeline first.");
   const asset = api.getAsset(clip.assetId);
   const url = api.getAssetUrl(clip.assetId);
@@ -264,17 +271,21 @@ async function analyseClip(api, clip, mode) {
   if (clip.duration < 1.2) throw new Error("This clip is too short to track. Choose a clip at least 1.2 seconds long.");
   const target = mode === "reframe" ? "person" : (byId("motionTrackTarget")?.value || "person");
   const detector = await ensureObjectDetector();
+  checkCancelled(token);
   const video = document.createElement("video");
   await waitForVideo(video, url);
+  checkCancelled(token);
   const sampleCount = Math.min(36, Math.max(5, Math.ceil(clip.duration / 0.7) + 1));
   const points = [];
   let previous = null;
   let smoothX = 0.5, smoothY = 0.5, smoothScale = 1;
   try {
     for (let i = 0; i < sampleCount; i++) {
+      checkCancelled(token);
       const local = clip.duration * i / (sampleCount - 1);
       const sourceTime = api.getClipSourceTime(clip, local);
       await seekVideo(video, sourceTime);
+      checkCancelled(token);
       const detections = detector.detect(video).detections || [];
       const found = chooseDetection(detections, video.videoWidth, video.videoHeight, target, previous);
       if (found) {
@@ -292,6 +303,7 @@ async function analyseClip(api, clip, mode) {
       if (i % 2 === 0) {
         api.setStatus((mode === "reframe" ? "Auto Reframe" : "Motion Tracking") + " · analysing " + Math.round((i + 1) / sampleCount * 100) + "%");
         await waitForPaint();
+        checkCancelled(token);
       }
     }
   } finally {
@@ -350,7 +362,7 @@ function extensionForAsset(asset) {
   if (mime.includes("quicktime")) return "mov";
   return "mp4";
 }
-async function reverseSelectedClip(api) {
+async function reverseSelectedClip(api, token) {
   const clip = api.getSelectedClip();
   if (!clip || clip.type !== "video") throw new Error("Select a video clip on the timeline first.");
   const asset = api.getAsset(clip.assetId);
@@ -364,10 +376,21 @@ async function reverseSelectedClip(api) {
   button.textContent = "Loading video engine…";
   api.setStatus("Downloading FFmpeg.wasm · first use is about 31 MB…");
   const ffmpeg = await loadFFmpeg();
+  checkCancelled(token);
   const inputName = "trivexa-input." + extensionForAsset(asset);
   const logLines = [];
   const onLog = ({ message }) => { if (message) logLines.push(message); };
+  const onProgress = ({ progress }) => {
+    button.textContent = "Reversing " + clamp(Math.round(progress * 100), 0, 99) + "% · click to cancel";
+    api.setStatus("Reversing selected clip locally… " + clamp(Math.round(progress * 100), 0, 99) + "%");
+  };
   ffmpeg.on("log", onLog);
+  ffmpeg.on("progress", onProgress);
+  token.cancel = () => {
+    try { ffmpeg.terminate(); } catch (error) {}
+    ffmpegPromise = null;
+    ffmpegInstance = null;
+  };
   try {
     await ffmpeg.writeFile(inputName, new Uint8Array(await asset.blob.arrayBuffer()));
     await ffmpeg.exec(["-hide_banner", "-encoders"]);
@@ -384,10 +407,7 @@ async function reverseSelectedClip(api) {
     const audioArgs = videoCodec === "libvpx"
       ? (encoderText.includes("libopus") ? ["-c:a", "libopus", "-b:a", "96k"] : ["-an"])
       : ["-c:a", "aac", "-b:a", "128k"];
-    ffmpeg.on("progress", ({ progress }) => {
-      button.textContent = "Reversing " + clamp(Math.round(progress * 100), 0, 99) + "%";
-      api.setStatus("Reversing selected clip locally… " + clamp(Math.round(progress * 100), 0, 99) + "%");
-    });
+    checkCancelled(token);
     const result = await ffmpeg.exec([
       "-i", inputName,
       "-ss", String(Math.max(0, api.getClipSourceTime(clip, 0)).toFixed(3)),
@@ -410,7 +430,10 @@ async function reverseSelectedClip(api) {
     api.notify("Reverse Video complete. The original file is still in your Media Library.");
   } finally {
     try { ffmpeg.off("log", onLog); } catch (error) {}
-    try { await ffmpeg.deleteFile(inputName); } catch (error) {}
+    try { ffmpeg.off("progress", onProgress); } catch (error) {}
+    if (ffmpegPromise) {
+      try { await ffmpeg.deleteFile(inputName); } catch (error) {}
+    }
     try { await ffmpeg.deleteFile("trivexa-reversed.mp4"); } catch (error) {}
     try { await ffmpeg.deleteFile("trivexa-reversed.webm"); } catch (error) {}
   }
@@ -469,7 +492,7 @@ async function loadRNNoise() {
   }
   return rnnoisePromise;
 }
-async function enhanceSelectedAudio(api) {
+async function enhanceSelectedAudio(api, token) {
   const clip = api.getSelectedClip();
   if (!clip || clip.type !== "audio") throw new Error("Select an audio clip on the audio track first. For video sound, detach its audio and select that audio clip.");
   const asset = api.getAsset(clip.assetId);
@@ -485,6 +508,7 @@ async function enhanceSelectedAudio(api) {
   } finally {
     try { await context.close(); } catch (error) {}
   }
+  checkCancelled(token);
   const sourceStart = api.getClipSourceTime(clip, 0);
   const sourceDuration = api.getClipSourceElapsed(clip, clip.duration);
   if (sourceDuration > 120) throw new Error("For this free low-memory version, first split the audio so the selected clip is 120 seconds or shorter.");
@@ -493,6 +517,7 @@ async function enhanceSelectedAudio(api) {
   if (sampleEnd <= sampleStart) throw new Error("The selected audio range is outside the source file.");
   const channelCount = Math.max(1, Math.min(2, decoded.numberOfChannels));
   const module = await loadRNNoise();
+  checkCancelled(token);
   const frameSize = 480;
   let inputPointer = 0, outputPointer = 0;
   const denoisedChannels = [];
@@ -510,6 +535,7 @@ async function enhanceSelectedAudio(api) {
       try {
         const frameCount = Math.ceil(resampled.length / frameSize);
         for (let frame = 0; frame < frameCount; frame++) {
+          checkCancelled(token);
           const from = frame * frameSize;
           const buffer = new Float32Array(frameSize);
           const available = Math.min(frameSize, resampled.length - from);
@@ -519,7 +545,7 @@ async function enhanceSelectedAudio(api) {
           const processed = module.HEAPF32.subarray(outputIndex, outputIndex + frameSize);
           denoised.set(processed.subarray(0, available), from);
           if (channel === 0 && frame % 100 === 0) {
-            byId("enhanceAudioBtn").textContent = "Cleaning " + Math.min(99, Math.round((from + available) / resampled.length * 100)) + "%";
+            byId("enhanceAudioBtn").textContent = "Cleaning " + Math.min(99, Math.round((from + available) / resampled.length * 100)) + "% · click to cancel";
             api.setStatus("RNNoise · cleaning audio locally… " + Math.min(99, Math.round((from + available) / resampled.length * 100)) + "%");
             await waitForPaint();
           }
@@ -540,41 +566,54 @@ async function enhanceSelectedAudio(api) {
 }
 
 export function createLocalVideoTools(api) {
-  const busy = new Set();
+  const busy = new Map();
   const run = async (id, workingText, action) => {
     const button = byId(id);
-    if (!button || busy.has(id)) return;
-    busy.add(id);
-    const oldText = button.textContent;
-    button.disabled = true;
-    button.textContent = workingText;
+    if (!button) return;
+    const active = busy.get(id);
+    if (active) {
+      active.cancelled = true;
+      if (typeof active.cancel === "function") active.cancel();
+      button.disabled = true;
+      button.textContent = "Cancelling…";
+      return;
+    }
+    const token = { cancelled: false, cancel: null };
+    const oldText = button.textContent, oldTitle = button.title;
+    busy.set(id, token);
+    button.disabled = false;
+    button.title = "Click again to cancel this task";
+    button.textContent = workingText + " · click to cancel";
     try {
-      await action();
+      await action(token);
+      checkCancelled(token);
     } catch (error) {
       api.notify(error && error.message ? error.message : "This local tool could not finish. Please try again.");
       api.setStatus("Ready · Auto-save on");
     } finally {
       busy.delete(id);
       button.disabled = false;
-      button.textContent = oldText;
+      button.title = oldTitle;
+      const selected = api.getSelectedClip();
+      button.textContent = id === "removeVideoBgBtn" && selected && selected.bgRemoveEnabled ? "✓ Person BG On" : oldText;
     }
   };
   return {
     bind() {
-      byId("reverseClipBtn")?.addEventListener("click", () => run("reverseClipBtn", "Preparing…", () => reverseSelectedClip(api)));
-      byId("motionTrackBtn")?.addEventListener("click", () => run("motionTrackBtn", "Tracking…", async () => {
+      byId("reverseClipBtn")?.addEventListener("click", () => run("reverseClipBtn", "Preparing…", token => reverseSelectedClip(api, token)));
+      byId("motionTrackBtn")?.addEventListener("click", () => run("motionTrackBtn", "Tracking…", async token => {
         const clip = api.getSelectedClip();
-        const points = await analyseClip(api, clip, "track");
+        const points = await analyseClip(api, clip, "track", token);
         api.applyClipKeyframes(clip.id, points, {});
         api.notify("Motion tracking complete. The selected clip now follows the detected subject.");
       }));
-      byId("autoReframeBtn")?.addEventListener("click", () => run("autoReframeBtn", "Reframing…", async () => {
+      byId("autoReframeBtn")?.addEventListener("click", () => run("autoReframeBtn", "Reframing…", async token => {
         const clip = api.getSelectedClip();
-        const points = await analyseClip(api, clip, "reframe");
+        const points = await analyseClip(api, clip, "reframe", token);
         api.applyClipKeyframes(clip.id, points, { framingMode: "fill" });
         api.notify("Auto Reframe complete. The person is now kept near the centre of the frame.");
       }));
-      byId("removeVideoBgBtn")?.addEventListener("click", () => run("removeVideoBgBtn", "Loading person model…", async () => {
+      byId("removeVideoBgBtn")?.addEventListener("click", () => run("removeVideoBgBtn", "Loading person model…", async token => {
         const clip = api.getSelectedClip();
         if (!clip || clip.type !== "video") throw new Error("Select a video clip on the timeline first.");
         if (clip.bgRemoveEnabled) {
@@ -584,10 +623,11 @@ export function createLocalVideoTools(api) {
         }
         api.pause();
         await ensurePersonSegmenter();
+        checkCancelled(token);
         api.setClipBackgroundRemoval(clip.id, true);
         api.notify("Person background removal is on. The model runs locally; use a short clip for smoother export.");
       }));
-      byId("enhanceAudioBtn")?.addEventListener("click", () => run("enhanceAudioBtn", "Loading RNNoise…", () => enhanceSelectedAudio(api)));
+      byId("enhanceAudioBtn")?.addEventListener("click", () => run("enhanceAudioBtn", "Loading RNNoise…", token => enhanceSelectedAudio(api, token)));
     },
     prepareBackgroundRemoval: ensurePersonSegmenter,
     hasBackgroundRemovalModel: () => !!imageSegmenter
