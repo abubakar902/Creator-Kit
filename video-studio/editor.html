@@ -1082,7 +1082,7 @@ body.ai-preview-active #playBtn,body.ai-preview-active #stopBtn{pointer-events:a
     <p class="ai-plan-message" id="aiPlanMessage"></p>
     <ol class="ai-plan-steps" id="aiPlanSteps"></ol>
     <button class="ai-plan-refine" type="button" id="aiUseRefinedPrompt">Use the clearer version in my prompt</button>
-    <label class="ai-cloud-consent" id="aiCloudConsentRow" hidden><input type="checkbox" id="aiCloudConsent"><span>This plan sends selected text or audio to Cloudflare AI. I understand that account usage or paid quota may apply.</span></label>
+    <label class="ai-cloud-consent" id="aiCloudConsentRow" hidden><input type="checkbox" id="aiCloudConsent"><span>I approve the required AI processing for this step. Depending on the tool, text/audio or analysis data may be sent securely to Cloudflare or Gemini AI. Account quota or charges may apply.</span></label>
     <div class="ai-preview-state" id="aiPreviewState" hidden><span>●</span><span>Preview mode: your original project is safe. Play the preview, then Apply or Cancel.</span></div>
     <div class="ai-plan-actions">
      <button class="btn ai-assistant-primary" id="aiPreviewPlanBtn" type="button">▶ Preview changes</button>
@@ -3378,6 +3378,7 @@ function openAiEditorAssistant(){
  aiAssistantOpen=true;
  $("aiAssistantOverlay").hidden=false;
  document.body.classList.add("ai-assistant-open");
+ [".topbar",".media-panel",".inspector",".timeline"].forEach(selector=>{const element=document.querySelector(selector);if(element)element.inert=true;});
  aiUpdateContextLabel();
  $("aiAssistantStatus").textContent="Ready. Describe one edit or a set of related edits for this project.";
  $("aiEditPrompt").focus();
@@ -3387,6 +3388,7 @@ async function closeAiEditorAssistant(){
  if(aiPreviewActive)await cancelAiEditorPreview(true);
  aiAssistantOpen=false;
  $("aiAssistantOverlay").hidden=true;
+ [".topbar",".media-panel",".inspector",".timeline"].forEach(selector=>{const element=document.querySelector(selector);if(element)element.inert=false;});
  document.body.classList.remove("ai-assistant-open","ai-preview-active");
 }
 function aiEditorContext(){
@@ -3886,13 +3888,20 @@ async function aiExecuteOperation(operation){
 }
 async function cleanupAiPreviewAssets(){
  if(!aiPreviewAssetIds)return;
- const newAssets=assets.filter(asset=>!aiPreviewAssetIds.has(asset.id));
+ const originalIds=aiPreviewAssetIds,failedIds=new Set();
+ const newAssets=assets.filter(asset=>!originalIds.has(asset.id));
  for(const asset of newAssets){
-  const url=urls.get(asset.id);if(url){URL.revokeObjectURL(url);urls.delete(asset.id);}
-  try{await dbRequest("assets","readwrite",store=>store.delete(asset.id));}catch(error){console.warn("AI preview asset cleanup failed:",error);}
+  try{
+   await dbRequest("assets","readwrite",store=>store.delete(asset.id));
+   const url=urls.get(asset.id);if(url){URL.revokeObjectURL(url);urls.delete(asset.id);}
+  }catch(error){
+   failedIds.add(asset.id);
+   console.warn("AI preview asset cleanup failed:",error);
+  }
  }
- assets=assets.filter(asset=>aiPreviewAssetIds.has(asset.id));
+ assets=assets.filter(asset=>originalIds.has(asset.id)||failedIds.has(asset.id));
  aiPreviewAssetIds=null;
+ if(failedIds.size)notify("Some temporary preview media could not be removed from this device. Check the Project Assets panel.");
 }
 async function cancelAiEditorPreview(closing=false){
  if(!aiPreviewActive||!aiPreviewOriginal)return;
