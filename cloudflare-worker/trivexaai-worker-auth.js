@@ -1286,29 +1286,36 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
             throw new Error("AI_CLIP_TARGET_CLARIFICATION: Clip track is not recognised. Use Video, Overlay, Audio, Text or Captions.");
           }
           let clip = requestedId ? clipById.get(requestedId) || null : null;
-          if (clip && requestedName && normalizeClipName(clip.name) !== normalizeClipName(requestedName)) {
-            throw new Error("AI_CLIP_TARGET_CLARIFICATION: The clip ID and clip name point to different timeline clips. Please identify the correct clip.");
+          if (!clip && requestedId && !requestedName) {
+            throw new Error("AI_CLIP_TARGET_CLARIFICATION: The requested clip ID is not available in the current project. Please identify the clip by its exact timeline name.");
           }
           if (clip && types && !types.includes(clip.type)) {
             throw new Error("AI_CLIP_TARGET_CLARIFICATION: The named clip is not a supported media type for this tool.");
           }
-          if (!clip && requestedName) {
+          const lookupName = requestedName || (clip ? clip.name : "");
+          if (lookupName) {
             let matches = clips.filter(candidate =>
-              normalizeClipName(candidate.name) === normalizeClipName(requestedName) &&
+              normalizeClipName(candidate.name) === normalizeClipName(lookupName) &&
               (!types || types.includes(candidate.type))
             );
             if (requestedTrack) matches = matches.filter(candidate => candidate.track === requestedTrack);
             if (requestedStart !== null) matches = matches.filter(candidate => Math.abs(candidate.start - requestedStart) <= 0.25);
             if (matches.length > 1) {
-              const choices = matches.slice(0, 5).map(candidate =>
-                candidate.name + " (" + candidate.track + " track, starts at " + candidate.start.toFixed(1) + "s)"
-              );
-              throw new Error("AI_CLIP_TARGET_CLARIFICATION: Same-name clips match this request: " + choices.join("; ") + ". Please specify the correct track or start time.");
+              const selectedIdIsExplicit = !requestedName && requestedId && requestedId === editorContext.selectedClipId;
+              if (!selectedIdIsExplicit) {
+                const choices = matches.slice(0, 5).map(candidate =>
+                  candidate.name + " (" + candidate.track + " track, starts at " + candidate.start.toFixed(1) + "s)"
+                );
+                throw new Error("AI_CLIP_TARGET_CLARIFICATION: Same-name clips match this request: " + choices.join("; ") + ". Please specify the correct track or start time.");
+              }
+            } else if (matches.length === 1) {
+              if (clip && matches[0].id !== clip.id) {
+                throw new Error("AI_CLIP_TARGET_CLARIFICATION: The clip ID and name/location details point to different timeline clips. Please identify the correct clip.");
+              }
+              clip = matches[0];
+            } else if (requestedName) {
+              throw new Error("AI_CLIP_TARGET_CLARIFICATION: No compatible timeline clip is named '" + requestedName + "'. Please check the exact clip name shown on the timeline.");
             }
-            if (matches.length === 1) clip = matches[0];
-            else throw new Error("AI_CLIP_TARGET_CLARIFICATION: No compatible timeline clip is named '" + requestedName + "'. Please check the exact clip name shown on the timeline.");
-          } else if (!clip && requestedId) {
-            throw new Error("AI_CLIP_TARGET_CLARIFICATION: The requested clip ID is not available in the current project. Please identify the clip by its exact timeline name.");
           }
           if (!clip && !requestedName && !requestedId) {
             const selected = editorContext.selectedClipId ? clipById.get(editorContext.selectedClipId) : null;
@@ -1528,7 +1535,7 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
           "The only allowed operation types are: " + AI_EDITOR_ACTIONS.join(", ") + ". The only allowed run_tool IDs are: " + AI_VIDEO_TOOLS.join(", ") + ". Never invent any other function, tool, action, property, project, asset, clip ID or track.",
           "Never generate HTML, CSS, JavaScript, commands, URLs, shell commands, export jobs or code. You cannot run arbitrary code.",
           "This AI assistant does NOT control the 17 separate homepage tools. It does NOT control Export, export settings, render/download, or the export queue. Never propose an export action.",
-          "Only use IDs present in EDITOR_CONTEXT. For clip-target actions, use clipId when the ID is clear. If no reliable ID is available, include clipName using the exact timeline clip name; when same-name clips exist, also use clipTrack and/or clipStart only if the user clearly identifies the correct one. An empty selectedClipId is NOT a reason to ask the user to select a clip: if exactly one compatible clip exists in the full context, target that clip. If several compatible clips remain, or duplicate names cannot be distinguished from the request, set needsClarification=true and operations=[]. Ask one concise question naming the matching track/start-time choices. Never guess between duplicate clips.",
+          "Only use IDs present in EDITOR_CONTEXT. For clip-target actions, use clipId when the ID is clear. If no reliable ID is available, include clipName using the exact timeline clip name; when same-name clips exist, also use clipTrack and/or clipStart only if the user clearly identifies the correct one. An empty selectedClipId is NOT a reason to ask the user to select a clip: if exactly one compatible clip exists in the full context, target that clip. If several compatible clips remain, or duplicate names cannot be distinguished from the request, set needsClarification=true and operations=[]. Ask one concise question naming the matching track/start-time choices. Never guess between duplicate clips. If a clip ID points to a name that appears more than once, do not trust that ID alone; require the user's clear track or start-time description, unless the user explicitly asks to edit the currently selected clip.",
           "Use only the minimum relevant operations. Never add extra edits, effects, captions, voice-over, stickers, audio changes, or project operations unless explicitly requested. Do not alter audio for a visual-only request or visuals for an audio-only request.",
           "Do not assume the user wants all clips changed when they say 'the video' if several candidates exist. If clipsTruncated or assetsTruncated is true, do not claim an action covers the whole project or whole library.",
           "If needsClarification=true, operations MUST be an empty array and message must ask one specific question. Otherwise, include 1 to 8 valid operations and explain briefly.",
