@@ -1273,7 +1273,7 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
           if (!clip || (types && !types.includes(clip.type))) throw new Error("An action referred to a clip that is not available in the current editor context.");
           return clip;
         };
-        const normalizeClipName = value => String(value || "").trim().replace(/\\s+/g, " ").toLowerCase();
+        const normalizeClipName = value => String(value || "").trim().replace(/\s+/g, " ").toLowerCase();
         const resolveClipTarget = (item, types) => {
           const requestedName = typeof item.clipName === "string" ? item.clipName.trim() : "";
           const requestedId = typeof item.clipId === "string" ? item.clipId : "";
