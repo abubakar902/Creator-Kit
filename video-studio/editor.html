@@ -1184,7 +1184,8 @@ function renderBackgroundRemovalPreview(video,c,local,canvasId){
   ctx.clearRect(0,0,width,height);
   const mode=c.framingMode||"project",fit=mode==="fill"?"cover":mode==="stretch"?"stretch":mode==="fit"?"contain":$("previewFit").value;
   const previewSource=c.chromaEnabled?processChromaSource(cutout,c,720):cutout;
-  drawPreviewFit(ctx,previewSource,width,height,fit==="cover"?"cover":"contain");
+  if(fit==="stretch")ctx.drawImage(previewSource,0,0,width,height);
+  else drawPreviewFit(ctx,previewSource,width,height,fit==="cover"?"cover":"contain");
   canvas.dataset.clipId=c.id;canvas.style.display="block";applyVisualStyle(canvas,c,local);video.style.visibility="hidden";
  }catch(error){
   canvas.style.display="none";canvas.removeAttribute("data-clip-id");video.style.visibility="visible";
