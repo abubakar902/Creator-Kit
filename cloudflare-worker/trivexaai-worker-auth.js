@@ -883,6 +883,8 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
             duration: Math.max(0, finite(rawContext.project?.duration))
           },
           selectedClipId: String(rawContext.selectedClipId || "").slice(0, 80),
+          clipCount: Math.max(clips.length, Math.min(10000, finite(rawContext.clipCount) || clips.length)),
+          clipsTruncated: rawContext.clipsTruncated === true,
           playhead: Math.max(0, finite(rawContext.playhead)),
           clips
         };
@@ -899,7 +901,7 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
           "Required JSON shape: {\"understoodRequest\":\"clear restatement of the request in the user's language\",\"message\":\"brief helpful explanation\",\"needsClarification\":false,\"operations\":[...]}.",
           "If the request is ambiguous, requires unavailable media information, asks for an unsupported feature, or could affect the wrong clip, set needsClarification=true and operations=[]. Ask one specific question in message. Never guess a clip ID.",
           "Only change the exact property or use the exact tool needed for the user's request. Never make unrelated visual, audio, timing, text, or track changes. Do not change audio when the user only asked for a visual edit, and do not change visuals when the user only asked for audio.",
-          "Use only clip IDs present in EDITOR_CONTEXT. Do not invent IDs, media, captions, or timing. Use selectedClipId only when it matches the user's wording or the request clearly refers to the selected clip. If several clips could match, ask which one.",
+          "Use only clip IDs present in EDITOR_CONTEXT. Do not invent IDs, media, captions, or timing. Use selectedClipId only when it matches the user's wording or the request clearly refers to the selected clip. If several clips could match, ask which one. If clipsTruncated is true, do not claim that an edit covers the entire project; for a whole-project request, ask the user to narrow the target or work only on clearly identified clips that are listed.",
           "Allowed operations:",
           "1) {\"type\":\"set_clip_properties\",\"clipId\":\"existing-id\",\"changes\":{...},\"reason\":\"...\"}. Apply only keys valid for that clip type.",
           "2) {\"type\":\"split_clip\",\"clipId\":\"existing-id\",\"atSeconds\":number,\"reason\":\"...\"}. atSeconds is an absolute timeline time inside the clip.",
@@ -911,7 +913,7 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
           "8) {\"type\":\"run_tool\",\"tool\":\"...\",\"clipId\":\"existing-id\",\"reason\":\"...\"}. The tool must be one of the following exact names:",
           "scene_detection, beat_sync, remove_silence, ai_colour_correction, caption_translation, auto_captions, reverse_video, motion_tracking, enhance_audio, remove_person_background, auto_reframe, ai_voice_over, add_sticker.",
           "Tool requirements: scene_detection needs a selected video clip; beat_sync needs a selected audio or video clip with music; remove_silence needs a selected audio/video clip and must respect existing overlap and safety checks; ai_colour_correction needs a selected video/image clip; caption_translation needs existing caption clips and a language field; auto_captions needs a selected video/audio clip and a language field (empty string means auto-detect); reverse_video needs a video clip and may include alsoReverseAudio=true only when the user explicitly asks to reverse audio too; motion_tracking needs a video clip and may include target='person' or target='any'; enhance_audio needs an audio clip; remove_person_background needs a video clip; auto_reframe needs a video clip; ai_voice_over needs exact spoken text and may include voiceId; add_sticker needs preset and optional color.",
-          "For auto_captions and ai_voice_over, include the tool only when explicitly requested. The interface will require the user to approve Cloudflare AI processing/quota before it runs.",
+          "For auto_captions and ai_voice_over, include the tool only when explicitly requested. The interface will require the user to approve the required AI processing and any account quota before it runs.",
           "Allowed video/image properties: name, start, duration, scale, rotation, x, y, opacity, flipX, flipY, framingMode, filterPreset, brightness, contrast, saturation, blur, hue, transition, transitionDuration, volume, speedStart, speedEnd, chromaEnabled, chromaColor, chromaTolerance, chromaSoftness, maskShape, maskTop, maskBottom, maskFeather, maskAngle.",
           "Allowed audio properties: name, start, duration, volume, fadeIn, fadeOut, audioBass, audioMid, audioTreble, audioPan.",
           "Allowed text/caption properties: name, start, duration, text, color, fontSize, font, weight, align, bgColor, bgOpacity, italic, rotation, opacity, textEffect, textTransition, textTransitionDuration, x, y, scale.",
