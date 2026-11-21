@@ -388,7 +388,7 @@ async function reverseSelectedClip(api, token) {
   const asset = api.getAsset(clip.assetId);
   if (!asset || !asset.blob) throw new Error("The original video file is unavailable.");
   const sourceDuration = api.getClipSourceElapsed(clip, clip.duration);
-  if (sourceDuration > 60) throw new Error("For this free low-memory version, first split the video so the selected clip is 60 seconds or shorter. On your 4 GB PC, 30 seconds or less is recommended.");
+  if (sourceDuration > 30) throw new Error("For this free low-memory version on a 4 GB PC, first split the video so the selected clip is 30 seconds or shorter.");
   if (Number(asset.size || asset.blob.size) > 50 * 1024 * 1024) throw new Error("For this free low-memory version, use a source file smaller than 50 MB on this PC.");
   if (!sourceDuration || sourceDuration < 0.2) throw new Error("The selected clip has an invalid duration.");
   api.pause();
