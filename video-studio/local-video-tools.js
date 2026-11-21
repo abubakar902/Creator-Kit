@@ -315,6 +315,7 @@ async function analyseClip(api, clip, mode, token) {
     video.removeAttribute("src");
     video.load();
   }
+  checkCancelled(token);
   if (points.length < 3) {
     throw new Error(target === "person"
       ? "No clear person was detected. Try Motion Tracking with 'Any object', or use a brighter clip with the person visible."
@@ -428,6 +429,7 @@ async function reverseSelectedClip(api, token) {
     if (result !== 0) throw new Error("The free video engine could not reverse this file. Try converting it to MP4 first.");
     const output = await ffmpeg.readFile(outputName);
     if (!output || output.length < 1000) throw new Error("The reversed video file was empty. Try a shorter clip.");
+    checkCancelled(token);
     const blob = new Blob([output.buffer.slice(output.byteOffset, output.byteOffset + output.byteLength)], { type: mime });
     const created = await api.addDerivedAsset(blob, (clip.name || asset.name || "Video") + " (Reversed)", "video", sourceDuration);
     api.replaceClipAsset(clip.id, created.id, sourceDuration, "Reversed");
@@ -563,6 +565,7 @@ async function enhanceSelectedAudio(api, token) {
     if (inputPointer) module._free(inputPointer);
     if (outputPointer) module._free(outputPointer);
   }
+  checkCancelled(token);
   const processedDuration = (sampleEnd - sampleStart) / decoded.sampleRate;
   const created = await api.addDerivedAsset(writeWav(denoisedChannels, 48000), (clip.name || asset.name || "Audio") + " (Noise Reduced)", "audio", processedDuration);
   api.replaceAudioWithEnhanced(clip.id, created.id, sourceDuration, "Noise Reduced");
