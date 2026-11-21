@@ -1621,6 +1621,8 @@ function previewPointerMove(e){
    else{const top=Math.max(0,Math.min(100-bandHeight,originalTop+normalDelta));c.maskTop=top;c.maskBottom=top+bandHeight;}
   }
   c.maskShape="horizontal";
+  if(!Number.isFinite(Number(c.maskTop)))c.maskTop=originalTop;
+  if(!Number.isFinite(Number(c.maskBottom)))c.maskBottom=originalBottom;
   if(previewDraft&&previewDraft.id===c.id){previewDraft.maskShape="horizontal";previewDraft.maskTop=c.maskTop;previewDraft.maskBottom=c.maskBottom;previewDraft.maskAngle=c.maskAngle??d.orig.maskAngle??0;}
   $("propMaskTop").value=String(Number(c.maskTop.toFixed(1)));$("propMaskBottom").value=String(Number(c.maskBottom.toFixed(1)));
   $("propMaskAngle").value=String(Math.round(Number(c.maskAngle)||0));$("propMaskAngleValue").textContent=$("propMaskAngle").value;updateRangeFill($("propMaskAngle"));
