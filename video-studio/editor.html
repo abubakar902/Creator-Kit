@@ -499,6 +499,7 @@ body{background:radial-gradient(ellipse at 48% -18%,rgba(126,79,190,.18),transpa
 <div class="prop"><label for="propX">Position X (%)</label><input id="propX" type="number" min="-100" max="100" step="1" value="0"></div>
 <div class="prop"><label for="propY">Position Y (%)</label><input id="propY" type="number" min="-100" max="100" step="1" value="0"></div>
 </div>
+<div class="prop-grid"><div class="prop"><label><input id="propFlipX" type="checkbox"> Flip Horizontal</label></div><div class="prop"><label><input id="propFlipY" type="checkbox"> Flip Vertical</label></div></div>
 <div class="prop"><label for="propOpacity">Opacity</label><input id="propOpacity" type="range" min="0" max="1" step="0.05" value="1"></div>
 </div>
 </div></details>
@@ -999,6 +1000,7 @@ function renderInspector(){
  $("propX").value=shown.x??0;
  $("propY").value=shown.y??0;
  $("propOpacity").value=shown.opacity??1;
+ $("propFlipX").checked=!!shown.flipX;$("propFlipY").checked=!!shown.flipY;
  $("textProp").classList.toggle("hidden",!isText);
  $("textStyleProps").classList.toggle("hidden",!isText);
  $("keyframeProps").classList.toggle("hidden",!visual);
@@ -1069,8 +1071,9 @@ function applyVisualStyle(el,c,local,stageRelative=false){
  else if(type==="zoom"){opacity*=p;scale*=.82+.18*p;}
  else if(type==="slide-left"){x+=(1-p)*18;opacity*=Math.min(1,p*1.4);}
  else if(type==="blur-reveal"){extraBlur=(1-p)*14;opacity*=Math.min(1,p*1.5);}
- if(stageRelative){el.style.inset="auto";el.style.left="calc(50% + "+x+"%)";el.style.top="calc(50% + "+motion.y+"%)";el.style.transform="translate(-50%, -50%) scale("+scale+") rotate("+motion.rotation+"deg)";}
- else{el.style.transform="translate("+x+"%, "+motion.y+"%) scale("+scale+") rotate("+motion.rotation+"deg)";}
+ const flipScaleX=scale*(c.flipX?-1:1),flipScaleY=scale*(c.flipY?-1:1);
+ if(stageRelative){el.style.inset="auto";el.style.left="calc(50% + "+x+"%)";el.style.top="calc(50% + "+motion.y+"%)";el.style.transform="translate(-50%, -50%) rotate("+motion.rotation+"deg) scale("+flipScaleX+","+flipScaleY+")";}
+ else{el.style.transform="translate("+x+"%, "+motion.y+"%) rotate("+motion.rotation+"deg) scale("+flipScaleX+","+flipScaleY+")";}
  el.style.opacity=String(Math.max(0,Math.min(1,opacity)));
  el.style.clipPath=clipMaskClipPath(c,el);
  const masks=[];if(type==="wipe-left")masks.push("linear-gradient(to right, #fff 0%, #fff "+(p*100)+"%, transparent "+(p*100)+"%, transparent 100%)");const horizontalGradient=clipMaskGradient(c,el);if(horizontalGradient)masks.push(horizontalGradient);
@@ -2013,7 +2016,7 @@ function readPropertiesDraft(c){
  if(c.type==="audio"){d.fadeIn=Math.max(0,Math.min(dur,Number($("propFadeIn").value)||0));d.fadeOut=Math.max(0,Math.min(dur,Number($("propFadeOut").value)||0));}
  if(c.type==="video"||c.type==="image"){
   d.scale=Math.max(.1,Math.min(4,Number($("propScale").value)||1));d.rotation=Math.max(-180,Math.min(180,Number($("propRotation").value)||0));
-  d.x=Math.max(-100,Math.min(100,Number($("propX").value)||0));d.y=Math.max(-100,Math.min(100,Number($("propY").value)||0));d.opacity=Math.max(0,Math.min(1,Number($("propOpacity").value)||0));
+  d.x=Math.max(-100,Math.min(100,Number($("propX").value)||0));d.y=Math.max(-100,Math.min(100,Number($("propY").value)||0));d.opacity=Math.max(0,Math.min(1,Number($("propOpacity").value)||0));d.flipX=$("propFlipX").checked;d.flipY=$("propFlipY").checked;
   d.filterPreset=$("propFilterPreset").value;d.brightness=Math.max(.5,Math.min(1.8,Number($("propBrightness").value)||1));d.contrast=Math.max(.5,Math.min(1.8,Number($("propContrast").value)||1));
   d.saturation=Math.max(0,Math.min(2,Number($("propSaturation").value)||0));d.blur=Math.max(0,Math.min(12,Number($("propBlur").value)||0));d.hue=Math.max(-45,Math.min(45,Number($("propHue").value)||0));
   d.transition=$("propTransition").value;d.transitionDuration=Math.max(.1,Math.min(2.5,dur,Number($("propTransitionDuration").value)||.6));
@@ -2124,7 +2127,7 @@ function drawExportMedia(ctx,source,c,local,width,height,fit,box){
  ctx.beginPath();ctx.rect(0,0,width,height);ctx.clip();
  ctx.translate(box.x+box.width/2+x*box.width/100,box.y+box.height/2+motion.y*box.height/100);
  ctx.rotate((motion.rotation||0)*Math.PI/180);
- ctx.scale(scale,scale);
+ ctx.scale(scale*(c.flipX?-1:1),scale*(c.flipY?-1:1));
  ctx.globalAlpha=Math.max(0,Math.min(1,opacity));
  ctx.filter=visualFilter(c,extraBlur);
  if(transition==="wipe-left"){
