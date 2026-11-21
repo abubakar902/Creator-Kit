@@ -3390,7 +3390,7 @@ async function closeAiEditorAssistant(){
  document.body.classList.remove("ai-assistant-open","ai-preview-active");
 }
 function aiEditorContext(){
- const allowed=["name","start","duration","scale","rotation","x","y","opacity","volume","flipX","flipY","framingMode","filterPreset","brightness","contrast","saturation","blur","hue","transition","transitionDuration","speedStart","speedEnd","chromaEnabled","chromaColor","chromaTolerance","chromaSoftness","maskShape","maskTop","maskBottom","maskFeather","maskAngle","fadeIn","fadeOut","audioBass","audioMid","audioTreble","audioPan","text","fontSize","font","weight","align","bgColor","bgOpacity","italic","textEffect","textTransition","textTransitionDuration","bgRemoveEnabled"];
+ const allowed=["name","start","duration","scale","rotation","x","y","opacity","volume","flipX","flipY","framingMode","filterPreset","brightness","contrast","saturation","blur","hue","transition","transitionDuration","speedStart","speedEnd","chromaEnabled","chromaColor","chromaTolerance","chromaSoftness","maskShape","maskTop","maskBottom","maskFeather","maskAngle","fadeIn","fadeOut","audioBass","audioMid","audioTreble","audioPan","fontSize","font","weight","align","bgColor","bgOpacity","italic","textEffect","textTransition","textTransitionDuration","bgRemoveEnabled"];
  const contextClips=clips.slice(0,40).map(clip=>{
   const properties={};
   allowed.forEach(key=>{
@@ -4099,6 +4099,16 @@ function isTypingTarget(target){
 }
 function handleEditorShortcuts(event){
  if($("editorApp").hidden)return;
+ if(aiAssistantOpen&&event.key==="Escape"){
+  if(aiPlanBusy)return;
+  event.preventDefault();
+  if(aiPreviewActive)cancelAiEditorPreview(false);else closeAiEditorAssistant();
+  return;
+ }
+ if(aiPreviewActive){
+  if((event.ctrlKey||event.metaKey)&&["z","y"].includes(event.key.toLowerCase()))event.preventDefault();
+  return;
+ }
  const guide=$("shortcutsModal");
  if(event.key==="Escape"&&guide&&!guide.hidden){event.preventDefault();closeShortcutsGuide();return;}
  const captionsModal=$("captionsModal");if(event.key==="Escape"&&captionsModal&&!captionsModal.hidden&&!captionsBusy){closeCaptionsModal();return;}if((guide&&!guide.hidden)||(captionsModal&&!captionsModal.hidden)||exportBusy||!$("exportModal").hidden||isTypingTarget(event.target))return;
