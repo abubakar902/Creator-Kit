@@ -155,7 +155,8 @@ export function renderPersonCutoutFrame(source, cacheKey) {
   const sourceWidth = source.videoWidth || source.naturalWidth || source.width;
   const sourceHeight = source.videoHeight || source.naturalHeight || source.height;
   if (!sourceWidth || !sourceHeight) return null;
-  const key = String(cacheKey || "person-cutout");
+  const sourceIdentity = String(source.currentSrc || source.src || (source.videoWidth || source.naturalWidth || source.width) + "x" + (source.videoHeight || source.naturalHeight || source.height));
+  const key = String(cacheKey || "person-cutout") + "|" + sourceIdentity;
   let entry = personFrameCache.get(key);
   if (entry) {
     personFrameCache.delete(key);
