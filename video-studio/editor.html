@@ -1036,7 +1036,7 @@ function clipMaskClipPath(c){
  if(shape==="right-half")return "inset(0 0 0 50%)";
  if(shape==="horizontal"){
   if(Number(c&&c.maskFeather)>0)return "none";
-  const top=Math.max(0,Math.min(95,Number(c&&c.maskTop??25))),bottom=Math.max(top+5,Math.min(100,Number(c&&c.maskBottom??75)));
+  const top=Math.max(0,Math.min(95,Number(c&&(c.maskTop??25)))),bottom=Math.max(top+5,Math.min(100,Number(c&&(c.maskBottom??75))));
   return "inset("+top+"% 0 "+(100-bottom)+"% 0)";
  }
  return "none";
