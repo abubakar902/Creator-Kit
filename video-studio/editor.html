@@ -1197,7 +1197,7 @@ body.ai-preview-active #playBtn,body.ai-preview-active #stopBtn{pointer-events:a
     <p class="ai-plan-message" id="aiPlanMessage"></p>
     <ol class="ai-plan-steps" id="aiPlanSteps"></ol>
     <button class="ai-plan-refine" type="button" id="aiUseRefinedPrompt">Use the clearer version in my prompt</button>
-    <label class="ai-cloud-consent" id="aiCloudConsentRow" hidden><input type="checkbox" id="aiCloudConsent"><span>I approve the required AI processing for this step. Depending on the tool, text/audio or analysis data may be sent securely to Cloudflare or Gemini AI. Account quota or charges may apply.</span></label>
+    <label class="ai-cloud-consent" id="aiCloudConsentRow" hidden><input type="checkbox" id="aiCloudConsent"><span><strong>Required before Preview:</strong> I approve the AI processing needed for this step. Depending on the tool, video analysis, audio or text may be sent securely to Cloudflare or Gemini AI. Account quota or charges may apply.</span></label>
     <div class="ai-preview-state" id="aiPreviewState" hidden><span>●</span><span>Preview mode: your original project is safe. Play the preview, then Apply or Cancel.</span></div>
     <p class="ai-preview-feedback" id="aiPreviewFeedback" role="status" aria-live="polite" hidden></p>
     <div class="ai-plan-actions">
@@ -3504,7 +3504,7 @@ function aiSetBusy(busy){
  aiPlanBusy=!!busy;
  $("aiGeneratePlanBtn").disabled=aiPlanBusy||aiPreviewActive;
  $("aiPromptWriterGenerateBtn").disabled=aiPlanBusy||aiPreviewActive||aiPromptWriterBusy;
- $("aiPreviewPlanBtn").disabled=aiPlanBusy||aiPreviewActive||!aiCurrentPlan||aiCurrentPlan.needsClarification||(!aiCloudConsentIsReady());
+ $("aiPreviewPlanBtn").disabled=aiPlanBusy||aiPreviewActive||!aiCurrentPlan||aiCurrentPlan.needsClarification;
  $("aiApplyPlanBtn").disabled=aiPlanBusy||!aiPreviewActive;
  $("aiCancelPreviewBtn").disabled=aiPlanBusy;
 }
@@ -4446,7 +4446,7 @@ async function cancelAiEditorPreview(closing=false){
  renderAll();setPlayhead(Math.min(playhead,duration()));$("timelineScroll").scrollLeft=original.timelineScrollLeft||0;
  $("aiPreviewState").hidden=true;$("aiApplyPlanBtn").hidden=true;$("aiCancelPreviewBtn").hidden=true;
  $("aiPreviewPlanBtn").hidden=!aiCurrentPlan||aiCurrentPlan.needsClarification;$("aiPreviewPlanBtn").textContent="▶ Preview changes";
- $("aiPreviewPlanBtn").disabled=!aiCurrentPlan||aiCurrentPlan.needsClarification||!aiCloudConsentIsReady();
+ $("aiPreviewPlanBtn").disabled=!aiCurrentPlan||aiCurrentPlan.needsClarification;
  aiSetBusy(false);aiSetPreviewFeedback("");
  aiSetStatus(closing?"Preview cancel ho gaya. Original project aur media restore ho gaye.":"Preview cancel kar diya. Original timeline aur media restore ho gaye.");
  if(closing)document.body.classList.remove("ai-assistant-open");
@@ -4492,7 +4492,15 @@ function aiSetProjectWorkspaceRoute(action){
 }
 async function previewAiEditorPlan(){
  if(aiPlanBusy||aiPreviewActive||!aiCurrentPlan||aiCurrentPlan.needsClarification)return;
- if(aiCurrentPlan.requiresCloudConsent&&!$("aiCloudConsent").checked){aiSetStatus("Cloud AI processing se pehle consent checkbox tick karein.");return;}
+ if(aiCurrentPlan.requiresCloudConsent&&!$("aiCloudConsent").checked){
+  aiSetStatus("Is AI tool ke Preview se pehle cloud-processing consent zaroori hai. Neeche checkbox tick karein; Preview button ab active rahega.");
+  requestAnimationFrame(()=>{
+   const row=$("aiCloudConsentRow"),checkbox=$("aiCloudConsent");
+   row.scrollIntoView({behavior:"smooth",block:"center"});
+   checkbox.focus({preventScroll:true});
+  });
+  return;
+ }
  if(previewDraft){aiSetStatus("Aapke Properties preview mein pending changes hain. Pehle unhein Apply ya cancel karein.");return;}
  pause();
  aiPreviewOriginal={
@@ -4589,7 +4597,13 @@ function wireAiEditorAssistant(){
  $("aiPromptWriterInput").addEventListener("keydown",event=>{
   if((event.ctrlKey||event.metaKey)&&event.key==="Enter"){event.preventDefault();generateAiPrompt();}
  });
- $("aiPreviewPlanBtn").addEventListener("click",previewAiEditorPlan);
+ $("aiPreviewPlanBtn").addEventListener("click",()=>{
+  previewAiEditorPlan().catch(error=>{
+   const message=error?.message||"Preview start nahi ho saka.";
+   aiSetStatus("Preview error: "+message+" Original project mein koi change apply nahi hui.","error");
+   notify("Preview start nahi hua: "+message);
+  });
+ });
  $("aiApplyPlanBtn").addEventListener("click",commitAiEditorPreview);
  $("aiCancelPreviewBtn").addEventListener("click",()=>cancelAiEditorPreview(false));
  $("aiUseRefinedPrompt").addEventListener("click",aiUseRefinedPrompt);
@@ -4597,7 +4611,12 @@ function wireAiEditorAssistant(){
   $("aiPromptCount").textContent=$("aiEditPrompt").value.length+" / 1,400";
   if(!aiPreviewActive&&aiCurrentPlan){aiCurrentPlan=null;$("aiPlanCard").hidden=true;aiSetStatus("Prompt update ho gaya. Naya edit plan banayein.");aiSetBusy(false);}
  });
- $("aiCloudConsent").addEventListener("change",()=>{$("aiPreviewPlanBtn").disabled=aiPlanBusy||aiPreviewActive||!aiCloudConsentIsReady();});
+ $("aiCloudConsent").addEventListener("change",()=>{
+  if(!aiCurrentPlan?.requiresCloudConsent)return;
+  aiSetStatus($("aiCloudConsent").checked
+   ?"Consent mil gaya. Ab Preview changes dabayein; video abhi bhi aapke control mein hai."
+   :"Preview ke liye cloud-processing consent checkbox tick karna zaroori hai.");
+ });
  document.querySelectorAll("[data-ai-suggestion]").forEach(button=>{
   button.addEventListener("click",()=>{
    $("aiEditPrompt").value=button.dataset.aiSuggestion||"";
