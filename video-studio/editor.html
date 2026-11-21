@@ -4155,10 +4155,17 @@ function aiPreviewHasChanges(){
 }
 async function aiPersistPreviewAssets(){
  if(!aiPreviewOriginal)return;
- const originalIds=new Set(aiPreviewOriginal.assets.map(a=>a.id));
- const currentIds=new Set(assets.map(a=>a.id));
- const removed=aiPreviewOriginal.assets.filter(a=>!currentIds.has(a.id));
- await dbRequest("assets","readwrite",store=>{assets.forEach(asset=>store.put(asset));removed.forEach(asset=>store.delete(asset.id));});
+ const oldById=new Map(aiPreviewOriginal.assets.map(asset=>[asset.id,asset]));
+ const currentIds=new Set(assets.map(asset=>asset.id));
+ const removed=aiPreviewOriginal.assets.filter(asset=>!currentIds.has(asset.id));
+ const changedOrNew=assets.filter(asset=>{
+  const old=oldById.get(asset.id);
+  return !old||old.name!==asset.name||old.proxyAssetId!==asset.proxyAssetId||old.useProxy!==asset.useProxy;
+ });
+ await dbRequest("assets","readwrite",store=>{
+  changedOrNew.forEach(asset=>store.put(asset));
+  removed.forEach(asset=>store.delete(asset.id));
+ });
  for(const asset of removed){const url=urls.get(asset.id);if(url){URL.revokeObjectURL(url);urls.delete(asset.id);}}
 }
 function aiSetProjectWorkspaceRoute(action){
