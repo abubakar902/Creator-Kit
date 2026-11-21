@@ -119,6 +119,95 @@ kbd{display:inline-block;padding:3px 7px;border:1px solid #5a4273;border-bottom-
 @media(max-width:720px){.topbar{height:62px;padding:0 12px}.brand{font-size:14px}.brand img{width:30px;height:30px}.top-link{min-height:33px;padding:0 9px;font-size:9px}.shell{padding:18px 12px 45px}.hero{padding:23px 18px;border-radius:18px}.hero h1{font-size:32px}.hero p{font-size:12px}.hero:after{right:1%;font-size:130px}.search-panel{margin:-15px 7px 19px}.layout{display:block}.sidebar{position:relative;top:auto;display:flex;gap:4px;max-height:none;overflow-x:auto;margin-bottom:20px;padding:8px;white-space:nowrap}.sidebar-title{display:none}.sidebar a{flex:none;margin:0;padding:9px 10px;font-size:9px}.sidebar a span{width:auto}.sidebar .sidebar-feedback{margin:0}.quick-start{grid-template-columns:repeat(2,minmax(0,1fr))}.step{min-height:115px;padding:12px}.section-heading h2{font-size:14px}.intro-row h2{font-size:18px}.support-card{padding:18px}.footer{align-items:flex-start;flex-direction:column}}
 @media(max-width:390px){.top-actions .top-link.secondary{display:none}.hero h1{font-size:28px}.quick-start{grid-template-columns:1fr 1fr;gap:7px}.step p{font-size:10px}.guide-entry summary{font-size:11px}.entry-body p{font-size:11px}.entry-body ol,.entry-body ul{font-size:10.5px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation:none!important;transition:none!important}}
+
+/* Make Help Center topic groups unmistakable, separate from the guide cards below. */
+.guide-section{
+ position:relative;
+ margin:0 0 30px;
+ padding-top:1px;
+ scroll-margin-top:90px;
+}
+.section-heading{
+ position:relative;
+ display:flex;
+ align-items:center;
+ gap:12px;
+ min-height:68px;
+ margin:0 0 13px;
+ padding:11px 13px;
+ border:1px solid rgba(176,126,229,.38);
+ border-left:4px solid #a96cf1;
+ border-bottom:1px solid rgba(176,126,229,.38);
+ border-radius:13px;
+ background:
+  radial-gradient(ellipse at 0% 50%,rgba(133,75,193,.20),transparent 48%),
+  linear-gradient(105deg,rgba(55,36,81,.88),rgba(25,18,42,.98) 72%);
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.055),0 8px 24px rgba(0,0,0,.18),0 0 22px rgba(145,89,211,.12);
+ transition:border-color .18s ease,box-shadow .18s ease,background .18s ease;
+}
+.section-heading::after{
+ content:"TOPIC GROUP";
+ flex:none;
+ display:inline-flex;
+ align-items:center;
+ justify-content:center;
+ min-height:24px;
+ margin-left:auto;
+ padding:0 9px;
+ border:1px solid rgba(195,151,246,.48);
+ border-radius:7px;
+ background:linear-gradient(135deg,rgba(124,77,177,.34),rgba(73,51,115,.35));
+ color:#e1c5ff;
+ font-size:8px;
+ font-weight:950;
+ letter-spacing:1px;
+ white-space:nowrap;
+ text-shadow:0 0 12px rgba(187,137,245,.3);
+ box-shadow:0 0 14px rgba(166,105,229,.14);
+}
+.section-heading:hover{
+ border-color:rgba(204,159,255,.68);
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 10px 28px rgba(0,0,0,.22),0 0 25px rgba(156,96,224,.19);
+}
+.section-icon{
+ width:39px;
+ height:39px;
+ border-color:rgba(198,151,246,.48);
+ border-radius:11px;
+ background:linear-gradient(145deg,rgba(135,77,194,.42),rgba(69,51,130,.32));
+ color:#e2c4ff;
+ font-size:17px;
+ box-shadow:0 0 16px rgba(162,101,225,.18),inset 0 1px 0 rgba(255,255,255,.08);
+}
+.section-heading h2{
+ color:#fff;
+ font-size:16px;
+ font-weight:900;
+ letter-spacing:-.25px;
+ text-shadow:0 0 15px rgba(192,143,248,.16);
+}
+.section-heading p{
+ margin-top:4px;
+ color:#c1b0d6;
+ font-size:10.5px;
+ line-height:1.5;
+}
+@media(max-width:720px){
+ .guide-section{margin-bottom:25px}
+ .section-heading{min-height:62px;padding:10px;gap:9px;border-radius:11px}
+ .section-heading::after{min-height:22px;padding:0 7px;font-size:7px;letter-spacing:.75px}
+ .section-icon{width:35px;height:35px;font-size:15px}
+ .section-heading h2{font-size:14px}
+ .section-heading p{font-size:9px}
+}
+@media(max-width:390px){
+ .section-heading{gap:7px;padding:9px}
+ .section-heading::after{padding:0 5px;font-size:6.5px;letter-spacing:.45px}
+ .section-icon{width:32px;height:32px}
+ .section-heading h2{font-size:12px}
+ .section-heading p{font-size:8.5px}
+}
+
 </style>
 </head>
 <body>
