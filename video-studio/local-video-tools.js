@@ -572,14 +572,26 @@ async function enhanceSelectedAudio(api, token) {
           for (let i = 0; i < available; i++) frameBuffer[i] = resampled[from + i] * 32768;
           module.HEAPF32.set(frameBuffer, inputIndex);
           module._rnnoise_process_frame(state, outputPointer, inputPointer);
-          const processed = module.HEAPF32.subarray(outputIndex, outputIndex + frameSize);
-          denoised.set(processed.subarray(0, available), from);
+          // RNNoise has a 10 ms look-ahead: this frame's output belongs to
+          // the previous input block. Drop the initial warm-up output.
+          if (frame > 0) {
+            const destination = (frame - 1) * frameSize;
+            const copyLength = Math.min(frameSize, denoised.length - destination);
+            if (copyLength > 0) denoised.set(module.HEAPF32.subarray(outputIndex, outputIndex + copyLength), destination);
+          }
           if (channel === 0 && frame % 100 === 0) {
             byId("enhanceAudioBtn").textContent = "Cleaning " + Math.min(99, Math.round((from + available) / resampled.length * 100)) + "% · click to cancel";
             api.setStatus("RNNoise · cleaning audio locally… " + Math.min(99, Math.round((from + available) / resampled.length * 100)) + "%");
             await waitForPaint();
           }
         }
+        // Flush the final delayed block so the output keeps the full duration.
+        frameBuffer.fill(0);
+        module.HEAPF32.set(frameBuffer, inputIndex);
+        module._rnnoise_process_frame(state, outputPointer, inputPointer);
+        const finalDestination = (frameCount - 1) * frameSize;
+        const finalLength = Math.min(frameSize, denoised.length - finalDestination);
+        if (finalLength > 0) denoised.set(module.HEAPF32.subarray(outputIndex, outputIndex + finalLength), finalDestination);
       } finally {
         module._rnnoise_destroy(state);
       }
