@@ -569,6 +569,10 @@ input,select,textarea{accent-color:#a96bf1}
 .ai-assistant-foot{padding:9px 14px;border-top:1px solid rgba(185,139,232,.16);color:#9989ad;font-size:8px;line-height:1.5;text-align:center}
 body.ai-assistant-open .topbar{pointer-events:none}
 body.ai-assistant-open .editor .media-panel,body.ai-assistant-open .editor .inspector,body.ai-assistant-open .editor .timeline{pointer-events:none}
+body.ai-assistant-open .editor .timeline #ruler,body.ai-assistant-open .editor .timeline #playhead{pointer-events:auto!important}
+body.ai-assistant-open .editor .timeline #ruler{cursor:crosshair}
+body.ai-assistant-open .editor .timeline #playhead{cursor:ew-resize;touch-action:none;z-index:20}
+body.ai-assistant-open .editor .timeline #playhead::before{content:"";position:absolute;left:-8px;top:0;width:18px;height:100%;background:transparent}
 body.ai-preview-active .ai-assistant-backdrop{background:rgba(6,4,14,.08);backdrop-filter:none}
 body.ai-preview-active .editor .media-panel,body.ai-preview-active .editor .inspector,body.ai-preview-active .editor .timeline{opacity:.84}
 body.ai-preview-active .editor .timeline #ruler,body.ai-preview-active .editor .timeline #playhead{pointer-events:auto!important}
@@ -3477,7 +3481,8 @@ function openAiEditorAssistant(){
  aiAssistantOpen=true;
  $("aiAssistantOverlay").hidden=false;
  document.body.classList.add("ai-assistant-open");
- [".topbar",".media-panel",".inspector",".timeline"].forEach(selector=>{const element=document.querySelector(selector);if(element)element.inert=true;});
+ [".topbar",".media-panel",".inspector"].forEach(selector=>{const element=document.querySelector(selector);if(element)element.inert=true;});
+ $(".timeline").inert=false;
  aiUpdateContextLabel();
  $("aiAssistantStatus").textContent="Ready. Describe one edit or a set of related edits for this project.";
  $("aiPromptWriterPanel").open=true;
@@ -4371,7 +4376,7 @@ async function cancelAiEditorPreview(closing=false){
  }catch(error){}
  aiPendingProjectAction=null;aiPreviewActive=false;aiPreviewOriginal=null;aiPreviewAssetIds=null;
  document.body.classList.remove("ai-preview-active");$("aiAssistantOverlay").classList.remove("is-preview-mode");
- $(".timeline").inert=!closing;
+ $(".timeline").inert=false;
  renderAll();setPlayhead(Math.min(playhead,duration()));$("timelineScroll").scrollLeft=original.timelineScrollLeft||0;
  $("aiPreviewState").hidden=true;$("aiApplyPlanBtn").hidden=true;$("aiCancelPreviewBtn").hidden=true;
  $("aiPreviewPlanBtn").hidden=!aiCurrentPlan||aiCurrentPlan.needsClarification;$("aiPreviewPlanBtn").textContent="▶ Preview changes";
@@ -4458,7 +4463,7 @@ async function commitAiEditorPreview(){
   try{
    aiPreviewActive=false;document.body.classList.remove("ai-preview-active");$("aiAssistantOverlay").classList.remove("is-preview-mode");
    await saveProject();
-   $(".timeline").inert=true;
+   $(".timeline").inert=false;
    aiPreviewOriginal=null;aiPreviewAssetIds=null;aiPendingProjectAction=null;
    $("aiPreviewState").hidden=true;$("aiApplyPlanBtn").hidden=true;$("aiCancelPreviewBtn").hidden=true;aiSetBusy(false);
    aiSetStatus("Project action approved.");aiSetProjectWorkspaceRoute(navigation);
@@ -4475,7 +4480,7 @@ async function commitAiEditorPreview(){
   renderAll();scheduleSave();await saveProject();
   aiPreviewOriginal=null;aiPreviewAssetIds=null;aiPendingProjectAction=null;
   $("aiPreviewState").hidden=true;$("aiApplyPlanBtn").hidden=true;$("aiCancelPreviewBtn").hidden=true;$("aiPreviewPlanBtn").hidden=false;$("aiPreviewPlanBtn").textContent="Preview another version";
-  $(".timeline").inert=true;
+  $(".timeline").inert=false;
   aiSetBusy(false);aiSetStatus("AI changes apply ho gayi hain. Timeline changes aik Undo step se reverse ho sakti hain.","success");
   aiReturnToPromptWriter();
   notify("AI changes applied. Timeline edits Undo se reverse ho sakti hain.");
@@ -4495,6 +4500,7 @@ function wireAiEditorAssistant(){
  $("aiPromptWriterInput").addEventListener("input",()=>{
   $("aiPromptWriterCount").textContent=$("aiPromptWriterInput").value.length+" / 2,000";
   $("aiPromptWriterQuestion").hidden=true;
+  $("aiPromptWriterStatus").style.color="";
   aiSetPromptWriterStatus("Request update ho gayi. Naya prompt generate karein.");
  });
  $("aiPromptWriterInput").addEventListener("keydown",event=>{
