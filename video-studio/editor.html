@@ -716,7 +716,7 @@ body{background:radial-gradient(ellipse at 48% -18%,rgba(126,79,190,.18),transpa
 import {authReady,auth,getAccountProfile} from "../auth/auth-client.js";
 const $=id=>document.getElementById(id);
 const projectKey="trivexaai_video_studio_projects_v1",dbName="trivexaai-video-studio",dbVersion=1,scaleDefault=64;
-let db=null,project=null,clips=[],assets=[],urls=new Map(),selectedId=null,scale=scaleDefault,playhead=0,isPlaying=false,raf=0,lastFrame=0,activeVideoId=null,activeOverlayVideoId=null,activeImageId=null,audioNodes=new Map(),audioWaveforms=new Map(),audioWaveformPending=new Map(),audioWaveformUnavailable=new Set(),audioWaveformQueue=Promise.resolve(),saveTimer=0,saveQueue=Promise.resolve(),saveRevision=0,savedRevision=0,undoStack=[],redoStack=[],dragState=null,playheadDrag=null,previewDraft=null,exportBusy=false,exportController=null,lastExportBlob=null,lastExportFileName="",snapEnabled=true,proxyBusy=false,captionsBusy=false,copiedKeyframe=null,activeKeyframeTime=null;
+let db=null,project=null,clips=[],assets=[],urls=new Map(),selectedId=null,scale=scaleDefault,playhead=0,isPlaying=false,raf=0,lastFrame=0,activeVideoId=null,activeOverlayVideoId=null,activeBaseImageId=null,activeImageId=null,audioNodes=new Map(),audioWaveforms=new Map(),audioWaveformPending=new Map(),audioWaveformUnavailable=new Set(),audioWaveformQueue=Promise.resolve(),saveTimer=0,saveQueue=Promise.resolve(),saveRevision=0,savedRevision=0,undoStack=[],redoStack=[],dragState=null,playheadDrag=null,previewDraft=null,exportBusy=false,exportController=null,lastExportBlob=null,lastExportFileName="",snapEnabled=true,proxyBusy=false,captionsBusy=false,copiedKeyframe=null,activeKeyframeTime=null;
 const chromaCanvasCache=new WeakMap();
 const horizontalMaskCanvasCache=new WeakMap();
 const params=new URLSearchParams(location.search),projectId=params.get("id"),WORKER_URL="https://creatorkit-ai.abubakar647648.workers.dev";
@@ -1181,21 +1181,16 @@ function fitPreviewStage(){
 }
 function renderPreview(){
  const base=activeAt(playhead,"video"),over=activeAt(playhead,"overlay");
- const baseVideo=base&&base.type==="video"?base:null;
- const overlayVideo=over&&over.type==="video"?over:null;
- const overlayImage=over&&over.type==="image"?over:null;
- const video=$("videoPreview"),overlayVideoEl=$("overlayVideoPreview"),img=$("imagePreview"),placeholder=$("previewPlaceholder");
- const hasVideo=!!(baseVideo||overlayVideo);
- placeholder.style.display=hasVideo||overlayImage?"none":"block";
+ const baseVideo=base&&base.type==="video"?base:null,baseImage=base&&base.type==="image"?base:null;
+ const overlayVideo=over&&over.type==="video"?over:null,overlayImage=over&&over.type==="image"?over:null;
+ const video=$("videoPreview"),overlayVideoEl=$("overlayVideoPreview"),baseImg=$("baseImagePreview"),img=$("imagePreview");
+ const hasVisual=!!(baseVideo||baseImage||overlayVideo||overlayImage);
+ $("previewPlaceholder").style.display=hasVisual?"none":"block";
  activeVideoId=renderPreviewVideoLayer(baseVideo,video,"chromaPreview",activeVideoId);
  activeOverlayVideoId=renderPreviewVideoLayer(overlayVideo,overlayVideoEl,"overlayChromaPreview",activeOverlayVideoId);
- if(overlayImage){
-  ensureStickerStagePosition(overlayImage,hasVideo);
-  img.style.display="block";img.classList.toggle("is-overlay",hasVideo);
-  img.style.width="44%";img.style.height="auto";img.style.maxHeight="44%";img.style.maxWidth="80%";
-  applyVisualStyle(img,overlayImage,playhead-overlayImage.start,true);img.dataset.clipId=overlayImage.id;
-  if(activeImageId!==overlayImage.id){img.src=assetUrl(overlayImage.assetId);activeImageId=overlayImage.id;img.onload=()=>{if(activeImageId===overlayImage.id)updateStickerResizeHandle(overlayImage,img);};}
- }else{img.style.display="none";img.classList.remove("is-overlay");activeImageId=null;}
+ activeBaseImageId=renderPreviewImageLayer(baseImage,baseImg,activeBaseImageId,false,false);
+ activeImageId=renderPreviewImageLayer(overlayImage,img,activeImageId,true,!!(baseVideo||baseImage));
+ if(!overlayImage)img.classList.remove("is-overlay");
  const texts=clips.map(effectiveClip).filter(c=>(c.track==="text"||c.track==="captions")&&playhead>=c.start&&playhead<c.start+c.duration);
  $("textPreview").replaceChildren();
  texts.forEach(c=>{
@@ -1217,11 +1212,12 @@ function renderPreview(){
   $("textPreview").append(span);
  });
  $("textPreview").style.display=texts.length?"block":"none";
- const outputSize=exportCanvasSize();
- const frame=outputSize.width+" / "+outputSize.height,stage=$("previewStage");
+ const outputSize=exportCanvasSize(),frame=outputSize.width+" / "+outputSize.height,stage=$("previewStage");
  if(stage.dataset.previewFrame!==frame){stage.dataset.previewFrame=frame;stage.style.aspectRatio=frame;}
- video.style.objectFit=$("previewFit").value;overlayVideoEl.style.objectFit=$("previewFit").value;img.style.objectFit="contain";
- fitPreviewStage();updateStickerResizeHandle(overlayImage,img);updateTextResizeHandle(texts);
+ video.style.objectFit=$("previewFit").value;overlayVideoEl.style.objectFit=$("previewFit").value;baseImg.style.objectFit=$("previewFit").value;img.style.objectFit="contain";
+ fitPreviewStage();
+ const activeSticker=overlayImage||baseImage,stickerElement=overlayImage?img:baseImg;updateStickerResizeHandle(activeSticker,stickerElement);
+ updateTextResizeHandle(texts);updateMaskGuides();
 }
 function updateTextResizeHandle(texts){
  const handle=$("textResizeHandle"),stage=$("previewStage");
@@ -1236,11 +1232,30 @@ function updateTextResizeHandle(texts){
 }
 function updateStickerResizeHandle(c,img){
  const handle=$("stickerResizeHandle"),stage=$("previewStage");
- if(!c||c.type!=="image"||c.id!==selectedId||img.style.display==="none"){handle.hidden=true;return;}
+ if(!c||c.type!=="image"||c.id!==selectedId||!img||img.style.display==="none"){handle.hidden=true;return;}
  const rect=img.getBoundingClientRect(),stageRect=stage.getBoundingClientRect();
  handle.style.left=Math.max(12,Math.min(stageRect.width-12,rect.right-stageRect.left))+"px";
  handle.style.top=Math.max(12,Math.min(stageRect.height-12,rect.bottom-stageRect.top))+"px";
  handle.dataset.clipId=c.id;handle.hidden=false;
+}
+function updateMaskGuides(){
+ const layer=$("maskGuideLayer"),c=selectedClip();
+ if(!layer)return;
+ const shown=previewDraft&&previewDraft.id===c?.id?previewDraft:c;
+ if(!shown||!(shown.type==="video"||shown.type==="image")||shown.maskShape!=="horizontal"||playhead<shown.start||playhead>=shown.start+shown.duration){layer.hidden=true;return;}
+ const top=Math.max(0,Math.min(95,Number(shown.maskTop??25))),bottom=Math.max(top+5,Math.min(100,Number(shown.maskBottom??75)));
+ $("maskTopGuide").style.top=top+"%";$("maskBottomGuide").style.top=bottom+"%";$("maskCenterGuide").style.top=((top+bottom)/2)+"%";
+ layer.hidden=false;
+}
+function renderPreviewImageLayer(c,img,activeId,stageRelative=false,hasVideo=false){
+ if(!c){img.style.display="none";img.removeAttribute("src");img.removeAttribute("data-clip-id");return null;}
+ ensureStickerStagePosition(c,stageRelative&&hasVideo);
+ img.style.display="block";img.style.visibility="visible";
+ if(stageRelative){img.style.width="44%";img.style.height="auto";img.style.maxHeight="44%";img.style.maxWidth="80%";}
+ else{img.style.width="100%";img.style.height="100%";img.style.maxHeight="none";img.style.maxWidth="none";}
+ applyVisualStyle(img,c,playhead-c.start,stageRelative);img.dataset.clipId=c.id;
+ if(activeId!==c.id){img.src=assetUrl(c.assetId);activeId=c.id;img.onload=()=>{if(img.dataset.clipId===c.id)updateStickerResizeHandle(c,img);};}
+ return activeId;
 }
 function syncAudio(){
  const active=clips.map(effectiveClip).filter(c=>c.type==="audio"&&playhead>=c.start&&playhead<c.start+c.duration);
@@ -1509,7 +1524,7 @@ function previewPointerDown(e){
  const stickerHandle=e.target.closest("#stickerResizeHandle");
  const textHandle=e.target.closest("#textResizeHandle");
  const resizeHandle=stickerHandle||textHandle;
- const target=stickerHandle?$("imagePreview"):textHandle?[...$("textPreview").children].find(item=>item.dataset.clipId===textHandle.dataset.clipId):e.target.closest("[data-clip-id]");
+ const target=stickerHandle?document.querySelector('#previewStage img[data-clip-id="'+stickerHandle.dataset.clipId+'"]'):textHandle?[...$("textPreview").children].find(item=>item.dataset.clipId===textHandle.dataset.clipId):e.target.closest("[data-clip-id]");
  if(!target||isPlaying)return;
  const c=clips.find(item=>item.id===(resizeHandle?resizeHandle.dataset.clipId:target.dataset.clipId));
  if(!c||!(c.type==="video"||c.type==="image"||c.type==="text")||(stickerHandle&&c.type!=="image")||(textHandle&&c.type!=="text"))return;
