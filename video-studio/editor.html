@@ -1336,9 +1336,9 @@ function clipPointerMove(e){
    for(let step=0;step<24;step++){const mid=(low+high)/2;if(clipSourceElapsed(d.orig,mid)<=maxShift)low=mid;else high=mid;}
    maxShift=low;
   }
-  const minStart=sourceLimited?Math.max(0,d.orig.start-maxShift):0;
+  const minStart=sourceLimited?Math.max(0,d.orig.start-(hasSpeedRamp?0:maxShift)):0;
   const maxStart=d.orig.start+d.orig.duration-.2;
-  const allowedShift=sourceLimited?Math.max(-maxShift,delta):delta;
+  const allowedShift=sourceLimited?Math.max(hasSpeedRamp?0:-maxShift,delta):delta;
   let newStart=Math.max(minStart,Math.min(maxStart,d.orig.start+allowedShift));
   const snap=nearestTimelineSnap(newStart,c.id);
   if(snap&&snap.time>=minStart&&snap.time<=maxStart){newStart=snap.time;d.snapTime=snap.time;setTimelineSnapGuide(snap.time,snap.label);}
@@ -1398,6 +1398,10 @@ function clipPointerUp(e){
  }
  clearSwapTarget();clearTimelineSnapGuide();
  if(d.changed&&c){
+  if(c.type==="video"&&(d.edge==="left"||d.edge==="right")){
+   const linkedAudio=clips.find(item=>item.type==="audio"&&item.detachedFromVideoId===c.id);
+   if(linkedAudio){if(d.edge==="left")linkedAudio.sourceStart=Math.max(0,(linkedAudio.sourceStart||0)+(Number(c.sourceStart||0)-Number(d.orig.sourceStart||0)));linkedAudio.start=c.start;linkedAudio.duration=c.duration;linkedAudio.speedStart=c.speedStart??1;linkedAudio.speedEnd=c.speedEnd??1;if(Number(c.speedSourceDuration)>0)linkedAudio.speedSourceDuration=c.speedSourceDuration;else delete linkedAudio.speedSourceDuration;}
+  }
   undoStack.push(clips.map(item=>item.id===d.id?clone(d.orig):swapped&&item.id===d.swapTargetId?clone(d.swapOrig):clone(item)));
   redoStack=[];updateHistoryButtons();renderTimeline();renderPreview();scheduleSave();
   notify(swapped?"Clips swapped places.":d.edge==="move"?"Clip position saved.":"Clip trim saved.");
@@ -1731,10 +1735,11 @@ async function generateCaptions(){
 function splitSelected(){
  const c=selectedClip();if(!c||playhead<=c.start+.15||playhead>=c.start+c.duration-.15){notify("Move the playhead inside the selected clip before splitting.");return;}
  snapshot();
- const original=clone(c),first=playhead-c.start;
+ const original=clone(c),first=playhead-c.start,hadSpeedRamp=c.type==="video"&&Number(original.speedSourceDuration)>0;
+ const usedSource=c.type==="video"?clipSourceElapsed(original,first):first;
+ const splitSpeed=c.type==="video"?clipSpeedAt(original,first):1;
  const second={...clone(c),id:uid(),name:c.name+" (split)",start:playhead,duration:c.duration-first};
- if(c.type==="video"&&Number(original.speedSourceDuration)>0){
-  const usedSource=clipSourceElapsed(original,first),splitSpeed=clipSpeedAt(original,first);
+ if(hadSpeedRamp){
   c.speedSourceDuration=Math.max(.2,usedSource);c.speedStart=clipSpeedStart(original);c.speedEnd=splitSpeed;c.duration=first;
   second.sourceStart=(original.sourceStart||0)+usedSource;
   second.speedSourceDuration=Math.max(.2,Number(original.speedSourceDuration)-usedSource);
@@ -1745,6 +1750,15 @@ function splitSelected(){
  if(Array.isArray(c.keyframes)){
   second.keyframes=c.keyframes.filter(k=>k.time>=first).map(k=>({...k,time:Number((k.time-first).toFixed(3))}));
   c.keyframes=c.keyframes.filter(k=>k.time<first);
+ }
+ const linkedAudio=clips.find(item=>item.type==="audio"&&item.detachedFromVideoId===c.id);
+ if(linkedAudio){
+  const audioSecond={...clone(linkedAudio),id:uid(),name:linkedAudio.name+" (split)",start:playhead,sourceStart:(linkedAudio.sourceStart||0)+usedSource,duration:second.duration,detachedFromVideoId:second.id};
+  linkedAudio.duration=first;linkedAudio.speedStart=original.speedStart??1;linkedAudio.speedEnd=splitSpeed;
+  if(hadSpeedRamp)linkedAudio.speedSourceDuration=Math.max(.2,usedSource);else delete linkedAudio.speedSourceDuration;
+  if(hadSpeedRamp){audioSecond.speedStart=splitSpeed;audioSecond.speedEnd=original.speedEnd??1;audioSecond.speedSourceDuration=Math.max(.2,Number(original.speedSourceDuration)-usedSource);}
+  else{delete audioSecond.speedSourceDuration;audioSecond.speedStart=1;audioSecond.speedEnd=1;}
+  clips.push(audioSecond);
  }
  clips.push(second);selectClip(second.id);renderAll();scheduleSave();
 }
@@ -1963,7 +1977,7 @@ function drawExportMedia(ctx,source,c,local,width,height,fit,box){
   ctx.beginPath();
   if(c.maskShape==="circle"){const radius=Math.min(box.width,box.height)/2;ctx.arc(0,0,radius,0,Math.PI*2);}
   else if(c.maskShape==="ellipse")ctx.ellipse(0,0,box.width/2,box.height/2,0,0,Math.PI*2);
-  else if(c.maskShape==="rounded"&&typeof ctx.roundRect==="function")ctx.roundRect(-box.width/2,-box.height/2,box.width,box.height,Math.min(box.width,box.height)*.12);
+  else if(c.maskShape==="rounded"){const x=-box.width/2,y=-box.height/2,w=box.width,h=box.height,r=Math.min(w,h)*.12;if(typeof ctx.roundRect==="function")ctx.roundRect(x,y,w,h,r);else{ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);}}
   else if(c.maskShape==="left-half")ctx.rect(-box.width/2,-box.height/2,box.width/2,box.height);
   else if(c.maskShape==="right-half")ctx.rect(0,-box.height/2,box.width/2,box.height);
   ctx.clip();
@@ -2271,7 +2285,7 @@ async function exportVideo(){
       const local=time-c.start;
       if(!item.wasActive){
        const expected=clipSourceTime(c,local);
-       try{if(c.type==="video")media.playbackRate=clipPlaybackRate(c,local);if(Number.isFinite(media.duration))media.currentTime=Math.min(expected,Math.max(0,media.duration-.03));}catch(e){}
+       try{if(c.type==="video"||c.type==="audio")media.playbackRate=clipPlaybackRate(c,local);if(Number.isFinite(media.duration))media.currentTime=Math.min(expected,Math.max(0,media.duration-.03));}catch(e){}
        item.wasActive=true;
        if(c.type==="video"||c.type==="audio")media.play().catch(()=>{});
       }else if(c.type==="video"&&media.readyState>=1){
