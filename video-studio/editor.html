@@ -545,7 +545,9 @@ input,select,textarea{accent-color:#a96bf1}
 .ai-assistant-actions .btn{min-height:38px}
 .ai-assistant-primary{flex:1;border:0!important;background:linear-gradient(110deg,#9848da,#6554d9)!important;color:#fff!important;box-shadow:0 6px 18px rgba(131,79,214,.22)}
 .ai-assistant-primary:hover:not(:disabled){background:linear-gradient(110deg,#ae58eb,#7665ed)!important}
-.ai-assistant-status{min-height:15px;color:#b9a9cc;font-size:9px;line-height:1.5}
+.ai-assistant-status{min-height:15px;color:#b9a9cc;font-size:10px;line-height:1.55;overflow-wrap:anywhere}
+.ai-assistant-status[data-state="error"]{padding:9px 10px;border:1px solid rgba(244,125,125,.4);border-radius:9px;background:rgba(130,38,48,.2);color:#ffd9dc}
+.ai-assistant-status[data-state="success"]{color:#bdf6dc}
 .ai-plan-card{padding:12px;border:1px solid rgba(178,131,225,.38);border-radius:13px;background:linear-gradient(145deg,rgba(53,35,77,.62),rgba(20,15,32,.95));}
 .ai-plan-card[hidden],.ai-cloud-consent[hidden]{display:none!important}
 .ai-plan-eyebrow{display:flex;align-items:center;gap:7px;margin-bottom:9px;color:#d8b2ff;font-size:9px;font-weight:900;letter-spacing:1px;text-transform:uppercase}
@@ -567,6 +569,10 @@ input,select,textarea{accent-color:#a96bf1}
 .ai-assistant-foot{padding:9px 14px;border-top:1px solid rgba(185,139,232,.16);color:#9989ad;font-size:8px;line-height:1.5;text-align:center}
 body.ai-assistant-open .topbar{pointer-events:none}
 body.ai-assistant-open .editor .media-panel,body.ai-assistant-open .editor .inspector,body.ai-assistant-open .editor .timeline{pointer-events:none}
+body.ai-assistant-open .editor .timeline #ruler,body.ai-assistant-open .editor .timeline #playhead{pointer-events:auto!important}
+body.ai-assistant-open .editor .timeline #ruler{cursor:crosshair}
+body.ai-assistant-open .editor .timeline #playhead{cursor:ew-resize;touch-action:none;z-index:20}
+body.ai-assistant-open .editor .timeline #playhead::before{content:"";position:absolute;left:-8px;top:0;width:18px;height:100%;background:transparent}
 body.ai-preview-active .ai-assistant-backdrop{background:rgba(6,4,14,.08);backdrop-filter:none}
 body.ai-preview-active .editor .media-panel,body.ai-preview-active .editor .inspector,body.ai-preview-active .editor .timeline{opacity:.84}
 body.ai-preview-active .editor .timeline #ruler,body.ai-preview-active .editor .timeline #playhead{pointer-events:auto!important}
@@ -621,7 +627,12 @@ body.ai-preview-active #playBtn,body.ai-preview-active #stopBtn{pointer-events:a
 .ai-prompt-writer-generate{width:100%;min-height:38px;border:0!important;background:linear-gradient(110deg,#9848da,#6554d9)!important;color:#fff!important;font-size:10px}
 .ai-prompt-writer-generate:disabled{opacity:.5;cursor:wait}
 .ai-prompt-writer-status{min-height:14px;margin:0;color:#c0afd3;font-size:9px;line-height:1.5}
-.ai-prompt-writer-question{margin:0;padding:8px 9px;border-left:3px solid #e7b35f;border-radius:0 7px 7px 0;background:rgba(157,105,40,.15);color:#ffe3b4;font-size:10px;line-height:1.5}
+.ai-prompt-writer-question{display:grid;gap:7px;margin:3px 0;padding:12px;border:1px solid rgba(245,190,105,.58);border-left:4px solid #f1bd68;border-radius:10px;background:linear-gradient(135deg,rgba(115,73,28,.34),rgba(47,31,24,.92));color:#fff0d5;font-size:11px;line-height:1.6;box-shadow:0 8px 24px rgba(0,0,0,.22)}
+.ai-prompt-writer-question[hidden],.ai-plan-clarification[hidden]{display:none!important}
+.ai-clarification-heading{font-size:11px;font-weight:900;color:#ffe0a6;letter-spacing:.1px}
+.ai-prompt-writer-question p,.ai-plan-clarification p{margin:0;color:#fff8ec;font-size:12px;line-height:1.65;overflow-wrap:anywhere}
+.ai-prompt-writer-question small,.ai-plan-clarification small{color:#e4cda9;font-size:10px;line-height:1.5}
+.ai-plan-clarification{display:grid;gap:8px;margin:10px 0;padding:13px;border:1px solid rgba(245,190,105,.58);border-left:4px solid #f1bd68;border-radius:11px;background:linear-gradient(135deg,rgba(115,73,28,.34),rgba(47,31,24,.92));box-shadow:0 8px 24px rgba(0,0,0,.22)}
 .ai-prompt-writer-result{display:grid;gap:8px;padding-top:8px;border-top:1px solid rgba(181,130,230,.22)}
 .ai-prompt-writer-result[hidden]{display:none!important}
 .ai-prompt-writer-result:not([hidden]){display:grid}
@@ -1103,7 +1114,7 @@ body.ai-preview-active #playBtn,body.ai-preview-active #stopBtn{pointer-events:a
    <div class="ai-assistant-title"><h2 id="aiAssistantHeading">TrivexaAI AI Editor</h2><p>Describe the edit. Review the plan. Preview before applying.</p></div>
    <button class="ai-assistant-close" id="aiAssistantCloseBtn" type="button" aria-label="Close AI Editor">×</button>
   </header>
-  <div class="ai-assistant-body">
+  <div class="ai-assistant-body" id="aiAssistantBody">
    <div class="ai-assistant-context" id="aiAssistantContext"><span class="ai-assistant-spark">✦</span><span>Reading your current project…</span></div>
    <div class="ai-assistant-guide"><span>Roman Urdu mein likhein ke video mein kya edit karna hai.</span><details class="ai-assistant-help"><summary>Help</summary><p>Misal: “Meri video ko vertical 9:16 karo aur subject center mein rakho.” Generate Prompt dabayein. AI prompt banayega; phir neeche edit plan dekh kar Preview aur Apply karein.</p></details></div>
    <section class="ai-prompt-writer" id="aiPromptWriterPanel">
@@ -1113,7 +1124,11 @@ body.ai-preview-active #playBtn,body.ai-preview-active #stopBtn{pointer-events:a
      <textarea id="aiPromptWriterInput" class="ai-prompt-writer-input" maxlength="2000" placeholder="Yahan Roman Urdu mein apni editing request likhein..."></textarea>
      <button class="btn ai-prompt-writer-generate" id="aiPromptWriterGenerateBtn" type="button">✦ Generate Prompt</button>
      <p class="ai-prompt-writer-status" id="aiPromptWriterStatus" role="status" aria-live="polite">Apni request likhein aur Generate Prompt dabayein.</p>
-     <p class="ai-prompt-writer-question" id="aiPromptWriterQuestion" hidden></p>
+     <div class="ai-prompt-writer-question" id="aiPromptWriterQuestion" role="alert" aria-live="assertive" hidden>
+      <div class="ai-clarification-heading">✦ Gemini ko yeh baat clear karni hai</div>
+      <p id="aiPromptWriterQuestionText"></p>
+      <small>Apni Roman Urdu request mein is detail ka jawab add karein, phir dobara Generate Prompt dabayein.</small>
+     </div>
      <div class="ai-prompt-writer-result" id="aiPromptWriterResultWrap" hidden>
       <label class="ai-prompt-writer-label" for="aiPromptWriterResult">Ready-to-use prompt <span>1,400 characters max</span></label>
       <textarea id="aiPromptWriterResult" class="ai-prompt-writer-input ai-prompt-writer-output" maxlength="1400" readonly></textarea>
@@ -1145,6 +1160,11 @@ body.ai-preview-active #playBtn,body.ai-preview-active #stopBtn{pointer-events:a
    <section class="ai-plan-card" id="aiPlanCard" hidden>
     <div class="ai-plan-eyebrow"><span>✦</span> AI edit plan</div>
     <div class="ai-plan-understood" id="aiPlanUnderstood"></div>
+    <div class="ai-plan-clarification" id="aiPlanClarification" role="alert" aria-live="assertive" hidden>
+     <div class="ai-clarification-heading">✦ Gemini ko ek detail chahiye</div>
+     <p id="aiPlanClarificationText"></p>
+     <small>Step 2 ke prompt box mein jawab add karein, phir “Understand &amp; create edit plan” dobara dabayein.</small>
+    </div>
     <p class="ai-plan-message" id="aiPlanMessage"></p>
     <ol class="ai-plan-steps" id="aiPlanSteps"></ol>
     <button class="ai-plan-refine" type="button" id="aiUseRefinedPrompt">Use the clearer version in my prompt</button>
@@ -3417,7 +3437,22 @@ const AI_FIELD_CONTROLS = {
  text:"propText",color:"propTextColor",fontSize:"propFontSize",font:"propFont",weight:"propWeight",align:"propTextAlign",bgColor:"propBgColor",
  bgOpacity:"propBgOpacity",italic:"propItalic",textEffect:"propTextEffect",textTransition:"propTextTransition",textTransitionDuration:"propTextTransitionDuration"
 };
-function aiSetStatus(message){$("aiAssistantStatus").textContent=String(message||"");}
+function aiSetStatus(message,state=""){const element=$("aiAssistantStatus");element.textContent=String(message||"");if(state)element.dataset.state=state;else delete element.dataset.state;}
+function aiFriendlyConnectionError(error,feature){
+ const message=String(error?.message||error||"").trim();
+ if(error?.name==="TypeError"||/failed to fetch|networkerror|load failed/i.test(message)){
+  return feature+": Cloudflare Worker se connection nahi ho saka. Latest Worker deploy karein aur Cloudflare Variable ALLOWED_ORIGINS mein https://abubakar902.github.io allow ho (sirf website origin, /Creator-Kit path ke baghair).";
+ }
+ return message||feature+" se rabta nahi ho saka. Dobara try karein.";
+}
+function aiReturnToPromptWriter(){
+ const overlay=$("aiAssistantOverlay"),body=$("aiAssistantBody");
+ if(!overlay||overlay.hidden||!body)return;
+ overlay.classList.remove("is-preview-mode");
+ document.body.classList.remove("ai-preview-active");
+ $("aiPromptWriterPanel").hidden=false;
+ body.scrollTo({top:0,behavior:"smooth"});
+}
 function aiSetBusy(busy){
  aiPlanBusy=!!busy;
  $("aiGeneratePlanBtn").disabled=aiPlanBusy||aiPreviewActive;
@@ -3446,7 +3481,8 @@ function openAiEditorAssistant(){
  aiAssistantOpen=true;
  $("aiAssistantOverlay").hidden=false;
  document.body.classList.add("ai-assistant-open");
- [".topbar",".media-panel",".inspector",".timeline"].forEach(selector=>{const element=document.querySelector(selector);if(element)element.inert=true;});
+ [".topbar",".media-panel",".inspector"].forEach(selector=>{const element=document.querySelector(selector);if(element)element.inert=true;});
+ $(".timeline").inert=false;
  aiUpdateContextLabel();
  $("aiAssistantStatus").textContent="Ready. Describe one edit or a set of related edits for this project.";
  $("aiPromptWriterPanel").open=true;
@@ -3900,13 +3936,16 @@ function aiRenderPlan(plan){
  $("aiPlanCard").hidden=false;
  $("aiPlanUnderstood").textContent=plan.understoodRequest||"";
  $("aiPlanMessage").textContent=plan.message||"";
+ $("aiPlanClarificationText").textContent=plan.message||"Please add the missing detail to the Step 2 prompt and try again.";
+ $("aiPlanClarification").hidden=!plan.needsClarification;
+ $("aiPlanMessage").hidden=plan.needsClarification;
  $("aiPlanSteps").replaceChildren();
  plan.operations.forEach(operation=>{
   const li=document.createElement("li");
   li.textContent=aiOperationLabel(operation)+(operation.reason&&operation.reason!==operation.type?": "+operation.reason:"");
   $("aiPlanSteps").append(li);
  });
- $("aiUseRefinedPrompt").hidden=!plan.understoodRequest;
+ $("aiUseRefinedPrompt").hidden=!plan.understoodRequest||plan.needsClarification;
  $("aiCloudConsentRow").hidden=!plan.requiresCloudConsent;
  $("aiCloudConsent").checked=false;
  $("aiPreviewState").hidden=true;
@@ -3917,9 +3956,10 @@ function aiRenderPlan(plan){
  $("aiPreviewPlanBtn").disabled=plan.needsClarification||!plan.operations.length;
  aiSetBusy(false);
  if(plan.needsClarification){
-  aiSetStatus(plan.message||"AI ko ek cheez clear karni hai. Prompt ko update karke dobara plan banayein.");
+  aiSetStatus("Gemini ko ek detail clear karni hai. Sawal neeche highlight kiya hai; Step 2 ke prompt mein jawab add karke dobara try karein.");
+  requestAnimationFrame(()=>$("aiPlanCard").scrollIntoView({behavior:"smooth",block:"nearest"}));
  }else{
-  aiSetStatus("Plan ready. Preview chalayein; original project abhi change nahi hua.");
+  aiSetStatus("Plan ready. Preview chalayein; original project abhi change nahi hua.","success");
  }
 }
 async function generateAiEditPlan(){
@@ -3950,7 +3990,7 @@ async function generateAiEditPlan(){
  }catch(error){
   aiCurrentPlan=null;
   $("aiPlanCard").hidden=true;
-  aiSetStatus(error?.message||"AI Editor se rabta nahi ho saka.");
+  aiSetStatus(aiFriendlyConnectionError(error,"AI Editor"),error?.name==="TypeError"?"error":"");
  }finally{
   aiSetBusy(false);
  }
@@ -3965,6 +4005,7 @@ async function generateAiPrompt(){
  if(request.length>2000){aiSetPromptWriterStatus("Request 2,000 characters se chhoti rakhein.");return;}
  if(!auth?.currentUser){aiSetPromptWriterStatus("Google sign-in session expire ho gaya. Dobara sign-in karein.");return;}
  aiPromptWriterBusy=true;
+ $("aiPromptWriterStatus").style.color="";
  $("aiPromptWriterGenerateBtn").textContent="Gemini prompt bana raha hai…";
 
  $("aiPromptWriterQuestion").hidden=true;
@@ -3990,9 +4031,12 @@ async function generateAiPrompt(){
    throw new Error(data.error||"Prompt tayyar nahi ho saka. Dobara try karein.");
   }
   if(data.needsClarification===true){
-   $("aiPromptWriterQuestion").textContent=data.question||"Is request ke liye ek detail clear karni hogi. Apni request update karein.";
+   $("aiPromptWriterQuestionText").textContent=data.question||"Is request ke liye ek detail clear karni hogi. Apni request update karein.";
    $("aiPromptWriterQuestion").hidden=false;
-   aiSetPromptWriterStatus("Gemini ko ek baat clear karni hai. Neeche sawal dekhein aur apni request update karein.");
+   if(!$("aiPromptWriterResult").value.trim())$("aiPromptWriterResult").value="Prompt abhi tayyar nahi hua. Pehle upar diye gaye sawal ka jawab dein, phir dobara Generate Prompt dabayein.";
+   $("aiPromptWriterResultWrap").hidden=false;
+   aiSetPromptWriterStatus("Gemini ko ek baat clear karni hai. Sawal upar highlight kiya hai; request update karke dobara Generate Prompt dabayein.");
+   requestAnimationFrame(()=>$("aiPromptWriterQuestion").scrollIntoView({behavior:"smooth",block:"nearest"}));
   }else{
    const prompt=typeof data.prompt==="string"?data.prompt.trim():"";
    if(!prompt||prompt.length>1400)throw new Error("Gemini ka prompt main AI Editor ki 1,400-character limit mein nahi hai. Dobara try karein.");
@@ -4001,7 +4045,8 @@ async function generateAiPrompt(){
    aiSetPromptWriterStatus("Prompt neeche tayyar hai. Pehle prompt check karein, phir Use in AI Editor dabayein. Abhi video mein koi edit nahi hui.");
   }
  }catch(error){
-  aiSetPromptWriterStatus(error?.message||"Prompt Writer se rabta nahi ho saka.");
+  aiSetPromptWriterStatus(aiFriendlyConnectionError(error,"Prompt Writer"));
+  if(error?.name==="TypeError")$("aiPromptWriterStatus").style.color="#ffd9dc";
  }finally{
   aiPromptWriterBusy=false;
   $("aiPromptWriterGenerateBtn").textContent="✦ Roman Urdu ko proper prompt mein badlein";
@@ -4332,12 +4377,14 @@ async function cancelAiEditorPreview(closing=false){
  }catch(error){}
  aiPendingProjectAction=null;aiPreviewActive=false;aiPreviewOriginal=null;aiPreviewAssetIds=null;
  document.body.classList.remove("ai-preview-active");$("aiAssistantOverlay").classList.remove("is-preview-mode");
+ $(".timeline").inert=false;
  renderAll();setPlayhead(Math.min(playhead,duration()));$("timelineScroll").scrollLeft=original.timelineScrollLeft||0;
  $("aiPreviewState").hidden=true;$("aiApplyPlanBtn").hidden=true;$("aiCancelPreviewBtn").hidden=true;
  $("aiPreviewPlanBtn").hidden=!aiCurrentPlan||aiCurrentPlan.needsClarification;$("aiPreviewPlanBtn").textContent="▶ Preview changes";
  $("aiPreviewPlanBtn").disabled=!aiCurrentPlan||aiCurrentPlan.needsClarification||!aiCloudConsentIsReady();
  aiSetBusy(false);aiSetStatus(closing?"Preview cancel ho gaya. Original project aur media restore ho gaye.":"Preview cancel kar diya. Original timeline aur media restore ho gaye.");
  if(closing)document.body.classList.remove("ai-assistant-open");
+ else aiReturnToPromptWriter();
 }
 function aiPreviewHasChanges(){
  if(!aiPreviewOriginal)return false;const original=aiPreviewOriginal;
@@ -4390,6 +4437,7 @@ async function previewAiEditorPlan(){
  };
  aiPreviewAssetIds=new Set(assets.map(asset=>asset.id));aiPendingProjectAction=null;
  clips=clone(aiPreviewOriginal.clips);previewDraft=null;aiPreviewActive=true;
+ $(".timeline").inert=false;
  document.body.classList.add("ai-preview-active","ai-assistant-open");$("aiAssistantOverlay").classList.add("is-preview-mode");
  $("aiPreviewPlanBtn").hidden=true;$("aiApplyPlanBtn").hidden=true;$("aiCancelPreviewBtn").hidden=false;$("aiPreviewState").hidden=false;
  aiSetBusy(true);aiSetStatus("Temporary preview tayyar ho raha hai. Project aur media abhi save nahi honge.");
@@ -4416,6 +4464,7 @@ async function commitAiEditorPreview(){
   try{
    aiPreviewActive=false;document.body.classList.remove("ai-preview-active");$("aiAssistantOverlay").classList.remove("is-preview-mode");
    await saveProject();
+   $(".timeline").inert=false;
    aiPreviewOriginal=null;aiPreviewAssetIds=null;aiPendingProjectAction=null;
    $("aiPreviewState").hidden=true;$("aiApplyPlanBtn").hidden=true;$("aiCancelPreviewBtn").hidden=true;aiSetBusy(false);
    aiSetStatus("Project action approved.");aiSetProjectWorkspaceRoute(navigation);
@@ -4432,7 +4481,9 @@ async function commitAiEditorPreview(){
   renderAll();scheduleSave();await saveProject();
   aiPreviewOriginal=null;aiPreviewAssetIds=null;aiPendingProjectAction=null;
   $("aiPreviewState").hidden=true;$("aiApplyPlanBtn").hidden=true;$("aiCancelPreviewBtn").hidden=true;$("aiPreviewPlanBtn").hidden=false;$("aiPreviewPlanBtn").textContent="Preview another version";
-  aiSetBusy(false);aiSetStatus("AI changes apply ho gayi hain. Timeline changes aik Undo step se reverse ho sakti hain.");
+  $(".timeline").inert=false;
+  aiSetBusy(false);aiSetStatus("AI changes apply ho gayi hain. Timeline changes aik Undo step se reverse ho sakti hain.","success");
+  aiReturnToPromptWriter();
   notify("AI changes applied. Timeline edits Undo se reverse ho sakti hain.");
  }catch(error){
   aiPreviewActive=true;aiPreviewOriginal=original;aiPreviewAssetIds=new Set(original.assets.map(asset=>asset.id));
@@ -4450,6 +4501,7 @@ function wireAiEditorAssistant(){
  $("aiPromptWriterInput").addEventListener("input",()=>{
   $("aiPromptWriterCount").textContent=$("aiPromptWriterInput").value.length+" / 2,000";
   $("aiPromptWriterQuestion").hidden=true;
+  $("aiPromptWriterStatus").style.color="";
   aiSetPromptWriterStatus("Request update ho gayi. Naya prompt generate karein.");
  });
  $("aiPromptWriterInput").addEventListener("keydown",event=>{
