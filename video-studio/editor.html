@@ -2132,10 +2132,14 @@ function drawExportText(ctx,c,time,width,height,fontScale){
 function drawExportFrame(ctx,list,mediaById,time,width,height,fontScale,fit){
  ctx.fillStyle="#05040a";ctx.fillRect(0,0,width,height);
  const base=exportActiveAt(list,time,"video"),over=exportActiveAt(list,time,"overlay");
- const baseVideo=base&&base.type==="video"?base:null,overlayVideo=over&&over.type==="video"?over:null,overlayImage=over&&over.type==="image"?over:null;
+ const baseVideo=base&&base.type==="video"?base:null,baseImage=base&&base.type==="image"?base:null;
+ const overlayVideo=over&&over.type==="video"?over:null,overlayImage=over&&over.type==="image"?over:null;
  if(baseVideo){
   const item=mediaById.get(baseVideo.id),source=item&&item.media;
   if(source&&source.readyState>=2)drawExportMedia(ctx,source,baseVideo,time-baseVideo.start,width,height,fit,{x:0,y:0,width,height});
+ }else if(baseImage){
+  const item=mediaById.get(baseImage.id),image=item&&item.media;
+  if(image&&image.complete)drawExportMedia(ctx,image,baseImage,time-baseImage.start,width,height,"contain",{x:0,y:0,width,height});
  }
  if(overlayVideo){
   const item=mediaById.get(overlayVideo.id),source=item&&item.media;
@@ -2144,7 +2148,7 @@ function drawExportFrame(ctx,list,mediaById,time,width,height,fontScale,fit){
  if(overlayImage){
   const item=mediaById.get(overlayImage.id),image=item&&item.media;
   if(image&&image.complete){
-   const box=baseVideo||overlayVideo?{x:width*.48,y:height*.48,width:width*.48,height:height*.48}:{x:0,y:0,width,height};
+   const box=baseVideo||baseImage||overlayVideo?{x:width*.48,y:height*.48,width:width*.48,height:height*.48}:{x:0,y:0,width,height};
    drawExportMedia(ctx,image,overlayImage,time-overlayImage.start,width,height,"contain",box);
   }
  }
