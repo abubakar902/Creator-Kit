@@ -1316,25 +1316,41 @@ function clipPointerMove(e){
  const delta=(e.clientX-d.startX)/scale;
  d.snapTime=null;
  if(d.edge==="left"){
-  const sourceLimited=c.type==="video"||c.type==="audio";
-  const minStart=sourceLimited?Math.max(0,d.orig.start-(d.orig.sourceStart||0)):0;
+  const sourceLimited=c.type==="video"||c.type==="audio",hasSpeedRamp=c.type==="video"&&Number(d.orig.speedSourceDuration)>0;
+  let maxShift=Number(d.orig.sourceStart)||0;
+  if(hasSpeedRamp&&maxShift>0){
+   let low=0,high=d.orig.duration;
+   for(let step=0;step<24;step++){const mid=(low+high)/2;if(clipSourceElapsed(d.orig,mid)<=maxShift)low=mid;else high=mid;}
+   maxShift=low;
+  }
+  const minStart=sourceLimited?Math.max(0,d.orig.start-maxShift):0;
   const maxStart=d.orig.start+d.orig.duration-.2;
-  const allowedShift=sourceLimited?Math.max(-(d.orig.sourceStart||0),delta):delta;
+  const allowedShift=sourceLimited?Math.max(-maxShift,delta):delta;
   let newStart=Math.max(minStart,Math.min(maxStart,d.orig.start+allowedShift));
   const snap=nearestTimelineSnap(newStart,c.id);
   if(snap&&snap.time>=minStart&&snap.time<=maxStart){newStart=snap.time;d.snapTime=snap.time;setTimelineSnapGuide(snap.time,snap.label);}
   else clearTimelineSnapGuide();
   const shift=newStart-d.orig.start;
-  c.start=newStart;c.sourceStart=sourceLimited?Math.max(0,(d.orig.sourceStart||0)+shift):0;
-  c.duration=Math.max(.2,d.orig.duration-shift);
+  c.start=newStart;c.duration=Math.max(.2,d.orig.duration-shift);
+  if(hasSpeedRamp){
+   const consumed=clipSourceElapsed(d.orig,Math.max(0,shift));
+   c.sourceStart=Math.max(0,(d.orig.sourceStart||0)+consumed);
+   c.speedSourceDuration=Math.max(.2,Number(d.orig.speedSourceDuration)-consumed);
+   c.speedStart=clipSpeedAt(d.orig,Math.max(0,shift));c.speedEnd=clipSpeedEnd(d.orig);
+  }else c.sourceStart=sourceLimited?Math.max(0,(d.orig.sourceStart||0)+shift):0;
  }else if(d.edge==="right"){
-  const asset=assetById(c.assetId);
-  const sourceMaxEnd=asset&&(c.type==="video"||c.type==="audio")?c.start+Math.max(.2,asset.duration-(c.sourceStart||0)):Infinity;
+  const asset=assetById(c.assetId),hasSpeedRamp=c.type==="video"&&Number(d.orig.speedSourceDuration)>0;
+  const normalSourceMaxEnd=asset&&(c.type==="video"||c.type==="audio")?d.orig.start+Math.max(.2,asset.duration-(d.orig.sourceStart||0)):Infinity;
+  const sourceMaxEnd=hasSpeedRamp?d.orig.start+d.orig.duration:normalSourceMaxEnd;
   let newEnd=Math.min(sourceMaxEnd,Math.max(c.start+.2,d.orig.start+d.orig.duration+delta));
   const snap=nearestTimelineSnap(newEnd,c.id);
   if(snap&&snap.time>c.start+.2&&snap.time<=sourceMaxEnd){newEnd=snap.time;d.snapTime=snap.time;setTimelineSnapGuide(snap.time,snap.label);}
   else clearTimelineSnapGuide();
-  c.duration=newEnd-c.start;
+  const newDuration=Math.max(.2,newEnd-c.start);
+  if(hasSpeedRamp){
+   c.duration=newDuration;c.speedSourceDuration=Math.max(.2,clipSourceElapsed(d.orig,newDuration));
+   c.speedStart=clipSpeedStart(d.orig);c.speedEnd=clipSpeedAt(d.orig,newDuration);
+  }else c.duration=newDuration;
  }else{
   const rawStart=Math.max(0,d.orig.start+delta),snapped=snapClipStart(rawStart,d.orig,c.id);
   if(snapped){c.start=snapped.start;d.snapTime=snapped.target.time;setTimelineSnapGuide(snapped.target.time,snapped.target.label);}
@@ -1699,7 +1715,26 @@ async function generateCaptions(){
  }
 }
 
-function splitSelected(){const c=selectedClip();if(!c||playhead<=c.start+.15||playhead>=c.start+c.duration-.15){notify("Move the playhead inside the selected clip before splitting.");return;}snapshot();const first=playhead-c.start,second={...clone(c),id:uid(),name:c.name+" (split)",start:playhead,sourceStart:(c.sourceStart||0)+first,duration:c.duration-first};if(Array.isArray(c.keyframes)){second.keyframes=c.keyframes.filter(k=>k.time>=first).map(k=>({...k,time:Number((k.time-first).toFixed(3))}));c.keyframes=c.keyframes.filter(k=>k.time<first);}c.duration=first;clips.push(second);selectClip(second.id);renderAll();scheduleSave();}
+function splitSelected(){
+ const c=selectedClip();if(!c||playhead<=c.start+.15||playhead>=c.start+c.duration-.15){notify("Move the playhead inside the selected clip before splitting.");return;}
+ snapshot();
+ const original=clone(c),first=playhead-c.start;
+ const second={...clone(c),id:uid(),name:c.name+" (split)",start:playhead,duration:c.duration-first};
+ if(c.type==="video"&&Number(original.speedSourceDuration)>0){
+  const usedSource=clipSourceElapsed(original,first),splitSpeed=clipSpeedAt(original,first);
+  c.speedSourceDuration=Math.max(.2,usedSource);c.speedStart=clipSpeedStart(original);c.speedEnd=splitSpeed;c.duration=first;
+  second.sourceStart=(original.sourceStart||0)+usedSource;
+  second.speedSourceDuration=Math.max(.2,Number(original.speedSourceDuration)-usedSource);
+  second.speedStart=splitSpeed;second.speedEnd=clipSpeedEnd(original);
+ }else{
+  second.sourceStart=(c.sourceStart||0)+first;c.duration=first;
+ }
+ if(Array.isArray(c.keyframes)){
+  second.keyframes=c.keyframes.filter(k=>k.time>=first).map(k=>({...k,time:Number((k.time-first).toFixed(3))}));
+  c.keyframes=c.keyframes.filter(k=>k.time<first);
+ }
+ clips.push(second);selectClip(second.id);renderAll();scheduleSave();
+}
 function deleteSelected(){const c=selectedClip();if(!c)return;snapshot();clips=clips.filter(x=>x.id!==c.id);if(c.type==="audio"&&c.detachedFromVideoId){const source=clips.find(x=>x.id===c.detachedFromVideoId);if(source){source.audioDetached=true;source.volume=0;}}selectedId=null;renderAll();scheduleSave();}
 function duplicateSelected(){const c=selectedClip();if(!c)return;snapshot();const copy={...clone(c),id:uid(),name:c.name+" copy",start:c.start+c.duration};clips.push(copy);selectClip(copy.id);renderAll();scheduleSave();}
 async function detachAudioFromVideo(){
