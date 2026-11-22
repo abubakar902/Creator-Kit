@@ -5369,7 +5369,7 @@
       const searchWindow = window.open(searchUrl, "_blank");
       if (searchWindow) searchWindow.opener = null;
       message.textContent = searchWindow
-        ? "Google Search opened with your question already filled in. Copy useful text from a reliable result and paste it below."
+        ? "Google Search opened with your question already filled in. Copy useful text from a reliable result, switch to Summarize, and paste it into the same input box."
         : "Your browser blocked the new tab. Allow pop-ups for this site, then try again.";
     });
 
@@ -5470,7 +5470,7 @@
 
     document.getElementById("clearResultBtn")?.addEventListener("click", () => {
       result.textContent = selectedTool === "qa"
-        ? (qaOutputMode === "summary" ? "Your summary will appear here. Paste text above and select Summarize Pasted Text." : "Your answer will appear here. Type a question above and select Get Answer.")
+        ? (qaOutputMode === "summary" ? "Your summary will appear here. Paste text above and select Summarize Text." : "Your answer will appear here. Type a question above and select Get Answer.")
         : "Your generated output will appear here. Submit your topic above to begin.";
       result.classList.add("result-empty");
       if (selectedTool === "qa") document.getElementById("resultHeading").textContent = qaOutputMode === "summary" ? "Text Summary" : "AI Answer";
