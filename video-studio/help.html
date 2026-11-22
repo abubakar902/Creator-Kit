@@ -208,6 +208,17 @@ kbd{display:inline-block;padding:3px 7px;border:1px solid #5a4273;border-bottom-
  .section-heading p{font-size:8.5px}
 }
 
+
+/* Final keyboard and touch polish for the Help Centre. */
+.search-panel input:focus-visible{outline:none}
+.clear-search:focus-visible,.sidebar a:focus-visible,.guide-entry summary:focus-visible,.top-link:focus-visible,.support-actions a:focus-visible{outline:2px solid #e4c5ff;outline-offset:3px}
+.clear-search{min-height:36px;transition:background .18s ease,border-color .18s ease,transform .18s ease}
+.clear-search:hover{border-color:#ad79e8;background:#302044}
+.guide-entry summary{touch-action:manipulation}
+@media(max-width:720px){
+ .sidebar a{min-height:38px}
+ .clear-search{min-width:54px}
+}
 </style>
 </head>
 <body>
@@ -222,7 +233,7 @@ kbd{display:inline-block;padding:3px 7px;border:1px solid #5a4273;border-bottom-
   <p>Everything you need to create, edit and export a video with TrivexaAI. Choose a topic below, open its guide, and follow the steps. Search any tool or question to find help quickly.</p>
   <div class="hero-badges"><span>Step-by-step tutorials</span><span>All editor tools</span><span>Quick answers</span><span>Mobile & desktop</span></div>
  </section>
- <div class="search-panel"><span class="search-icon" aria-hidden="true">⌕</span><input id="guideSearch" type="search" autocomplete="off" placeholder="Search a tool, setting or question…"><button class="clear-search" id="clearSearch" type="button">Clear</button></div>
+ <div class="search-panel"><span class="search-icon" aria-hidden="true">⌕</span><input id="guideSearch" type="search" autocomplete="off" aria-label="Search Video Studio help topics" placeholder="Search a tool, setting or question…"><button class="clear-search" id="clearSearch" type="button">Clear</button></div>
  <div class="layout">
   <nav class="sidebar" aria-label="Help topics">
    <div class="sidebar-title">Browse the guide</div>
@@ -548,6 +559,7 @@ kbd{display:inline-block;padding:3px 7px;border:1px solid #5a4273;border-bottom-
  }
  input.addEventListener("input",filter);
  clear.addEventListener("click",()=>{input.value="";filter();input.focus();});
+  input.addEventListener("keydown",event=>{if(event.key==="Escape"&&input.value){event.preventDefault();input.value="";filter();}});
  document.querySelectorAll(".sidebar a[href^='#']").forEach(link=>{
   link.addEventListener("click",()=>{const target=document.querySelector(link.getAttribute("href"));if(target)target.scrollIntoView({behavior:"smooth",block:"start"});});
  });
