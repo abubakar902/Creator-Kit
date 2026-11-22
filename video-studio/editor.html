@@ -3838,9 +3838,16 @@ function aiValidatePlan(raw){
    case "trim_clip":{
     const clip=requireClip(item.clipId,["video","audio","image","text"],item.clipName,item.clipStart,item.clipTrack);
     if(clip.type==="video"&&Number(clip.speedSourceDuration)>0)throw new Error("AI will not trim a speed-ramped clip because doing so could alter source timing. Normalize the speed ramp first.");
-    const start=aiClamp(item.start??clip.start,0,7200,"Trim start");
+    let start=aiClamp(item.start??clip.start,0,7200,"Trim start");
     const durationValue=aiClamp(item.duration??clip.duration,.2,7200,"Trim duration");
-    if(clip.type==="video"||clip.type==="audio"){
+    // The Worker normalizes duration-only requests to the current clip start.
+    // Treat a same-in-point reduction as a safe subset of the existing clip;
+    // checking the full imported asset duration again can reject valid trims
+    // when the asset metadata is incomplete or stale.
+    const safeInPlaceShortening=
+     Math.abs(start-(Number(clip.start)||0))<=.001 &&
+     durationValue<=Number(clip.duration)+.05;
+    if((clip.type==="video"||clip.type==="audio")&&!safeInPlaceShortening){
      const asset=assetById(clip.assetId);
      if(!asset||!Number.isFinite(Number(asset.duration)))throw new Error("The original media duration for this clip is unavailable.");
      const sourceStart=(Number(clip.sourceStart)||0)+(start-(Number(clip.start)||0));

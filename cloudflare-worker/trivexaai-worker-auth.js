@@ -1160,6 +1160,11 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
         if (!userRequest || userRequest.length > 1400) {
           return reply({ error: "Describe the edit in 1 to 1,400 characters." }, 400);
         }
+        // Detect a plain duration-only trim request independently of Gemini's
+        // optional preserveStart flag. Explicit source in-points remain distinct.
+        const explicitTrimInPoint = /\b(?:from|starting\s+at|start\s+at|beginning|first\s+\d|remove\s+the\s+first|cut\s+off\s+the\s+first|in[- ]?point)\b/i.test(userRequest);
+        const durationOnlyTrimIntent = !explicitTrimInPoint &&
+          /\b(?:duration|length|\d+(?:\.\d+)?\s*(?:seconds?|secs?|minutes?|mins?))\b/i.test(userRequest);
 
         // Rebuild a small context from known fields only. Never forward blobs,
         // local URLs, media bytes, unknown properties, or arbitrary client data.
@@ -1517,14 +1522,21 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
               if (item.preserveStart !== undefined && typeof item.preserveStart !== "boolean") {
                 throw new Error("The trim preserveStart option must be true or false.");
               }
-              // For a duration-only trim, preserve the clip's current timeline
-              // position. Do not let a model-guessed start shift the source
-              // range beyond the original media.
-              if (item.preserveStart === true) item.start = clip.start;
-              checkNum(item, "start", 0, 7200);
               checkNum(item, "duration", 0.2, 7200);
+              // A shorter duration with no explicit source in-point is an
+              // in-place shortening. Preserve the clip's current timeline start
+              // even if Gemini guessed a different start or omitted the flag.
+              const shorterInPlaceTrim =
+                !explicitTrimInPoint &&
+                item.duration <= clip.duration + 0.05 &&
+                (item.preserveStart === true || durationOnlyTrimIntent);
+              if (shorterInPlaceTrim) item.start = clip.start;
+              checkNum(item, "start", 0, 7200);
               if (clip.type === "video" && clip.sourceTiming.speedSourceDuration > 0) throw new Error("Speed-ramped video clips must not be trimmed by AI.");
-              if (clip.assetId && ["video", "audio"].includes(clip.type)) {
+              const safeInPlaceShortening =
+                Math.abs(item.start - clip.start) <= 0.001 &&
+                item.duration <= clip.duration + 0.05;
+              if (clip.assetId && ["video", "audio"].includes(clip.type) && !safeInPlaceShortening) {
                 const asset = assetById.get(clip.assetId);
                 const nextSourceStart = clip.sourceTiming.sourceStart + item.start - clip.start;
                 if (!asset || nextSourceStart < 0 || nextSourceStart + item.duration > asset.duration + 0.05) throw new Error("The requested trim exceeds the available original media.");
