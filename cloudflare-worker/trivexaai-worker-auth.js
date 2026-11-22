@@ -184,6 +184,10 @@ const legacyWorker = {
       // The frontend can send toolId, tool, toolName, or tool_name.
       // If none is supplied, requests are separated by their Worker action.
       const clientIP = request.headers.get("CF-Connecting-IP") || "unknown";
+      // This header is set by the outer Worker only after Firebase token verification.
+      // Users on a shared IP must not consume one another's per-tool request allowance.
+      const verifiedAccountId = String(request.headers.get("X-Trivexa-Verified-Account") || "").trim();
+      const rateLimitIdentity = verifiedAccountId ? `account:${verifiedAccountId}` : `ip:${clientIP}`;
       const rawToolKey =
         body.toolId ||
         body.tool ||
@@ -201,7 +205,7 @@ const legacyWorker = {
       if (env.CREATOR_LIMITER && body.action !== "get_voices") {
         try {
           const { success } = await env.CREATOR_LIMITER.limit({
-            key: `${clientIP}:${toolKey}`
+            key: `${rateLimitIdentity}:${toolKey}`
           });
 
           if (!success) {
@@ -846,7 +850,7 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
         }
       }
 
-      // VIDEO STUDIO ROMAN URDU PROMPT WRITER — converts the user's description
+      // VIDEO STUDIO MULTILINGUAL PROMPT WRITER — converts the user's description
       // into a ready-to-paste natural-language prompt. This route never edits media.
       if (body.action === "ai_prompt_writer") {
         const expectedToolId = "video-studio-prompt-writer";
@@ -858,7 +862,7 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
         }
         const sourceRequest = typeof body.request === "string" ? body.request.trim() : "";
         if (!sourceRequest || sourceRequest.length > 2000) {
-          return reply({ error: "Roman Urdu request 1 se 2,000 characters ke darmiyan honi chahiye." }, 400);
+          return reply({ error: "Enter a request between 1 and 2,000 characters." }, 400);
         }
 
         // Only names and media types are shared with Gemini for prompt writing.
@@ -914,15 +918,15 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
           "ai_voice_over", "add_sticker"
         ];
         const systemInstructions = [
-          "You are TrivexaAI Video Studio Prompt Writer. Your only job is to convert the user's Roman Urdu, Urdu, Hindi, English, or mixed-language editing description into one clear, specific, ready-to-paste prompt for the TrivexaAI Video Studio AI Editor.",
-          "Return exactly one JSON object and nothing else: {\"needsClarification\":false,\"prompt\":\"...\",\"question\":\"\"}. If an essential detail is ambiguous or the request is unsupported, return {\"needsClarification\":true,\"prompt\":\"\",\"question\":\"one short helpful question or explanation in Roman Urdu\"}.",
-          "When a prompt can be written safely, write the final prompt in clear, simple English. Preserve every requested action, exact number, time, duration, language, style, and keep-unchanged instruction. Do not add creative changes the user did not request.",
+          "You are TrivexaAI Video Studio's multilingual Prompt Writer. Convert the user's editing description from any language, writing system, transliteration, or mixture of languages into one clear, specific, ready-to-paste prompt for the TrivexaAI Video Studio AI Editor.",
+          "Return exactly one JSON object and nothing else: {\"needsClarification\":false,\"prompt\":\"...\",\"question\":\"\"}. If an essential detail is ambiguous or the request is unsupported, return {\"needsClarification\":true,\"prompt\":\"\",\"question\":\"one short helpful question or explanation in clear English\"}.",
+          "Automatically identify and understand the input language. Accept native scripts, Latin transliteration, spelling variations, informal wording, and code-switching between languages. Do not reject or downgrade a request because of its input language. When the meaning is clear, write the final editing prompt in clear, simple English. Preserve every requested action, exact number, time, duration, named language, style, and keep-unchanged instruction. Do not add creative changes the user did not request.",
           "This writer does NOT execute edits and must not generate operation JSON, code, scripts, tool calls, HTML, CSS, URLs, or markdown. It only writes natural-language instructions that the separate Video Studio AI Editor can understand.",
           "The Video Studio AI Editor only supports these operation types: " + supportedOperations.join(", ") + ". Its dedicated tool IDs are: " + supportedTools.join(", ") + ". Never promise or request a feature outside this supported list.",
-          "The editor does not control the 17 standalone homepage tools, video export, render/download, export settings, or export queue. If the user asks for those, do not disguise them as supported editor work; return needsClarification=true with a short Roman Urdu explanation.",
+          "The editor does not control the 17 standalone homepage tools, video export, render/download, export settings, or export queue. If the user asks for those, do not disguise them as supported editor work; return needsClarification=true with a short, clear English explanation.",
           "Respect media types and available actions: scene detection works on video; beat sync and silence removal work on audio/video; colour correction works on video/image; caption translation requires an existing caption track; auto captions work on video/audio; reverse, motion tracking, person background removal, auto reframe, and detach audio require video; audio enhancement requires audio; voice-over and stickers add supported timeline items.",
           "Never invent clip names, asset names, project names, times, values, or available media. Use only names in EDITOR_CONTEXT. If the user says selected clip and one is selected, refer to the selected clip. Otherwise use an exact name only when the user clearly identifies it.",
-          "If multiple clips or assets could match, or the target is unclear and cannot safely be inferred from the selected clip, ask one concise question in Roman Urdu rather than guessing.",
+          "If multiple clips or assets could match, or the target is unclear and cannot safely be inferred from the selected clip, ask one concise question in English rather than guessing.",
           "Keep original audio unchanged for visual-only requests, and keep visuals unchanged for audio-only requests. Preserve sync for linked or detached audio unless the user explicitly requests otherwise.",
           "Do not claim that local files can be imported by AI. User imports files with the existing file picker. The writer must never claim that export will be performed.",
           "Output prompt must be 1 to 1,400 characters so it fits the main AI Editor prompt box. Do not include headings, preambles, quotes around the whole prompt, or markdown fences."
@@ -931,7 +935,7 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
           "EDITOR_CONTEXT:",
           JSON.stringify(promptContext),
           "",
-          "ROMAN_URDU_ORIGINAL_REQUEST:",
+          "USER_REQUEST_IN_ORIGINAL_LANGUAGE:",
           sourceRequest
         ].join("\n");
 
@@ -958,7 +962,7 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
           );
         } catch (geminiNetworkError) {
           console.error("Video Studio Prompt Writer Gemini connection error:", geminiNetworkError);
-          return reply({ error: "Gemini se prompt tayyar nahi ho saka. Thori dair baad dobara try karein.", code: "AI_PROMPT_WRITER_CONNECTION_FAILED" }, 502);
+          return reply({ error: "The prompt could not be generated because the AI service connection failed. Please try again shortly.", code: "AI_PROMPT_WRITER_CONNECTION_FAILED" }, 502);
         }
         let geminiData = {};
         try { geminiData = await geminiResponse.json(); } catch (parseError) {}
@@ -989,7 +993,7 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
             : generatedText;
           result = JSON.parse(jsonText);
         } catch (parseError) {
-          return reply({ error: "Gemini ka prompt response valid format mein nahi tha. Dobara try karein.", code: "AI_PROMPT_WRITER_INVALID_JSON" }, 502);
+          return reply({ error: "The AI service returned an invalid prompt response. Please try again.", code: "AI_PROMPT_WRITER_INVALID_JSON" }, 502);
         }
         if (!result || typeof result !== "object" || Array.isArray(result) || typeof result.needsClarification !== "boolean") {
           return reply({ error: "Gemini returned an invalid prompt-writing response.", code: "AI_PROMPT_WRITER_INVALID_RESPONSE" }, 502);
@@ -1003,7 +1007,7 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
         }
         const prompt = typeof result.prompt === "string" ? result.prompt.trim() : "";
         if (!prompt || prompt.length > 1400 || typeof result.question !== "string") {
-          return reply({ error: "Gemini ka prompt 1,400 characters ke andar clear format mein nahi tha. Dobara try karein.", code: "AI_PROMPT_WRITER_INVALID_PROMPT" }, 502);
+          return reply({ error: "The generated prompt must be clear and no longer than 1,400 characters. Please try again.", code: "AI_PROMPT_WRITER_INVALID_PROMPT" }, 502);
         }
         return reply({ needsClarification: false, prompt, question: "" });
       }
@@ -1547,7 +1551,7 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
 
         const systemInstructions = [
           "You are TrivexaAI's Video Studio editing assistant. You operate ONLY the current TrivexaAI Video Studio editor and its local Project Manager.",
-          "The user writes in their own language. Understand English, Roman Urdu, Urdu, Hindi and mixed-language requests. Restate the request in the same language and use simple, clear wording.",
+          "Understand the user's request in any language, writing system, transliteration, or mixture of languages. Do not reject a request because it is not written in English. Interpret the intended meaning carefully, then write understoodRequest, message, and any clarification question in clear, simple English.",
           "Return exactly one JSON object, with no markdown or code fences: {\"understoodRequest\":\"...\",\"message\":\"...\",\"needsClarification\":false,\"operations\":[...]}.",
           "The only allowed operation types are: " + AI_EDITOR_ACTIONS.join(", ") + ". The only allowed run_tool IDs are: " + AI_VIDEO_TOOLS.join(", ") + ". Never invent any other function, tool, action, property, project, asset, clip ID or track.",
           "Never generate HTML, CSS, JavaScript, commands, URLs, shell commands, export jobs or code. You cannot run arbitrary code.",
@@ -1813,6 +1817,8 @@ export default {
   const action=String(body.action||"generate_text").toLowerCase();
   if(ADVANCED_ACTIONS.has(action)&&user.role!=="admin"&&user.advanced_access!=="approved")return reply({error:"This feature needs an invite or admin approval.",code:"ADVANCED_ACCESS_REQUIRED"},403);
   const forwardHeaders=new Headers(request.headers);forwardHeaders.delete("Content-Length");forwardHeaders.delete("Host");
+  // Overwrite any client-supplied value. Only the verified account ID reaches the internal legacy worker.
+  forwardHeaders.set("X-Trivexa-Verified-Account",String(user.uid||claims.sub||""));
   const forwarded=new Request(request.url,{method:"POST",headers:forwardHeaders,body:JSON.stringify(body)});
   let response;
   try{response=await legacyWorker.fetch(forwarded,env);}catch(e){console.error("Legacy Worker error:",e);return reply({error:"The tool request failed."},500);}

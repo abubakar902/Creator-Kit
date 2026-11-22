@@ -610,7 +610,7 @@ body.ai-preview-active #playBtn,body.ai-preview-active #stopBtn{pointer-events:a
 @media(max-width:680px){.ai-assistant-overlay.is-preview-mode .ai-assistant-panel{left:auto;right:9px;bottom:9px;width:min(340px,calc(100vw - 18px));max-height:210px}}
 
 
-/* Roman Urdu Prompt Writer — Step 1, separate from the actual edit planner. */
+/* Multilingual Prompt Writer — Step 1, separate from the actual edit planner. */
 .ai-prompt-writer{border:1px solid rgba(181,130,230,.48);border-radius:13px;background:linear-gradient(145deg,rgba(64,39,91,.48),rgba(23,17,37,.94));overflow:hidden}
 .ai-prompt-writer-input-panel{position:sticky;top:0;z-index:15;flex:none;overflow:visible;background:linear-gradient(145deg,#2a1b40,#171127 92%);box-shadow:0 10px 24px rgba(0,0,0,.34),0 5px 18px rgba(137,81,190,.12)}
 .ai-prompt-writer-input-panel .ai-prompt-writer-question{margin:0 0 4px}
@@ -1159,25 +1159,25 @@ button:disabled{cursor:not-allowed}
   </header>
   <div class="ai-assistant-body" id="aiAssistantBody">
    <div class="ai-assistant-context" id="aiAssistantContext"><span class="ai-assistant-spark">✦</span><span>Reading your current project…</span></div>
-   <div class="ai-assistant-guide"><span>Roman Urdu mein likhein ke video mein kya edit karna hai.</span><details class="ai-assistant-help"><summary>Help</summary><p>Misal: “Meri video ko vertical 9:16 karo aur subject center mein rakho.” Generate Prompt dabayein. AI prompt banayega; phir neeche edit plan dekh kar Preview aur Apply karein.</p></details></div>
+   <div class="ai-assistant-guide"><span>Describe the edit you want in any language.</span><details class="ai-assistant-help"><summary>Help</summary><p>Example: “Make my video vertical (9:16) and keep the subject centred.” Click Generate Prompt. The AI will create a clear English prompt. Review the edit plan below, then use Preview and Apply.</p></details></div>
    <section class="ai-prompt-writer ai-prompt-writer-input-panel" id="aiPromptWriterPanel">
-    <div class="ai-prompt-writer-heading"><strong>1. Apni request likhein</strong><span>INPUT · HAMESHA VISIBLE</span></div>
+    <div class="ai-prompt-writer-heading"><strong>1. Describe your edit</strong><span>INPUT · ALWAYS VISIBLE</span></div>
     <div class="ai-prompt-writer-content">
      <div class="ai-prompt-writer-question" id="aiPromptWriterQuestion" role="alert" aria-live="assertive" hidden>
-      <div class="ai-clarification-heading">✦ Gemini ko yeh baat clear karni hai</div>
+      <div class="ai-clarification-heading">✦ Gemini needs one clarification</div>
       <p id="aiPromptWriterQuestionText"></p>
-      <small>Sawal ka jawab neeche isi input box mein add karein. Sawal type karte waqt bhi yahin visible rahega.</small>
+      <small>Enter your answer in the input box below. This question will remain visible while you type.</small>
      </div>
-     <label class="ai-prompt-writer-label" for="aiPromptWriterInput"><span>Aap kya edit karwana chahte hain?</span><span id="aiPromptWriterCount">0 / 2,000</span></label>
-     <textarea id="aiPromptWriterInput" class="ai-prompt-writer-input" maxlength="2000" placeholder="Yahan Roman Urdu mein apni editing request likhein..."></textarea>
+     <label class="ai-prompt-writer-label" for="aiPromptWriterInput"><span>What would you like to edit?</span><span id="aiPromptWriterCount">0 / 2,000</span></label>
+     <textarea id="aiPromptWriterInput" class="ai-prompt-writer-input" maxlength="2000" placeholder="Describe your editing request in any language..."></textarea>
      <button class="btn ai-prompt-writer-generate" id="aiPromptWriterGenerateBtn" type="button">✦ Generate Prompt</button>
-     <p class="ai-prompt-writer-status" id="aiPromptWriterStatus" role="status" aria-live="polite">Apni request likhein aur Generate Prompt dabayein.</p>
+     <p class="ai-prompt-writer-status" id="aiPromptWriterStatus" role="status" aria-live="polite">Describe your request, then click Generate Prompt.</p>
     </div>
    </section>
    <section class="ai-prompt-writer-output-panel" id="aiPromptWriterOutputPanel" aria-label="Step 1 generated output">
     <div class="ai-prompt-writer-output-heading"><strong>Step 1 — Output</strong><span>Gemini result</span></div>
     <div class="ai-prompt-writer-output-content">
-     <p class="ai-prompt-writer-output-placeholder" id="aiPromptWriterOutputPlaceholder" aria-live="polite">Gemini ka tayyar prompt yahan nazar aayega.</p>
+     <p class="ai-prompt-writer-output-placeholder" id="aiPromptWriterOutputPlaceholder" aria-live="polite">Your generated prompt will appear here.</p>
      <div class="ai-prompt-writer-result" id="aiPromptWriterResultWrap" hidden>
       <label class="ai-prompt-writer-label" for="aiPromptWriterResult"><span>Ready-to-use prompt</span><span>1,400 characters max</span></label>
       <textarea id="aiPromptWriterResult" class="ai-prompt-writer-input ai-prompt-writer-output" maxlength="1400" readonly></textarea>
@@ -1202,12 +1202,12 @@ button:disabled{cursor:not-allowed}
    </div>
    <section class="ai-step-two-input-panel" id="aiStepTwoInputPanel">
     <div class="ai-plan-clarification" id="aiPlanClarification" role="alert" aria-live="assertive" hidden>
-     <div class="ai-clarification-heading">✦ Gemini ko ek detail chahiye</div>
+     <div class="ai-clarification-heading">✦ Gemini needs one detail</div>
      <p id="aiPlanClarificationText"></p>
-     <small>Sawal ka jawab neeche isi Step 2 prompt box mein add karein. Sawal type karte waqt bhi visible rahega.</small>
+     <small>Enter your answer in the Step 2 prompt box below. This question will remain visible while you type.</small>
     </div>
     <label class="ai-prompt-label" for="aiEditPrompt"><span>Step 2 — Main AI Editor prompt</span><span id="aiPromptCount">0 / 1,400</span></label>
-    <textarea class="ai-prompt-input" id="aiEditPrompt" maxlength="1400" placeholder="Yahan Step 1 se bana hua prompt use karein, ya apna ready English prompt paste karein."></textarea>
+    <textarea class="ai-prompt-input" id="aiEditPrompt" maxlength="1400" placeholder="Use the prompt from Step 1, or paste your own ready-to-use prompt."></textarea>
     <div class="ai-assistant-actions">
      <button class="btn ai-assistant-primary" id="aiGeneratePlanBtn" type="button">✦ Understand &amp; create edit plan</button>
     </div>
@@ -1227,10 +1227,10 @@ button:disabled{cursor:not-allowed}
      <button class="btn ai-apply-btn" id="aiApplyPlanBtn" type="button" hidden>✓ Apply changes</button>
      <button class="btn ai-cancel-btn" id="aiCancelPreviewBtn" type="button" hidden>Cancel preview</button>
     </div>
-    <p class="ai-plan-notice">Preview temporary hai. Apply timeline aur media-library changes save karta hai; timeline edits ke liye one-step Undo available hai. Cancel preview ko restore karta hai. Project delete par next screen par dobara confirmation zaroori hai.</p>
+    <p class="ai-plan-notice">Preview is temporary. Apply saves timeline and Media Library changes. Timeline edits can be reversed with one-step Undo. Cancel restores the preview. Project deletion requires a separate confirmation on the next screen.</p>
    </section>
   </div>
-  <footer class="ai-assistant-foot">AI sirf Video Studio controls use karta hai. Original media aur Export controls protected hain. Apply aur Cancel aapke control mein hain.</footer>
+  <footer class="ai-assistant-foot">AI only uses Video Studio controls. Original media and Export controls are protected. You remain in control of Apply and Cancel.</footer>
  </section>
 </div>
 
@@ -3518,9 +3518,9 @@ function aiSetPreviewFeedback(message,state=""){
 function aiFriendlyConnectionError(error,feature){
  const message=String(error?.message||error||"").trim();
  if(error?.name==="TypeError"||/failed to fetch|networkerror|load failed/i.test(message)){
-  return feature+": Cloudflare Worker se connection nahi ho saka. Latest Worker deploy karein aur Cloudflare Variable ALLOWED_ORIGINS mein https://abubakar902.github.io allow ho (sirf website origin, /Creator-Kit path ke baghair).";
+  return feature+": Could not connect to the Cloudflare Worker. Check the Worker deployment and allow https://abubakar902.github.io as a website origin in ALLOWED_ORIGINS (do not include /Creator-Kit).";
  }
- return message||feature+" se rabta nahi ho saka. Dobara try karein.";
+ return message||feature+": The request could not be completed. Please try again.";
 }
 function aiReturnToPromptWriter(){
  const overlay=$("aiAssistantOverlay"),body=$("aiAssistantBody");
@@ -3605,24 +3605,24 @@ function aiEditorContext(){
 function aiParsePlan(source){
  let value=String(source||"").trim().replace(/^\x60{3}(?:json)?\s*/i,"").replace(/\s*\x60{3}$/,"").trim();
  const first=value.indexOf("{"),last=value.lastIndexOf("}");
- if(first<0||last<=first)throw new Error("AI ka jawab valid edit plan JSON mein nahi tha. Dobara try karein.");
+ if(first<0||last<=first)throw new Error("The AI response was not valid edit-plan JSON. Please try again.");
  return JSON.parse(value.slice(first,last+1));
 }
 function aiFinite(value,label){
- if(typeof value!=="number"||!Number.isFinite(value))throw new Error(label+" ki value valid number nahi hai.");
+ if(typeof value!=="number"||!Number.isFinite(value))throw new Error(label+" must be a valid number.");
  return value;
 }
 function aiClamp(value,min,max,label){
  const number=aiFinite(value,label);
- if(number<min||number>max)throw new Error(label+" ki value "+min+" se "+max+" ke darmiyan honi chahiye.");
+ if(number<min||number>max)throw new Error(label+" must be between "+min+" and "+max+".");
  return number;
 }
 function aiValidateChanges(clipType,changes){
- if(!changes||typeof changes!=="object"||Array.isArray(changes))throw new Error("AI edit mein clip settings missing hain.");
+ if(!changes||typeof changes!=="object"||Array.isArray(changes))throw new Error("Clip settings are missing from the AI edit.");
  const allowed=AI_PROPERTY_FIELDS[clipType];
- if(!allowed)throw new Error("Is clip type ki editing AI se supported nahi.");
+ if(!allowed)throw new Error("AI editing is not supported for this clip type.");
  const keys=Object.keys(changes);
- if(!keys.length||keys.length>22)throw new Error("AI edit mein settings ki tadaad valid nahi.");
+ if(!keys.length||keys.length>22)throw new Error("The number of settings in this AI edit is invalid.");
  const result={};
  const numericRanges={
   start:[0,7200],duration:[.2,7200],scale:[.1,4],rotation:[-180,180],x:[-100,100],y:[-100,100],opacity:[0,1],volume:[0,1],
@@ -3654,39 +3654,39 @@ function aiValidateChanges(clipType,changes){
  const booleans=new Set(["flipX","flipY","chromaEnabled","italic"]);
  const strings=new Set(["name","text","color","bgColor","chromaColor"]);
  for(const key of keys){
-  if(!allowed.has(key))throw new Error("AI ne unsupported setting '"+key+"' change karne ki koshish ki. Is edit ko roka gaya.");
+  if(!allowed.has(key))throw new Error("AI ne unsupported setting '"+key+"' as an unsupported setting. This edit was stopped.");
   const value=changes[key];
   if(Object.prototype.hasOwnProperty.call(numericRanges,key)){
    const [min,max]=numericRanges[key];let number=aiClamp(value,min,max,key);
    if(key==="speedStart"||key==="speedEnd"){
-    if(!allowedSpeedSteps.has(number))throw new Error(key+" ke liye editor ke supported speed steps use karein.");
+    if(!allowedSpeedSteps.has(number))throw new Error(key+" must use one of the editor's supported speed steps.");
    }else if(propertySteps[key]){
     const step=propertySteps[key];number=Number((Math.round(number/step)*step).toFixed(3));
     number=Math.max(min,Math.min(max,number));
    }
    result[key]=number;
   }else if(booleans.has(key)){
-   if(typeof value!=="boolean")throw new Error(key+" ka value true ya false hona chahiye.");
+   if(typeof value!=="boolean")throw new Error(key+" must be true or false.");
    result[key]=value;
   }else if(enums[key]){
-   if(!enums[key].has(value))throw new Error(key+" ka option editor mein available nahi hai.");
+   if(!enums[key].has(value))throw new Error(key+" is not available in the editor.");
    result[key]=value;
   }else if(strings.has(key)){
-   if(typeof value!=="string")throw new Error(key+" ka value text hona chahiye.");
+   if(typeof value!=="string")throw new Error(key+" must be text.");
    const max=key==="text"?180:key==="name"?80:16;
    const textValue=value.trim().slice(0,max);
    if(key==="color"||key==="bgColor"||key==="chromaColor"){
-    if(!/^#[0-9a-f]{6}$/i.test(textValue))throw new Error(key+" ke liye valid HEX colour use karein.");
+    if(!/^#[0-9a-f]{6}$/i.test(textValue))throw new Error(key+" must use a valid HEX colour.");
    }
-   if((key==="text"||key==="name")&&!textValue)throw new Error(key+" khaali nahi ho sakta.");
+   if((key==="text"||key==="name")&&!textValue)throw new Error(key+" cannot be empty.");
    result[key]=textValue;
   }else{
-   throw new Error("AI edit mein ek unsupported setting aa gayi.");
+   throw new Error("The AI edit contains an unsupported setting.");
   }
  }
  if(result.maskTop!==undefined||result.maskBottom!==undefined){
   const top=result.maskTop??0,bottom=result.maskBottom??100;
-  if(bottom<top+5)throw new Error("Mask ki top aur bottom lines ke darmiyan kam az kam 5% gap hona chahiye.");
+  if(bottom<top+5)throw new Error("The mask must have at least 5% space between its top and bottom lines.");
  }
  return result;
 }
@@ -3702,14 +3702,14 @@ function aiResolveProjectTarget(item){
  const list=aiProjectList();
  if(item.projectId){
   const found=list.find(entry=>entry.id===String(item.projectId));
-  if(!found)throw new Error("AI jis project ko refer kar raha hai woh is device par nahi mila. Project list refresh karein.");
+  if(!found)throw new Error("The project referenced by AI was not found on this device. Refresh the project list.");
   return found;
  }
  const wanted=String(item.projectName||item.name||"").trim().toLocaleLowerCase();
- if(!wanted)throw new Error("Project ka exact naam ya project ID required hai.");
+ if(!wanted)throw new Error("Enter the exact project name or project ID.");
  const matches=list.filter(entry=>entry.name.trim().toLocaleLowerCase()===wanted);
- if(matches.length>1)throw new Error("Same naam ke multiple projects hain. Project ka exact naam ya ID clear karein.");
- if(!matches.length)throw new Error("Project '"+wanted+"' is device par nahi mila. Pehle project list check karein.");
+ if(matches.length>1)throw new Error("Multiple projects have the same name. Specify the exact project name or ID.");
+ if(!matches.length)throw new Error("Project '"+wanted+"' was not found on this device. Check the project list first.");
  return matches[0];
 }
 function aiCanUseTrack(clip,track){
@@ -3724,7 +3724,7 @@ const AI_EDITOR_CAPABILITIES=[
  "create_video_proxy","set_proxy_usage","rename_project","create_project","open_project","delete_project"
 ];
 function aiValidatePlan(raw){
- if(!raw||typeof raw!=="object"||Array.isArray(raw))throw new Error("AI edit plan ka format valid nahi.");
+ if(!raw||typeof raw!=="object"||Array.isArray(raw))throw new Error("The AI edit plan format is invalid.");
  const plan={
   understoodRequest:String(raw.understoodRequest||"").trim().slice(0,500),
   message:String(raw.message||"").trim().slice(0,700),
@@ -3733,8 +3733,8 @@ function aiValidatePlan(raw){
   requiresCloudConsent:false
  };
  if(plan.needsClarification)return plan;
- if(!plan.understoodRequest)throw new Error("AI ne aapki request ko clear words mein confirm nahi kiya.");
- if(!Array.isArray(raw.operations)||raw.operations.length<1||raw.operations.length>8)throw new Error("AI plan mein 1 se 8 relevant actions hone chahiye.");
+ if(!plan.understoodRequest)throw new Error("AI did not clearly restate your request.");
+ if(!Array.isArray(raw.operations)||raw.operations.length<1||raw.operations.length>8)throw new Error("The AI plan must contain between 1 and 8 relevant actions.");
  const ids=new Set(clips.map(clip=>clip.id));
  const normalizeClipTargetName=value=>String(value||"").trim().replace(/\s+/g," ").toLowerCase();
  const requireClip=(id,typeList,clipName,clipStart,clipTrack,allowImplicit=true)=>{
@@ -3743,16 +3743,16 @@ function aiValidatePlan(raw){
   const idProvided=typeof id==="string"&&!!id;
   let clip=idProvided&&ids.has(id)?clips.find(item=>item.id===id):null;
   let resolvedFromSelection=false;
-  if(!clip&&idProvided&&!targetName)throw new Error("AI ne current project mein na-mojood clip ID di. Target clip dobara identify karein.");
+  if(!clip&&idProvided&&!targetName)throw new Error("AI supplied a clip ID that is not in the current project. Identify the target clip again.");
   if(!clip&&targetName){
    let matches=clips.filter(item=>accepted(item)&&normalizeClipTargetName(item.name)===normalizeClipTargetName(targetName));
    if(typeof clipTrack==="string"&&clipTrack)matches=matches.filter(item=>item.track===clipTrack);
    if(typeof clipStart==="number"&&Number.isFinite(clipStart))matches=matches.filter(item=>Math.abs(Number(item.start)-clipStart)<=.25);
-   if(matches.length>1)throw new Error("Is naam ke multiple clips hain. Sahi clip batane ke liye uska track ya timeline start time dein.");
+   if(matches.length>1)throw new Error("Multiple clips share this name. Specify the correct clip's track or timeline start time.");
    if(matches.length===1)clip=matches[0];
-   else throw new Error("Is naam ka clip current timeline mein nahi mila. Timeline par dikhne wala exact clip name check karein.");
+   else throw new Error("No clip with this name was found on the current timeline. Check the exact clip name shown on the timeline.");
   }
-  if(clip&&targetName&&normalizeClipTargetName(clip.name)!==normalizeClipTargetName(targetName))throw new Error("AI ne clip ID aur clip name ko match nahi kiya. Clip ka naam dobara confirm karein.");
+  if(clip&&targetName&&normalizeClipTargetName(clip.name)!==normalizeClipTargetName(targetName))throw new Error("AI could not match the clip ID and clip name. Confirm the clip name.");
   if(!clip&&allowImplicit&&!idProvided&&!targetName&&selectedId){
    const selected=clips.find(item=>item.id===selectedId);
    if(accepted(selected)){clip=selected;resolvedFromSelection=true;}
@@ -3760,22 +3760,22 @@ function aiValidatePlan(raw){
   if(!clip&&allowImplicit&&!idProvided&&!targetName){
    const candidates=clips.filter(accepted);
    if(candidates.length===1)clip=candidates[0];
-   else if(candidates.length>1)throw new Error("Project mein multiple suitable clips hain. Request mein clip ka exact naam, track ya start time batayein.");
+   else if(candidates.length>1)throw new Error("Multiple compatible clips are available. Specify the exact clip name, track, or start time in your request.");
   }
-  if(!clip)throw new Error("Is edit ke liye suitable timeline clip nahi mila. Clip ka exact naam batayein ya usay select karein.");
-  if(!accepted(clip))throw new Error("Selected clip par yeh tool supported nahi. Sahi media type ka clip batayein.");
+  if(!clip)throw new Error("No suitable timeline clip was found for this edit. Specify the exact clip name or select the clip.");
+  if(!accepted(clip))throw new Error("This tool does not support the selected clip. Choose a clip with a supported media type.");
   const collisionMatches=clips.filter(item=>accepted(item)&&normalizeClipTargetName(item.name)===normalizeClipTargetName(clip.name));
   let narrowed=collisionMatches;
   if(typeof clipTrack==="string"&&clipTrack)narrowed=narrowed.filter(item=>item.track===clipTrack);
   if(typeof clipStart==="number"&&Number.isFinite(clipStart))narrowed=narrowed.filter(item=>Math.abs(Number(item.start)-clipStart)<=.25);
   if(narrowed.length>1&&!(resolvedFromSelection||(!targetName&&idProvided&&id===selectedId))){
-   throw new Error("Is naam ke multiple clips hain. AI ne abhi ek ko confirm nahi kiya. Sahi clip ke liye uska track ya timeline start time batayein.");
+   throw new Error("Multiple clips share this name, and AI could not identify one safely. Specify the correct clip's track or timeline start time.");
   }
-  if(narrowed.length===1&&narrowed[0].id!==clip.id)throw new Error("AI ki clip ID aur track/start-time details ek doosre se match nahi kartin. Target clip dobara confirm karein.");
+  if(narrowed.length===1&&narrowed[0].id!==clip.id)throw new Error("The AI clip ID does not match the track or start-time details. Please confirm the target clip.");
   return clip;
  };
  for(const item of raw.operations){
-  if(!item||typeof item!=="object"||Array.isArray(item)||typeof item.type!=="string")throw new Error("AI plan mein ek action ka format valid nahi.");
+  if(!item||typeof item!=="object"||Array.isArray(item)||typeof item.type!=="string")throw new Error("An action in the AI plan has an invalid format.");
   const reason=String(item.reason||item.type.replace(/_/g," ")).slice(0,220);
   let operation;
   switch(item.type){
@@ -3794,7 +3794,7 @@ function aiValidatePlan(raw){
     const clip=requireClip(item.clipId,undefined,item.clipName,item.clipStart,item.clipTrack);
     const start=aiClamp(item.start,0,7200,"New clip start");
     let track;
-    if(item.track!==undefined){track=String(item.track);if(!aiCanUseTrack(clip,track))throw new Error("Selected clip ko is track par move nahi kiya ja sakta.");}
+    if(item.track!==undefined){track=String(item.track);if(!aiCanUseTrack(clip,track))throw new Error("The selected clip cannot be moved to this track.");}
     operation={type:item.type,clipId:clip.id,start,track,reason};
     break;
    }
@@ -3809,7 +3809,7 @@ function aiValidatePlan(raw){
     break;
    }
    case "add_text_overlay":{
-    if(typeof item.text!=="string"||!item.text.trim()||item.text.length>180)throw new Error("Text overlay 1 se 180 characters ka hona chahiye.");
+    if(typeof item.text!=="string"||!item.text.trim()||item.text.length>180)throw new Error("Text overlays must contain between 1 and 180 characters.");
     const start=aiClamp(item.start,0,7200,"Text start"),durationValue=aiClamp(item.duration??5,.2,600,"Text duration");
     const changes=aiValidateChanges("text",{...(item.changes||{}),text:item.text.trim().slice(0,180),start,duration:durationValue});
     operation={type:item.type,text:item.text.trim().slice(0,180),start,duration:durationValue,changes,reason};
@@ -3817,106 +3817,106 @@ function aiValidatePlan(raw){
    }
    case "set_keyframes":{
     const clip=requireClip(item.clipId,["video","image","text"],item.clipName,item.clipStart,item.clipTrack);
-    if(!Array.isArray(item.keyframes)||item.keyframes.length<2||item.keyframes.length>20)throw new Error("Keyframe edit mein 2 se 20 keyframes required hain.");
+    if(!Array.isArray(item.keyframes)||item.keyframes.length<2||item.keyframes.length>20)throw new Error("Keyframe edits require between 2 and 20 keyframes.");
     const frames=item.keyframes.map(frame=>{
-     if(!frame||typeof frame!=="object"||!frame.values||typeof frame.values!=="object"||Array.isArray(frame.values))throw new Error("AI keyframe ka format valid nahi.");
+     if(!frame||typeof frame!=="object"||!frame.values||typeof frame.values!=="object"||Array.isArray(frame.values))throw new Error("The AI keyframe format is invalid.");
      const values={};
      for(const [key,value] of Object.entries(frame.values)){
       if(key==="x"||key==="y")values[key]=aiClamp(value,-100,100,key);
       else if(key==="scale")values[key]=aiClamp(value,.1,4,key);
       else if(key==="rotation")values[key]=aiClamp(value,-180,180,key);
       else if(key==="opacity")values[key]=aiClamp(value,0,1,key);
-      else throw new Error("Keyframe mein unsupported property di gayi hai.");
+      else throw new Error("The keyframe contains an unsupported property.");
      }
-     if(!Object.keys(values).length)throw new Error("Keyframe mein koi valid transform nahi diya gaya.");
+     if(!Object.keys(values).length)throw new Error("The keyframe does not contain a valid transform.");
      return {time:aiClamp(frame.time,0,clip.duration,"Keyframe time"),values};
     }).sort((a,b)=>a.time-b.time);
-    if(frames[0].time!==0||frames[frames.length-1].time>clip.duration)throw new Error("Keyframes ko clip ke start aur duration ke andar rehna chahiye.");
+    if(frames[0].time!==0||frames[frames.length-1].time>clip.duration)throw new Error("Keyframes must stay within the clip's start and duration.");
     operation={type:item.type,clipId:clip.id,keyframes:frames,reason};
     break;
    }
    case "trim_clip":{
     const clip=requireClip(item.clipId,["video","audio","image","text"],item.clipName,item.clipStart,item.clipTrack);
-    if(clip.type==="video"&&Number(clip.speedSourceDuration)>0)throw new Error("Speed-ramp clip ko AI trim nahi karega, kyun ke source timing ko badalne ka risk hai. Pehle speed ramp normal karein.");
+    if(clip.type==="video"&&Number(clip.speedSourceDuration)>0)throw new Error("AI will not trim a speed-ramped clip because doing so could alter source timing. Normalize the speed ramp first.");
     const start=aiClamp(item.start??clip.start,0,7200,"Trim start");
     const durationValue=aiClamp(item.duration??clip.duration,.2,7200,"Trim duration");
     if(clip.type==="video"||clip.type==="audio"){
      const asset=assetById(clip.assetId);
-     if(!asset||!Number.isFinite(Number(asset.duration)))throw new Error("Is clip ka original media duration available nahi.");
+     if(!asset||!Number.isFinite(Number(asset.duration)))throw new Error("The original media duration for this clip is unavailable.");
      const sourceStart=(Number(clip.sourceStart)||0)+(start-(Number(clip.start)||0));
-     if(sourceStart<-.001)throw new Error("Clip ko is se pehle trim nahi kiya ja sakta, kyun ke original media mein pehle ka footage/audio available nahi.");
-     if(sourceStart+durationValue>Number(asset.duration)+.05)throw new Error("Trim range original media ki available duration se bahar ja rahi hai.");
+     if(sourceStart<-.001)throw new Error("The clip cannot be trimmed earlier because the original media does not contain earlier footage or audio.");
+     if(sourceStart+durationValue>Number(asset.duration)+.05)throw new Error("The trim range exceeds the available duration of the original media.");
     }
     operation={type:item.type,clipId:clip.id,start,duration:durationValue,reason};break;
    }
    case "set_preview_controls":{
     const playback=item.playback===undefined?undefined:String(item.playback);
-    if(playback!==undefined&&!["play","pause","stop"].includes(playback))throw new Error("Preview playback ke liye play, pause ya stop use karein.");
+    if(playback!==undefined&&!["play","pause","stop"].includes(playback))throw new Error("Use play, pause, or stop for preview playback.");
     const playheadValue=item.playhead===undefined?undefined:aiClamp(item.playhead,0,duration(),"Preview playhead");
     const fit=item.fit===undefined?undefined:String(item.fit);
-    if(fit!==undefined&&!["contain","cover"].includes(fit))throw new Error("Preview fit ke liye Fit ya Fill select karein.");
-    if(item.guides!==undefined&&typeof item.guides!=="boolean")throw new Error("Preview guides ka value true ya false hona chahiye.");
-    if(playback===undefined&&playheadValue===undefined&&fit===undefined&&item.guides===undefined)throw new Error("Preview controls mein koi setting nahi di gayi.");
+    if(fit!==undefined&&!["contain","cover"].includes(fit))throw new Error("Select Fit or Fill for the preview.");
+    if(item.guides!==undefined&&typeof item.guides!=="boolean")throw new Error("Preview guides must be true or false.");
+    if(playback===undefined&&playheadValue===undefined&&fit===undefined&&item.guides===undefined)throw new Error("No preview control setting was provided.");
     operation={type:item.type,playback,playhead:playheadValue,fit,guides:item.guides,reason};break;
    }
    case "set_timeline_controls":{
     const fitAll=item.fitAll===undefined?undefined:item.fitAll;
-    if(fitAll!==undefined&&typeof fitAll!=="boolean")throw new Error("Fit All ka value true ya false hona chahiye.");
+    if(fitAll!==undefined&&typeof fitAll!=="boolean")throw new Error("Fit All must be true or false.");
     const zoom=item.zoom===undefined?undefined:aiClamp(item.zoom,24,140,"Timeline zoom");
-    if(zoom!==undefined&&Math.abs(zoom/4-Math.round(zoom/4))>.001)throw new Error("Timeline zoom ko 4 ke supported steps mein set karein.");
-    if(item.snap!==undefined&&typeof item.snap!=="boolean")throw new Error("Timeline snapping ka value true ya false hona chahiye.");
+    if(zoom!==undefined&&Math.abs(zoom/4-Math.round(zoom/4))>.001)throw new Error("Set timeline zoom in supported increments of 4.");
+    if(item.snap!==undefined&&typeof item.snap!=="boolean")throw new Error("Timeline snapping must be true or false.");
     let scrollToClipId;if(item.scrollToClipId!==undefined)scrollToClipId=requireClip(item.scrollToClipId).id;
-    if(fitAll===undefined&&zoom===undefined&&item.snap===undefined&&scrollToClipId===undefined)throw new Error("Timeline controls mein koi setting nahi di gayi.");
-    if(fitAll===true&&zoom!==undefined)throw new Error("Fit All aur custom zoom ek hi request mein use na karein.");
+    if(fitAll===undefined&&zoom===undefined&&item.snap===undefined&&scrollToClipId===undefined)throw new Error("No timeline control setting was provided.");
+    if(fitAll===true&&zoom!==undefined)throw new Error("Do not combine Fit All and custom zoom in the same request.");
     operation={type:item.type,fitAll,zoom,snap:item.snap,scrollToClipId,reason};break;
    }
    case "add_asset_to_timeline":{
     const asset=assets.find(entry=>entry.id===item.assetId);
-    if(!asset||asset.projectId!==project.id||!isImportedAsset(asset))throw new Error("Media Library mein yeh imported asset nahi mila. Derived proxies ko original media ke bajaye direct timeline par add nahi kiya ja sakta.");
-    if(!["video","audio","image"].includes(asset.type))throw new Error("Is media type ko timeline par add nahi kiya ja sakta.");
+    if(!asset||asset.projectId!==project.id||!isImportedAsset(asset))throw new Error("This imported asset was not found in the Media Library. Derived proxies cannot be added directly to the timeline instead of the original media.");
+    if(!["video","audio","image"].includes(asset.type))throw new Error("This media type cannot be added to the timeline.");
     const start=aiClamp(item.start??playhead,0,7200,"New clip start");
     const track=item.track===undefined?(asset.type==="audio"?"audio":asset.type==="video"?"video":"overlay"):String(item.track);
-    if(!aiCanUseTrack({type:asset.type},track))throw new Error("Is media type ke liye selected timeline track allowed nahi.");
+    if(!aiCanUseTrack({type:asset.type},track))throw new Error("The selected timeline track is not allowed for this media type.");
     const durationValue=aiClamp(item.duration??Math.max(.2,Number(asset.duration)||5),.2,7200,"New clip duration");
-    if((asset.type==="video"||asset.type==="audio")&&durationValue>Number(asset.duration||0)+.05)throw new Error("New clip duration original media se zyada nahi ho sakti.");
+    if((asset.type==="video"||asset.type==="audio")&&durationValue>Number(asset.duration||0)+.05)throw new Error("A new clip cannot be longer than its original media.");
     operation={type:item.type,assetId:asset.id,start,track,duration:durationValue,reason};break;
    }
    case "rename_asset":{
     const asset=assets.find(entry=>entry.id===item.assetId);
-    if(!asset||asset.projectId!==project.id||!isImportedAsset(asset))throw new Error("Rename karne ke liye imported media asset select karein.");
-    if(typeof item.name!=="string"||!item.name.trim()||item.name.trim().length>100)throw new Error("Media file ka naya naam 1 se 100 characters ka hona chahiye.");
+    if(!asset||asset.projectId!==project.id||!isImportedAsset(asset))throw new Error("Select an imported media asset to rename.");
+    if(typeof item.name!=="string"||!item.name.trim()||item.name.trim().length>100)throw new Error("A media file name must contain between 1 and 100 characters.");
     operation={type:item.type,assetId:asset.id,name:item.name.trim(),reason};break;
    }
    case "remove_asset":{
     const asset=assets.find(entry=>entry.id===item.assetId);
-    if(!asset||asset.projectId!==project.id||!isImportedAsset(asset))throw new Error("Remove karne ke liye imported original media asset select karein.");
+    if(!asset||asset.projectId!==project.id||!isImportedAsset(asset))throw new Error("Select an imported original media asset to remove.");
     const linkedProxy=asset.proxyAssetId?assets.find(entry=>entry.id===asset.proxyAssetId):null;
-    if(clips.some(clip=>clip.assetId===asset.id||linkedProxy&&clip.assetId===linkedProxy.id))throw new Error("Yeh media timeline mein use ho raha hai. Pehle iski timeline clip remove karein; phir Media Library se asset remove kar sakte hain.");
+    if(clips.some(clip=>clip.assetId===asset.id||linkedProxy&&clip.assetId===linkedProxy.id))throw new Error("This media is being used on the timeline. Remove its timeline clip first, then remove the asset from the Media Library.");
     operation={type:item.type,assetId:asset.id,reason};break;
    }
    case "create_video_proxy":{
     const asset=assets.find(entry=>entry.id===item.assetId);
-    if(!asset||asset.projectId!==project.id||asset.type!=="video"||!isImportedAsset(asset))throw new Error("Proxy sirf Media Library ke original imported video ke liye ban sakta hai.");
-    if(asset.proxyAssetId&&assets.some(entry=>entry.id===asset.proxyAssetId))throw new Error("Is video ka proxy pehle se maujood hai. Use Proxy option select karein.");
-    if(proxyBusy)throw new Error("Ek proxy task pehle se chal raha hai. Pehle uske complete hone dein.");
+    if(!asset||asset.projectId!==project.id||asset.type!=="video"||!isImportedAsset(asset))throw new Error("A proxy can only be created for an original video imported into the Media Library.");
+    if(asset.proxyAssetId&&assets.some(entry=>entry.id===asset.proxyAssetId))throw new Error("A proxy already exists for this video. Select Use Proxy.");
+    if(proxyBusy)throw new Error("A proxy task is already running. Wait for it to finish first.");
     operation={type:item.type,assetId:asset.id,reason};break;
    }
    case "set_proxy_usage":{
     const asset=assets.find(entry=>entry.id===item.assetId);
-    if(!asset||asset.projectId!==project.id||asset.type!=="video"||!asset.proxyAssetId||!assets.some(entry=>entry.id===asset.proxyAssetId))throw new Error("Is video ke liye ready proxy available nahi. Pehle Create Video Proxy karein.");
-    if(typeof item.useProxy!=="boolean")throw new Error("useProxy ka value true ya false hona chahiye.");
+    if(!asset||asset.projectId!==project.id||asset.type!=="video"||!asset.proxyAssetId||!assets.some(entry=>entry.id===asset.proxyAssetId))throw new Error("No ready proxy is available for this video. Run Create Video Proxy first.");
+    if(typeof item.useProxy!=="boolean")throw new Error("useProxy must be true or false.");
     operation={type:item.type,assetId:asset.id,useProxy:item.useProxy,reason};break;
    }
    case "rename_project":{
-    if(item.projectId&&String(item.projectId)!==String(projectId))throw new Error("AI current open project ka naam hi change kar sakta hai. Doosra project pehle open karein.");
-    if(typeof item.name!=="string"||!item.name.trim()||item.name.trim().length>60)throw new Error("Project ka naya naam 1 se 60 characters ka hona chahiye.");
+    if(item.projectId&&String(item.projectId)!==String(projectId))throw new Error("AI can only rename the currently open project. Open the other project first.");
+    if(typeof item.name!=="string"||!item.name.trim()||item.name.trim().length>60)throw new Error("A new project name must contain between 1 and 60 characters.");
     operation={type:item.type,projectId:String(projectId),name:safeName(item.name.trim()),reason};break;
    }
    case "create_project":{
     const name=String(item.name||item.projectName||"").trim();
-    if(!name||name.length>60)throw new Error("New project ka naam 1 se 60 characters ka hona chahiye.");
+    if(!name||name.length>60)throw new Error("A new project name must contain between 1 and 60 characters.");
     const ratio=String(item.ratio||"16:9");
-    if(!["16:9","9:16","1:1","4:5","custom"].includes(ratio))throw new Error("Project aspect ratio available preset mein se select karein.");
+    if(!["16:9","9:16","1:1","4:5","custom"].includes(ratio))throw new Error("Select an available project aspect-ratio preset.");
     const defaults={"16:9":"1920x1080","9:16":"1080x1920","1:1":"1080x1080","4:5":"1080x1350"};
     const resolution=String(item.resolution||defaults[ratio]||"");
     const allowedByRatio={
@@ -3926,11 +3926,11 @@ function aiValidatePlan(raw){
      "4:5":new Set(["1080x1350"])
     };
     const dimensions=/^(\d{3,4})x(\d{3,4})$/.exec(resolution);
-    if(!dimensions)throw new Error("Project resolution widthxheight format mein honi chahiye, misal 1920x1080.");
+    if(!dimensions)throw new Error("Project resolution must use the widthxheight format, for example 1920x1080.");
     const width=Number(dimensions[1]),height=Number(dimensions[2]);
-    if(width<240||height<240||width>3840||height>3840)throw new Error("Project width aur height 240 se 3840 pixels ke darmiyan honi chahiye.");
-    if(ratio!=="custom"&&!allowedByRatio[ratio].has(resolution))throw new Error("Selected resolution aspect ratio ke preset se match nahi karti.");
-    const fps=Number(item.fps??30);if(![24,30,60].includes(fps))throw new Error("Project FPS 24, 30 ya 60 mein se select karein.");
+    if(width<240||height<240||width>3840||height>3840)throw new Error("Project width and height must be between 240 and 3840 pixels.");
+    if(ratio!=="custom"&&!allowedByRatio[ratio].has(resolution))throw new Error("The selected resolution does not match the aspect-ratio preset.");
+    const fps=Number(item.fps??30);if(![24,30,60].includes(fps))throw new Error("Select a project frame rate of 24, 30, or 60 FPS.");
     operation={type:item.type,name:safeName(name),ratio,resolution,width,height,fps,ratioLabel:ratio==="custom"?"Custom ("+width+":"+height+")":ratio,resolutionLabel:width+" × "+height,reason};break;
    }
    case "open_project":{
@@ -3942,7 +3942,7 @@ function aiValidatePlan(raw){
     operation={type:item.type,projectId:target.id,projectName:target.name,reason};break;
    }
    case "run_tool":{
-    if(!AI_VIDEO_TOOLS.has(item.tool))throw new Error("AI ne koi aisa tool choose kiya jo editor mein allowed nahi.");
+    if(!AI_VIDEO_TOOLS.has(item.tool))throw new Error("AI selected a tool that is not allowed in the editor.");
     const needsClip=!["caption_translation","ai_voice_over","add_sticker"].includes(item.tool);
     let clip=null;
     if(needsClip){
@@ -3953,24 +3953,24 @@ function aiValidatePlan(raw){
      };
      clip=requireClip(item.clipId,types[item.tool],item.clipName,item.clipStart,item.clipTrack);
     }
-    if(item.tool==="caption_translation"&&!clips.some(c=>c.track==="captions"&&c.type==="text"))throw new Error("Translate karne ke liye project mein pehle se captions hone chahiye.");
+    if(item.tool==="caption_translation"&&!clips.some(c=>c.track==="captions"&&c.type==="text"))throw new Error("The project must already contain captions to translate.");
     if(item.tool==="caption_translation"||item.tool==="auto_captions"){
      const language=item.language===undefined?"":String(item.language);
-     if(item.tool==="caption_translation"&&!AI_LANGUAGES.has(language))throw new Error("Caption translation ke liye supported language select karein.");
-     if(item.tool==="auto_captions"&&language&&!["en","ur","hi","ar","es","fr","pt","tr","de"].includes(language))throw new Error("Auto Captions ke liye selected spoken language available nahi.");
+     if(item.tool==="caption_translation"&&!AI_LANGUAGES.has(language))throw new Error("Select a supported language for caption translation.");
+     if(item.tool==="auto_captions"&&language&&!["en","ur","hi","ar","es","fr","pt","tr","de"].includes(language))throw new Error("The selected spoken language is not available for Auto Captions.");
      operation={type:item.type,tool:item.tool,clipId:clip?.id||"",language,reason};
      plan.requiresCloudConsent=true;
     }else if(item.tool==="ai_voice_over"){
-     if(typeof item.text!=="string"||!item.text.trim()||item.text.length>2000)throw new Error("AI Voice-over ke liye 1 se 2,000 characters ka script chahiye.");
-     const voiceId=item.voiceId||"angus";if(!AI_VOICE_IDS.has(voiceId))throw new Error("AI Voice-over ke liye selected voice available nahi.");
+     if(typeof item.text!=="string"||!item.text.trim()||item.text.length>2000)throw new Error("AI Voice-over requires a script between 1 and 2,000 characters.");
+     const voiceId=item.voiceId||"angus";if(!AI_VOICE_IDS.has(voiceId))throw new Error("The selected AI Voice-over voice is unavailable.");
      operation={type:item.type,tool:item.tool,text:item.text.trim(),voiceId,reason};plan.requiresCloudConsent=true;
     }else if(item.tool==="add_sticker"){
      const preset=item.preset||"star",valid=new Set(["star","heart","circle","rectangle","arrow","speech","lightning","check","emoji-star","emoji-fire","emoji-heart","emoji-clap","emoji-target"]);
-     if(!valid.has(preset))throw new Error("Sticker preset available nahi.");
-     const color=item.color||"#a86bf2";if(typeof color!=="string"||!/^#[0-9a-f]{6}$/i.test(color))throw new Error("Sticker colour valid HEX mein dein.");
+     if(!valid.has(preset))throw new Error("The selected sticker preset is unavailable.");
+     const color=item.color||"#a86bf2";if(typeof color!=="string"||!/^#[0-9a-f]{6}$/i.test(color))throw new Error("Enter a valid HEX colour for the sticker.");
      operation={type:item.type,tool:item.tool,preset,color,reason};
     }else if(item.tool==="motion_tracking"){
-     const target=item.target||"person";if(!["person","any"].includes(target))throw new Error("Motion tracking target supported nahi.");
+     const target=item.target||"person";if(!["person","any"].includes(target))throw new Error("The selected motion-tracking target is not supported.");
      operation={type:item.type,tool:item.tool,clipId:clip.id,target,reason};
     }else if(item.tool==="reverse_video"){
      const alsoReverseAudio=item.alsoReverseAudio===true;
@@ -3981,13 +3981,13 @@ function aiValidatePlan(raw){
     }
     break;
    }
-   default:throw new Error("AI ne unsupported action propose kiya. Is plan ko run nahi kiya gaya.");
+   default:throw new Error("AI proposed an unsupported action. The plan was not run.");
   }
   plan.operations.push(operation);
  }
  const navigationOperations=plan.operations.filter(operation=>["create_project","open_project","delete_project"].includes(operation.type));
- if(navigationOperations.length&&plan.operations.length!==1)throw new Error("New, open ya delete project ko ek separate request mein karein. Isay clip/media edits ke saath mix nahi kiya ja sakta.");
- if(plan.operations.some(operation=>operation.type==="remove_asset")&&plan.operations.length!==1)throw new Error("Media Library se asset permanently remove karne ka action alag request mein karein.");
+ if(navigationOperations.length&&plan.operations.length!==1)throw new Error("Create, open, or delete a project in a separate request. Do not combine project actions with clip or media edits.");
+ if(plan.operations.some(operation=>operation.type==="remove_asset")&&plan.operations.length!==1)throw new Error("Permanently removing a Media Library asset must be a separate request.");
  return plan;
 }
 function aiOperationLabel(operation){
@@ -4037,7 +4037,7 @@ function aiRenderPlan(plan){
  $("aiPreviewPlanBtn").disabled=plan.needsClarification||!plan.operations.length;
  aiSetBusy(false);
  if(plan.needsClarification){
-  aiSetStatus("Gemini ko ek detail clear karni hai. Sawal Step 2 input ke upar hai; jawab usi prompt box mein add karke dobara try karein.");
+  aiSetStatus("Gemini needs one clarification. The question appears above the Step 2 input. Add your answer in that prompt box, then try again.");
   requestAnimationFrame(()=>{
    const field=$("aiEditPrompt");
    field.focus({preventScroll:true});
@@ -4045,17 +4045,17 @@ function aiRenderPlan(plan){
    field.setSelectionRange(end,end);
   });
  }else{
-  aiSetStatus("Plan ready. Preview chalayein; original project abhi change nahi hua.","success");
+  aiSetStatus("Plan ready. Preview the changes; your original project has not been changed.","success");
  }
 }
 async function generateAiEditPlan(){
  if(aiPlanBusy||aiPreviewActive||aiPromptWriterBusy)return;
  const request=$("aiEditPrompt").value.trim();
- if(!request){aiSetStatus("Pehle likhein ke video mein kya edit karna hai.");$("aiEditPrompt").focus();return;}
+ if(!request){aiSetStatus("Describe the edit you want first.");$("aiEditPrompt").focus();return;}
  if(request.length>1400){aiSetStatus("Prompt 1,400 characters se chhota rakhein.");return;}
- if(previewDraft){aiSetStatus("Pehle Properties panel ka Apply ya cancel complete karein, phir AI Editor use karein.");notify("Aapke pending Properties preview ko AI edit change nahi karega.");return;}
- if(!auth?.currentUser){aiSetStatus("Session expire ho gaya. Dobara Google sign-in karein.");return;}
- aiCurrentPlan=null;$("aiPlanCard").hidden=true;$("aiPlanClarification").hidden=true;aiSetBusy(true);aiSetStatus("AI aapki request aur current timeline samajh raha hai…");
+ if(previewDraft){aiSetStatus("Finish the Apply or Cancel action in Properties before using AI Editor.");notify("AI Editor will not modify your pending Properties preview.");return;}
+ if(!auth?.currentUser){aiSetStatus("Your session has expired. Please sign in with Google again.");return;}
+ aiCurrentPlan=null;$("aiPlanCard").hidden=true;$("aiPlanClarification").hidden=true;aiSetBusy(true);aiSetStatus("AI is reviewing your request and the current timeline…");
  try{
   const token=await auth.currentUser.getIdToken();
   const response=await fetch(WORKER_URL,{
@@ -4064,10 +4064,10 @@ async function generateAiEditPlan(){
   });
   const data=await response.json().catch(()=>({}));
   if(!response.ok){
-   if(response.status===401)throw new Error("Google sign-in dobara karein. AI request authenticate nahi ho saki.");
-   if(response.status===403)throw new Error("AI Editor advanced access ke liye invite ya admin approval zaroori hai.");
-   if(response.status===429)throw new Error("AI Editor busy hai. Thori dair baad dobara try karein.");
-   throw new Error(data.error||"AI edit plan tayyar nahi ho saka. Dobara try karein.");
+   if(response.status===401)throw new Error("Please sign in with Google again. Your AI request could not be authenticated.");
+   if(response.status===403)throw new Error("AI Editor requires an invitation or admin approval for advanced access.");
+   if(response.status===429)throw new Error(data.code==="TOOL_RATE_LIMITED"?"Your account has reached the short-term request limit for this tool. Please wait a moment and try again.":data.code==="AI_EDITOR_GEMINI_FAILED"?"Gemini has temporarily limited AI edit-plan requests. Please wait a moment and try again.":data.error||"AI Editor requests are temporarily limited. Please try again shortly.");
+   throw new Error(data.error||"The AI edit plan could not be prepared. Please try again.");
   }
   const raw=aiParsePlan(data.text);
   const plan=aiValidatePlan(raw);
@@ -4087,19 +4087,19 @@ function aiSetPromptWriterStatus(message){
 async function generateAiPrompt(){
  if(aiPromptWriterBusy||aiPlanBusy||aiPreviewActive)return;
  const request=$("aiPromptWriterInput").value.trim();
- if(!request){aiSetPromptWriterStatus("Pehle Roman Urdu mein batayein ke aap kya karwana chahte hain.");$("aiPromptWriterInput").focus();return;}
- if(request.length>2000){aiSetPromptWriterStatus("Request 2,000 characters se chhoti rakhein.");return;}
- if(!auth?.currentUser){aiSetPromptWriterStatus("Google sign-in session expire ho gaya. Dobara sign-in karein.");return;}
+ if(!request){aiSetPromptWriterStatus("Please describe what you would like to edit.");$("aiPromptWriterInput").focus();return;}
+ if(request.length>2000){aiSetPromptWriterStatus("Keep your request under 2,000 characters.");return;}
+ if(!auth?.currentUser){aiSetPromptWriterStatus("Your Google sign-in session has expired. Please sign in again.");return;}
  aiPromptWriterBusy=true;
  $("aiPromptWriterStatus").style.color="";
- $("aiPromptWriterGenerateBtn").textContent="Gemini prompt bana raha hai…";
+ $("aiPromptWriterGenerateBtn").textContent="Gemini is creating your prompt…";
 
  $("aiPromptWriterQuestion").hidden=true;
  $("aiPromptWriterResultWrap").hidden=true;
  $("aiPromptWriterResult").value="";
  $("aiPromptWriterOutputPlaceholder").hidden=false;
- $("aiPromptWriterOutputPlaceholder").textContent="Gemini ka jawab tayyar ho raha hai…";
- aiSetPromptWriterStatus("Gemini aapki Roman Urdu request ko supported Video Studio prompt mein badal raha hai…");
+ $("aiPromptWriterOutputPlaceholder").textContent="Preparing Gemini's response…";
+ aiSetPromptWriterStatus("Gemini is converting your request into a clear Video Studio editing prompt…");
  aiSetBusy(false);
  try{
   const token=await auth.currentUser.getIdToken();
@@ -4115,18 +4115,18 @@ async function generateAiPrompt(){
   });
   const data=await response.json().catch(()=>({}));
   if(!response.ok){
-   if(response.status===401)throw new Error("Google sign-in dobara karein. Request authenticate nahi ho saki.");
-   if(response.status===403)throw new Error("AI Prompt Writer advanced access ke liye invite ya admin approval zaroori hai.");
-   if(response.status===429)throw new Error("Prompt Writer busy hai. Thori dair baad dobara try karein.");
-   throw new Error(data.error||"Prompt tayyar nahi ho saka. Dobara try karein.");
+   if(response.status===401)throw new Error("Please sign in with Google again. Your request could not be authenticated.");
+   if(response.status===403)throw new Error("AI Prompt Writer requires an invitation or admin approval for advanced access.");
+   if(response.status===429)throw new Error(data.code==="TOOL_RATE_LIMITED"?"Your account has reached the short-term request limit for this tool. Please wait a moment and try again.":data.code==="AI_PROMPT_WRITER_GEMINI_FAILED"?"Gemini has temporarily limited prompt-generation requests. Please wait a moment and try again.":data.error||"Prompt generation is temporarily limited. Please try again shortly.");
+   throw new Error(data.error||"The prompt could not be generated. Please try again.");
   }
   if(data.needsClarification===true){
-   $("aiPromptWriterQuestionText").textContent=data.question||"Is request ke liye ek detail clear karni hogi. Apni request update karein.";
+   $("aiPromptWriterQuestionText").textContent=data.question||"One detail needs clarification. Please update your request.";
    $("aiPromptWriterQuestion").hidden=false;
    $("aiPromptWriterResultWrap").hidden=true;
    $("aiPromptWriterOutputPlaceholder").hidden=false;
-   $("aiPromptWriterOutputPlaceholder").textContent="Clarification ka jawab dene ke baad Gemini ka final prompt yahan nazar aayega.";
-   aiSetPromptWriterStatus("Gemini ko ek baat clear karni hai. Sawal input box ke upar hai; jawab isi box mein add karke dobara Generate Prompt dabayein.");
+   $("aiPromptWriterOutputPlaceholder").textContent="Your final prompt will appear here after you answer the clarification question.";
+   aiSetPromptWriterStatus("Gemini needs one clarification. Read the question above the input, add your answer in the same box, then click Generate Prompt again.");
    requestAnimationFrame(()=>{
     const field=$("aiPromptWriterInput");
     field.focus({preventScroll:true});
@@ -4135,20 +4135,20 @@ async function generateAiPrompt(){
    });
   }else{
    const prompt=typeof data.prompt==="string"?data.prompt.trim():"";
-   if(!prompt||prompt.length>1400)throw new Error("Gemini ka prompt main AI Editor ki 1,400-character limit mein nahi hai. Dobara try karein.");
+   if(!prompt||prompt.length>1400)throw new Error("The generated prompt exceeds the 1,400-character limit for the main AI Editor. Please try again.");
    $("aiPromptWriterResult").value=prompt;
    $("aiPromptWriterResultWrap").hidden=false;
    $("aiPromptWriterOutputPlaceholder").hidden=true;
-   aiSetPromptWriterStatus("Alag Output section mein prompt tayyar hai. Check karein, phir Use in AI Editor dabayein. Abhi video mein koi edit nahi hui.");
+   aiSetPromptWriterStatus("Your prompt is ready in the Output section. Review it, then click Use in AI Editor. No video changes have been made yet.");
   }
  }catch(error){
   $("aiPromptWriterOutputPlaceholder").hidden=false;
-  $("aiPromptWriterOutputPlaceholder").textContent="Prompt abhi generate nahi hua. Request check karke dobara try karein.";
+  $("aiPromptWriterOutputPlaceholder").textContent="No prompt has been generated yet. Review your request and try again.";
   aiSetPromptWriterStatus(aiFriendlyConnectionError(error,"Prompt Writer"));
   if(error?.name==="TypeError")$("aiPromptWriterStatus").style.color="#ffd9dc";
  }finally{
   aiPromptWriterBusy=false;
-  $("aiPromptWriterGenerateBtn").textContent="✦ Roman Urdu ko proper prompt mein badlein";
+  $("aiPromptWriterGenerateBtn").textContent="✦ Generate Prompt";
   aiSetBusy(false);
  }
 }
@@ -4163,10 +4163,10 @@ async function copyAiGeneratedPrompt(){
    field.focus();field.select();
    if(!document.execCommand("copy"))throw new Error("Copy command unavailable");
   }
-  aiSetPromptWriterStatus("Prompt copy ho gaya. Ab Step 2 mein paste kar sakte hain.");
+  aiSetPromptWriterStatus("Prompt copied. You can now paste it into Step 2.");
  }catch(error){
   $("aiPromptWriterResult").focus();$("aiPromptWriterResult").select();
-  aiSetPromptWriterStatus("Prompt select kar diya hai. Ctrl+C dabakar copy kar lein.");
+  aiSetPromptWriterStatus("The prompt is selected. Press Ctrl+C to copy it.");
  }
 }
 function aiUseGeneratedPrompt(){
@@ -4174,14 +4174,14 @@ function aiUseGeneratedPrompt(){
  if(!value)return;
  $("aiEditPrompt").value=value;
  $("aiPromptCount").textContent=value.length+" / 1,400";
- aiSetStatus("Step 1 ka prompt Step 2 mein aa gaya. Ab Understand & create edit plan dabayein.");
+ aiSetStatus("The Step 1 prompt has been added to Step 2. Click Understand & create edit plan.");
 }
 function aiUseRefinedPrompt(){
  if(!aiCurrentPlan?.understoodRequest)return;
  $("aiEditPrompt").value=aiCurrentPlan.understoodRequest.slice(0,1400);
  $("aiPromptCount").textContent=$("aiEditPrompt").value.length+" / 1,400";
  $("aiEditPrompt").focus();
- aiSetStatus("Clear version prompt mein aa gaya. Zaroorat ho to edit karke naya plan banayein.");
+ aiSetStatus("The revised prompt has been added. Edit it if needed, then create a new plan.");
 }
 function aiWriteClipChanges(clip,changes){
  const oldDuration=Number(clip.duration)||0;
@@ -4228,7 +4228,7 @@ async function aiExecuteTool(operation){
   try{
    $("translateLanguage").value=operation.language;
    await translateCaptionTrack();
-   if(JSON.stringify(clips)===before)throw new Error("Caption translation ne koi confirmed change nahi banaya.");
+   if(JSON.stringify(clips)===before)throw new Error("Caption translation did not produce a confirmed change.");
   }finally{$("translateLanguage").value=previousLanguage;}
   return;
  }
@@ -4237,7 +4237,7 @@ async function aiExecuteTool(operation){
   try{
    $("stickerPreset").value=operation.preset;$("stickerColor").value=operation.color;
    await addStickerToTimeline();
-   if(clips.length!==before+1)throw new Error("Sticker add nahi ho saka.");
+   if(clips.length!==before+1)throw new Error("The sticker could not be added.");
   }finally{$("stickerPreset").value=previousPreset;$("stickerColor").value=previousColor;}
   return;
  }
@@ -4253,7 +4253,7 @@ async function aiExecuteTool(operation){
    $("voiceoverCounter").textContent=operation.text.length+" / 2,000";
    $("voiceoverConsent").checked=true;$("voiceoverGenerateBtn").disabled=false;
    await generateVoiceover();
-   if(clips.length!==beforeClipCount+1||assets.length!==beforeAssetCount+1)throw new Error("Voice-over generate nahi hua. Quota ya connection check karein.");
+   if(clips.length!==beforeClipCount+1||assets.length!==beforeAssetCount+1)throw new Error("Voice-over generation failed. Check the AI service quota and your connection.");
   }finally{
    $("voiceoverText").value=previous.text;$("voiceoverVoice").value=previous.voice;$("voiceoverConsent").checked=previous.consent;
    $("voiceoverCounter").textContent=previous.counter;$("voiceoverStatus").textContent=previous.status;
@@ -4278,7 +4278,7 @@ async function aiExecuteTool(operation){
    $("captionsLanguage").value=operation.language||"";
    openCaptionsModal();
    await generateCaptions();
-   if(JSON.stringify(clips)===before)throw new Error("Auto Captions ne koi subtitle clip create nahi ki.");
+   if(JSON.stringify(clips)===before)throw new Error("Auto Captions did not create any subtitle clips.");
   }finally{
    $("captionsLanguage").value=previousLanguage;
    $("captionsModal").hidden=previous.hidden;
@@ -4291,61 +4291,61 @@ async function aiExecuteTool(operation){
   let success=false;
   try{$("reverseAudioToo").checked=operation.alsoReverseAudio===true;success=await localVideoTools.runTool("reverseClipBtn");}
   finally{$("reverseAudioToo").checked=previousReverseAudio;}
-  if(!success)throw new Error("Reverse Video tool complete nahi ho saka.");
+  if(!success)throw new Error("Reverse Video could not be completed.");
  }else if(tool==="motion_tracking"){
   const previousTarget=$("motionTrackTarget").value;
   let success=false;
   try{$("motionTrackTarget").value=operation.target;success=await localVideoTools.runTool("motionTrackBtn");}
   finally{$("motionTrackTarget").value=previousTarget;}
-  if(!success)throw new Error("Motion Tracking complete nahi ho saki.");
+  if(!success)throw new Error("Motion Tracking could not be completed.");
  }else if(tool==="enhance_audio"){
   const success=await localVideoTools.runTool("enhanceAudioBtn");
-  if(!success)throw new Error("Audio Enhance complete nahi ho saka.");
+  if(!success)throw new Error("Audio enhancement could not be completed.");
  }else if(tool==="remove_person_background"){
-  if(selectedClip()?.bgRemoveEnabled)throw new Error("Person background removal pehle se enabled hai. Koi doosri change apply nahi ki gayi.");
+  if(selectedClip()?.bgRemoveEnabled)throw new Error("Person Background Removal is already enabled. No additional changes were applied.");
   const success=await localVideoTools.runTool("removeVideoBgBtn");
-  if(!success)throw new Error("Person Background Removal complete nahi ho saka.");
+  if(!success)throw new Error("Person Background Removal could not be completed.");
  }else if(tool==="auto_reframe"){
   const success=await localVideoTools.runTool("autoReframeBtn");
-  if(!success)throw new Error("Auto Reframe complete nahi ho saka.");
+  if(!success)throw new Error("Auto Reframe could not be completed.");
  }else if(tool==="detach_audio"){
   await detachAudioFromVideo();
-  if(clips.length<1||!clips.some(c=>c.type==="audio"&&c.detachedFromVideoId===clipId))throw new Error("Audio extraction complete nahi ho saki.");
+  if(clips.length<1||!clips.some(c=>c.type==="audio"&&c.detachedFromVideoId===clipId))throw new Error("Audio extraction could not be completed.");
  }
  const changed=JSON.stringify(clips)!==before||assets.length!==assetsBefore;
- if(!changed)throw new Error("Selected tool ne is clip par koi change nahi banaya. Original preview restore ki ja rahi hai.");
+ if(!changed)throw new Error("The selected tool did not change this clip. The original preview is being restored.");
 }
 async function aiExecuteOperation(operation,previewContext={}){
  const splitSegments=previewContext.splitSegments||new Map(),splitPoints=previewContext.splitPoints||new Map();
  if(operation.type==="set_clip_properties"){
-  const clip=clips.find(c=>c.id===operation.clipId);if(!clip)throw new Error("Preview ke dauran selected clip nahi mila.");
+  const clip=clips.find(c=>c.id===operation.clipId);if(!clip)throw new Error("The selected clip could not be found during preview.");
   aiWriteClipChanges(clip,operation.changes);return;
  }
  if(operation.type==="split_clip"){
   const lineage=splitSegments.get(operation.clipId)||[operation.clipId];
   const clip=lineage.map(id=>clips.find(c=>c.id===id)).find(c=>c&&operation.atSeconds>c.start+.151&&operation.atSeconds<c.start+c.duration-.151);
-  if(!clip)throw new Error("Split position "+operation.atSeconds.toFixed(1)+"s par original clip ka matching segment nahi mila.");
+  if(!clip)throw new Error("Split position "+operation.atSeconds.toFixed(1)+"s does not match a segment of the original clip.");
   selectedId=clip.id;playhead=operation.atSeconds;
   const beforeIds=new Set(clips.map(item=>item.id)),before=clips.length,hasLinkedAudio=clips.some(item=>item.type==="audio"&&item.detachedFromVideoId===clip.id);
   splitSelected();
-  const expectedIncrease=hasLinkedAudio?2:1;if(clips.length!==before+expectedIncrease)throw new Error("Clip split nahi ho saka. Original project restore hoga.");
+  const expectedIncrease=hasLinkedAudio?2:1;if(clips.length!==before+expectedIncrease)throw new Error("The clip could not be split. The original project will be restored.");
   const created=clips.filter(item=>!beforeIds.has(item.id));
   const videoSegment=created.find(item=>item.type===clip.type&&item.assetId===clip.assetId&&Math.abs(item.start-operation.atSeconds)<.02);
-  if(!videoSegment)throw new Error("Split ke baad naya segment identify nahi ho saka.");
+  if(!videoSegment)throw new Error("The new segment could not be identified after splitting.");
   if(!splitSegments.has(operation.clipId))splitSegments.set(operation.clipId,[operation.clipId]);
   splitSegments.get(operation.clipId).push(videoSegment.id);
   const points=splitPoints.get(operation.clipId)||[];points.push(operation.atSeconds);splitPoints.set(operation.clipId,points);
   return;
  }
  if(operation.type==="move_clip"){
-  const clip=clips.find(c=>c.id===operation.clipId);if(!clip)throw new Error("Move karne wala clip nahi mila.");
+  const clip=clips.find(c=>c.id===operation.clipId);if(!clip)throw new Error("The clip to move could not be found.");
   clip.start=operation.start;if(operation.track)clip.track=operation.track;
   if(clip.type==="video")aiSyncDerivedClip(clip);
   const linked=clips.find(c=>c.type==="audio"&&c.detachedFromVideoId===clip.id);if(linked)linked.start=operation.start;
   selectedId=clip.id;return;
  }
  if(operation.type==="trim_clip"){
-  const clip=clips.find(c=>c.id===operation.clipId);if(!clip)throw new Error("Trim karne wala clip nahi mila.");
+  const clip=clips.find(c=>c.id===operation.clipId);if(!clip)throw new Error("The clip to trim could not be found.");
   const before=clone(clip),sourceLimited=clip.type==="video"||clip.type==="audio";
   if(sourceLimited){const delta=operation.start-(Number(clip.start)||0);clip.sourceStart=Math.max(0,(Number(clip.sourceStart)||0)+delta);}
   clip.start=operation.start;clip.duration=operation.duration;
@@ -4356,7 +4356,7 @@ async function aiExecuteOperation(operation,previewContext={}){
   selectedId=clip.id;return;
  }
  if(operation.type==="duplicate_clip"){
-  const original=clips.find(c=>c.id===operation.clipId);if(!original)throw new Error("Duplicate karne wala clip nahi mila.");
+  const original=clips.find(c=>c.id===operation.clipId);if(!original)throw new Error("The clip to duplicate could not be found.");
   const copy={...clone(original),id:uid(),name:(original.name||"Clip")+" copy",start:operation.start};if(copy.type==="video")delete copy.audioDetached;clips.push(copy);selectedId=copy.id;return;
  }
  if(operation.type==="delete_clip"){
@@ -4368,7 +4368,7 @@ async function aiExecuteOperation(operation,previewContext={}){
    const middle=lineage.map(id=>clips.find(c=>c.id===id)).find(c=>c&&Math.abs(c.start-lower)<.03&&Math.abs(c.start+c.duration-upper)<.03);
    if(middle)targetId=middle.id;
   }
-  const index=clips.findIndex(c=>c.id===targetId);if(index<0)throw new Error("Delete karne wala clip segment nahi mila.");
+  const index=clips.findIndex(c=>c.id===targetId);if(index<0)throw new Error("The clip segment to delete could not be found.");
   const removed=clips[index];clips.splice(index,1);
   if(removed.type==="video"){
    const linkedIndex=clips.findIndex(c=>c.type==="audio"&&c.detachedFromVideoId===removed.id);
@@ -4381,7 +4381,7 @@ async function aiExecuteOperation(operation,previewContext={}){
   clips.push(clip);selectedId=clip.id;const changes={...operation.changes};delete changes.text;delete changes.start;delete changes.duration;if(Object.keys(changes).length)aiWriteClipChanges(clip,{...changes,text:operation.text,start:operation.start,duration:operation.duration});return;
  }
  if(operation.type==="set_keyframes"){
-  const clip=clips.find(c=>c.id===operation.clipId);if(!clip)throw new Error("Animation clip nahi mila.");
+  const clip=clips.find(c=>c.id===operation.clipId);if(!clip)throw new Error("The animation clip could not be found.");
   clip.keyframes=operation.keyframes.map(frame=>({time:frame.time,values:{...frame.values}}));clip.autoNextKeyframe=false;selectedId=clip.id;return;
  }
  if(operation.type==="set_preview_controls"){
@@ -4396,27 +4396,27 @@ async function aiExecuteOperation(operation,previewContext={}){
   if(operation.scrollToClipId){const target=clips.find(c=>c.id===operation.scrollToClipId);if(target){renderTimeline();$("timelineScroll").scrollLeft=Math.max(0,116+target.start*scale-180);}}return;
  }
  if(operation.type==="add_asset_to_timeline"){
-  const asset=assetById(operation.assetId);if(!asset)throw new Error("Media Library asset preview ke dauran nahi mila.");
+  const asset=assetById(operation.assetId);if(!asset)throw new Error("The Media Library asset could not be found during preview.");
   const clip={id:uid(),assetId:asset.id,name:asset.name,type:asset.type,track:operation.track,start:operation.start,sourceStart:0,duration:operation.duration,volume:1};
   clips.push(clip);selectedId=clip.id;return;
  }
  if(operation.type==="rename_asset"){
-  const asset=assetById(operation.assetId);if(!asset)throw new Error("Media Library asset nahi mila.");
+  const asset=assetById(operation.assetId);if(!asset)throw new Error("The Media Library asset could not be found.");
   asset.name=operation.name;clips.filter(c=>c.assetId===asset.id).forEach(c=>{c.name=operation.name;});renderAssets();return;
  }
  if(operation.type==="remove_asset"){
-  const asset=assetById(operation.assetId);if(!asset)throw new Error("Media Library asset nahi mila.");
+  const asset=assetById(operation.assetId);if(!asset)throw new Error("The Media Library asset could not be found.");
   const ids=new Set([asset.id]);if(asset.proxyAssetId)ids.add(asset.proxyAssetId);
   assets=assets.filter(entry=>!ids.has(entry.id));renderAssets();renderPreview();return;
  }
  if(operation.type==="create_video_proxy"){
-  const asset=assetById(operation.assetId);if(!asset)throw new Error("Original video asset nahi mila.");
+  const asset=assetById(operation.assetId);if(!asset)throw new Error("The original video asset could not be found.");
   const row=[...document.querySelectorAll(".asset")].find(node=>node.dataset.assetId===asset.id),proxyButton=row?.querySelector(".asset-proxy");
   await createVideoProxy(asset.id,proxyButton||{disabled:false,textContent:"Create proxy"});
-  if(!asset.proxyAssetId||!assetById(asset.proxyAssetId))throw new Error("Video proxy create nahi ho saka. Original video unchanged hai.");return;
+  if(!asset.proxyAssetId||!assetById(asset.proxyAssetId))throw new Error("The video proxy could not be created. The original video is unchanged.");return;
  }
  if(operation.type==="set_proxy_usage"){
-  const asset=assetById(operation.assetId);if(!asset)throw new Error("Original video asset nahi mila.");
+  const asset=assetById(operation.assetId);if(!asset)throw new Error("The original video asset could not be found.");
   asset.useProxy=operation.useProxy;renderAssets();renderPreview();return;
  }
  if(operation.type==="rename_project"){project.name=operation.name;$("projectTitle").value=operation.name;return;}
@@ -4425,12 +4425,12 @@ async function aiExecuteOperation(operation,previewContext={}){
  if(operation.type==="delete_project"){aiPendingProjectAction={...operation,type:"delete"};return;}
  if(operation.type==="run_tool"){
   if(operation.clipId)selectedId=operation.clipId;
-  if(operation.tool==="beat_sync"&&selectedClip()?.type==="video"&&!clips.some(c=>c.type==="audio"&&c.track==="audio"))throw new Error("Beat Sync ke liye audio/music clip bhi required hai.");
+  if(operation.tool==="beat_sync"&&selectedClip()?.type==="video"&&!clips.some(c=>c.type==="audio"&&c.track==="audio"))throw new Error("Beat Sync also requires an audio or music clip.");
   if(operation.tool==="ai_voice_over"||operation.tool==="add_sticker")setPlayhead(playhead);
   else if(operation.clipId){const target=clips.find(c=>c.id===operation.clipId);if(target)setPlayhead(Math.min(Math.max(playhead,target.start),target.start+target.duration-.01));}
   await aiExecuteTool(operation);return;
  }
- throw new Error("AI plan mein unknown action hai. Preview cancel kar di gayi.");
+ throw new Error("The AI plan contains an unknown action. The preview was cancelled.");
 }
 async function cleanupAiPreviewAssets(){
  if(!aiPreviewAssetIds)return;
@@ -4482,7 +4482,7 @@ async function cancelAiEditorPreview(closing=false){
  $("aiPreviewPlanBtn").hidden=!aiCurrentPlan||aiCurrentPlan.needsClarification;$("aiPreviewPlanBtn").textContent="▶ Preview changes";
  $("aiPreviewPlanBtn").disabled=!aiCurrentPlan||aiCurrentPlan.needsClarification;
  aiSetBusy(false);aiSetPreviewFeedback("");
- aiSetStatus(closing?"Preview cancel ho gaya. Original project aur media restore ho gaye.":"Preview cancel kar diya. Original timeline aur media restore ho gaye.");
+ aiSetStatus(closing?"Preview cancelled. The original project and media have been restored.":"Preview cancelled. The original timeline and media have been restored.");
  if(closing)document.body.classList.remove("ai-assistant-open");
  else aiReturnToPromptWriter();
 }
@@ -4517,7 +4517,7 @@ function aiSetProjectWorkspaceRoute(action){
   const createdAt=new Date().toISOString();
   const entry={id:action.id,name:action.name,ratio:action.ratio,ratioLabel:action.ratioLabel,resolution:action.resolution,resolutionLabel:action.resolutionLabel,fps:action.fps,createdAt,updatedAt:createdAt};
   const saved=JSON.parse(localStorage.getItem(projectKey)||"[]");
-  if(saved.some(item=>item.id===entry.id))throw new Error("New project ID duplicate ho gaya. Dobara try karein.");
+  if(saved.some(item=>item.id===entry.id))throw new Error("A duplicate new project ID was detected. Please try again.");
   saved.push(entry);localStorage.setItem(projectKey,JSON.stringify(saved));
   location.assign("editor.html?id="+encodeURIComponent(entry.id)+"&v=20261121-ai-project");return;
  }
@@ -4527,7 +4527,7 @@ function aiSetProjectWorkspaceRoute(action){
 async function previewAiEditorPlan(){
  if(aiPlanBusy||aiPreviewActive||!aiCurrentPlan||aiCurrentPlan.needsClarification)return;
  if(aiCurrentPlan.requiresCloudConsent&&!$("aiCloudConsent").checked){
-  aiSetStatus("Is AI tool ke Preview se pehle cloud-processing consent zaroori hai. Neeche checkbox tick karein; Preview button ab active rahega.");
+  aiSetStatus("This AI tool requires your consent for cloud processing. Select the checkbox below; the Preview button will remain available.");
   requestAnimationFrame(()=>{
    const row=$("aiCloudConsentRow"),checkbox=$("aiCloudConsent");
    row.scrollIntoView({behavior:"smooth",block:"center"});
@@ -4535,7 +4535,7 @@ async function previewAiEditorPlan(){
   });
   return;
  }
- if(previewDraft){aiSetStatus("Aapke Properties preview mein pending changes hain. Pehle unhein Apply ya cancel karein.");return;}
+ if(previewDraft){aiSetStatus("Your Properties preview has pending changes. Apply or Cancel them before continuing.");return;}
  pause();
  aiPreviewOriginal={
   project:clone(project),clips:clone(clips),assets:assets.map(asset=>({...asset})),selectedId,playhead,scale,snapEnabled,
@@ -4549,23 +4549,23 @@ async function previewAiEditorPlan(){
  document.body.classList.add("ai-preview-active","ai-assistant-open");$("aiAssistantOverlay").classList.add("is-preview-mode");
  const assistantBody=$("aiAssistantBody");
  if(assistantBody)assistantBody.scrollTo({top:0,behavior:"auto"});
- aiSetPreviewFeedback("Preview prepare ho raha hai…");
+ aiSetPreviewFeedback("Preparing preview…");
  $("aiPreviewPlanBtn").hidden=true;$("aiApplyPlanBtn").hidden=true;$("aiCancelPreviewBtn").hidden=false;$("aiPreviewState").hidden=false;
- aiSetBusy(true);aiSetStatus("Temporary preview tayyar ho raha hai. Project aur media abhi save nahi honge.");
+ aiSetBusy(true);aiSetStatus("Preparing a temporary preview. Your project and media will not be saved yet.");
  try{
   const splitSegments=new Map(),splitPoints=new Map();
   for(let index=0;index<aiCurrentPlan.operations.length;index++){
    const operation=aiCurrentPlan.operations[index];aiSetStatus("Step "+(index+1)+" / "+aiCurrentPlan.operations.length+": "+aiOperationLabel(operation));await aiExecuteOperation(operation,{splitSegments,splitPoints});
   }
-  if(!aiPreviewHasChanges())throw new Error("Is plan se koi visible change nahi bana.");
+  if(!aiPreviewHasChanges())throw new Error("This plan did not produce a visible change.");
   renderAll();setPlayhead(Math.min(playhead,duration()));
   $("aiApplyPlanBtn").hidden=false;$("aiCancelPreviewBtn").hidden=false;$("aiPreviewState").hidden=false;
-  aiSetStatus(aiPendingProjectAction?.type==="delete"?"Review complete. Apply ke baad project page par alag Delete Project confirmation aayegi.":aiPendingProjectAction?"Review complete. Apply ke baad project action complete hoga.":"Preview ready. Video ko ▶ Play karke check karein. Apply sirf aapke kehne par hoga.");
-  notify("AI preview ready. Apply ya Cancel aapke control mein hai.");
+  aiSetStatus(aiPendingProjectAction?.type==="delete"?"Review complete. After Apply, the project page will ask you to confirm Delete Project separately.":aiPendingProjectAction?"Review complete. The project action will finish after you click Apply.":"Preview is ready. Click ▶ Play to review the video. Changes will only be applied when you click Apply.");
+  notify("AI preview is ready. You control whether to Apply or Cancel.");
  }catch(error){
-  const message=error?.message||"AI preview nahi ban saka.";
+  const message=error?.message||"The AI preview could not be created.";
   await cancelAiEditorPreview(false);
-  const feedback="Preview nahi ban saka: "+message+" Original project safe hai. Prompt ko check karke dobara try karein.";
+  const feedback="Preview failed: "+message+" Your original project is safe. Review your prompt and try again.";
   aiSetStatus(feedback,"error");
   aiSetPreviewFeedback(feedback,"error");
   requestAnimationFrame(()=>$("aiPreviewFeedback").scrollIntoView({behavior:"smooth",block:"nearest"}));
@@ -4586,7 +4586,7 @@ async function commitAiEditorPreview(){
    aiSetStatus("Project action approved.");aiSetProjectWorkspaceRoute(navigation);
   }catch(error){
    aiPreviewActive=true;aiPreviewOriginal=original;aiPreviewAssetIds=new Set(original.assets.map(asset=>asset.id));aiPendingProjectAction=navigation;
-   await cancelAiEditorPreview(false);aiSetStatus("Project action start nahi ho saka. Aapka existing project restore kar diya gaya: "+(error?.message||"Storage error."));
+   await cancelAiEditorPreview(false);aiSetStatus("The project action could not start. Your existing project has been restored: "+(error?.message||"Storage error."));
   }
   return;
  }
@@ -4598,12 +4598,12 @@ async function commitAiEditorPreview(){
   aiPreviewOriginal=null;aiPreviewAssetIds=null;aiPendingProjectAction=null;
   $("aiPreviewState").hidden=true;$("aiApplyPlanBtn").hidden=true;$("aiCancelPreviewBtn").hidden=true;$("aiPreviewPlanBtn").hidden=false;$("aiPreviewPlanBtn").textContent="Preview another version";
   setAiTimelineInert(false);
-  aiSetBusy(false);aiSetPreviewFeedback("");aiSetStatus("AI changes apply ho gayi hain. Timeline changes aik Undo step se reverse ho sakti hain.","success");
+  aiSetBusy(false);aiSetPreviewFeedback("");aiSetStatus("AI changes have been applied. Timeline changes can be reversed with one Undo step.","success");
   aiReturnToPromptWriter();
-  notify("AI changes applied. Timeline edits Undo se reverse ho sakti hain.");
+  notify("AI changes have been applied. Timeline edits can be reversed with Undo.");
  }catch(error){
   aiPreviewActive=true;aiPreviewOriginal=original;aiPreviewAssetIds=new Set(original.assets.map(asset=>asset.id));
-  await cancelAiEditorPreview(false);aiSetStatus("Save complete nahi ho saka, is liye original project restore kiya gaya. Recovery backup check karein: "+(error?.message||"Storage error."));
+  await cancelAiEditorPreview(false);aiSetStatus("Save could not be completed, so the original project was restored. Check the recovery backup: "+(error?.message||"Storage error."));
  }
 }
 function wireAiEditorAssistant(){
@@ -4622,20 +4622,20 @@ function wireAiEditorAssistant(){
   $("aiPromptWriterOutputPlaceholder").hidden=false;
   const hasQuestion=!$("aiPromptWriterQuestion").hidden;
   $("aiPromptWriterOutputPlaceholder").textContent=hasQuestion
-   ?"Gemini ke sawal ka jawab submit karne ke baad final prompt yahan nazar aayega."
-   :"Gemini ka tayyar prompt yahan nazar aayega.";
+   ?"Your final prompt will appear here after you answer Gemini's question."
+   :"Your generated prompt will appear here.";
   aiSetPromptWriterStatus(hasQuestion
-   ?"Gemini ka sawal upar visible hai. Jawab isi input box mein add karke dobara Generate Prompt dabayein."
-   :"Request update ho gayi. Naya prompt generate karein.");
+   ?"Gemini's question is visible above. Add your answer in this input box, then click Generate Prompt again."
+   :"Request updated. Generate a new prompt.");
  });
  $("aiPromptWriterInput").addEventListener("keydown",event=>{
   if((event.ctrlKey||event.metaKey)&&event.key==="Enter"){event.preventDefault();generateAiPrompt();}
  });
  $("aiPreviewPlanBtn").addEventListener("click",()=>{
   previewAiEditorPlan().catch(error=>{
-   const message=error?.message||"Preview start nahi ho saka.";
-   aiSetStatus("Preview error: "+message+" Original project mein koi change apply nahi hui.","error");
-   notify("Preview start nahi hua: "+message);
+   const message=error?.message||"Preview could not be started.";
+   aiSetStatus("Preview error: "+message+" No changes have been applied to the original project.","error");
+   notify("Preview did not start: "+message);
   });
  });
  $("aiApplyPlanBtn").addEventListener("click",commitAiEditorPreview);
@@ -4643,13 +4643,13 @@ function wireAiEditorAssistant(){
  $("aiUseRefinedPrompt").addEventListener("click",aiUseRefinedPrompt);
  $("aiEditPrompt").addEventListener("input",()=>{
   $("aiPromptCount").textContent=$("aiEditPrompt").value.length+" / 1,400";
-  if(!aiPreviewActive&&aiCurrentPlan){aiCurrentPlan=null;$("aiPlanCard").hidden=true;aiSetStatus("Prompt update ho gaya. Naya edit plan banayein.");aiSetBusy(false);}
+  if(!aiPreviewActive&&aiCurrentPlan){aiCurrentPlan=null;$("aiPlanCard").hidden=true;aiSetStatus("Prompt updated. Create a new edit plan.");aiSetBusy(false);}
  });
  $("aiCloudConsent").addEventListener("change",()=>{
   if(!aiCurrentPlan?.requiresCloudConsent)return;
   aiSetStatus($("aiCloudConsent").checked
-   ?"Consent mil gaya. Ab Preview changes dabayein; video abhi bhi aapke control mein hai."
-   :"Preview ke liye cloud-processing consent checkbox tick karna zaroori hai.");
+   ?"Consent saved. Click Preview changes to continue. The video remains under your control."
+   :"Select the cloud-processing consent checkbox before previewing.");
  });
  document.querySelectorAll("[data-ai-suggestion]").forEach(button=>{
   button.addEventListener("click",()=>{
