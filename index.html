@@ -7,13 +7,13 @@
   <meta name="theme-color" content="#100b20">
   <meta name="color-scheme" content="dark">
   <meta name="robots" content="index,follow,max-image-preview:large">
-  <title>TrivexaAI — 16 Free AI Creator Tools for YouTube, Images & Social Media</title>
-  <meta name="description" content="Use 16 free TrivexaAI creator tools for YouTube titles, captions, hashtags, video scripts, AI images, logos, thumbnails, voiceovers and image editing.">
+  <title>TrivexaAI — 18 Free AI Creator Tools for YouTube, Images & Social Media</title>
+  <meta name="description" content="Use 18 free TrivexaAI creator tools for YouTube titles, captions, hashtags, video scripts, AI images, logos, thumbnails, voiceovers and image editing.">
   <link rel="canonical" href="https://abubakar902.github.io/Creator-Kit/">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="TrivexaAI">
-  <meta property="og:title" content="TrivexaAI — 16 Free AI Creator Tools for YouTube, Images & Social Media">
-  <meta property="og:description" content="Explore 16 free tools for YouTube content, social media, AI images, logos, thumbnails, voiceovers and image editing.">
+  <meta property="og:title" content="TrivexaAI — 18 Free AI Creator Tools for YouTube, Images & Social Media">
+  <meta property="og:description" content="Explore 18 free tools for YouTube content, social media, AI images, logos, thumbnails, voiceovers and image editing.">
   <meta property="og:url" content="https://abubakar902.github.io/Creator-Kit/">
   <meta property="og:image" content="https://abubakar902.github.io/Creator-Kit/trivexaai-social-preview.jpg">
   <meta property="og:image:width" content="1200">
@@ -23,8 +23,8 @@
   <link rel="icon" type="image/png" href="trivexaai-icon.png" sizes="512x512">
   <link rel="apple-touch-icon" href="trivexaai-icon.png">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="TrivexaAI — 16 Free AI Creator Tools for YouTube, Images & Social Media">
-  <meta name="twitter:description" content="16 free tools for YouTube content, social media, AI images, logos, thumbnails, voiceovers and image editing.">
+  <meta name="twitter:title" content="TrivexaAI — 18 Free AI Creator Tools for YouTube, Images & Social Media">
+  <meta name="twitter:description" content="18 free tools for YouTube content, social media, AI images, logos, thumbnails, voiceovers and image editing.">
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -1400,6 +1400,7 @@
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 16px;
     }
+    .row[hidden], .field-group[hidden] { display: none !important; }
 
     /* Range Sliders */
     input[type="range"] {
@@ -2738,7 +2739,7 @@
             <div class="showcase-dots" aria-hidden="true">
               <span>✍️</span><span>🎨</span><span>🎙️</span>
             </div>
-            <span>16 free tools on one dashboard</span>
+            <span>18 free tools on one dashboard</span>
           </div>
         </div>
       </div>
@@ -2847,17 +2848,17 @@
             </div>
           </a>
 
-          <article class="project-card project-card-upcoming" aria-label="AI Thumbnail Studio — Coming soon">
+          <article class="project-card project-card-upcoming" aria-label="Photo Editor — Coming soon">
             <div class="project-card-top">
               <span class="project-card-icon" aria-hidden="true">🖼️</span>
               <span class="project-status project-status-upcoming">◷ Coming soon</span>
             </div>
-            <h3>AI Thumbnail Studio</h3>
-            <p>A dedicated thumbnail creation and editing workspace with AI critique, improvement suggestions and mobile-feed previews.</p>
+            <h3>Photo Editor</h3>
+            <p>A dedicated photo-editing workspace for adjusting images, refining details and creating polished visuals in one place.</p>
             <div class="project-feature-list">
-              <span>🎨 Design editor</span>
-              <span>✦ AI thumbnail critic</span>
-              <span>📱 Feed preview</span>
+              <span>🖼️ Photo editing</span>
+              <span>🎨 Image adjustments</span>
+              <span>✨ Creative workspace</span>
             </div>
             <div class="project-card-footer">
               <span>In the project roadmap</span>
@@ -2898,7 +2899,7 @@
             <div class="section-kicker">SUITE DIRECTORY</div>
             <h2 class="section-title" id="tools-title">Find the right tool</h2>
           </div>
-          <span class="tools-count" id="toolCount">16 tools across 4 categories</span>
+          <span class="tools-count" id="toolCount">18 tools across 3 categories</span>
         </div>
         <div class="tool-search-row">
           <div class="tool-search-wrap">
@@ -2934,7 +2935,7 @@
             <h3>Creator tools</h3>
             <p>Turn your ideas into ready-to-use content and viral scripts.</p>
           </div>
-          <span class="category-count">7 tools</span>
+          <span class="category-count">8 tools</span>
         </div>
         <section class="tools" aria-label="Creator tools">
           <button class="tool" data-tool="titles" type="button">
@@ -2978,6 +2979,12 @@
             <strong>AI Creator Assistant</strong>
             <small>Turn one video topic into titles, description, thumbnail text, captions and hashtags.</small>
             <span class="tool-cta-label">Open Tool →</span>
+          </button>
+          <button class="tool" data-tool="qa" type="button">
+            <span class="emoji">💡</span>
+            <strong>AI Question Answer</strong>
+            <small>Ask about YouTube, learning or any topic and get a clear AI explanation with helpful examples.</small>
+            <span class="tool-cta-label">Ask a Question →</span>
           </button>
         </section>
       </section>
@@ -3562,12 +3569,17 @@
       </div>
 
       <form id="generatorForm">
-        <div class="field-group">
+        <div class="field-group" id="generatorTopicGroup">
           <label for="topic">Your topic or core idea</label>
           <input id="topic" maxlength="500" required placeholder="e.g. Best AI productivity tools for freelancers in 2026">
         </div>
+        <div class="field-group" id="qaQuestionGroup" hidden>
+          <label for="qaQuestion">What would you like to know?</label>
+          <textarea id="qaQuestion" maxlength="1400" rows="4" placeholder="Type your question here. You can ask about YouTube, learning, technology or any general topic."></textarea>
+          <p class="workspace-intro" style="font-size:12px;margin-top:6px">Ask one clear question. Add extra context below when it helps explain what you mean.</p>
+        </div>
 
-        <div class="row">
+        <div class="row" id="generatorOptionsRow">
           <div class="field-group">
             <label for="platform">Target platform</label>
             <select id="platform">
@@ -3590,8 +3602,8 @@
           </div>
         </div>
 
-        <div class="field-group">
-          <label for="details">Additional context & constraints (optional)</label>
+        <div class="field-group" id="generatorDetailsGroup">
+          <label for="details" id="generatorDetailsLabel">Additional context & constraints (optional)</label>
           <textarea id="details" maxlength="1000" placeholder="Target demographic, specific talking points, constraints, or unique angles..."></textarea>
           <p class="workspace-intro" style="font-size:12px;margin-top:6px">Outputs are synthesized in polished English for maximum international reach.</p>
         </div>
@@ -3604,7 +3616,7 @@
 
       <div class="result-head">
         <div class="result-head-title">
-          <h3>Generated Result</h3>
+          <h3 id="resultHeading">Generated Result</h3>
           <span class="result-tag">Ready</span>
         </div>
         <div class="result-actions-group">
@@ -4018,7 +4030,7 @@
 
     <!-- SEO DIRECTORY SECTION -->
     <section id="all-tool-pages" aria-labelledby="all-tool-pages-title" style="margin:48px auto;padding:clamp(20px,3.5vw,30px);border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--panel);color:var(--muted)">
-      <h2 id="all-tool-pages-title" style="color:var(--text);margin:0 0 8px;font-size:22px;font-weight:800">Explore all 16 free online tools</h2>
+      <h2 id="all-tool-pages-title" style="color:var(--text);margin:0 0 8px;font-size:22px;font-weight:800">Explore all 18 free online tools</h2>
       <p style="color:var(--text-secondary);font-size:13.5px;margin:0 0 16px">Open individual tool guides to discover step-by-step documentation, recommended prompts, and technical specifications for each creator tool.</p>
       <ul class="seo-tool-directory">
         <li><a href="youtube-title-generator.html">YouTube Title Generator</a><span>Generate catchy YouTube video title ideas with TrivexaAI. Enter your topic and audience to create clear, curiosity-driven titles for your next upload.</span></li>
@@ -4461,6 +4473,11 @@
         title: "📱 YouTube Shorts Script Generator",
         description: "Create engaging YouTube Shorts scripts with a powerful opening hook, short spoken lines, visual suggestions, and a clear ending. Perfect for 30–45 second videos.",
         prompt: "Write a 30- to 45-second YouTube Shorts script. Include a strong opening hook, concise spoken lines, suggested visual actions, and a clear ending or call to action. Keep it easy to record."
+      },
+      qa: {
+        title: "💡 AI Question Answer",
+        description: "Ask a question about YouTube, learning, technology, content creation or general topics. Get a clear, easy-to-understand AI answer with examples when helpful.",
+        prompt: "You are a careful, helpful question-answering assistant. Answer the user's question directly in clear, simple English. Explain unfamiliar ideas step by step and give a short practical example when it helps. Separate confirmed facts from estimates. Never invent facts, statistics, citations, sources or quotes. Do not claim that you searched the live web or watched a YouTube video. For breaking news, current prices, laws, schedules, software versions or other fast-changing information, clearly say when your knowledge may be out of date and recommend checking a current reliable source. If the question is ambiguous, briefly state the most likely interpretation or ask one focused clarification. Keep the answer relevant and easy to understand."
       }
     };
 
@@ -4521,11 +4538,12 @@
       "image-compressor": "Choose a format and quality that fit your use. Lower file size can reduce image detail, so preview before downloading.",
       voice: "Use clear text with punctuation and natural sentence breaks. Preview the audio before downloading it.",
       downloader: "Paste a public video link and inspect the available formats. Only download content you have permission to use.",
-      "ai-assistant": "Enter one video topic to create five connected content assets. Review names, facts and claims before publishing."
+      "ai-assistant": "Enter one video topic to create five connected content assets. Review names, facts and claims before publishing.",
+      qa: "Write your question clearly. Add optional context when the answer depends on your level, topic or a specific situation. Check fast-changing facts with a current source."
     };
     const toolWorkspaceByName = {
       titles: generatorWorkspace, caption: generatorWorkspace, hashtags: generatorWorkspace,
-      description: generatorWorkspace, hooks: generatorWorkspace, script: generatorWorkspace,
+      description: generatorWorkspace, hooks: generatorWorkspace, script: generatorWorkspace, qa: generatorWorkspace,
       image: imageWorkspace, logo: logoWorkspace, thumbnail: thumbnailWorkspace,
       "background-remover": backgroundRemoverWorkspace, upscaler: upscalerWorkspace,
       "photo-text": photoTextWorkspace, "image-enhancer": imageEnhancerWorkspace,
@@ -4648,9 +4666,25 @@
 
         selectedTool = toolName;
         generatorWorkspace.style.display = "block";
+        const isQuestionTool = selectedTool === "qa";
         document.getElementById("toolTitle").textContent = toolInfo[selectedTool].title;
         document.getElementById("toolDescription").textContent = toolInfo[selectedTool].description;
-        result.textContent = "Your generated output will appear here. Submit your topic above to begin.";
+        document.getElementById("generatorTopicGroup").hidden = isQuestionTool;
+        document.getElementById("qaQuestionGroup").hidden = !isQuestionTool;
+        document.getElementById("generatorOptionsRow").hidden = isQuestionTool;
+        document.getElementById("topic").required = !isQuestionTool;
+        document.getElementById("qaQuestion").required = isQuestionTool;
+        document.getElementById("generatorDetailsLabel").textContent = isQuestionTool
+          ? "Extra context (optional)"
+          : "Additional context & constraints (optional)";
+        document.getElementById("details").placeholder = isQuestionTool
+          ? "Add the subject, level of detail or situation that will help answer your question..."
+          : "Target demographic, specific talking points, constraints, or unique angles...";
+        document.getElementById("generateButton").textContent = isQuestionTool ? "💡 Get Answer" : "✨ Generate Content";
+        document.getElementById("resultHeading").textContent = isQuestionTool ? "AI Answer" : "Generated Result";
+        result.textContent = isQuestionTool
+          ? "Your answer will appear here. Type a question above and select Get Answer."
+          : "Your generated output will appear here. Submit your topic above to begin.";
         result.classList.add("result-empty");
         message.textContent = "";
         generatorWorkspace.scrollIntoView({ behavior: "smooth" });
@@ -5100,7 +5134,7 @@
     filterToolDirectory();
 
     // GEMINI AI INTEGRATION
-    async function askGemini(prompt) {
+    async function askGemini(prompt, toolId = "") {
       const englishOnlyPrompt = [
         "MANDATORY OUTPUT LANGUAGE: ENGLISH ONLY.",
         "Write the entire answer in clear, natural English. Do not use Urdu script, Roman Urdu, Hindi, or mixed-language wording.",
@@ -5113,7 +5147,7 @@
       const response = await workerFetch(WORKER_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: `${englishOnlyPrompt}\n${prompt}` })
+        body: JSON.stringify({ prompt: `${englishOnlyPrompt}\n${prompt}`, ...(toolId ? { toolId } : {}) })
       });
 
       let data;
@@ -5135,7 +5169,10 @@
     form.addEventListener("submit", async event => {
       event.preventDefault();
 
-      const topic = document.getElementById("topic").value.trim();
+      const isQuestionTool = selectedTool === "qa";
+      const topic = (isQuestionTool
+        ? document.getElementById("qaQuestion").value
+        : document.getElementById("topic").value).trim();
       const platform = document.getElementById("platform").value;
       const tone = document.getElementById("tone").value;
       const details = document.getElementById("details").value.trim();
@@ -5146,39 +5183,52 @@
       }
 
       if (!topic) {
-        message.textContent = "Please enter a topic first.";
+        message.textContent = isQuestionTool ? "Please enter your question first." : "Please enter a topic first.";
+        (isQuestionTool ? document.getElementById("qaQuestion") : document.getElementById("topic")).focus();
         return;
       }
 
-      const prompt = [
-        toolInfo[selectedTool].prompt,
-        "",
-        "Topic: " + topic,
-        "Platform: " + platform,
-        "Style: " + tone,
-        details ? "Extra details: " + details : "",
-        "",
-        "Use the requested format. Write in clear, useful language. Do not claim that any result is guaranteed to go viral."
-      ].filter(Boolean).join("\n");
+      const prompt = isQuestionTool
+        ? [
+            toolInfo[selectedTool].prompt,
+            "",
+            "USER QUESTION:",
+            topic,
+            details ? "ADDITIONAL CONTEXT: " + details : "",
+            "",
+            "Give the most useful accurate answer you can. Use a short heading or numbered steps only when they make the explanation clearer."
+          ].filter(Boolean).join("\n")
+        : [
+            toolInfo[selectedTool].prompt,
+            "",
+            "Topic: " + topic,
+            "Platform: " + platform,
+            "Style: " + tone,
+            details ? "Extra details: " + details : "",
+            "",
+            "Use the requested format. Write in clear, useful language. Do not claim that any result is guaranteed to go viral."
+          ].filter(Boolean).join("\n");
 
       generateButton.disabled = true;
-      generateButton.textContent = "⏳ Generating...";
-      result.textContent = "Gemini AI is crafting your suggestions...";
+      generateButton.textContent = isQuestionTool ? "⏳ Thinking..." : "⏳ Generating...";
+      result.textContent = isQuestionTool
+        ? "Gemini AI is preparing a clear answer..."
+        : "Gemini AI is crafting your suggestions...";
       result.classList.remove("result-empty");
-      message.textContent = "Please wait a moment.";
+      message.textContent = isQuestionTool ? "AI is reviewing your question." : "Please wait a moment.";
 
       try {
-        const answer = await askGemini(prompt);
+        const answer = await askGemini(prompt, isQuestionTool ? "ai-question-answer" : "");
         result.textContent = answer;
         result.classList.remove("result-empty");
-        message.textContent = "✓ Result generated successfully.";
+        message.textContent = isQuestionTool ? "✓ Answer generated successfully." : "✓ Result generated successfully.";
         void saveRecentResult({ kind: "text", tool: toolInfo[selectedTool].title.replace(/^[^\w]+/, ""), title: topic, text: answer });
       } catch (error) {
         result.textContent = "We couldn't generate a result this time.";
         message.textContent = error.message + " Please wait and try again.";
       } finally {
         generateButton.disabled = false;
-        generateButton.textContent = "✨ Generate Content";
+        generateButton.textContent = selectedTool === "qa" ? "💡 Get Answer" : "✨ Generate Content";
       }
     });
 
@@ -5192,15 +5242,18 @@
     });
 
     document.getElementById("clearResultBtn")?.addEventListener("click", () => {
-      result.textContent = "Your generated output will appear here. Submit your topic above to begin.";
+      result.textContent = selectedTool === "qa"
+        ? "Your answer will appear here. Type a question above and select Get Answer."
+        : "Your generated output will appear here. Submit your topic above to begin.";
       result.classList.add("result-empty");
       message.textContent = "";
     });
 
     document.getElementById("clearGeneratorInputsBtn")?.addEventListener("click", () => {
       document.getElementById("topic").value = "";
+      document.getElementById("qaQuestion").value = "";
       document.getElementById("details").value = "";
-      document.getElementById("topic").focus();
+      (selectedTool === "qa" ? document.getElementById("qaQuestion") : document.getElementById("topic")).focus();
     });
 
     // AI CREATOR ASSISTANT: one topic, five connected content outputs
