@@ -5264,7 +5264,8 @@
         return;
       }
       const searchUrl = "https://www.google.com/search?q=" + encodeURIComponent(question);
-      const searchWindow = window.open(searchUrl, "_blank", "noopener,noreferrer");
+      const searchWindow = window.open(searchUrl, "_blank");
+      if (searchWindow) searchWindow.opener = null;
       message.textContent = searchWindow
         ? "Google Search opened in a new tab. Copy useful text from a reliable result and paste it below."
         : "Your browser blocked the new tab. Allow pop-ups for this site, then try again.";
