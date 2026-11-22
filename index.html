@@ -2983,7 +2983,7 @@
           <button class="tool" data-tool="qa" type="button">
             <span class="emoji">💡</span>
             <strong>AI Question Answer</strong>
-            <small>Ask about YouTube, learning or any topic and get a clear AI explanation with helpful examples.</small>
+            <small>Ask a question, search Google yourself, then paste text for a clear answer or summary.</small>
             <span class="tool-cta-label">Ask a Question →</span>
           </button>
         </section>
@@ -3576,7 +3576,19 @@
         <div class="field-group" id="qaQuestionGroup" hidden>
           <label for="qaQuestion">What would you like to know?</label>
           <textarea id="qaQuestion" maxlength="1400" rows="4" placeholder="Type your question here. You can ask about YouTube, learning, technology or any general topic."></textarea>
-          <p class="workspace-intro" style="font-size:12px;margin-top:6px">Ask one clear question. Add extra context below when it helps explain what you mean.</p>
+          <p class="workspace-intro" style="font-size:12px;margin-top:6px">Ask one clear question. You can search it on Google below, then paste useful article text for an answer based on that material.</p>
+        </div>
+        <div id="qaSearchToolsGroup" hidden style="margin:0 0 16px;padding:16px;border:1px solid var(--border);border-radius:14px;background:rgba(155,108,255,.06)">
+          <div class="field-group" style="margin-bottom:12px">
+            <button class="secondary" id="qaGoogleSearchButton" type="button" style="width:100%;min-height:44px">🔎 Search this question on Google</button>
+            <p class="workspace-intro" style="font-size:12px;margin:7px 0 0">Google opens in a new tab. TrivexaAI does not automatically read search results. Open a reliable result, copy the relevant text, and paste it below.</p>
+          </div>
+          <div class="field-group" style="margin-bottom:12px">
+            <label for="qaSourceText">Paste article, webpage text or notes (optional)</label>
+            <textarea id="qaSourceText" maxlength="12000" rows="7" placeholder="Paste the copied article or information here. Paste the relevant text, not only the webpage link."></textarea>
+            <p class="workspace-intro" style="font-size:12px;margin-top:6px">You can ask a question about this text using Get Answer, or create a separate summary with the button below. Avoid pasting passwords or private information.</p>
+          </div>
+          <button class="secondary" id="qaSummarizeButton" type="button" style="width:100%;min-height:44px">📝 Summarize Pasted Text</button>
         </div>
 
         <div class="row" id="generatorOptionsRow">
@@ -4477,11 +4489,16 @@
       qa: {
         title: "💡 AI Question Answer",
         description: "Ask a question about YouTube, learning, technology, content creation or general topics. Get a clear, easy-to-understand AI answer with examples when helpful.",
-        prompt: "You are a careful, helpful question-answering assistant. Answer the user's question directly in clear, simple English. Explain unfamiliar ideas step by step and give a short practical example when it helps. Separate confirmed facts from estimates. Never invent facts, statistics, citations, sources or quotes. Do not claim that you searched the live web or watched a YouTube video. For breaking news, current prices, laws, schedules, software versions or other fast-changing information, clearly say when your knowledge may be out of date and recommend checking a current reliable source. If the question is ambiguous, briefly state the most likely interpretation or ask one focused clarification. Keep the answer relevant and easy to understand."
+        prompt: "You are a careful, helpful question-answering assistant. Answer directly in clear, simple English. Explain unfamiliar ideas step by step and give a practical example when useful. Never invent facts, statistics, citations, sources or quotes, and never claim to have searched the live web. For recent or fast-changing information, explain that your knowledge may be out of date unless the user supplies current material. When the user supplies article text or notes, use them as user-provided material, distinguish what the text claims from established facts, and do not imply that you independently opened or verified the source. If the user asks for a summary, preserve the main meaning, important names, dates and figures without adding unsupported information. If the question is ambiguous, briefly state the likely interpretation or ask one focused clarification. Keep the answer relevant and easy to understand."
       }
     };
 
     let selectedTool = null;
+    let qaOutputMode = "answer";
+    const qaQuestionInput = document.getElementById("qaQuestion");
+    const qaSourceTextInput = document.getElementById("qaSourceText");
+    const qaGoogleSearchButton = document.getElementById("qaGoogleSearchButton");
+    const qaSummarizeButton = document.getElementById("qaSummarizeButton");
 
     const form = document.getElementById("generatorForm");
     const result = document.getElementById("result");
@@ -4671,7 +4688,9 @@
         document.getElementById("toolDescription").textContent = toolInfo[selectedTool].description;
         document.getElementById("generatorTopicGroup").hidden = isQuestionTool;
         document.getElementById("qaQuestionGroup").hidden = !isQuestionTool;
+        document.getElementById("qaSearchToolsGroup").hidden = !isQuestionTool;
         document.getElementById("generatorOptionsRow").hidden = isQuestionTool;
+        qaOutputMode = "answer";
         document.getElementById("topic").required = !isQuestionTool;
         document.getElementById("qaQuestion").required = isQuestionTool;
         document.getElementById("generatorDetailsLabel").textContent = isQuestionTool
@@ -5195,8 +5214,9 @@
             "USER QUESTION:",
             topic,
             details ? "ADDITIONAL CONTEXT: " + details : "",
+            qaSourceTextInput.value.trim() ? "USER-PROVIDED SOURCE TEXT (not independently verified by TrivexaAI):\\n" + qaSourceTextInput.value.trim() : "",
             "",
-            "Give the most useful accurate answer you can. Use a short heading or numbered steps only when they make the explanation clearer."
+            "Answer accurately. Use supplied text when relevant, identify it as user-provided information, and point out uncertainty or conflicting claims. Do not say you searched Google or verified the source yourself. Use a short heading or numbered steps only when they make the explanation clearer."
           ].filter(Boolean).join("\n")
         : [
             toolInfo[selectedTool].prompt,
@@ -5221,6 +5241,10 @@
         const answer = await askGemini(prompt, isQuestionTool ? "ai-question-answer" : "");
         result.textContent = answer;
         result.classList.remove("result-empty");
+        if (isQuestionTool) {
+          qaOutputMode = "answer";
+          document.getElementById("resultHeading").textContent = "AI Answer";
+        }
         message.textContent = isQuestionTool ? "✓ Answer generated successfully." : "✓ Result generated successfully.";
         void saveRecentResult({ kind: "text", tool: toolInfo[selectedTool].title.replace(/^[^\w]+/, ""), title: topic, text: answer });
       } catch (error) {
@@ -5229,6 +5253,63 @@
       } finally {
         generateButton.disabled = false;
         generateButton.textContent = selectedTool === "qa" ? "💡 Get Answer" : "✨ Generate Content";
+      }
+    });
+
+    qaGoogleSearchButton?.addEventListener("click", () => {
+      const question = qaQuestionInput.value.trim();
+      if (!question) {
+        message.textContent = "Enter your question first, then open Google Search.";
+        qaQuestionInput.focus();
+        return;
+      }
+      const searchUrl = "https://www.google.com/search?q=" + encodeURIComponent(question);
+      const searchWindow = window.open(searchUrl, "_blank", "noopener,noreferrer");
+      message.textContent = searchWindow
+        ? "Google Search opened in a new tab. Copy useful text from a reliable result and paste it below."
+        : "Your browser blocked the new tab. Allow pop-ups for this site, then try again.";
+    });
+
+    qaSummarizeButton?.addEventListener("click", async () => {
+      if (selectedTool !== "qa") return;
+      const sourceText = qaSourceTextInput.value.trim();
+      if (!sourceText) {
+        message.textContent = "Paste the article or text you want summarized first.";
+        qaSourceTextInput.focus();
+        return;
+      }
+
+      const focusQuestion = qaQuestionInput.value.trim();
+      const summaryPrompt = [
+        "You are a careful text-summarization assistant.",
+        "Summarize ONLY the user-provided text below. Do not add outside facts or pretend to verify it on the live web.",
+        "Write in clear, simple English. Start with a short overall summary, then list the most important points. Preserve important names, dates, figures and conditions. Clearly mention uncertainty, missing context or conflicting statements when present. Do not invent sources or citations.",
+        focusQuestion ? "OPTIONAL USER FOCUS: " + focusQuestion : "",
+        "",
+        "TEXT TO SUMMARIZE:",
+        sourceText
+      ].filter(Boolean).join("\\n");
+
+      qaSummarizeButton.disabled = true;
+      qaSummarizeButton.textContent = "⏳ Summarizing...";
+      result.textContent = "TrivexaAI is preparing a clear summary of your pasted text...";
+      result.classList.remove("result-empty");
+      qaOutputMode = "summary";
+      document.getElementById("resultHeading").textContent = "Text Summary";
+      message.textContent = "AI is reading the text you provided. It is not independently checking the webpage.";
+
+      try {
+        const summary = await askGemini(summaryPrompt, "ai-question-answer");
+        result.textContent = summary;
+        result.classList.remove("result-empty");
+        message.textContent = "✓ Summary created successfully.";
+        void saveRecentResult({ kind: "text", tool: "AI Question Answer", title: (focusQuestion || "Pasted text summary").slice(0, 120), text: summary });
+      } catch (error) {
+        result.textContent = "We couldn't summarize this text right now.";
+        message.textContent = error.message + " Please try again.";
+      } finally {
+        qaSummarizeButton.disabled = false;
+        qaSummarizeButton.textContent = "📝 Summarize Pasted Text";
       }
     });
 
@@ -5243,15 +5324,17 @@
 
     document.getElementById("clearResultBtn")?.addEventListener("click", () => {
       result.textContent = selectedTool === "qa"
-        ? "Your answer will appear here. Type a question above and select Get Answer."
+        ? (qaOutputMode === "summary" ? "Your summary will appear here. Paste text above and select Summarize Pasted Text." : "Your answer will appear here. Type a question above and select Get Answer.")
         : "Your generated output will appear here. Submit your topic above to begin.";
       result.classList.add("result-empty");
+      if (selectedTool === "qa") document.getElementById("resultHeading").textContent = qaOutputMode === "summary" ? "Text Summary" : "AI Answer";
       message.textContent = "";
     });
 
     document.getElementById("clearGeneratorInputsBtn")?.addEventListener("click", () => {
       document.getElementById("topic").value = "";
       document.getElementById("qaQuestion").value = "";
+      document.getElementById("qaSourceText").value = "";
       document.getElementById("details").value = "";
       (selectedTool === "qa" ? document.getElementById("qaQuestion") : document.getElementById("topic")).focus();
     });
