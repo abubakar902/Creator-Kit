@@ -2636,13 +2636,32 @@
   <script type="module" src="auth/auth-client.js"></script>
 
   <style id="video-studio-home-card-styles">
-    .video-studio-promo{position:relative;isolation:isolate;overflow:hidden;display:grid;grid-template-columns:minmax(0,1.35fr) minmax(210px,.65fr);align-items:center;gap:24px;margin:0 0 34px;padding:clamp(22px,3vw,34px);border:1px solid #7041a6;border-radius:22px;background:radial-gradient(ellipse at 86% 44%,rgba(142,55,255,.30),transparent 38%),linear-gradient(112deg,#211238 0%,#160e2b 56%,#211044 100%);box-shadow:0 16px 42px rgba(20,5,45,.28)}
-    .video-studio-promo:after{content:"▶";position:absolute;z-index:-1;right:8%;top:50%;transform:translateY(-50%) rotate(-9deg);font-size:clamp(100px,14vw,180px);line-height:1;color:rgba(190,114,255,.13);text-shadow:0 0 38px rgba(157,78,255,.45)}
-    .video-studio-promo-copy{min-width:0}.video-studio-promo-badge{display:inline-flex;align-items:center;gap:7px;margin-bottom:12px;padding:6px 10px;border:1px solid rgba(194,133,255,.42);border-radius:999px;background:rgba(123,56,190,.20);color:#e3c5ff;font-size:11px;font-weight:800;letter-spacing:.8px;text-transform:uppercase}
-    .video-studio-promo h2{margin:0 0 9px;color:#fff;font-size:clamp(22px,3vw,31px);line-height:1.2;letter-spacing:-.7px}.video-studio-promo h2 span{background:linear-gradient(90deg,#c17aff,#ef8bdc);-webkit-background-clip:text;background-clip:text;color:transparent}
-    .video-studio-promo p{max-width:650px;margin:0;color:#cbbbdc;font-size:14px;line-height:1.65}.video-studio-promo-features{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}.video-studio-promo-features span{padding:7px 10px;border:1px solid rgba(190,151,225,.2);border-radius:9px;background:rgba(255,255,255,.045);color:#e4d5f5;font-size:11px}
-    .video-studio-promo-action{position:relative;z-index:1;justify-self:end;display:flex;flex-direction:column;align-items:center;gap:10px;width:min(100%,235px)}.video-studio-promo-button{display:inline-flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:51px;padding:12px 18px;border:1px solid rgba(255,255,255,.18);border-radius:13px;background:linear-gradient(100deg,#a32fff,#713cff 68%,#3779ff);box-shadow:0 9px 26px rgba(111,50,225,.35);color:#fff!important;font-size:14px;font-weight:800;text-decoration:none!important;transition:transform .2s,filter .2s}.video-studio-promo-button:hover{transform:translateY(-2px);filter:brightness(1.1)}.video-studio-promo-note{color:#b9a8ce;font-size:11px;text-align:center}
-    @media(max-width:720px){.video-studio-promo{grid-template-columns:1fr;gap:20px;margin-bottom:25px}.video-studio-promo-action{justify-self:stretch;width:100%;align-items:stretch}.video-studio-promo-button{min-height:48px}.video-studio-promo-note{text-align:left}.video-studio-promo:after{right:3%;top:25%;font-size:110px}}
+    /* MAIN PROJECT DIRECTORY */
+    .projects-panel{margin:0 0 34px}
+    .projects-welcome{position:relative;overflow:hidden;margin:0 0 20px;padding:clamp(22px,4vw,34px);border:1px solid var(--border-strong);border-radius:var(--radius-lg);background:radial-gradient(circle at 88% 0%,rgba(232,121,249,.16),transparent 38%),linear-gradient(135deg,#24183f,#150e29 78%);box-shadow:var(--shadow-card)}
+    .projects-welcome h2{margin:5px 0 7px;font-size:clamp(25px,3.4vw,36px);letter-spacing:-.8px}
+    .projects-welcome p{max-width:720px;margin:0;color:var(--text-secondary);font-size:13.5px}
+    .projects-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+    .project-card{position:relative;display:flex;flex-direction:column;min-width:0;min-height:275px;padding:19px;border:1px solid var(--border);border-radius:18px;background:linear-gradient(155deg,rgba(39,27,65,.96),rgba(22,15,40,.98));box-shadow:var(--shadow-card);transition:transform .2s,border-color .2s,background .2s}
+    .project-card-live{border-color:rgba(155,108,255,.5);background:radial-gradient(circle at 100% 0%,rgba(155,108,255,.19),transparent 48%),linear-gradient(155deg,#291b45,#160f29)}
+    .project-card-link:hover{transform:translateY(-4px);border-color:var(--purple-light);background-color:var(--panel-hover);box-shadow:var(--shadow-glow)}
+    .project-card-link:focus-visible{outline:2px solid var(--purple-light);outline-offset:4px}
+    .project-card-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:18px}
+    .project-card-icon{display:grid;place-items:center;width:52px;height:52px;border:1px solid var(--border-strong);border-radius:15px;background:rgba(155,108,255,.15);font-size:27px}
+    .project-status{display:inline-flex;align-items:center;gap:6px;padding:5px 9px;border:1px solid var(--border);border-radius:999px;color:var(--text-secondary);background:rgba(255,255,255,.045);font-size:9px;font-weight:850;letter-spacing:.55px;text-transform:uppercase;white-space:nowrap}
+    .project-status-live{border-color:rgba(140,240,189,.32);color:#b9f7d6;background:rgba(40,190,125,.12)}
+    .project-status-upcoming{border-color:rgba(232,121,249,.3);color:#f1c8ff;background:rgba(180,85,220,.12)}
+    .project-card h3{margin:0 0 8px;font-size:19px;line-height:1.25;letter-spacing:-.25px}
+    .project-card p{margin:0;color:var(--text-secondary);font-size:12px;line-height:1.65}
+    .project-feature-list{display:flex;flex-wrap:wrap;gap:7px;margin:15px 0 18px}
+    .project-feature-list span{padding:6px 8px;border:1px solid rgba(190,151,225,.18);border-radius:8px;background:rgba(255,255,255,.035);color:#ded1ef;font-size:10px}
+    .project-card-footer{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:auto;padding-top:13px;border-top:1px solid rgba(155,108,255,.13);color:var(--muted);font-size:10px}
+    .project-open-label{color:#d9c2ff;font-size:11px;font-weight:850}
+    .project-card-upcoming{background:linear-gradient(155deg,rgba(31,23,49,.94),rgba(20,14,35,.98));border-style:dashed}
+    .project-card-upcoming .project-card-icon{background:rgba(232,121,249,.08);border-color:rgba(232,121,249,.2)}
+    .project-roadmap-note{margin:16px 0 0;padding:13px 15px;border:1px dashed var(--border-strong);border-radius:12px;color:var(--muted);font-size:11px}
+    @media(max-width:900px){.projects-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media(max-width:580px){.projects-grid{grid-template-columns:1fr}.project-card{min-height:240px}.project-card-footer{font-size:10px}}
   </style>
 </head>
 <body>
@@ -2655,6 +2674,7 @@
         <span class="logo">Trivexa<span>AI</span></span>
       </a>
       <div class="nav-right">
+        <a class="nav-link" href="#workspaceTabs" data-switch-tab="projects">Projects</a>
         <a class="nav-link" href="#workspaceTabs" data-switch-tab="search">Explore tools</a>
         <a class="nav-link" href="#workspaceTabs" data-switch-tab="favourites">Favourites</a>
         <a class="nav-link nav-auth-link" id="navSignIn" href="auth/login.html">Sign in</a>
@@ -2731,6 +2751,9 @@
         <button type="button" class="tab-btn active" id="tabNavHub" role="tab" aria-selected="true" aria-controls="panelHub">
           <span class="tab-icon">✨</span><span>Creator Hub</span><span class="tab-badge">Home</span>
         </button>
+        <button type="button" class="tab-btn" id="tabNavProjects" role="tab" aria-selected="false" aria-controls="panelProjects">
+          <span class="tab-icon">🚀</span><span>Projects</span><span class="tab-badge">3</span>
+        </button>
         <button type="button" class="tab-btn" id="tabNavSearch" role="tab" aria-selected="false" aria-controls="panelSearch">
           <span class="tab-icon">🔍</span>
           <span>Search Tools</span>
@@ -2751,6 +2774,7 @@
         <h2>✨ Welcome to TrivexaAI Creator Hub</h2>
         <p>Your tools and recent activity — all organized in one simple workspace.</p>
         <div class="hub-quick-actions">
+          <button class="hub-action" type="button" data-switch-tab="projects">🚀 Explore Projects</button>
           <button class="hub-action" type="button" data-switch-tab="search">🔎 Browse all tools</button>
           <button class="hub-action" type="button" data-switch-tab="history">🕘 Recent History</button>
         </div>
@@ -2794,21 +2818,75 @@
       </section>
     </div>
 
-    <!-- TRIVEXAAI VIDEO STUDIO ENTRY CARD -->
-    <section class="video-studio-promo" aria-labelledby="videoStudioPromoTitle">
-      <div class="video-studio-promo-copy">
-        <span class="video-studio-promo-badge">✦ Advanced Creative Workspace</span>
-        <h2 id="videoStudioPromoTitle">Meet <span>TrivexaAI Video Studio</span></h2>
-        <p>Create videos in a dedicated editing workspace. Start a project, choose your format, resolution and frame rate, then continue into the editor as new editing features become available.</p>
-        <div class="video-studio-promo-features" aria-label="Video Studio features">
-          <span>🎞️ Video projects</span><span>✂️ Timeline editing</span><span>✨ AI editing tools</span><span>📱 Mobile friendly</span>
+    <!-- MAIN PROJECTS DIRECTORY -->
+    <div class="tab-panel" id="panelProjects" role="tabpanel" aria-labelledby="tabNavProjects">
+      <section class="projects-panel" aria-labelledby="projectsTitle">
+        <div class="projects-welcome">
+          <div class="section-kicker">TRIVEXAAI MAIN WORKSPACES</div>
+          <h2 id="projectsTitle">🚀 Projects</h2>
+          <p>Explore TrivexaAI's full creative workspaces. Small, focused tools stay in the Tools section, while complete projects live here in one dedicated place.</p>
         </div>
-      </div>
-      <div class="video-studio-promo-action">
-        <a class="video-studio-promo-button" href="./video-studio/">Open Video Studio <span aria-hidden="true">→</span></a>
-        <span class="video-studio-promo-note">Requires Video Studio access on your TrivexaAI account</span>
-      </div>
-    </section>
+
+        <div class="projects-grid" aria-label="TrivexaAI projects">
+          <a class="project-card project-card-live project-card-link" href="./video-studio/" aria-label="Open TrivexaAI Video Studio">
+            <div class="project-card-top">
+              <span class="project-card-icon" aria-hidden="true">🎬</span>
+              <span class="project-status project-status-live">● Available now</span>
+            </div>
+            <h3>TrivexaAI Video Studio</h3>
+            <p>A dedicated video-editing workspace with projects, a multi-track timeline, preview controls and an AI editing assistant.</p>
+            <div class="project-feature-list">
+              <span>🎞️ Timeline editing</span>
+              <span>✨ AI editor</span>
+              <span>▶️ Preview &amp; Apply</span>
+              <span>📱 Responsive workspace</span>
+            </div>
+            <div class="project-card-footer">
+              <span>Advanced account access required</span>
+              <span class="project-open-label">Open Project →</span>
+            </div>
+          </a>
+
+          <article class="project-card project-card-upcoming" aria-label="AI Thumbnail Studio — Coming soon">
+            <div class="project-card-top">
+              <span class="project-card-icon" aria-hidden="true">🖼️</span>
+              <span class="project-status project-status-upcoming">◷ Coming soon</span>
+            </div>
+            <h3>AI Thumbnail Studio</h3>
+            <p>A dedicated thumbnail creation and editing workspace with AI critique, improvement suggestions and mobile-feed previews.</p>
+            <div class="project-feature-list">
+              <span>🎨 Design editor</span>
+              <span>✦ AI thumbnail critic</span>
+              <span>📱 Feed preview</span>
+            </div>
+            <div class="project-card-footer">
+              <span>In the project roadmap</span>
+              <span>Upcoming</span>
+            </div>
+          </article>
+
+          <article class="project-card project-card-upcoming" aria-label="AI Shorts Maker — Coming soon">
+            <div class="project-card-top">
+              <span class="project-card-icon" aria-hidden="true">📱</span>
+              <span class="project-status project-status-upcoming">◷ Coming soon</span>
+            </div>
+            <h3>AI Shorts Maker</h3>
+            <p>A separate short-form video creation project for turning ideas and source clips into engaging vertical videos.</p>
+            <div class="project-feature-list">
+              <span>⚡ Short-form workflow</span>
+              <span>📲 Vertical videos</span>
+              <span>🎬 Import &amp; export</span>
+            </div>
+            <div class="project-card-footer">
+              <span>Separate from Video Studio</span>
+              <span>Upcoming</span>
+            </div>
+          </article>
+        </div>
+
+        <p class="project-roadmap-note">More major TrivexaAI projects will appear here as they are planned and built. Upcoming cards are previews only and do not open unfinished workspaces.</p>
+      </section>
+    </div>
 
 
     <!-- TAB PANEL 1: SEARCH & BROWSE TOOLS -->
@@ -4033,6 +4111,8 @@
     // TAB SWITCHING MANAGEMENT
     const tabNavHub = document.getElementById("tabNavHub");
     const panelHub = document.getElementById("panelHub");
+    const tabNavProjects = document.getElementById("tabNavProjects");
+    const panelProjects = document.getElementById("panelProjects");
     const tabNavSearch = document.getElementById("tabNavSearch");
     const tabNavFavourites = document.getElementById("tabNavFavourites");
     const panelSearch = document.getElementById("panelSearch");
@@ -4040,12 +4120,16 @@
 
     function switchDashboardTab(tabId) {
       const isHub = tabId === "hub";
+      const isProjects = tabId === "projects";
       const isSearch = tabId === "search";
       const isFavourites = tabId === "favourites";
 
       tabNavHub?.classList.toggle("active", isHub);
       tabNavHub?.setAttribute("aria-selected", String(isHub));
       panelHub?.classList.toggle("active", isHub);
+      tabNavProjects?.classList.toggle("active", isProjects);
+      tabNavProjects?.setAttribute("aria-selected", String(isProjects));
+      panelProjects?.classList.toggle("active", isProjects);
       tabNavSearch?.classList.toggle("active", isSearch);
       tabNavSearch?.setAttribute("aria-selected", String(isSearch));
       tabNavFavourites?.classList.toggle("active", isFavourites);
@@ -4061,6 +4145,7 @@
     }
 
     tabNavHub?.addEventListener("click", () => switchDashboardTab("hub"));
+    tabNavProjects?.addEventListener("click", () => switchDashboardTab("projects"));
     tabNavSearch?.addEventListener("click", () => switchDashboardTab("search"));
     tabNavFavourites?.addEventListener("click", () => switchDashboardTab("favourites"));
 
