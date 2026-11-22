@@ -1162,9 +1162,9 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
         }
         // Detect a plain duration-only trim request independently of Gemini's
         // optional preserveStart flag. Explicit source in-points remain distinct.
-        const explicitTrimInPoint = /\\b(?:from|starting\\s+at|start\\s+at|beginning|first\\s+\\d|remove\\s+the\\s+first|cut\\s+off\\s+the\\s+first|in[- ]?point)\\b/i.test(userRequest);
+        const explicitTrimInPoint = /\b(?:from|starting\s+at|start\s+at|beginning|first\s+\d|remove\s+the\s+first|cut\s+off\s+the\s+first|in[- ]?point)\b/i.test(userRequest);
         const durationOnlyTrimIntent = !explicitTrimInPoint &&
-          /\\b(?:duration|length|\\d+(?:\\.\\d+)?\\s*(?:seconds?|secs?|minutes?|mins?))\\b/i.test(userRequest);
+          /\b(?:duration|length|\d+(?:\.\d+)?\s*(?:seconds?|secs?|minutes?|mins?))\b/i.test(userRequest);
 
         // Rebuild a small context from known fields only. Never forward blobs,
         // local URLs, media bytes, unknown properties, or arbitrary client data.
@@ -1527,6 +1527,7 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
               // in-place shortening. Preserve the clip's current timeline start
               // even if Gemini guessed a different start or omitted the flag.
               const shorterInPlaceTrim =
+                !explicitTrimInPoint &&
                 item.duration <= clip.duration + 0.05 &&
                 (item.preserveStart === true || durationOnlyTrimIntent);
               if (shorterInPlaceTrim) item.start = clip.start;
