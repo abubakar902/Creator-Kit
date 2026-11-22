@@ -1405,7 +1405,7 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
           item.clipStart = clip.start;
           return clip;
         };
-                const requireAsset = id => {
+        const requireAsset = id => {
           const asset = typeof id === "string" ? assetById.get(id) : null;
           if (!asset) throw new Error("An action referred to media that is not available in the current Media Library context.");
           return asset;
