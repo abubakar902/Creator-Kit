@@ -1349,7 +1349,17 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
               // selected clip ID instead of rejecting the whole edit.
               clip = selected;
             } else {
-              throw new Error("AI_CLIP_TARGET_CLARIFICATION: No compatible timeline clip is named '" + requestedName + "'. Please check the exact clip name shown on the timeline.");
+              const candidates = clips.filter(isCompatible);
+              const byId = requestedId ? clipById.get(requestedId) || null : null;
+              if (byId && isCompatible(byId) && candidates.length === 1 && !editorContext.clipsTruncated) {
+                // If the AI has only one compatible target available, a bad
+                // paraphrased name must not force the user to repeat the clip.
+                clip = byId;
+              } else if (!byId && candidates.length === 1 && !editorContext.clipsTruncated) {
+                clip = candidates[0];
+              } else {
+                throw new Error("AI_CLIP_TARGET_CLARIFICATION: No compatible timeline clip is named '" + requestedName + "'. Please check the exact clip name shown on the timeline.");
+              }
             }
           } else if (requestedId) {
             const byId = clipById.get(requestedId) || null;
