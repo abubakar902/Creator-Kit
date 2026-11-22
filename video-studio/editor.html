@@ -3614,7 +3614,7 @@ function aiFinite(value,label){
 }
 function aiClamp(value,min,max,label){
  const number=aiFinite(value,label);
- if(number<min||number>max)throw new Error(label+" ki value "+min+" se "+max+" ke darmiyan honi chahiye.");
+ if(number<min||number>max)throw new Error(label+" must be between "+min+" and "+max+".");
  return number;
 }
 function aiValidateChanges(clipType,changes){
@@ -4066,7 +4066,7 @@ async function generateAiEditPlan(){
   if(!response.ok){
    if(response.status===401)throw new Error("Please sign in with Google again. Your AI request could not be authenticated.");
    if(response.status===403)throw new Error("AI Editor requires an invitation or admin approval for advanced access.");
-   if(response.status===429)throw new Error("AI Editor has reached a temporary usage limit for your account. Please wait a moment and try again.");
+   if(response.status===429)throw new Error(data.code==="TOOL_RATE_LIMITED"?"Your account has reached the short-term request limit for this tool. Please wait a moment and try again.":data.code==="AI_EDITOR_GEMINI_FAILED"?"Gemini has temporarily limited AI edit-plan requests. Please wait a moment and try again.":data.error||"AI Editor requests are temporarily limited. Please try again shortly.");
    throw new Error(data.error||"The AI edit plan could not be prepared. Please try again.");
   }
   const raw=aiParsePlan(data.text);
@@ -4088,7 +4088,7 @@ async function generateAiPrompt(){
  if(aiPromptWriterBusy||aiPlanBusy||aiPreviewActive)return;
  const request=$("aiPromptWriterInput").value.trim();
  if(!request){aiSetPromptWriterStatus("Please describe what you would like to edit.");$("aiPromptWriterInput").focus();return;}
- if(request.length>2000){aiSetPromptWriterStatus("Request 2,000 characters se chhoti rakhein.");return;}
+ if(request.length>2000){aiSetPromptWriterStatus("Keep your request under 2,000 characters.");return;}
  if(!auth?.currentUser){aiSetPromptWriterStatus("Your Google sign-in session has expired. Please sign in again.");return;}
  aiPromptWriterBusy=true;
  $("aiPromptWriterStatus").style.color="";
@@ -4117,7 +4117,7 @@ async function generateAiPrompt(){
   if(!response.ok){
    if(response.status===401)throw new Error("Please sign in with Google again. Your request could not be authenticated.");
    if(response.status===403)throw new Error("AI Prompt Writer requires an invitation or admin approval for advanced access.");
-   if(response.status===429)throw new Error("Prompt Writer has reached a temporary usage limit for your account. Please wait a moment and try again.");
+   if(response.status===429)throw new Error(data.code==="TOOL_RATE_LIMITED"?"Your account has reached the short-term request limit for this tool. Please wait a moment and try again.":data.code==="AI_PROMPT_WRITER_GEMINI_FAILED"?"Gemini has temporarily limited prompt-generation requests. Please wait a moment and try again.":data.error||"Prompt generation is temporarily limited. Please try again shortly.");
    throw new Error(data.error||"The prompt could not be generated. Please try again.");
   }
   if(data.needsClarification===true){
@@ -4148,7 +4148,7 @@ async function generateAiPrompt(){
   if(error?.name==="TypeError")$("aiPromptWriterStatus").style.color="#ffd9dc";
  }finally{
   aiPromptWriterBusy=false;
-  $("aiPromptWriterGenerateBtn").textContent="✦ Roman Urdu ko proper prompt mein badlein";
+  $("aiPromptWriterGenerateBtn").textContent="✦ Generate Prompt";
   aiSetBusy(false);
  }
 }
