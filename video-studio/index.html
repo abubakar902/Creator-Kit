@@ -291,6 +291,21 @@ html{scroll-behavior:smooth}
 @media(max-width:760px){.hero{border-radius:18px}.hero h1{line-height:1.15}.section-head{align-items:center}.ratio{min-height:82px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{transition:none!important;animation-duration:.01ms!important;animation-iteration-count:1!important}}
 
+
+/* Final interaction polish: predictable focus, disabled states and touch controls. */
+:where(button,a,input,select,textarea):focus-visible{outline:2px solid #e4c5ff;outline-offset:3px}
+button:disabled{cursor:not-allowed;filter:saturate(.7)}
+.project-item-actions button{min-height:38px}
+.template-chips button{min-height:38px}
+.primary,.secondary{touch-action:manipulation}
+@media(max-width:760px){
+ .project-item-actions button{min-height:40px}
+ .top-actions .top-pill{padding:8px 11px}
+ .ratio{min-height:84px}
+}
+@media(prefers-reduced-motion:reduce){
+ .nav:hover,.primary:hover,.secondary:hover,.project-item button:hover{transform:none}
+}
 </style>
 </head>
 <body>
@@ -471,7 +486,7 @@ html{scroll-behavior:smooth}
 <div class="hero-copy"><div class="eyebrow">Your creative workspace</div><h1>TrivexaAI <span class="gradient">Video Studio</span></h1><p>Create. Edit. Inspire. Turn your ideas into videos with one simple workspace.</p></div>
 <div class="hero-mark" aria-hidden="true">▶</div>
 </section>
-<div class="section-head" id="create"><div><h2>Create New Project</h2><p>Choose your project settings to get started.</p></div><button class="secondary" id="quickPreset">✣ Quick presets</button></div>
+<div class="section-head" id="create"><div><h2>Create New Project</h2><p>Choose your project settings to get started.</p></div><button type="button" class="secondary" id="quickPreset">✣ Quick presets</button></div>
 <section class="panel create-grid">
 <div class="preview-art" aria-hidden="true"><div class="screen-icon">▶</div><div class="clapper">🎬</div></div>
 <div class="form-area">
@@ -479,24 +494,24 @@ html{scroll-behavior:smooth}
 <label class="field-label" for="projectName">Project Name</label><input class="field" id="projectName" maxlength="60" value="My Awesome Video" placeholder="Enter project name">
 <div class="ratio-wrap"><span class="field-label">Aspect Ratio</span>
 <div class="ratios" role="group" aria-label="Aspect ratio">
-<button class="ratio selected" data-ratio="16:9" aria-pressed="true"><span class="shape">▰</span><strong>16:9</strong><small>YouTube</small></button>
-<button class="ratio" data-ratio="9:16" aria-pressed="false"><span class="shape">▯</span><strong>9:16</strong><small>Shorts / Reels</small></button>
-<button class="ratio" data-ratio="1:1" aria-pressed="false"><span class="shape">□</span><strong>1:1</strong><small>Square</small></button>
-<button class="ratio" data-ratio="4:5" aria-pressed="false"><span class="shape">▯</span><strong>4:5</strong><small>Portrait</small></button>
-<button class="ratio" data-ratio="custom" aria-pressed="false"><span class="shape">⬚</span><strong>Custom</strong><small>Your size</small></button>
+<button type="button" class="ratio selected" data-ratio="16:9" aria-pressed="true"><span class="shape">▰</span><strong>16:9</strong><small>YouTube</small></button>
+<button type="button" class="ratio" data-ratio="9:16" aria-pressed="false"><span class="shape">▯</span><strong>9:16</strong><small>Shorts / Reels</small></button>
+<button type="button" class="ratio" data-ratio="1:1" aria-pressed="false"><span class="shape">□</span><strong>1:1</strong><small>Square</small></button>
+<button type="button" class="ratio" data-ratio="4:5" aria-pressed="false"><span class="shape">▯</span><strong>4:5</strong><small>Portrait</small></button>
+<button type="button" class="ratio" data-ratio="custom" aria-pressed="false"><span class="shape">⬚</span><strong>Custom</strong><small>Your size</small></button>
 </div>
 <div class="custom-fields" id="customFields"><div><label class="field-label" for="customWidth">Width (px)</label><input class="field" type="number" id="customWidth" min="240" max="3840" value="1920"></div><div><label class="field-label" for="customHeight">Height (px)</label><input class="field" type="number" id="customHeight" min="240" max="3840" value="1080"></div></div>
 </div>
 <div class="form-bottom">
 <div class="select-wrap"><label for="resolution">Resolution</label><select class="field" id="resolution"><option value="1280x720">1280 × 720 (HD)</option><option value="1920x1080" selected>1920 × 1080 (Full HD)</option><option value="2560x1440">2560 × 1440 (2K)</option><option value="3840x2160">3840 × 2160 (4K)</option></select></div>
 <div class="select-wrap"><label for="fps">Frame Rate</label><select class="field" id="fps"><option value="24">24 FPS</option><option value="30" selected>30 FPS</option><option value="60">60 FPS</option></select></div>
-<button class="primary" id="createProject">🚀 Create Project&nbsp; →</button>
+<button type="button" class="primary" id="createProject">🚀 Create Project&nbsp; →</button>
 </div>
 </div>
 </section>
 <div class="lower-grid">
-<section class="panel lower-panel" id="projects"><div class="eyebrow">Pick up where you left off</div><h3>Open Existing Project</h3><p>Your projects saved on this device will appear here.</p><div class="project-list" id="projectList"><div class="empty">No projects yet. Create your first video project above.</div></div><div class="decor" aria-hidden="true">▣</div></section>
-<section class="panel lower-panel" id="templates"><div class="eyebrow">A little inspiration</div><h3>Explore Quick Presets</h3><p>Choose a format to pre-fill your project settings.</p><div class="template-chips"><button data-preset="youtube">▶ YouTube Video</button><button data-preset="shorts">▯ Shorts / Reels</button><button data-preset="square">□ Square Social</button><button data-preset="portrait">▯ Portrait Post</button></div><div class="decor" aria-hidden="true">✧</div></section>
+<section class="panel lower-panel" id="projects"><div class="eyebrow">Pick up where you left off</div><h3>Open Existing Project</h3><p>Your projects saved on this device will appear here.</p><div class="project-list" id="projectList" role="list" aria-label="Saved video projects" aria-live="polite"><div class="empty" role="status">No projects yet. Create your first video project above.</div></div><div class="decor" aria-hidden="true">▣</div></section>
+<section class="panel lower-panel" id="templates"><div class="eyebrow">A little inspiration</div><h3>Explore Quick Presets</h3><p>Choose a format to pre-fill your project settings.</p><div class="template-chips"><button type="button" data-preset="youtube">▶ YouTube Video</button><button type="button" data-preset="shorts">▯ Shorts / Reels</button><button type="button" data-preset="square">□ Square Social</button><button type="button" data-preset="portrait">▯ Portrait Post</button></div><div class="decor" aria-hidden="true">✧</div></section>
 </div>
 <div class="footer-note">TrivexaAI Video Studio · Projects are saved in this browser on this device. <a href="./help.html" style="color:#cda1ff;text-decoration:underline;text-underline-offset:3px">Open the Help Guide</a></div>
 </main>
@@ -631,7 +646,7 @@ function renderProjects(){
  list.innerHTML=projects.slice().reverse().map(p=>{
   const id=escapeHtml(p.id),name=escapeHtml(p.name||"Untitled project");
   const details=escapeHtml(p.ratioLabel||"")+' · '+escapeHtml(p.resolutionLabel||"")+' · '+escapeHtml(String(p.fps||30))+' FPS';
-  return '<div class="project-item"><div><strong>'+name+'</strong><small>'+details+'</small></div><div class="project-item-actions"><button type="button" data-open="'+id+'">Open Editor</button><button type="button" class="project-delete-button" data-delete="'+id+'" aria-label="Delete project '+name+'">Delete</button></div></div>';
+  return '<div class="project-item" role="listitem"><div><strong>'+name+'</strong><small>'+details+'</small></div><div class="project-item-actions"><button type="button" data-open="'+id+'">Open Editor</button><button type="button" class="project-delete-button" data-delete="'+id+'" aria-label="Delete project '+name+'">Delete</button></div></div>';
  }).join("");
  list.querySelectorAll("[data-open]").forEach(button=>button.addEventListener("click",()=>{
   const item=projects.find(p=>p.id===button.dataset.open);if(item)openProjectEditor(item.id);

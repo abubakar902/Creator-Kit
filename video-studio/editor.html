@@ -664,6 +664,28 @@ body.ai-preview-active #playBtn,body.ai-preview-active #stopBtn{pointer-events:a
 .ai-assistant-overlay.is-preview-mode .ai-prompt-writer{display:none!important}
 @media(max-width:680px){.ai-prompt-writer>summary{padding:10px}.ai-prompt-writer-content{padding:9px}.ai-prompt-writer-input{min-height:78px}}
 
+
+/* Final finish: clear focus, tactile controls and consistent small-screen targets. */
+:where(button,a,input,select,textarea,[tabindex]):focus-visible{outline:2px solid #e6c6ff;outline-offset:3px}
+:where(.btn,.tool-btn,.asset-add,.asset-proxy,.ai-suggestion-chip,.ai-assistant-close,.shortcuts-close,.transport button){transition:background .18s ease,border-color .18s ease,color .18s ease,filter .18s ease,box-shadow .18s ease,transform .18s ease}
+:where(.btn,.tool-btn,.asset-add,.asset-proxy,.ai-suggestion-chip,.ai-assistant-close,.shortcuts-close,.transport button):active:not(:disabled){filter:brightness(1.08);transform:translateY(0) scale(.985)}
+button:disabled{cursor:not-allowed}
+.smart-tool-btn:disabled{cursor:wait}
+.btn:disabled,.tool-btn:disabled,.asset-add:disabled,.asset-proxy:disabled{box-shadow:none}
+#undoBtn,#redoBtn,#stopBtn{min-width:36px;min-height:34px}
+#playBtn{min-width:36px;min-height:36px}
+.export-dialog-actions .btn,.shortcuts-close{min-height:38px}
+@media(max-width:680px){
+ .top-actions .btn{min-height:34px}
+ .preview-toolbar-actions .tool-btn{min-height:34px}
+ .timeline-buttons .btn{min-height:34px}
+ .smart-tool-btn{min-height:38px}
+ .export-dialog-actions{gap:8px}
+ .export-dialog-actions .btn{min-height:42px}
+}
+@media(prefers-reduced-motion:reduce){
+ :where(.btn,.tool-btn,.asset-add,.asset-proxy,.ai-suggestion-chip,.transport button):active:not(:disabled){transform:none}
+}
 </style>
 </head>
 <body>
@@ -817,8 +839,8 @@ body.ai-preview-active #playBtn,body.ai-preview-active #stopBtn{pointer-events:a
 </div></div>
 <div class="transport">
 <span class="timecode" id="currentTime">00:00.0</span>
-<button type="button" id="stopBtn" title="Stop">■</button>
-<button type="button" id="playBtn" class="play" title="Play">▶</button>
+<button type="button" id="stopBtn" title="Stop" aria-label="Stop playback">■</button>
+<button type="button" id="playBtn" class="play" title="Play" aria-label="Start playback" aria-pressed="false">▶</button>
 <span class="timecode" id="totalTime">00:00.0</span>
 </div>
 </main>
@@ -1886,8 +1908,9 @@ function syncAudio(){
 }
 function setPlayhead(t){playhead=Math.max(0,Math.min(duration(),t));$("playhead").style.left=(116+playhead*scale)+"px";$("currentTime").textContent=fmt(playhead);$("totalTime").textContent=fmt(duration());renderPreview();syncAudio();}
 function frame(now){if(!isPlaying)return;if(!lastFrame)lastFrame=now;playhead+=(now-lastFrame)/1000;lastFrame=now;if(playhead>=duration()){playhead=duration();pause();}setPlayhead(playhead);raf=requestAnimationFrame(frame);}
-function play(){if(isPlaying)return;if(playhead>=duration())playhead=0;isPlaying=true;lastFrame=0;$("playBtn").textContent="Ⅱ";renderPreview();syncAudio();raf=requestAnimationFrame(frame);}
-function pause(){isPlaying=false;cancelAnimationFrame(raf);$("playBtn").textContent="▶";$("videoPreview").pause();for(const a of audioNodes.values())a.pause();}
+function updatePlaybackButton(){const button=$("playBtn");if(!button)return;button.textContent=isPlaying?"Ⅱ":"▶";button.title=isPlaying?"Pause":"Play";button.setAttribute("aria-label",isPlaying?"Pause playback":"Start playback");button.setAttribute("aria-pressed",String(isPlaying));}
+function play(){if(isPlaying)return;if(playhead>=duration())playhead=0;isPlaying=true;updatePlaybackButton();lastFrame=0;renderPreview();syncAudio();raf=requestAnimationFrame(frame);}
+function pause(){isPlaying=false;cancelAnimationFrame(raf);updatePlaybackButton();$("videoPreview").pause();for(const a of audioNodes.values())a.pause();}
 function rulerSeek(e){const rect=$("ruler").getBoundingClientRect(),x=e.clientX-rect.left+$("timelineScroll").scrollLeft-116;pause();setPlayhead(Math.max(0,x/scale));}
 
 function timelineTimeFromPointer(clientX){
@@ -2283,10 +2306,12 @@ function openVoiceoverModal(){
  if(!auth?.currentUser){notify("Please sign in with Google before creating a voice-over.");return;}
  $("voiceoverModal").hidden=false;
  $("voiceoverStatus").textContent="Ready. Your generated MP3 will be added to the Audio track at the current playhead.";
+ $("voiceoverText").focus();
 }
 function closeVoiceoverModal(){
  if(voiceoverBusy)return;
  $("voiceoverModal").hidden=true;
+ $("openVoiceoverModalBtn").focus();
 }
 async function generateVoiceover(){
  if(voiceoverBusy)return;
@@ -2328,6 +2353,7 @@ async function generateVoiceover(){
   notify("AI Voice-over added to the Audio track at the playhead.");
   $("voiceoverText").value="";$("voiceoverCounter").textContent="0 / 2,000";$("voiceoverConsent").checked=false;
   $("voiceoverModal").hidden=true;
+  $("openVoiceoverModalBtn").focus();
  }catch(error){
   const rawMessage=error?.message||"";
   const message=error?.name==="AbortError"?"Voice generation was cancelled.":rawMessage==="Failed to fetch"?"Could not connect to the voice service. Check your internet connection and try again.":(rawMessage||"Voice generation failed. Please try again.");
@@ -2336,8 +2362,8 @@ async function generateVoiceover(){
   voiceoverBusy=false;button.disabled=!$("voiceoverConsent").checked;close.disabled=false;button.textContent="Generate & add to timeline";
  }
 }
-function openStickerModal(){$("stickerModal").hidden=false;}
-function closeStickerModal(){$("stickerModal").hidden=true;}
+function openStickerModal(){$("stickerModal").hidden=false;$("stickerPreset").focus();}
+function closeStickerModal(){$("stickerModal").hidden=true;$("openStickerModalBtn").focus();}
 function makeStickerSvg(preset,color){
  const safeColor=/^#[0-9a-f]{6}$/i.test(String(color||""))?color:"#b56cff";
  const paths={
@@ -2387,10 +2413,12 @@ function openCaptionsModal(){
  $("captionsGenerateBtn").disabled=false;
  $("captionsGenerateBtn").textContent="Generate captions";
  $("captionsModal").hidden=false;
+ $("captionsGenerateBtn").focus();
 }
 function closeCaptionsModal(){
  if(captionsBusy)return;
  $("captionsModal").hidden=true;
+ $("autoCaptionsBtn").focus();
 }
 function setCaptionsProgress(percent,message){
  $("captionsProgressFill").style.width=Math.max(0,Math.min(100,percent))+"%";
@@ -3008,10 +3036,12 @@ function showExportModal(){
  $("exportCloseBtn").hidden=true;$("exportCloseBtn").disabled=true;
  configureExportOptions();
  setExportModalProgress(0,"Choose your export settings","Your video will not start exporting until you press Start export.");
+ $("exportFormat").focus();
 }
 function hideExportModal(){
  if(exportBusy||exportQueueRunning)return;
  $("exportModal").hidden=true;
+ $("exportBtn").focus();
 }
 function downloadLastExport(){
  if(!lastExportBlob)return;
@@ -4785,9 +4815,15 @@ function handleEditorShortcuts(event){
   if((event.ctrlKey||event.metaKey)&&["z","y"].includes(event.key.toLowerCase()))event.preventDefault();
   return;
  }
- const guide=$("shortcutsModal");
- if(event.key==="Escape"&&guide&&!guide.hidden){event.preventDefault();closeShortcutsGuide();return;}
- const captionsModal=$("captionsModal");if(event.key==="Escape"&&captionsModal&&!captionsModal.hidden&&!captionsBusy){closeCaptionsModal();return;}if((guide&&!guide.hidden)||(captionsModal&&!captionsModal.hidden)||exportBusy||!$("exportModal").hidden||isTypingTarget(event.target))return;
+ const guide=$("shortcutsModal"),captionsModal=$("captionsModal"),stickerModal=$("stickerModal"),voiceoverModal=$("voiceoverModal"),exportModal=$("exportModal");
+ if(event.key==="Escape"){
+  if(guide&&!guide.hidden){event.preventDefault();closeShortcutsGuide();return;}
+  if(captionsModal&&!captionsModal.hidden){event.preventDefault();if(!captionsBusy)closeCaptionsModal();return;}
+  if(stickerModal&&!stickerModal.hidden){event.preventDefault();closeStickerModal();return;}
+  if(voiceoverModal&&!voiceoverModal.hidden){event.preventDefault();if(!voiceoverBusy)closeVoiceoverModal();return;}
+  if(exportModal&&!exportModal.hidden){event.preventDefault();if(!exportBusy&&!exportQueueRunning)hideExportModal();return;}
+ }
+ if((guide&&!guide.hidden)||(captionsModal&&!captionsModal.hidden)||(stickerModal&&!stickerModal.hidden)||(voiceoverModal&&!voiceoverModal.hidden)||exportBusy||(exportModal&&!exportModal.hidden)||isTypingTarget(event.target))return;
  if(event.altKey)return;
  const key=event.key.toLowerCase(),modifier=event.ctrlKey||event.metaKey;
  if(modifier){
