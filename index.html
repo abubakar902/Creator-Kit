@@ -3576,7 +3576,7 @@
         <div class="field-group" id="qaQuestionGroup" hidden>
           <label for="qaQuestion">What would you like to know?</label>
           <textarea id="qaQuestion" maxlength="1400" rows="4" placeholder="Type your question here. You can ask about YouTube, learning, technology or any general topic."></textarea>
-          <p class="workspace-intro" style="font-size:12px;margin-top:6px">Ask one clear question. You can search it on Google below, then paste useful article text for an answer based on that material.</p>
+          <p class="workspace-intro" style="font-size:12px;margin-top:6px">Ask your question first. If it needs live information that AI cannot verify, TrivexaAI will show a Google Search option.</p>
         </div>
         <div class="row" id="generatorOptionsRow">
           <div class="field-group">
@@ -4691,6 +4691,7 @@
         document.getElementById("qaQuestionGroup").hidden = !isQuestionTool;
         document.getElementById("generatorOptionsRow").hidden = isQuestionTool;
         document.getElementById("generatorDetailsGroup").hidden = isQuestionTool;
+        if (isQuestionTool) document.getElementById("details").value = "";
         qaCurrentSearchFallback.hidden = true;
         qaSourceTextInput.value = "";
         qaOutputMode = "answer";
@@ -5247,7 +5248,10 @@
 
       try {
         let answer = await askGemini(prompt, isQuestionTool ? "ai-question-answer" : "");
-        const needsCurrentSearch = isQuestionTool && answer.includes(QA_CURRENT_SEARCH_MARKER);
+        const needsCurrentSearch = isQuestionTool && (
+          answer.includes(QA_CURRENT_SEARCH_MARKER) ||
+          /(?:knowledge|information) (?:may be|is) out of date|cannot (?:verify|check) (?:the )?(?:latest|current|real[- ]time)|do not have (?:live|real[- ]time) access|don't have (?:live|real[- ]time) access|can't (?:verify|check) (?:the )?(?:latest|current)|cannot browse the live web/i.test(answer)
+        );
         answer = answer.split(QA_CURRENT_SEARCH_MARKER).join("").trim();
         result.textContent = answer;
         result.classList.remove("result-empty");
