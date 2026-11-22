@@ -5214,7 +5214,7 @@
             "USER QUESTION:",
             topic,
             details ? "ADDITIONAL CONTEXT: " + details : "",
-            qaSourceTextInput.value.trim() ? "USER-PROVIDED SOURCE TEXT (not independently verified by TrivexaAI):\\n" + qaSourceTextInput.value.trim() : "",
+            qaSourceTextInput.value.trim() ? "USER-PROVIDED SOURCE TEXT (not independently verified by TrivexaAI):\n" + qaSourceTextInput.value.trim() : "",
             "",
             "Answer accurately. Use supplied text when relevant, identify it as user-provided information, and point out uncertainty or conflicting claims. Do not say you searched Google or verified the source yourself. Use a short heading or numbered steps only when they make the explanation clearer."
           ].filter(Boolean).join("\n")
@@ -5288,7 +5288,7 @@
         "",
         "TEXT TO SUMMARIZE:",
         sourceText
-      ].filter(Boolean).join("\\n");
+      ].filter(Boolean).join("\n");
 
       qaSummarizeButton.disabled = true;
       qaSummarizeButton.textContent = "⏳ Summarizing...";
