@@ -5309,15 +5309,19 @@
         );
         answer = answer.split(QA_CURRENT_SEARCH_MARKER).join("").trim();
         if (isQASummary) {
-          renderQASummary(answer);
+          renderQAMarkdown(answer);
           qaOutputMode = "summary";
           document.getElementById("resultHeading").textContent = "Text Summary";
           qaCurrentSearchFallback.hidden = true;
           message.textContent = "✓ Summary created successfully.";
         } else {
-          result.textContent = answer;
           if (isQuestionTool) {
+            renderQAMarkdown(answer);
             qaOutputMode = "answer";
+          } else {
+            result.textContent = answer;
+          }
+          if (isQuestionTool) {
             document.getElementById("resultHeading").textContent = "AI Answer";
             qaCurrentSearchFallback.hidden = !needsCurrentSearch;
             message.textContent = needsCurrentSearch
@@ -5399,7 +5403,7 @@
       if (lastIndex < text.length) parent.appendChild(document.createTextNode(text.slice(lastIndex)));
     }
 
-    function renderQASummary(markdown) {
+    function renderQAMarkdown(markdown) {
       result.replaceChildren();
       const lines = String(markdown || "").replace(/\r/g, "").split("\n");
       let currentList = null;
