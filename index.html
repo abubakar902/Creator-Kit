@@ -5479,9 +5479,15 @@
 
     document.getElementById("clearGeneratorInputsBtn")?.addEventListener("click", () => {
       document.getElementById("topic").value = "";
-      setQAInputMode("question", { resetDrafts: true });
-      qaModeToggleButton.hidden = selectedTool !== "qa";
-      qaCurrentSearchFallback.hidden = true;
+      if (selectedTool === "qa") {
+        setQAInputMode("question", { resetDrafts: true });
+        qaModeToggleButton.hidden = false;
+        qaCurrentSearchFallback.hidden = true;
+      } else {
+        qaQuestionInput.value = "";
+        qaQuestionDraft = "";
+        qaSummaryDraft = "";
+      }
       document.getElementById("details").value = "";
       (selectedTool === "qa" ? qaQuestionInput : document.getElementById("topic")).focus();
     });
