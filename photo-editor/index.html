@@ -372,7 +372,7 @@ function applyAdvancedColorAdjustments(){
  const highlights=a.highlights??0,shadows=a.shadows??0,sharpness=a.sharpness??0,mixHue=a.colorMixHue??0,mixSat=a.colorMixSaturation??0,mixLight=a.colorMixLightness??0;
  const centers={reds:0,oranges:30,yellows:60,greens:120,cyans:180,blues:220,purples:270,magentas:320},range=a.colorRange||"all",center=centers[range];
  const hasColor=black!==0||white!==255||gamma!==1||light!==0||hslHue!==0||hslSat!==0||rb!==0||gb!==0||bb!==0||highlights!==0||shadows!==0||(range!=="all"&&(mixHue!==0||mixSat!==0||mixLight!==0));
- if(!hasColor&&!sharpness)return;const image=ctx.getImageData(0,0,canvas.width,canvas.height),d=image.data,w=canvas.width,h=canvas.height,src=sharpness?new Uint8ClampedArray(d):null,span=white-black,clamp=v=>Math.max(0,Math.min(255,v));
+ if(!hasColor&&!sharpness)return;const image=ctx.getImageData(0,0,canvas.width,canvas.height),d=image.data,w=canvas.width,h=canvas.height,src=null,span=white-black,clamp=v=>Math.max(0,Math.min(255,v));
  for(let i=0;i<d.length;i+=4){
   let r=d[i],g=d[i+1],b=d[i+2],lum=(r*.2126+g*.7152+b*.0722)/255,sw=(1-lum)*(1-lum),hw=lum*lum;
   if(black!==0||white!==255||gamma!==1){for(let ch=0;ch<3;ch++){let v=clamp((d[i+ch]-black)*255/span);v=255*Math.pow(v/255,1/gamma);d[i+ch]=clamp(v)}r=d[i];g=d[i+1];b=d[i+2]}
@@ -386,7 +386,7 @@ function applyAdvancedColorAdjustments(){
   r=clamp((rr+m)*255);g=clamp((gg+m)*255);b=clamp((bl+m)*255);const lum2=(r*.2126+g*.7152+b*.0722)/255,shadow=1-lum2;
   d[i]=clamp(r+rb*(.65+.7*shadow));d[i+1]=clamp(g+gb*(.65+.7*shadow));d[i+2]=clamp(b+bb*(.65+.7*shadow));
  }
- if(sharpness&&src){const amount=sharpness/100*.75;for(let y=1;y<h-1;y++)for(let x=1;x<w-1;x++){const i=(y*w+x)*4;for(let ch=0;ch<3;ch++){const avg=(src[i-4+ch]+src[i+4+ch]+src[i-w*4+ch]+src[i+w*4+ch])/4;d[i+ch]=clamp(src[i+ch]+(src[i+ch]-avg)*amount)}}}
+ const sharpBase=sharpness?new Uint8ClampedArray(d):null;if(sharpness&&sharpBase){const amount=sharpness/100*.75;for(let y=1;y<h-1;y++)for(let x=1;x<w-1;x++){const i=(y*w+x)*4;for(let ch=0;ch<3;ch++){const avg=(sharpBase[i-4+ch]+sharpBase[i+4+ch]+sharpBase[i-w*4+ch]+sharpBase[i+w*4+ch])/4;d[i+ch]=clamp(sharpBase[i+ch]+(sharpBase[i+ch]-avg)*amount)}}}
  ctx.putImageData(image,0,0);
 }
 function bindAdjustmentSlider(key){let started=false;const input=$(key);input.addEventListener("pointerdown",()=>{if(state&&!started){pushHistory();started=true}});input.addEventListener("keydown",()=>{if(state&&!started){pushHistory();started=true}});input.addEventListener("change",()=>{started=false});input.addEventListener("input",()=>updateAdjustment(key,input.value))}
