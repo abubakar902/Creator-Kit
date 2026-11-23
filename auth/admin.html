@@ -87,7 +87,7 @@
   </main>
 
   <script type="module">
-    import {auth,authReady,workerRequest} from "./auth-client.js";
+    import {auth,authReady,workerRequest,getInitializationError} from "./auth-client.js";
     const $=id=>document.getElementById(id);
     let rows=[];
     let adminUid="";
@@ -112,13 +112,13 @@
     }
 
     async function waitForAuth(){
-      let timer;
-      try{
-        await Promise.race([
-          authReady,
-          new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error("Google login session abhi load ho raha hai. Retry dabayein.")),12000);})
-        ]);
-      }finally{clearTimeout(timer);}
+      // Firebase may take longer than 12 seconds to restore a saved Google session.
+      // Wait for its real initial auth-state event instead of failing a valid session early.
+      await authReady;
+      const initError=getInitializationError?.();
+      if(initError){
+        throw new Error("Firebase account session initialize nahi ho saka: "+(initError.message||"Please reload and try again."));
+      }
     }
 
     function showAccessDenied(){
