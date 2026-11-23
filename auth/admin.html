@@ -146,7 +146,7 @@
         $("users").innerHTML='<tr><td colspan="6">Accounts abhi load nahi huay. Refresh list dabayein.</td></tr>';
       }finally{
         loading=false;
-        $("refresh").disabled=false;
+        if($("refresh"))$("refresh").disabled=false;
       }
     }
 
