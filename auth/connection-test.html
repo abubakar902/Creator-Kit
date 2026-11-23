@@ -22,7 +22,7 @@ button.primary{background:linear-gradient(100deg,#a78bfa,#e879f9);color:#1b102d;
 <h1>Account Connection Test</h1>
 <p class="muted">Yeh test login, Worker ka basic response, CORS preflight aur account read ko alag alag check karta hai. Yeh koi account change nahi karta. Firebase token screen par kabhi show nahi hota.</p>
 <section class="panel">
-<div class="step"><div class="mark" id="m1">1</div><div><h2>Firebase setup</h2><div class="detail" id="s1">Waiting…</div></div></div><div class="step"><div class="mark" id="m2">2</div><div><h2>Google login session</h2><div class="detail" id="s2">Waiting…</div></div></div><div class="step"><div class="mark" id="m3">3</div><div><h2>Firebase token refresh</h2><div class="detail" id="s3">Waiting…</div></div></div><div class="step"><div class="mark" id="m4">4</div><div><h2>Cloudflare Worker reachability (simple GET)</h2><div class="detail" id="s4">Waiting…</div></div></div><div class="step"><div class="mark" id="m5">5</div><div><h2>Worker CORS + Authorization preflight</h2><div class="detail" id="s5">Waiting…</div></div></div><div class="step"><div class="mark" id="m6">6</div><div><h2>Secure account request (auth_me)</h2><div class="detail" id="s6">Waiting…</div></div></div>
+<div class="step"><div class="mark" id="m1">1</div><div><h2>Firebase setup</h2><div class="detail" id="s1">Waiting…</div></div></div><div class="step"><div class="mark" id="m2">2</div><div><h2>Google login session</h2><div class="detail" id="s2">Waiting…</div></div></div><div class="step"><div class="mark" id="m3">3</div><div><h2>Firebase token refresh</h2><div class="detail" id="s3">Waiting…</div></div></div><div class="step"><div class="mark" id="m4">4</div><div><h2>Cloudflare Worker reachability (simple GET)</h2><div class="detail" id="s4">Waiting…</div></div></div><div class="step"><div class="mark" id="m5">5</div><div><h2>Worker CORS + Authorization preflight</h2><div class="detail" id="s5">Waiting…</div></div></div><div class="step"><div class="mark" id="m6">6</div><div><h2>Secure account request (auth_me)</h2><div class="detail" id="s6">Waiting…</div></div></div><div class="step"><div class="mark" id="m7">7</div><div><h2>Admin users list request (read-only)</h2><div class="detail" id="s7">Waiting…</div></div></div>
 <div id="overall" class="muted" role="status" aria-live="polite">Test starting…</div>
 <button class="primary" id="run" type="button">Run test again</button>
 <a class="btn" href="./account.html">Back to My Account</a>
@@ -40,7 +40,7 @@ function safeJson(value){return value&&typeof value==="object"?value:{};}
 async function readBody(response){try{return safeJson(await response.json());}catch{return {};}}
 async function run(){
  $("run").disabled=true;$("overall").textContent="Testing…";
- for(let n=1;n<=6;n++)setStep(n,"wait","Waiting…");
+ for(let n=1;n<=7;n++)setStep(n,"wait","Waiting…");
  let token="";
  try{
   setStep(1,"running","Checking Firebase configuration…");
@@ -88,10 +88,30 @@ async function run(){
   if(!response.ok)throw Object.assign(new Error("Worker returned HTTP "+response.status+(data.code?" ("+data.code+")":"")+": "+(data.error||"No error detail.")),{stage:6});
   if(!data.user||!data.access)throw Object.assign(new Error("Worker response missing user/access fields."),{stage:6});
   setStep(6,"pass","Account request succeeded. Signed-in role: "+(data.user.role||"user")+".");
-  $("overall").textContent="SUCCESS: Firebase, Worker connection, CORS preflight, and account request are working.";
+  if(data.user.role!=="admin"){
+   setStep(7,"wait","Skipped: this extra check is available only for an administrator account.");
+   $("overall").textContent="SUCCESS: Firebase, Worker connection, CORS preflight, and account request are working. Admin list test skipped because this account is not an admin.";
+  }else{
+   setStep(7,"running","Sending the Admin Panel's read-only admin_list_users request. Only the number of records will be shown; names and emails stay hidden.");
+   let adminResponse;
+   try{
+    adminResponse=await fetch(WORKER_URL,{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+token},body:JSON.stringify({action:"admin_list_users"}),cache:"no-store"});
+   }catch(error){
+    throw Object.assign(new Error((error?.name||"NetworkError")+": "+(error?.message||"The Admin users-list request failed at the browser/network layer.")),{stage:7});
+   }
+   const adminData=await readBody(adminResponse);
+   if(!adminResponse.ok){
+    throw Object.assign(new Error("Worker returned HTTP "+adminResponse.status+(adminData.code?" ("+adminData.code+")":"")+": "+(adminData.error||"Admin users list request failed.")),{stage:7});
+   }
+   if(!Array.isArray(adminData.users)){
+    throw Object.assign(new Error("Worker returned a successful response, but the expected users list was missing."),{stage:7});
+   }
+   setStep(7,"pass","Admin users-list request succeeded. Records returned: "+adminData.users.length+". Names, emails and IDs were not displayed.");
+   $("overall").textContent="SUCCESS: Firebase, Worker connection, CORS, auth_me, and the Admin users-list request are all working.";
+  }
  }catch(error){
   const stage=Number(error?.stage)||6;
-  for(let n=stage;n<=6;n++)if($("s"+n).textContent==="Waiting…"||n===stage)setStep(n,"fail",n===stage?(error?.message||"Test failed."):"Not tested because an earlier step failed.");
+  for(let n=stage;n<=7;n++)if($("s"+n).textContent==="Waiting…"||n===stage)setStep(n,"fail",n===stage?(error?.message||"Test failed."):"Not tested because an earlier step failed.");
   $("overall").textContent="FAILED AT STEP "+stage+": "+(error?.message||"Unknown error.")+"\n\nKoi token ya password display nahi hua.";
  }finally{$("run").disabled=false;token="";}
 }
