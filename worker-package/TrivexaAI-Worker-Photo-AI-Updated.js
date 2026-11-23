@@ -698,6 +698,7 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
               contentType: saverResponse.headers.get("content-type"),
               preview: saverText.slice(0, 250)
             });
+
             return reply({
               error: "SaverAPI returned an unreadable response.",
               diagnostic: "HTTP " + saverResponse.status,
@@ -1396,7 +1397,8 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
           .slice(0, 40)
           .map(item => {
             if (!item || typeof item !== "object" || Array.isArray(item)) return null;
-            const type = str(item.type, 20);            if (!clipTypes.includes(type)) return null;
+            const type = str(item.type, 20);
+            if (!clipTypes.includes(type)) return null;
             const id = str(item.id, 128);
             if (!id) return null;
             const start = finite(item.start), duration = finite(item.duration);
@@ -2096,3 +2098,4 @@ export default {
   headers.set("Vary","Origin");
   return new Response(response.body,{status:response.status,statusText:response.statusText,headers});
  }
+};
