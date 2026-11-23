@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Connection Test · TrivexaAI</title>
+<style>
+:root{color-scheme:dark;--bg:#100b20;--panel:#1a1230;--panel2:#21183a;--text:#f8f6fc;--muted:#b8accd;--border:#392951;--purple:#9b6cff;--pink:#e879f9}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 50% -15%,rgba(155,108,255,.2),transparent 42rem),var(--bg);color:var(--text);font-family:Inter,system-ui,Arial}
+.wrap{max-width:760px;width:92%;margin:36px auto}.brand{color:white;text-decoration:none;font-size:22px;font-weight:900}.brand span{color:var(--pink)}
+.panel{margin-top:20px;padding:22px;border:1px solid var(--border);border-radius:16px;background:linear-gradient(145deg,var(--panel2),var(--panel))}
+h1{font-size:26px;margin:22px 0 8px}.muted{color:var(--muted);line-height:1.6;font-size:13px}
+.step{display:flex;gap:12px;align-items:flex-start;padding:13px 0;border-bottom:1px solid rgba(196,181,253,.12)}
+.step:last-child{border:0}.mark{width:26px;height:26px;flex:none;display:grid;place-items:center;border-radius:50%;background:#302346;color:#d8c9f0;font-weight:800;font-size:13px}
+.step h2{font-size:14px;margin:2px 0 4px}.detail{font-size:12px;color:var(--muted);line-height:1.5;overflow-wrap:anywhere}
+button,a.btn{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:10px 15px;margin:8px 8px 0 0;border:1px solid #493466;border-radius:10px;background:#2a2042;color:white;text-decoration:none;font:inherit;font-size:13px;font-weight:750;cursor:pointer}
+button.primary{background:linear-gradient(100deg,#a78bfa,#e879f9);color:#1b102d;border:0}
+#overall{font-size:13px;margin-top:16px;white-space:pre-wrap;overflow-wrap:anywhere}
+</style>
+</head>
+<body>
+<main class="wrap">
+<a class="brand" href="../">Trivexa<span>AI</span></a>
+<h1>Account Connection Test</h1>
+<p class="muted">Yeh test sirf login session aur account-read connection check karta hai. Yeh invite redeem, access change, ya koi admin action nahi karta. Aapka Firebase token screen par kabhi show nahi hota.</p>
+<section class="panel">
+<div class="step"><div class="mark" id="m1">1</div><div><h2>Firebase setup</h2><div class="detail" id="s1">Waiting…</div></div></div>
+<div class="step"><div class="mark" id="m2">2</div><div><h2>Google login session</h2><div class="detail" id="s2">Waiting…</div></div></div>
+<div class="step"><div class="mark" id="m3">3</div><div><h2>Firebase token refresh</h2><div class="detail" id="s3">Waiting…</div></div></div>
+<div class="step"><div class="mark" id="m4">4</div><div><h2>Cloudflare Worker account request</h2><div class="detail" id="s4">Waiting…</div></div></div>
+<div id="overall" class="muted" role="status" aria-live="polite">Test starting…</div>
+<button class="primary" id="run" type="button">Run test again</button>
+<a class="btn" href="./account.html">Back to My Account</a>
+<a class="btn" href="./admin.html">Open Admin Dashboard</a>
+</section>
+</main>
+<script type="module">
+import {auth,authReady,authConfigured,WORKER_URL,getInitializationError} from "./auth-client.js";
+const $=id=>document.getElementById(id);
+function setStep(n,state,detail){
+  $("m"+n).textContent=state==="pass"?"✓":state==="fail"?"!":state==="running"?"…":String(n);
+  $("m"+n).style.background=state==="pass"?"#174b3a":state==="fail"?"#54283e":state==="running"?"#39245e":"#302346";
+  $("s"+n).textContent=detail;
+}
+const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+async function run(){
+  $("run").disabled=true;
+  $("overall").textContent="Testing…";
+  for(let n=1;n<=4;n++)setStep(n,"wait","Waiting…");
+  try{
+    setStep(1,"running","Checking Firebase configuration…");
+    if(!authConfigured||!auth){
+      const init=getInitializationError?.();
+      throw Object.assign(new Error(init?.message||"Firebase is not configured or failed to initialize."),{stage:1});
+    }
+    setStep(1,"pass","Firebase configuration loaded.");
+
+    setStep(2,"running","Waiting for Google sign-in session…");
+    await Promise.race([authReady,delay(15000).then(()=>{throw new Error("Firebase auth state did not become ready in 15 seconds.");})]);
+    const user=auth.currentUser;
+    if(!user)throw Object.assign(new Error("No active Google session. Please sign in again."),{stage:2});
+    setStep(2,"pass","Signed in as "+(user.email||"Google account")+".");
+
+    setStep(3,"running","Requesting a Firebase ID token (token will not be shown)…");
+    let token;
+    try{token=await user.getIdToken();}
+    catch(error){throw Object.assign(new Error(error?.message||"Firebase could not create/refresh the login token."),{stage:3});}
+    if(!token)throw Object.assign(new Error("Firebase returned an empty login token."),{stage:3});
+    setStep(3,"pass","Firebase token received successfully. Token hidden.");
+
+    setStep(4,"running","Sending the same read-only auth_me request used by My Account…");
+    let response;
+    try{
+      response=await fetch(WORKER_URL,{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+token},body:JSON.stringify({action:"auth_me"}),cache:"no-store"});
+    }catch(error){
+      throw Object.assign(new Error((error?.name||"NetworkError")+": "+(error?.message||"Browser could not read the Worker response.")+". This points to a browser network, CORS/preflight, or Worker connection problem."),{stage:4});
+    }
+    let data={};try{data=await response.json();}catch{}
+    if(!response.ok){
+      const message="Worker returned HTTP "+response.status+(data.code?" ("+data.code+")":"")+": "+(data.error||"No error details returned.");
+      throw Object.assign(new Error(message),{stage:4});
+    }
+    if(!data.user||!data.access)throw Object.assign(new Error("Worker replied, but auth_me response is missing user/access fields."),{stage:4});
+    setStep(4,"pass","Worker replied successfully. Account role: "+(data.user.role||"user")+".");
+    $("overall").textContent="SUCCESS: Firebase login and Worker account connection are both working.";
+  }catch(error){
+    const stage=Number(error?.stage)||4;
+    for(let n=stage;n<=4;n++)setStep(n,"fail",n===stage?(error?.message||"Test failed."):"Not tested because the previous step failed.");
+    $("overall").textContent="FAILED AT STEP "+stage+": "+(error?.message||"Unknown error.")+"\n\nKoi token ya password display nahi hua.";
+  }finally{$("run").disabled=false;}
+}
+$("run").addEventListener("click",run);
+run();
+</script>
+</body>
+</html>
