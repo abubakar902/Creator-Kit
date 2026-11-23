@@ -1,1 +1,51 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>My Account · TrivexaAI</title><script type="module" src="./auth-client.js"></script><style>:root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:#100b20;color:#f8f6fc;font-family:system-ui,Arial}.wrap{max-width:900px;width:92%;margin:35px auto}.panel{background:#1a1230;border:1px solid #392951;border-radius:18px;padding:23px;margin:16px 0}.top{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}.brand{font-size:23px;font-weight:850}.brand span{color:#e879f9}h1{font-size:28px;margin:5px 0}h2{font-size:19px}.muted{color:#b8accd}button,a.btn{background:#2a2042;border:1px solid #493466;color:white;border-radius:10px;padding:10px 14px;cursor:pointer;text-decoration:none}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.tile{background:#21183a;border:1px solid #392951;border-radius:12px;padding:14px}.pill{display:inline-block;background:#39245e;border-radius:30px;padding:5px 9px;font-size:12px}input{width:100%;padding:13px;background:#100b20;color:white;border:1px solid #493466;border-radius:10px;margin:8px 0}#message{color:#d8c9f0;min-height:25px}@media(max-width:600px){.grid{grid-template-columns:1fr}}</style></head><body><main class="wrap"><header class="top"><a class="brand" href="../" style="color:white;text-decoration:none">Trivexa<span>AI</span></a><div><a class="btn" href="../">Home</a> <a class="btn" id="admin" href="./admin.html" hidden>Admin</a> <button id="out">Sign out</button></div></header><section class="panel"><h1 id="welcome">My Account</h1><div id="email" class="muted">Loading account…</div></section><section class="panel"><h2>Your access</h2><div class="grid"><div class="tile"><b>Basic tools</b><p id="basic" class="pill">Checking</p></div><div class="tile"><b>Advanced features</b><p id="advanced" class="pill">Checking</p></div><div class="tile"><b>Video Studio</b><p id="studio" class="pill">Checking</p></div></div></section><section class="panel"><h2>Redeem invite code</h2><p class="muted">Enter an invite code provided by the TrivexaAI administrator.</p><input id="code" placeholder="TRI-XXXXXXXX-XXXXXXXX" maxlength="24"><button id="redeem">Redeem code</button><p id="message" role="status"></p></section></main><script type="module">import{auth,authReady,getAccountProfile,workerRequest,signOutTrivexaAI}from"./auth-client.js";const $=x=>document.getElementById(x);async function load(){await authReady;if(!auth?.currentUser){location.replace("./login.html?next="+encodeURIComponent(location.href));return;}try{const d=await getAccountProfile(),u=d.user;$("welcome").textContent="Hello, "+(u.displayName||"Creator");$("email").textContent=u.email;$("basic").textContent=d.access.basicTools?"Available":"Unavailable";$("advanced").textContent=d.access.advancedFeatures?"Approved":"Invite/approval required";$("studio").textContent=d.access.videoStudio?"Approved":"Invite required";$("admin").hidden=u.role!=="admin";}catch(e){$("message").textContent=e.message;}}$("redeem").onclick=async()=>{ $("message").textContent="Checking invite…";try{await workerRequest({action:"auth_redeem_invite",code:$("code").value.trim()});$("message").textContent="Advanced access approved. Refreshing…";await load();}catch(e){$("message").textContent=e.message;}};$("out").onclick=async()=>{await signOutTrivexaAI();location.replace("../");};load();</script></body></html>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>My Account · TrivexaAI</title><script type="module" src="./auth-client.js"></script><style>:root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:#100b20;color:#f8f6fc;font-family:system-ui,Arial}.wrap{max-width:900px;width:92%;margin:35px auto}.panel{background:#1a1230;border:1px solid #392951;border-radius:18px;padding:23px;margin:16px 0}.top{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}.brand{font-size:23px;font-weight:850}.brand span{color:#e879f9}h1{font-size:28px;margin:5px 0}h2{font-size:19px}.muted{color:#b8accd}button,a.btn{background:#2a2042;border:1px solid #493466;color:white;border-radius:10px;padding:10px 14px;cursor:pointer;text-decoration:none}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.tile{background:#21183a;border:1px solid #392951;border-radius:12px;padding:14px}.pill{display:inline-block;background:#39245e;border-radius:30px;padding:5px 9px;font-size:12px}input{width:100%;padding:13px;background:#100b20;color:white;border:1px solid #493466;border-radius:10px;margin:8px 0}#message{color:#d8c9f0;min-height:25px}@media(max-width:600px){.grid{grid-template-columns:1fr}}</style></head><body><main class="wrap"><header class="top"><a class="brand" href="../" style="color:white;text-decoration:none">Trivexa<span>AI</span></a><div><a class="btn" href="../">Home</a> <a class="btn" id="admin" href="./admin.html" hidden>Admin</a> <button id="out">Sign out</button></div></header><section class="panel"><h1 id="welcome">My Account</h1><div id="email" class="muted">Loading account…</div><p id="profileMessage" class="muted" role="status" aria-live="polite"></p><button id="retryProfile" type="button" hidden>Retry account loading</button></section><section class="panel"><h2>Your access</h2><div class="grid"><div class="tile"><b>Basic tools</b><p id="basic" class="pill">Checking</p></div><div class="tile"><b>Advanced features</b><p id="advanced" class="pill">Checking</p></div><div class="tile"><b>Video Studio</b><p id="studio" class="pill">Checking</p></div></div></section><section class="panel"><h2>Redeem invite code</h2><p class="muted">Enter an invite code provided by the TrivexaAI administrator.</p><input id="code" placeholder="TRI-XXXXXXXX-XXXXXXXX" maxlength="24"><button id="redeem">Redeem code</button><p id="message" role="status"></p></section></main><script type="module">
+import{auth,authReady,getAccountProfile,workerRequest,signOutTrivexaAI}from"./auth-client.js";
+const $=x=>document.getElementById(x);
+const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+async function safeProfile(){
+  let lastError;
+  for(let attempt=0;attempt<3;attempt++){
+    try{return await getAccountProfile();}
+    catch(error){
+      lastError=error;
+      const transient=error instanceof TypeError||/failed to fetch|network|load failed|temporar/i.test(String(error?.message||""))||[502,503,504].includes(error?.status);
+      if(!transient||attempt===2)throw error;
+      await wait(500*(attempt+1));
+    }
+  }
+  throw lastError;
+}
+async function load(){
+  $("retryProfile").hidden=true;
+  $("profileMessage").textContent="Checking your secure account session…";
+  try{
+    await authReady;
+    if(!auth?.currentUser){location.replace("./login.html?next="+encodeURIComponent(location.href));return;}
+    const d=await safeProfile(),u=d.user;
+    $("welcome").textContent="Hello, "+(u.displayName||"Creator");
+    $("email").textContent=u.email;
+    $("basic").textContent=d.access.basicTools?"Available":"Unavailable";
+    $("advanced").textContent=d.access.advancedFeatures?"Approved":"Invite/approval required";
+    $("studio").textContent=d.access.videoStudio?"Approved":"Invite required";
+    $("admin").hidden=u.role!=="admin";
+    $("profileMessage").textContent="";
+  }catch(e){
+    $("profileMessage").textContent=(e.message||"Account load nahi ho saka.")+" Retry dabayein.";
+    $("retryProfile").hidden=false;
+  }
+}
+$("retryProfile").onclick=load;
+$("redeem").onclick=async()=>{
+  $("message").textContent="Checking invite…";
+  $("redeem").disabled=true;
+  try{
+    // Redemption is a one-time action, so it is deliberately not auto-retried.
+    await workerRequest({action:"auth_redeem_invite",code:$("code").value.trim()});
+    $("message").textContent="Advanced access approved. Refreshing…";
+    await load();
+  }catch(e){$("message").textContent=e.message||"Invite redeem nahi ho saka. Please check the code and try again.";}
+  finally{$("redeem").disabled=false;}
+};
+$("out").onclick=async()=>{await signOutTrivexaAI();location.replace("../");};
+load();
+</script></body></html>

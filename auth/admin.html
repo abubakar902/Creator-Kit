@@ -91,40 +91,80 @@
     const $=id=>document.getElementById(id);
     let rows=[];
     let adminUid="";
+    let loading=false;
+    let refreshing=false;
+    const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
     const esc=value=>String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
 
-    async function req(payload){return workerRequest(payload);}
+    // Retry only safe read requests. Never automatically repeat invite creation or account changes.
+    async function req(payload,{safeRead=false}={}){
+      const attempts=safeRead?3:1;
+      for(let attempt=0;attempt<attempts;attempt++){
+        try{return await workerRequest(payload);}
+        catch(error){
+          const transient=error instanceof TypeError ||
+            /failed to fetch|network|load failed|temporar/i.test(String(error?.message||"")) ||
+            [502,503,504].includes(error?.status);
+          if(!safeRead||!transient||attempt===attempts-1)throw error;
+          await wait(500*(attempt+1));
+        }
+      }
+    }
+
+    async function waitForAuth(){
+      let timer;
+      try{
+        await Promise.race([
+          authReady,
+          new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error("Google login session abhi load ho raha hai. Retry dabayein.")),12000);})
+        ]);
+      }finally{clearTimeout(timer);}
+    }
+
+    function showAccessDenied(){
+      document.querySelector(".wrap").innerHTML="<h1>Access denied</h1><p>This Google account is not an administrator.</p><a class='btn' href='./account.html'>My account</a>";
+    }
 
     async function load(){
-      await authReady;
-      if(!auth?.currentUser){
-        location.replace("./login.html?next="+encodeURIComponent(location.href));
-        return;
-      }
+      if(loading)return;
+      loading=true;
+      $("status").textContent="Checking secure login and administrator access…";
+      $("refresh").disabled=true;
       try{
-        const me=await req({action:"auth_me"});
-        if(me.user.role!=="admin"){
-          document.querySelector(".wrap").innerHTML="<h1>Access denied</h1><p>This Google account is not an administrator.</p><a class='btn' href='./account.html'>My account</a>";
+        await waitForAuth();
+        if(!auth?.currentUser){
+          location.replace("./login.html?next="+encodeURIComponent(location.href));
           return;
         }
+        const me=await req({action:"auth_me"},{safeRead:true});
+        if(me.user?.role!=="admin"){showAccessDenied();return;}
         adminUid=me.user.uid;
+        $("status").textContent="Admin verified. Loading accounts…";
         await refresh();
       }catch(error){
-        $("status").textContent=error.message||"Could not load the admin dashboard.";
+        $("status").textContent=(error.message||"Dashboard load nahi ho saka.")+" — Retry button dabayein.";
+        $("users").innerHTML='<tr><td colspan="6">Accounts abhi load nahi huay. Refresh list dabayein.</td></tr>';
+      }finally{
+        loading=false;
+        if($("refresh"))$("refresh").disabled=false;
       }
     }
 
     async function refresh(){
+      if(refreshing)return;
+      refreshing=true;
       $("status").textContent="Loading accounts…";
       $("refresh").disabled=true;
       try{
-        const data=await req({action:"admin_list_users"});
-        rows=data.users||[];
+        const data=await req({action:"admin_list_users"},{safeRead:true});
+        rows=Array.isArray(data.users)?data.users:[];
         render();
         $("status").textContent="Loaded "+rows.length+" accounts.";
       }catch(error){
-        $("status").textContent=error.message||"Could not load accounts.";
+        $("status").textContent=(error.message||"Accounts load nahi huay.")+" — dobara Refresh list dabayein.";
+        if(!rows.length)$("users").innerHTML='<tr><td colspan="6">Accounts list filhal available nahi. Dobara try karein.</td></tr>';
       }finally{
+        refreshing=false;
         $("refresh").disabled=false;
       }
     }
@@ -138,7 +178,6 @@
         const protectedAccount=isSelf||isAdmin;
         const status=String(user.status||"active");
         const advanced=String(user.advancedAccess||"pending");
-
         let actions="";
         if(protectedAccount){
           actions='<span class="protected">'+(isSelf?"Your owner account":"Admin account protected")+'</span>';
@@ -146,7 +185,6 @@
           const advancedButton=advanced==="approved"
             ?'<button type="button" data-action="access" data-value="revoked" data-uid="'+esc(user.uid)+'">Revoke</button>'
             :'<button type="button" class="success" data-action="access" data-value="approved" data-uid="'+esc(user.uid)+'">Approve</button>';
-
           let statusButtons="";
           if(status==="banned"||status==="suspended"){
             statusButtons='<button type="button" class="success" data-action="status" data-value="active" data-uid="'+esc(user.uid)+'">Activate</button>';
@@ -155,7 +193,6 @@
           }
           actions=advancedButton+statusButtons;
         }
-
         const row=document.createElement("tr");
         row.innerHTML=
           '<td><span class="user-name">'+esc(user.displayName||"Creator")+'</span><span class="uid" title="'+esc(user.uid)+'">'+esc(user.uid)+'</span></td>'+
@@ -172,19 +209,14 @@
     $("users").addEventListener("click",async event=>{
       const button=event.target.closest("button[data-uid]");
       if(!button)return;
-      const uid=button.dataset.uid;
-      const action=button.dataset.action;
-      const value=button.dataset.value;
+      const uid=button.dataset.uid,action=button.dataset.action,value=button.dataset.value;
       const label=action==="access"?"advanced access":"account status";
       if(!confirm("Change "+label+" to "+value+"?"))return;
       button.disabled=true;
       $("status").textContent="Saving change…";
       try{
-        if(action==="access"){
-          await req({action:"admin_set_access",targetUid:uid,advancedAccess:value});
-        }else if(action==="status"){
-          await req({action:"admin_set_status",targetUid:uid,status:value});
-        }
+        if(action==="access")await req({action:"admin_set_access",targetUid:uid,advancedAccess:value});
+        else if(action==="status")await req({action:"admin_set_status",targetUid:uid,status:value});
         await refresh();
       }catch(error){
         $("status").textContent=error.message||"Could not save this change.";
@@ -197,20 +229,15 @@
       button.disabled=true;
       $("invite").textContent="Creating invite…";
       try{
-        const data=await req({
-          action:"admin_create_invite",
-          maxUses:Number($("uses").value)||1,
-          expiresDays:Number($("days").value)||7
-        });
+        // Do not retry this mutation automatically: the code is displayed only once.
+        const data=await req({action:"admin_create_invite",maxUses:Number($("uses").value)||1,expiresDays:Number($("days").value)||7});
         $("invite").textContent="Copy this code now (it is shown only once): "+data.code;
       }catch(error){
-        $("invite").textContent=error.message||"Could not create invite.";
-      }finally{
-        button.disabled=false;
-      }
+        $("invite").textContent=(error.message||"Could not create invite.")+" Please try again.";
+      }finally{button.disabled=false;}
     });
 
-    $("refresh").addEventListener("click",refresh);
+    $("refresh").addEventListener("click",()=>adminUid?refresh():load());
     load();
   </script>
 </body>
