@@ -141,9 +141,12 @@
     </div>
    </div>
    <div class="group">
+    <div class="group-head">Creative Presets</div><div class="tool-grid"><button class="tool-tile" data-photo-preset="cinematic">◐ Cinematic</button><button class="tool-tile" data-photo-preset="gaming">🎮 Gaming</button><button class="tool-tile" data-photo-preset="horror">☠ Horror</button><button class="tool-tile" data-photo-preset="cricket">🏏 Cricket</button><button class="tool-tile" data-photo-preset="luxury">✦ Luxury</button><button class="tool-tile" data-photo-preset="vibrant">✧ Vibrant</button></div>
+   </div>
+   <div class="group">
     <div class="group-head">Background</div>
     <div class="field"><label>Canvas color</label><input type="color" id="backgroundColor" value="#ffffff" style="width:100%;height:36px;background:#10101b;border:1px solid #3a3a51;border-radius:9px;padding:4px"></div>
-    <button class="btn small" id="transparentBackground">▦ Transparent Canvas</button>
+    <button class="btn small" id="transparentBackground">▦ Transparent Canvas</button><button class="btn small" id="replaceBackgroundBtn">＋ Add Background Image</button><input type="file" id="backgroundImageInput" accept="image/*" hidden><p class="muted" style="font-size:10px;line-height:1.45">Adds an image behind current layers. Hide an opaque foreground layer to see it through.</p>
    </div>
    <div class="group">
     <div class="group-head">Text & Graphics</div>
@@ -181,10 +184,11 @@
   </div>
   <div id="thumbnailTools" class="hidden">
    <h3 class="panel-title">Thumbnail Studio</h3>
-   <p class="muted" style="font-size:12px;line-height:1.6">Creator-focused tools will be built here.</p>
+   <p class="muted" style="font-size:12px;line-height:1.6">Creator tools for mobile-friendly thumbnail layouts.</p>
    <div class="group"><strong>Mobile Feed Preview</strong><p class="muted">Preview your design at a small size.</p><button class="btn small" id="mobilePreviewBtn">Open Preview</button></div>
-   <div class="group"><strong>Safe-Area Guides</strong><p class="muted">Keep titles and subjects inside a safe area for mobile viewing.</p><button class="btn small" disabled>Coming Soon</button></div>
-   <div class="group"><strong>AI Thumbnail Critic</strong><p class="muted">Will activate after a suitable AI image-analysis model is connected.</p></div>
+   <div class="group"><strong>Safe-Area Guides</strong><p class="muted">Show a 10% title-safe border and composition grid. Guides do not appear in exported images.</p><button class="btn small" id="safeAreaGuidesBtn">Show Guides</button></div>
+   <div class="group"><strong>Quick Thumbnail Check</strong><p class="muted">Local checklist for headline, contrast, brightness and canvas shape. No image upload.</p><button class="btn small primary" id="runThumbnailCheck">Check Thumbnail</button><div id="thumbnailCriticResults" class="muted" style="font-size:11px;line-height:1.6;margin-top:10px" aria-live="polite">Run a check to see suggestions.</div></div>
+   <div class="group"><strong>AI Thumbnail Critic</strong><p class="muted">AI image understanding still needs a compatible image model.</p><button class="btn small" disabled>AI Model Required</button></div>
   </div>
   <div id="historyTools" class="hidden"><h3 class="panel-title">Edit History</h3><p class="muted" style="font-size:12px">Use Undo and Redo in the top toolbar. Version history will be added in a later phase.</p><button class="btn small" id="undoSide">↶ Undo</button> <button class="btn small" id="redoSide">↷ Redo</button></div>
   <div id="settingsTools" class="hidden"><h3 class="panel-title">Canvas Settings</h3><div class="field"><label>Canvas width</label><input type="number" id="canvasWidth" min="100" max="6000"></div><div class="field"><label>Canvas height</label><input type="number" id="canvasHeight" min="100" max="6000"></div><button class="btn small primary" id="applySize">Apply Size</button><p class="muted" style="font-size:11px">Changes are saved with this project.</p></div>
