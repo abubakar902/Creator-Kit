@@ -88,6 +88,12 @@
      <button class="tool-tile" id="toolEraser"><b>◩</b>Eraser</button>
      <button class="tool-tile" id="toolClone"><b>◉</b>Clone</button>
      <button class="tool-tile" id="toolEyedropper"><b>◌</b>Eyedropper</button>
+     <button class="tool-tile" disabled title="Advanced selection engine planned"><b>⌁</b>Lasso</button>
+     <button class="tool-tile" disabled title="Advanced selection engine planned"><b>✥</b>Magic Wand</button>
+     <button class="tool-tile" disabled title="Advanced selection engine planned"><b>▧</b>Quick Select</button>
+     <button class="tool-tile" disabled title="AI subject selection model required"><b>✧</b>Select Subject</button>
+     <button class="tool-tile" disabled title="Ellipse selection planned"><b>◯</b>Ellipse Select</button>
+     <button class="tool-tile" disabled title="Invert selection mask planned"><b>⇄</b>Invert Select</button>
     </div>
     <div class="field"><label>Brush color</label><input type="color" id="brushColor" value="#ff3b9d" style="width:100%;height:34px"></div>
     <div class="field"><label>Second gradient color</label><input type="color" id="gradientColor" value="#4f46e5" style="width:100%;height:34px"></div>
@@ -129,22 +135,30 @@
    </div>
    <div class="group">
     <div class="group-head">Retouch Tools</div>
-    <p class="muted" style="font-size:11px;line-height:1.5;margin:0">Brush, Eraser, Rectangle Selection, Clone Stamp and Patch Copy are available in Selection & Paint. Healing Brush and automatic blemish correction are still to come.</p>
+    <p class="muted" style="font-size:11px;line-height:1.5;margin:0">Brush, Eraser, Rectangle Selection, Clone Stamp and Patch Copy are available in Selection & Paint.</p>
+    <div class="tool-grid">
+     <button class="tool-tile" disabled title="Healing engine planned"><b>✚</b>Healing Brush</button>
+     <button class="tool-tile" disabled title="Automatic retouch engine planned"><b>◎</b>Blemish Fix</button>
+     <button class="tool-tile" disabled title="Patch blending engine planned"><b>▧</b>Smart Patch</button>
+    </div>
    </div>
   </div>
   <div id="aiTools" class="hidden">
    <h3 class="panel-title">AI Photo Tools</h3>
-   <p class="muted" style="font-size:12px;line-height:1.6">These tools will appear here when a suitable image model is connected and verified.</p>
-   <div class="group"><strong>AI Background Remover</strong><p class="muted">Coming in the AI tools phase</p></div>
-   <div class="group"><strong>AI Object Remover</strong><p class="muted">Coming in the AI tools phase</p></div>
-   <div class="group"><strong>Generative Fill & Object Replace</strong><p class="muted">Coming in the AI tools phase</p></div>
-   <div class="group"><strong>AI Image Expand & Enhancer</strong><p class="muted">Coming in the AI tools phase</p></div>
+   <p class="muted" style="font-size:12px;line-height:1.6">These tools are part of the approved scope. They will be enabled only after a suitable image model is connected and tested. No paid API is enabled.</p>
+   <div class="group"><strong>AI Background Remover</strong><p class="muted">Separate the subject from its background.</p><button class="btn small" disabled>Model required</button></div>
+   <div class="group"><strong>AI Object Remover</strong><p class="muted">Remove unwanted objects from a photo.</p><button class="btn small" disabled>Model required</button></div>
+   <div class="group"><strong>Generative Fill & Object Replace</strong><p class="muted">Select an area and describe what should appear there.</p><button class="btn small" disabled>Model required</button></div>
+   <div class="group"><strong>AI Background Generator</strong><p class="muted">Create a new background from a text description.</p><button class="btn small" disabled>Model required</button></div>
+   <div class="group"><strong>AI Image Expand</strong><p class="muted">Extend the image beyond its current edges.</p><button class="btn small" disabled>Model required</button></div>
+   <div class="group"><strong>AI Image Enhancer</strong><p class="muted">Upscale, denoise and improve image details.</p><button class="btn small" disabled>Model required</button></div>
+   <div class="group"><strong>AI Prompt Editor</strong><p class="muted">Describe an edit in simple words and apply it to the image.</p><button class="btn small" disabled>Model required</button></div>
   </div>
   <div id="thumbnailTools" class="hidden">
    <h3 class="panel-title">Thumbnail Studio</h3>
    <p class="muted" style="font-size:12px;line-height:1.6">Creator-focused tools will be built here.</p>
    <div class="group"><strong>Mobile Feed Preview</strong><p class="muted">Preview your design at a small size.</p><button class="btn small" id="mobilePreviewBtn">Open Preview</button></div>
-   <div class="group"><strong>Safe-Area Guides</strong><p class="muted">Guides and custom canvas sizes are part of the next build.</p></div>
+   <div class="group"><strong>Safe-Area Guides</strong><p class="muted">Keep titles and subjects inside a safe area for mobile viewing.</p><button class="btn small" disabled>Coming Soon</button></div>
    <div class="group"><strong>AI Thumbnail Critic</strong><p class="muted">Will activate after a suitable AI image-analysis model is connected.</p></div>
   </div>
   <div id="historyTools" class="hidden"><h3 class="panel-title">Edit History</h3><p class="muted" style="font-size:12px">Use Undo and Redo in the top toolbar. Version history will be added in a later phase.</p><button class="btn small" id="undoSide">↶ Undo</button> <button class="btn small" id="redoSide">↷ Redo</button></div>
