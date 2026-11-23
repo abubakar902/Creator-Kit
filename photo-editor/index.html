@@ -394,6 +394,73 @@ function applyAdvancedColorAdjustments(){
  ctx.putImageData(image,0,0);
 }
 function bindAdjustmentSlider(key){let started=false;const input=$(key);input.addEventListener("pointerdown",()=>{if(state&&!started){pushHistory();started=true}});input.addEventListener("keydown",()=>{if(state&&!started){pushHistory();started=true}});input.addEventListener("change",()=>{started=false});input.addEventListener("input",()=>updateAdjustment(key,input.value))}
+function addBackgroundImageLayer(file){
+ if(!state||!file)return;
+ const url=URL.createObjectURL(file),img=new Image();
+ img.onload=()=>{
+  URL.revokeObjectURL(url);
+  pushHistory();
+  const scale=Math.max(state.width/img.naturalWidth,state.height/img.naturalHeight);
+  const w=img.naturalWidth*scale,h=img.naturalHeight*scale;
+  const layer=imageLayer(file,"Background Image",w,h);
+  layer.x=(state.width-w)/2;layer.y=(state.height-h)/2;
+  state.layers.unshift(layer);state.background="transparent";
+  $("backgroundColor").value="#ffffff";selectedId=layer.id;state.selectedLayerId=layer.id;
+  render().then(scheduleSave);
+  toast("Background image added behind the other layers. Hide an opaque photo layer to see it.");
+ };
+ img.onerror=()=>{URL.revokeObjectURL(url);toast("Could not open that background image.")};
+ img.src=url;
+}
+function applyPhotoPreset(name){
+ if(!state)return;
+ const base={brightness:100,contrast:100,saturation:100,hue:0,temperature:0,exposure:0,blur:0,vignette:0,highlights:0,shadows:0,sharpness:0,straighten:0,blackPoint:0,whitePoint:255,curveGamma:100,hslHue:0,hslSaturation:0,hslLightness:0,colorRange:"all",colorMixHue:0,colorMixSaturation:0,colorMixLightness:0,redBalance:0,greenBalance:0,blueBalance:0,filter:"none"};
+ const looks={
+  cinematic:{filter:"cinematic",contrast:118,saturation:88,exposure:-4,vignette:24,shadows:12,highlights:-10},
+  gaming:{contrast:128,saturation:142,sharpness:34,vignette:18,hue:5},
+  horror:{contrast:138,saturation:62,temperature:-18,vignette:48,shadows:-8,hue:8},
+  cricket:{contrast:116,saturation:122,sharpness:24,highlights:-8,shadows:12,temperature:4},
+  luxury:{contrast:112,saturation:82,temperature:14,highlights:-12,shadows:8,vignette:20},
+  vibrant:{contrast:110,saturation:150,sharpness:28,highlights:-6,shadows:8}
+ };
+ pushHistory();state.adjust={...base,...(looks[name]||looks.vibrant)};
+ syncAdjustmentControls();render().then(scheduleSave);
+ toast(name.charAt(0).toUpperCase()+name.slice(1)+" preset applied.");
+}
+function runThumbnailQualityCheck(){
+ if(!state)return;
+ let sum=0,sumSq=0,saturation=0,count=0;
+ try{
+  const pixels=ctx.getImageData(0,0,canvas.width,canvas.height).data;
+  const step=Math.max(4,Math.floor(pixels.length/72000/4)*4);
+  for(let i=0;i<pixels.length;i+=step){
+   const lum=(pixels[i]*.2126+pixels[i+1]*.7152+pixels[i+2]*.0722)/255;
+   sum+=lum;sumSq+=lum*lum;
+   saturation+=(Math.max(pixels[i],pixels[i+1],pixels[i+2])-Math.min(pixels[i],pixels[i+1],pixels[i+2]))/255;
+   count++;
+  }
+ }catch(error){toast("Could not check this canvas. Try a smaller image.");return}
+ const avg=sum/Math.max(1,count);
+ const contrast=Math.sqrt(Math.max(0,sumSq/Math.max(1,count)-avg*avg));
+ const sat=saturation/Math.max(1,count);
+ const hasText=state.layers.some(l=>l.visible&&l.type==="text"&&(l.text||"").trim().length>1);
+ const hasImage=state.layers.some(l=>l.visible&&l.type==="image");
+ const ratio=state.width/state.height;
+ let score=50,notes=[];
+ if(hasText){score+=20;notes.push("Headline layer found — keep it short and readable on a phone.");}
+ else{score-=12;notes.push("Add one bold headline that explains the video quickly.");}
+ if(contrast>.12){score+=15;notes.push("Tonal contrast looks useful in the sampled image.");}
+ else{score-=8;notes.push("Increase contrast or separate the subject from the background.");}
+ if(avg>.16&&avg<.86){score+=10;notes.push("Average brightness looks balanced.");}
+ else{score-=7;notes.push(avg<=.16?"Image looks dark; lift shadows or exposure.":"Image looks bright; reduce highlights or exposure.");}
+ if(ratio>1.45&&ratio<2.05){score+=5;notes.push("Canvas shape is close to a wide thumbnail.");}
+ else{notes.push("Check platform dimensions; this is not a standard wide thumbnail shape.");}
+ if(hasImage){notes.push("Photo layer found — make the main subject large and recognisable.");}
+ else{notes.push("Add a strong focal image if the design needs one.");}
+ if(sat<.08)notes.push("Colors are muted; a controlled accent color may help.");
+ score=Math.max(0,Math.min(100,score));
+ $("thumbnailCriticResults").innerHTML="<strong>Quick check score: "+score+"/100</strong><br>"+notes.map(n=>"• "+n).join("<br>")+"<br><span style='opacity:.75'>Local design checklist only — not the AI Thumbnail Critic.</span>";
+}
 function activateRail(which){document.querySelectorAll(".rail-btn").forEach(b=>b.classList.toggle("active",b.dataset.rail===which));["basicTools","aiTools","thumbnailTools","layersTools","historyTools","settingsTools"].forEach(id=>$ (id).classList.add("hidden"));const map={basic:"basicTools",ai:"aiTools",thumbnail:"thumbnailTools",layers:"layersTools",history:"historyTools",settings:"settingsTools"};$(map[which]).classList.remove("hidden")}
 function selectTab(tab){document.querySelectorAll(".right-tabs button").forEach(b=>b.classList.toggle("active",b.dataset.tab===tab));$("layersTab").classList.toggle("hidden",tab!=="layers");$("propertiesTab").classList.toggle("hidden",tab!=="properties")}
 function applyZoom(){if(state){canvas.style.width=Math.round(state.width*zoomLevel/100)+"px";canvas.style.height=Math.round(state.height*zoomLevel/100)+"px"}const shell=$("canvasShell");if(shell)shell.style.transform="none";const label=$("zoomLabel");if(label)label.textContent=zoomLevel+"%"}
