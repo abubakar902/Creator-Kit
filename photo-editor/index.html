@@ -317,8 +317,7 @@ function drawMeshTriangle(c,image,s1,s2,s3,d1,d2,d3){
  const ux=s2.x-s1.x,uy=s2.y-s1.y,vx=s3.x-s1.x,vy=s3.y-s1.y,det=ux*vy-vx*uy;
  if(Math.abs(det)<1e-8)return;
  const dx1=d2.x-d1.x,dx2=d3.x-d1.x,dy1=d2.y-d1.y,dy2=d3.y-d1.y;
- const a=(dx1*vy-dx2*uy)/det,cc=(dx2*ux-dx1*vx)/det,b=(dy1*vy-dy2*vy+dy2*vy-dy1*vy)/det;
- const bb=(dy1*vy-dy2*uy)/det,dd=(dy2*ux-dy1*vx)/det,ee=d1.x-a*s1.x-cc*s1.y,ff=d1.y-bb*s1.x-dd*s1.y;
+ const a=(dx1*vy-dx2*uy)/det,cc=(dx2*ux-dx1*vx)/det,bb=(dy1*vy-dy2*uy)/det,dd=(dy2*ux-dy1*vx)/det,ee=d1.x-a*s1.x-cc*s1.y,ff=d1.y-bb*s1.x-dd*s1.y;
  c.save();c.beginPath();c.moveTo(d1.x,d1.y);c.lineTo(d2.x,d2.y);c.lineTo(d3.x,d3.y);c.closePath();c.clip();c.transform(a,bb,cc,dd,ee,ff);c.drawImage(image,0,0);c.restore();
 }
 function drawPerspectiveMesh(c,image,width,height,warp){
