@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0d0d16">
+<title>TrivexaAI AI Photo Editor</title>
+<style>
+:root{color-scheme:dark;--bg:#0d0d16;--panel:#171725;--panel2:#202035;--line:#30304b;--purple:#8057ff;--purple2:#a855f7;--pink:#e879f9;--text:#f7f4ff;--muted:#aaa6bf;--green:#4ade80;--radius:15px}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}button,input,select{font:inherit}button{cursor:pointer;color:inherit}button:disabled{opacity:.45;cursor:not-allowed}
+.topbar{height:76px;padding:0 24px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #29293d;background:#101019;position:sticky;top:0;z-index:10}.brand{display:flex;align-items:center;gap:12px;font-size:21px;font-weight:850;letter-spacing:-.5px}.brand-mark{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:linear-gradient(135deg,#596dff,#a855f7 60%,#e879f9);font-size:23px;box-shadow:0 0 25px #8955ff55}.brand small{display:block;color:var(--muted);font-size:11px;font-weight:600;letter-spacing:.3px}.top-actions{display:flex;align-items:center;gap:10px}.btn{border:1px solid var(--line);background:#202033;padding:10px 15px;border-radius:11px;font-weight:700;font-size:13px;display:inline-flex;align-items:center;justify-content:center;gap:8px}.btn:hover{border-color:#8e6bff;background:#292640}.btn.primary{border:0;background:linear-gradient(105deg,#4057ff,#8a35ed 70%,#aa36de);box-shadow:0 7px 22px #7040e744}.btn.ghost{background:transparent}.btn.small{padding:7px 10px;font-size:12px}.muted{color:var(--muted)}.hidden{display:none!important}
+.start-wrap{width:min(1180px,94%);margin:42px auto 70px}.start-hero{position:relative;overflow:hidden;border:1px solid #4a3a70;border-radius:24px;padding:36px;background:radial-gradient(ellipse at 90% 0%,#8b48ed44,transparent 42%),linear-gradient(135deg,#211a37,#151523 76%);box-shadow:0 25px 70px #0007}.eyebrow{color:#d8c9ff;font-size:11px;letter-spacing:1.4px;font-weight:850;text-transform:uppercase}.start-hero h1{font-size:clamp(30px,4vw,48px);line-height:1.06;letter-spacing:-1.8px;margin:12px 0}.start-hero h1 span{background:linear-gradient(100deg,#c3b5fd,#e879f9);color:transparent;background-clip:text}.start-hero p{color:#c6bfd7;max-width:690px;line-height:1.7;margin:0}.start-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:24px}.start-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin:22px 0 34px}.start-card{min-height:176px;padding:22px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(145deg,#1c1c2d,#141421);text-align:left;transition:.18s}.start-card:hover{transform:translateY(-3px);border-color:#8060d7;box-shadow:0 14px 35px #0005}.start-card .ico{font-size:28px;margin-bottom:14px}.start-card h3{margin:0 0 7px;font-size:17px}.start-card p{margin:0;color:var(--muted);font-size:13px;line-height:1.55}.section-head{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:26px 0 14px}.section-head h2{font-size:20px;margin:0}.recent-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.recent-card{border:1px solid var(--line);border-radius:15px;overflow:hidden;background:#171725}.recent-thumb{height:130px;background:linear-gradient(135deg,#282744,#171725);display:grid;place-items:center;color:#bbb;font-size:32px}.recent-thumb img{width:100%;height:100%;object-fit:cover}.recent-info{padding:12px}.recent-info strong{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13px}.recent-info small{display:block;color:var(--muted);margin:5px 0 10px;font-size:11px}.recent-buttons{display:flex;gap:7px}.empty-state{grid-column:1/-1;border:1px dashed #4b4964;border-radius:14px;padding:26px;text-align:center;color:var(--muted);background:#17172566}
+.workspace{height:calc(100vh - 76px);min-height:650px;display:grid;grid-template-columns:84px 330px minmax(320px,1fr) 300px;grid-template-rows:minmax(0,1fr) 156px;gap:12px;padding:12px}.tool-rail{grid-column:1;grid-row:1/3;border:1px solid var(--line);border-radius:14px;background:#171725;padding:9px 6px;display:flex;flex-direction:column;gap:6px}.rail-btn{min-height:76px;border:1px solid transparent;border-radius:12px;background:transparent;color:#d8d4e8;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;font-size:11px;font-weight:700}.rail-btn span:first-child{font-size:23px}.rail-btn.active,.rail-btn:hover{background:#403174;border-color:#6649b4;color:#fff}.left-panel,.right-panel{min-height:0;border:1px solid var(--line);border-radius:14px;background:#171725;overflow:auto}.left-panel{grid-column:2;grid-row:1;padding:16px}.right-panel{grid-column:4;grid-row:1;padding:14px}.panel-title{font-size:15px;font-weight:800;margin:0 0 13px}.tool-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.tool-tile{min-height:70px;border:1px solid #373750;border-radius:11px;background:#222236;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;font-size:11px;color:#ece8fa}.tool-tile b{font-size:20px;font-weight:500}.tool-tile:hover{border-color:#8c65f3;background:#30264a}.tool-tile:disabled{opacity:.45}.group{border-top:1px solid #323247;padding:14px 0}.group:first-child{border-top:0;padding-top:0}.group-head{display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:800;margin-bottom:11px}.field{display:grid;gap:6px;margin:11px 0}.field label{font-size:12px;color:#d1ccdf;display:flex;justify-content:space-between}.field input[type=range]{width:100%;accent-color:#8a61ff}.field input[type=text],.field input[type=number],.field select{width:100%;background:#10101b;border:1px solid #3a3a51;border-radius:9px;color:#fff;padding:9px 10px}.workspace-top{grid-column:3;grid-row:1;height:48px;display:flex;align-items:center;justify-content:space-between;gap:10px}.quick-actions{display:flex;gap:7px;align-items:center;flex-wrap:wrap}.stage{grid-column:3;grid-row:1;min-height:0;margin-top:55px;border:1px solid #34344d;border-radius:14px;background-color:#11111b;background-image:linear-gradient(45deg,#191927 25%,transparent 25%),linear-gradient(-45deg,#191927 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#191927 75%),linear-gradient(-45deg,transparent 75%,#191927 75%);background-size:24px 24px;background-position:0 0,0 12px,12px -12px,-12px 0;display:flex;align-items:center;justify-content:center;overflow:auto;padding:22px;position:relative}.canvas-shell{position:relative;box-shadow:0 18px 50px #0009;max-width:100%;max-height:100%;display:flex;align-items:center;justify-content:center}.canvas-shell canvas{display:block;max-width:100%;max-height:calc(100vh - 230px);width:auto;height:auto;background:white;touch-action:none}.stage-empty{max-width:300px;text-align:center;color:#b8b2c9}.stage-empty .big{font-size:46px}.stage-empty p{font-size:13px;line-height:1.6}.stage-hint{position:absolute;bottom:10px;left:14px;color:#77748a;font-size:10px;pointer-events:none}.right-tabs{display:flex;border-bottom:1px solid #36364c;margin-bottom:14px}.right-tabs button{flex:1;border:0;background:transparent;color:var(--muted);padding:10px 6px;font-weight:750;font-size:13px;border-bottom:2px solid transparent}.right-tabs button.active{color:white;border-color:#9d58f5}.layer-row{display:flex;align-items:center;gap:8px;border:1px solid transparent;background:#222236;border-radius:10px;padding:9px;margin:7px 0;cursor:pointer}.layer-row.selected{border-color:#8057ff;background:#332954}.layer-eye{border:0;background:transparent;font-size:15px;padding:2px}.layer-type{width:32px;height:32px;border-radius:8px;background:#37304f;display:grid;place-items:center}.layer-name{min-width:0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12px}.layer-actions{display:flex;gap:5px}.layer-actions button{border:0;background:transparent;color:#bcb6cf}.bottom-panel{grid-column:2/4;grid-row:2;border:1px solid var(--line);border-radius:14px;background:#171725;padding:12px;overflow:hidden}.bottom-tabs{display:flex;gap:20px;border-bottom:1px solid #333348;margin-bottom:10px}.bottom-tabs button{background:transparent;border:0;color:var(--muted);padding:5px 3px 9px;font-size:12px;font-weight:750}.bottom-tabs button.active{color:#fff;border-bottom:2px solid #9255f3}.preset-row{display:flex;gap:9px;overflow:auto;padding-bottom:4px}.preset{flex:0 0 126px;border:1px solid #38384e;border-radius:11px;background:#222236;overflow:hidden;text-align:left;padding:0}.preset-art{height:70px;background:linear-gradient(135deg,#30256b,#8d2a8d);display:grid;place-items:center;font-size:22px}.preset:nth-child(2) .preset-art{background:linear-gradient(135deg,#1e5b8b,#7d3db7)}.preset:nth-child(3) .preset-art{background:linear-gradient(135deg,#ce6b2c,#452456)}.preset strong{display:block;padding:7px 8px;font-size:11px}.side-bottom{grid-column:4;grid-row:2;display:grid;grid-template-columns:1fr 1fr;gap:10px}.mobile-preview,.critic-card{border:1px solid var(--line);border-radius:14px;background:#171725;padding:12px;min-width:0}.mobile-preview h3,.critic-card h3{font-size:12px;margin:0 0 9px}.phone{width:64px;height:90px;margin:auto;border:3px solid #4a4962;border-radius:12px;overflow:hidden;background:#24243a}.phone canvas{width:100%;height:100%;object-fit:contain}.critic-card{background:linear-gradient(145deg,#412078,#1a1630);border-color:#7044ae}.critic-card p{font-size:10px;color:#ddd0f5;line-height:1.4}.critic-card button{font-size:10px;padding:6px 8px;width:100%}.save-state{font-size:11px;color:#8fdea7;white-space:nowrap}.notice{margin-top:14px;padding:12px 14px;background:#242235;border:1px solid #48405f;border-radius:12px;color:#d0c8e5;font-size:12px;line-height:1.55}.modal-backdrop{position:fixed;inset:0;background:#05050bcc;z-index:40;display:grid;place-items:center;padding:20px}.modal{width:min(460px,100%);background:#1b1b2b;border:1px solid #4a4566;border-radius:18px;padding:23px;box-shadow:0 25px 80px #000b}.modal h2{margin:0 0 8px;font-size:20px}.modal p{color:var(--muted);font-size:13px;line-height:1.5}.modal-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:18px}
+@media(max-width:1180px){.workspace{grid-template-columns:72px 270px minmax(280px,1fr) 250px}.tool-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.side-bottom{grid-template-columns:1fr}.critic-card{display:none}.recent-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:900px){.workspace{height:auto;min-height:calc(100vh - 68px);grid-template-columns:62px minmax(0,1fr);grid-template-rows:auto minmax(380px,55vh) auto auto;gap:9px;padding:9px}.tool-rail{grid-column:1;grid-row:1/5}.left-panel{grid-column:2;grid-row:1;max-height:285px}.workspace-top{grid-column:2;grid-row:2;height:auto;align-self:start}.stage{grid-column:2;grid-row:2;margin-top:45px;min-height:330px}.right-panel{grid-column:2;grid-row:3;max-height:300px}.bottom-panel{grid-column:2;grid-row:4}.side-bottom{display:none}.topbar{height:68px;padding:0 12px}.brand{font-size:17px}.top-actions .btn{padding:8px 10px}.recent-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.start-wrap{margin:20px auto 40px}.start-hero{padding:23px}.start-grid{grid-template-columns:1fr}.start-card{min-height:120px}.recent-grid{grid-template-columns:1fr 1fr}.recent-thumb{height:90px}.workspace{grid-template-columns:52px minmax(0,1fr)}.rail-btn{min-height:60px;font-size:9px}.rail-btn span:first-child{font-size:19px}.left-panel{padding:11px}.tool-grid{grid-template-columns:repeat(4,minmax(0,1fr))}.tool-tile{min-height:58px;font-size:9px}.tool-tile b{font-size:17px}.stage{padding:8px}.stage canvas{max-height:42vh}.topbar .brand small{display:none}.top-actions{gap:5px}.top-actions .btn{font-size:11px;padding:7px 8px}.workspace-top{overflow-x:auto}.quick-actions{flex-wrap:nowrap}.right-panel{padding:10px}}
+</style>
+</head>
+<body>
+<header class="topbar">
+ <div class="brand"><span class="brand-mark">✦</span><span>TrivexaAI <small>AI Photo Editor</small></span></div>
+ <div class="top-actions"><a class="btn ghost" href="../#projects">← Projects</a><span class="save-state" id="saveState">Ready</span></div>
+</header>
+
+<main id="startScreen" class="start-wrap">
+ <section class="start-hero">
+  <div class="eyebrow">TRIVEXAAI CREATIVE WORKSPACE</div>
+  <h1>Bring your photos to <span>life.</span></h1>
+  <p>Start with a photo, a blank canvas or a ready-made size. Your projects are saved on this device, so you can return to your work later in this browser.</p>
+  <div class="start-actions">
+   <button class="btn primary" id="newProjectBtn">＋ Create New Project</button>
+   <button class="btn" id="uploadPhotoBtn">↑ Upload Photo</button>
+   <input type="file" id="photoInput" accept="image/*" hidden>
+  </div>
+ </section>
+ <section class="start-grid">
+  <button class="start-card" id="blankCard"><div class="ico">▧</div><h3>Blank Canvas</h3><p>Choose a canvas size and create your own design from scratch.</p></button>
+  <button class="start-card" id="templateCard"><div class="ico">▦</div><h3>Start with a Template</h3><p>Begin with a YouTube thumbnail, social post or vertical story size.</p></button>
+  <button class="start-card" id="uploadCard"><div class="ico">🖼️</div><h3>Edit a Photo</h3><p>Upload an image from your computer and start editing it.</p></button>
+ </section>
+ <div class="section-head"><h2>Recent Projects</h2><span class="muted" id="recentCount">Saved on this device</span></div>
+ <div class="recent-grid" id="recentGrid"><div class="empty-state">Loading your recent projects…</div></div>
+ <div class="notice">🔒 Your photo files stay in this browser's local storage in this first version. They are not uploaded to a cloud server.</div>
+</main>
+
+<section id="workspace" class="workspace hidden" aria-label="Photo editor workspace">
+ <aside class="tool-rail">
+  <button class="rail-btn active" data-rail="basic"><span>✧</span>Basic</button>
+  <button class="rail-btn" data-rail="ai"><span>♧</span>AI Tools</button>
+  <button class="rail-btn" data-rail="thumbnail"><span>▷</span>Thumbnail</button>
+  <button class="rail-btn" data-rail="layers"><span>▱</span>Layers</button>
+  <button class="rail-btn" data-rail="history"><span>◷</span>History</button>
+  <button class="rail-btn" data-rail="settings"><span>⚙</span>Settings</button>
+ </aside>
+ <aside class="left-panel" id="leftPanel">
+  <div id="basicTools">
+   <div class="group">
+    <div class="group-head">Basic Editing <span>⌃</span></div>
+    <div class="tool-grid">
+     <button class="tool-tile" id="cropBtn"><b>⌗</b>Crop</button>
+     <button class="tool-tile" id="resizeBtn"><b>⤢</b>Resize</button>
+     <button class="tool-tile" id="rotateBtn"><b>↻</b>Rotate</button>
+     <button class="tool-tile" id="flipBtn"><b>⇋</b>Flip</button>
+    </div>
+   </div>
+   <div class="group">
+    <div class="group-head">Adjustments</div>
+    <div class="field"><label>Brightness <output id="brightnessValue">100%</output></label><input type="range" id="brightness" min="0" max="200" value="100"></div>
+    <div class="field"><label>Contrast <output id="contrastValue">100%</output></label><input type="range" id="contrast" min="0" max="200" value="100"></div>
+    <div class="field"><label>Saturation <output id="saturationValue">100%</output></label><input type="range" id="saturation" min="0" max="200" value="100"></div>
+   </div>
+   <div class="group">
+    <div class="group-head">Filters & Effects</div>
+    <div class="tool-grid">
+     <button class="tool-tile filter-btn" data-filter="none"><b>◉</b>Original</button>
+     <button class="tool-tile filter-btn" data-filter="cinematic"><b>◐</b>Cinematic</button>
+     <button class="tool-tile filter-btn" data-filter="mono"><b>◒</b>B&amp;W</button>
+     <button class="tool-tile filter-btn" data-filter="warm"><b>☀</b>Warm</button>
+    </div>
+   </div>
+   <div class="group">
+    <div class="group-head">Text & Graphics</div>
+    <div class="tool-grid">
+     <button class="tool-tile" id="addTextBtn"><b>T</b>Add Text</button>
+     <button class="tool-tile" id="addShapeBtn"><b>◇</b>Shape</button>
+     <button class="tool-tile" id="addImageBtn"><b>＋</b>Add Image</button>
+     <button class="tool-tile" id="addImageInputBtn"><b>▧</b>Upload</button>
+    </div>
+   </div>
+   <div class="group">
+    <div class="group-head">Retouch Tools</div>
+    <p class="muted" style="font-size:11px;line-height:1.5;margin:0">Brush, eraser, selection, clone and patch tools are planned for the next editing build.</p>
+   </div>
+  </div>
+  <div id="aiTools" class="hidden">
+   <h3 class="panel-title">AI Photo Tools</h3>
+   <p class="muted" style="font-size:12px;line-height:1.6">These tools will appear here when a suitable image model is connected and verified.</p>
+   <div class="group"><strong>AI Background Remover</strong><p class="muted">Coming in the AI tools phase</p></div>
+   <div class="group"><strong>AI Object Remover</strong><p class="muted">Coming in the AI tools phase</p></div>
+   <div class="group"><strong>Generative Fill & Object Replace</strong><p class="muted">Coming in the AI tools phase</p></div>
+   <div class="group"><strong>AI Image Expand & Enhancer</strong><p class="muted">Coming in the AI tools phase</p></div>
+  </div>
+  <div id="thumbnailTools" class="hidden">
+   <h3 class="panel-title">Thumbnail Studio</h3>
+   <p class="muted" style="font-size:12px;line-height:1.6">Creator-focused tools will be built here.</p>
+   <div class="group"><strong>Mobile Feed Preview</strong><p class="muted">Preview your design at a small size.</p><button class="btn small" id="mobilePreviewBtn">Open Preview</button></div>
+   <div class="group"><strong>Safe-Area Guides</strong><p class="muted">Guides and custom canvas sizes are part of the next build.</p></div>
+   <div class="group"><strong>AI Thumbnail Critic</strong><p class="muted">Will activate after a suitable AI image-analysis model is connected.</p></div>
+  </div>
+  <div id="historyTools" class="hidden"><h3 class="panel-title">Edit History</h3><p class="muted" style="font-size:12px">Use Undo and Redo in the top toolbar. Version history will be added in a later phase.</p><button class="btn small" id="undoSide">↶ Undo</button> <button class="btn small" id="redoSide">↷ Redo</button></div>
+  <div id="settingsTools" class="hidden"><h3 class="panel-title">Canvas Settings</h3><div class="field"><label>Canvas width</label><input type="number" id="canvasWidth" min="100" max="6000"></div><div class="field"><label>Canvas height</label><input type="number" id="canvasHeight" min="100" max="6000"></div><button class="btn small primary" id="applySize">Apply Size</button><p class="muted" style="font-size:11px">Changes are saved with this project.</p></div>
+  <div id="layersTools" class="hidden"><h3 class="panel-title">Layers</h3><p class="muted" style="font-size:12px">Select a layer in the panel on the right to edit it.</p></div>
+ </aside>
+ <div class="workspace-top">
+  <div class="quick-actions">
+   <button class="btn small" id="undoBtn" title="Undo">↶ Undo</button>
+   <button class="btn small" id="redoBtn" title="Redo">↷ Redo</button>
+   <button class="btn small" id="beforeAfterBtn">◉ Before / After</button>
+   <button class="btn small" id="resetBtn">↺ Reset</button>
+  </div>
+  <div class="quick-actions">
+   <button class="btn small" id="backToProjects">Projects</button>
+   <button class="btn primary small" id="exportBtn">↓ Export</button>
+  </div>
+ </div>
+ <main class="stage" id="stage">
+  <div class="canvas-shell" id="canvasShell"><canvas id="editorCanvas" width="1280" height="720" aria-label="Editable photo canvas"></canvas></div>
+  <div class="stage-empty hidden" id="stageEmpty"><div class="big">🖼️</div><strong>Your canvas is ready</strong><p>Upload a photo or add text and shapes to begin designing.</p><button class="btn primary" id="stageUploadBtn">Upload Photo</button></div>
+  <div class="stage-hint">Drag a selected layer to move it · Changes auto-save on this device</div>
+ </main>
+ <aside class="right-panel">
+  <div class="right-tabs"><button class="active" data-tab="layers">Layers</button><button data-tab="properties">Properties</button></div>
+  <div id="layersTab"><div id="layerList"></div><div class="quick-actions" style="margin-top:14px"><button class="btn small" id="layerAddText">＋ Text</button><button class="btn small" id="layerDuplicate">Duplicate</button><button class="btn small" id="layerDelete">Delete</button></div></div>
+  <div id="propertiesTab" class="hidden">
+   <div id="noSelection" class="muted" style="font-size:12px">Select a layer to see its properties.</div>
+   <div id="selectedProperties" class="hidden">
+    <div class="field"><label>Layer name</label><input type="text" id="layerName"></div>
+    <div class="field"><label>Opacity <output id="opacityValue">100%</output></label><input type="range" id="layerOpacity" min="0" max="100" value="100"></div>
+    <div class="field"><label>Rotation <output id="rotationValue">0°</output></label><input type="range" id="layerRotation" min="-180" max="180" value="0"></div>
+    <div class="field" id="textSettings"><label>Text</label><input type="text" id="layerText"></div>
+    <div class="field" id="fontSettings"><label>Font size</label><input type="number" id="fontSize" min="8" max="220" value="64"></div>
+    <div class="field" id="colorSettings"><label>Text color</label><input type="color" id="textColor" value="#ffffff"></div>
+   </div>
+  </div>
+ </aside>
+ <section class="bottom-panel">
+  <div class="bottom-tabs"><button class="active">Templates</button><button>Presets</button><button>Popular</button><span class="muted" style="margin-left:auto;font-size:10px">Canvas presets</span></div>
+  <div class="preset-row">
+   <button class="preset" data-template="youtube"><div class="preset-art">▶</div><strong>YouTube Thumbnail</strong></button>
+   <button class="preset" data-template="gaming"><div class="preset-art">🎮</div><strong>Gaming</strong></button>
+   <button class="preset" data-template="travel"><div class="preset-art">✈</div><strong>Travel</strong></button>
+   <button class="preset" data-template="social"><div class="preset-art">▦</div><strong>Social Post</strong></button>
+   <button class="preset" data-template="story"><div class="preset-art">▯</div><strong>Story</strong></button>
+   <button class="preset" data-template="product"><div class="preset-art">◇</div><strong>Product</strong></button>
+  </div>
+ </section>
+ <section class="side-bottom">
+  <div class="mobile-preview"><h3>Mobile Preview</h3><div class="phone"><canvas id="mobileCanvas" width="1280" height="720"></canvas></div></div>
+  <div class="critic-card"><h3>✦ AI Thumbnail Critic</h3><p>Image analysis will be enabled in the AI phase.</p><button class="btn small" disabled>Coming Soon</button></div>
+ </section>
+</section>
+
+<div id="nameModal" class="modal-backdrop hidden"><div class="modal"><h2>Name your project</h2><p>Choose a name that will help you find this project later.</p><div class="field"><label>Project name</label><input type="text" id="projectNameInput" maxlength="70" value="Untitled Photo Project"></div><div class="modal-actions"><button class="btn" id="cancelName">Cancel</button><button class="btn primary" id="confirmName">Create Project</button></div></div></div>
+<div id="cropModal" class="modal-backdrop hidden"><div class="modal"><h2>Crop canvas</h2><p>Choose a crop ratio. The crop is centered and can be undone.</p><div class="field"><label>Aspect ratio</label><select id="cropRatio"><option value="free">Free (keep current)</option><option value="16:9">16:9 Landscape</option><option value="1:1">1:1 Square</option><option value="4:5">4:5 Portrait</option><option value="9:16">9:16 Vertical</option></select></div><div class="modal-actions"><button class="btn" id="cancelCrop">Cancel</button><button class="btn primary" id="applyCrop">Apply Crop</button></div></div></div>
+<div id="toast" class="modal-backdrop hidden" style="background:transparent;inset:auto 16px 16px auto;z-index:60;display:block;padding:0;pointer-events:none"><div class="modal" style="width:auto;max-width:360px;padding:12px 16px;font-size:13px" id="toastMessage"></div></div>
+
+<script type="module">
+const $=id=>document.getElementById(id);
+const DB_NAME="trivexaai-photo-editor",STORE="projects";
+let db=null,state=null,selectedId=null,undoStack=[],redoStack=[],beforeState=null,compareMode=false,dragging=null,saveTimer=null;
+const canvas=$("editorCanvas"),ctx=canvas.getContext("2d"),mobile=$("mobileCanvas"),mctx=mobile.getContext("2d");
+function id(){return "pe_"+Date.now().toString(36)+"_"+Math.random().toString(36).slice(2,8)}
+function toast(message){$("toastMessage").textContent=message;$("toast").classList.remove("hidden");clearTimeout(toast.timer);toast.timer=setTimeout(()=>$("toast").classList.add("hidden"),2600)}
+function openDB(){return new Promise((resolve,reject)=>{const r=indexedDB.open(DB_NAME,1);r.onupgradeneeded=()=>{if(!r.result.objectStoreNames.contains(STORE))r.result.createObjectStore(STORE,{keyPath:"id"})};r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error||new Error("Project storage could not open"))})}
+async function putProject(project){const d=db||await openDB();return new Promise((resolve,reject)=>{const tx=d.transaction(STORE,"readwrite");tx.objectStore(STORE).put(project);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error)})}
+async function getProject(projectId){const d=db||await openDB();return new Promise((resolve,reject)=>{const r=d.transaction(STORE).objectStore(STORE).get(projectId);r.onsuccess=()=>resolve(r.result||null);r.onerror=()=>reject(r.error)})}
+async function allProjects(){const d=db||await openDB();return new Promise((resolve,reject)=>{const r=d.transaction(STORE).objectStore(STORE).getAll();r.onsuccess=()=>resolve((r.result||[]).sort((a,b)=>b.updatedAt-a.updatedAt));r.onerror=()=>reject(r.error)})}
+async function deleteProject(projectId){const d=db||await openDB();return new Promise((resolve,reject)=>{const tx=d.transaction(STORE,"readwrite");tx.objectStore(STORE).delete(projectId);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)})}
+function clone(value){return structuredClone(value)}
+function pushHistory(){if(!state)return;undoStack.push(clone(state));if(undoStack.length>40)undoStack.shift();redoStack=[];updateHistoryButtons()}
+function updateHistoryButtons(){$("undoBtn").disabled=!undoStack.length;$("redoBtn").disabled=!redoStack.length;$("undoSide").disabled=!undoStack.length;$("redoSide").disabled=!redoStack.length}
+function selected(){return state?.layers.find(x=>x.id===selectedId)||null}
+function showScreen(name){$("startScreen").classList.toggle("hidden",name!=="start");$("workspace").classList.toggle("hidden",name!=="workspace")}
+function baseState(name,w,h,bg){return{id:id(),name:name||"Untitled Photo Project",createdAt:Date.now(),updatedAt:Date.now(),width:w,height:h,background:bg||"#ffffff",layers:[],selectedLayerId:null,adjust:{brightness:100,contrast:100,saturation:100,filter:"none"}}}
+function makeTemplate(kind){const map={youtube:[1280,720,"#15152b","YouTube Thumbnail"],gaming:[1280,720,"#21104b","Gaming Thumbnail"],travel:[1280,720,"#15506a","Travel Thumbnail"],social:[1080,1080,"#33204e","Social Post"],story:[1080,1920,"#222044","Story Design"],product:[1200,1200,"#f0edf5","Product Design"]};const v=map[kind]||map.youtube;const s=baseState(v[3],v[0],v[1],v[2]);s.layers.push({id:id(),type:"text",name:"Headline",text:"Your headline",x:v[0]*.08,y:v[1]*.43,w:v[0]*.84,h:100,fontSize:Math.min(76,v[0]*.06),color:"#ffffff",opacity:100,rotation:0,visible:true,align:"left"});s.selectedLayerId=s.layers[0].id;return s}
+function imageLayer(blob,name,w,h){return{id:id(),type:"image",name:name||"Image Layer",blob:blob,x:0,y:0,w:w,h:h,opacity:100,rotation:0,visible:true}}
+function openBlob(blob){return new Promise((resolve,reject)=>{const url=URL.createObjectURL(blob),img=new Image();img.onload=()=>{URL.revokeObjectURL(url);resolve(img)};img.onerror=()=>{URL.revokeObjectURL(url);reject(new Error("Image could not be loaded"))};img.src=url})}
+async function drawLayer(c,layer){if(!layer.visible)return;c.save();c.globalAlpha=Math.max(0,Math.min(1,(layer.opacity??100)/100));const cx=layer.x+layer.w/2,cy=layer.y+layer.h/2;c.translate(cx,cy);c.rotate((layer.rotation||0)*Math.PI/180);if(layer.type==="image"&&layer.blob){try{const img=await openBlob(layer.blob);c.drawImage(img,-layer.w/2,-layer.h/2,layer.w,layer.h)}catch(error){}}else if(layer.type==="text"){c.fillStyle=layer.color||"#fff";c.textAlign=layer.align||"left";c.textBaseline="middle";c.font="800 "+(layer.fontSize||64)+"px Arial";c.shadowColor="rgba(0,0,0,.4)";c.shadowBlur=6;c.fillText(layer.text||"Text",layer.align==="center"?0:-layer.w/2,0,layer.w)}else if(layer.type==="shape"){c.fillStyle=layer.color||"#9b6cff";c.fillRect(-layer.w/2,-layer.h/2,layer.w,layer.h)}c.restore()}
+async function render(){if(!state)return;canvas.width=state.width;canvas.height=state.height;let c=ctx;c.fillStyle=state.background||"#fff";c.fillRect(0,0,canvas.width,canvas.height);const a=compareMode?{brightness:100,contrast:100,saturation:100,filter:"none"}:state.adjust;c.save();c.filter="brightness("+a.brightness+"%) contrast("+a.contrast+"%) saturate("+a.saturation+"%)";if(a.filter==="mono")c.filter+=" grayscale(1)";if(a.filter==="warm")c.filter+=" sepia(.28) saturate(1.12)";if(a.filter==="cinematic")c.filter+=" contrast(1.12) saturate(.88)";for(const layer of state.layers)await drawLayer(c,layer);c.restore();mobile.width=canvas.width;mobile.height=canvas.height;mctx.clearRect(0,0,mobile.width,mobile.height);mctx.drawImage(canvas,0,0);updateLayerList();updateProperties();$("stageEmpty").classList.toggle("hidden",state.layers.length>0);$("canvasShell").classList.toggle("hidden",state.layers.length===0);$("canvasWidth").value=state.width;$("canvasHeight").value=state.height}
+function scheduleSave(){if(!state)return;state.updatedAt=Date.now();$("saveState").textContent="Saving…";clearTimeout(saveTimer);saveTimer=setTimeout(async()=>{try{const thumb=await new Promise(resolve=>canvas.toBlob(resolve,"image/jpeg",.72));state.thumbnail=thumb;await putProject(clone(state));$("saveState").textContent="✓ Auto-saved";}catch(e){$("saveState").textContent="Save failed";toast("Could not save this project: "+e.message)}},650)}
+function setState(next){state=next;selectedId=state.selectedLayerId||null;showScreen("workspace");render().then(scheduleSave);updateHistoryButtons()}
+async function openExisting(projectId){const project=await getProject(projectId);if(!project){toast("This saved project could not be found.");return}undoStack=[];redoStack=[];compareMode=false;setState(project)}
+async function openNew(project){undoStack=[];redoStack=[];setState(project)}
+async function refreshRecent(){const list=$("recentGrid");try{const items=await allProjects();$("recentCount").textContent=items.length+" saved on this device";if(!items.length){list.innerHTML='<div class="empty-state">No saved projects yet. Create a project or upload a photo to get started.</div>';return}list.replaceChildren();items.slice(0,8).forEach(item=>{const card=document.createElement("article");card.className="recent-card";const thumb=document.createElement("div");thumb.className="recent-thumb";if(item.thumbnail){const img=document.createElement("img");img.src=URL.createObjectURL(item.thumbnail);img.alt="";thumb.append(img)}else thumb.textContent="🖼️";const info=document.createElement("div");info.className="recent-info";const title=document.createElement("strong");title.textContent=item.name||"Untitled";const date=document.createElement("small");date.textContent=new Date(item.updatedAt||Date.now()).toLocaleString();const buttons=document.createElement("div");buttons.className="recent-buttons";const open=document.createElement("button");open.className="btn small primary";open.textContent="Open";open.addEventListener("click",()=>openExisting(item.id));const del=document.createElement("button");del.className="btn small";del.textContent="Delete";del.addEventListener("click",async()=>{if(confirm("Delete this project from this device?")){await deleteProject(item.id);refreshRecent()}});buttons.append(open,del);info.append(title,date,buttons);card.append(thumb,info);list.append(card)})}catch(e){list.innerHTML='<div class="empty-state">Project storage is unavailable in this browser.</div>'}}
+function openNameModal(){ $("nameModal").classList.remove("hidden");$("projectNameInput").focus();$("projectNameInput").select()}
+function createCanvas(){const s=makeTemplate("youtube");s.layers=[];s.selectedLayerId=null;$("projectNameInput").value="New Photo Project";pendingProject=s;openNameModal()}
+let pendingProject=null;
+function makeProjectFromImage(file){if(!file||!file.type.startsWith("image/")){toast("Please choose an image file.");return}const reader=new FileReader();reader.onload=()=>{const img=new Image();img.onload=()=>{const max=2400,scale=Math.min(1,max/Math.max(img.width,img.height));const w=Math.max(100,Math.round(img.width*scale)),h=Math.max(100,Math.round(img.height*scale));const s=baseState(file.name.replace(/\.[^.]+$/,"")||"Photo Project",w,h,"#ffffff");s.layers.push(imageLayer(file,w,h));s.selectedLayerId=s.layers[0].id;pendingProject=s;openNameModal()};img.onerror=()=>toast("This image could not be opened.");img.src=reader.result};reader.readAsDataURL(file)}
+function updateLayerList(){const list=$("layerList");list.replaceChildren();if(!state)return;[...state.layers].reverse().forEach(layer=>{const row=document.createElement("div");row.className="layer-row"+(layer.id===selectedId?" selected":"");row.addEventListener("click",()=>{selectedId=layer.id;state.selectedLayerId=selectedId;render()});const eye=document.createElement("button");eye.className="layer-eye";eye.textContent=layer.visible?"◉":"○";eye.title="Show or hide";eye.addEventListener("click",e=>{e.stopPropagation();pushHistory();layer.visible=!layer.visible;render();scheduleSave()});const type=document.createElement("span");type.className="layer-type";type.textContent=layer.type==="text"?"T":layer.type==="image"?"▧":"◇";const name=document.createElement("span");name.className="layer-name";name.textContent=layer.name||layer.type;row.append(eye,type,name);list.append(row)})}
+function updateProperties(){const layer=selected();$("noSelection").classList.toggle("hidden",!!layer);$("selectedProperties").classList.toggle("hidden",!layer);if(!layer)return;$("layerName").value=layer.name||"";$("layerOpacity").value=layer.opacity??100;$("opacityValue").textContent=(layer.opacity??100)+"%";$("layerRotation").value=layer.rotation||0;$("rotationValue").textContent=(layer.rotation||0)+"°";const isText=layer.type==="text";$("textSettings").classList.toggle("hidden",!isText);$("fontSettings").classList.toggle("hidden",!isText);$("colorSettings").classList.toggle("hidden",!isText);if(isText){$("layerText").value=layer.text||"";$("fontSize").value=layer.fontSize||64;$("textColor").value=layer.color||"#ffffff"}}
+function addText(){if(!state)return;pushHistory();const layer={id:id(),type:"text",name:"Text Layer",text:"Your Text",x:state.width*.12,y:state.height*.5,w:state.width*.76,h:90,fontSize:Math.max(28,Math.round(state.width*.055)),color:"#ffffff",opacity:100,rotation:0,visible:true,align:"left"};state.layers.push(layer);selectedId=layer.id;state.selectedLayerId=selectedId;render().then(scheduleSave)}
+function addShape(){if(!state)return;pushHistory();const layer={id:id(),type:"shape",name:"Shape",x:state.width*.3,y:state.height*.35,w:state.width*.4,h:state.height*.18,color:"#8b5cf6",opacity:75,rotation:0,visible:true};state.layers.push(layer);selectedId=layer.id;state.selectedLayerId=selectedId;render().then(scheduleSave)}
+function undo(){if(!undoStack.length)return;redoStack.push(clone(state));state=undoStack.pop();selectedId=state.selectedLayerId;compareMode=false;render().then(scheduleSave);updateHistoryButtons()}
+function redo(){if(!redoStack.length)return;undoStack.push(clone(state));state=redoStack.pop();selectedId=state.selectedLayerId;compareMode=false;render().then(scheduleSave);updateHistoryButtons()}
+function changeLayer(fn){const layer=selected();if(!layer)return;pushHistory();fn(layer);render().then(scheduleSave)}
+function crop(){if(!state)return;$("cropModal").classList.remove("hidden")}
+function applyCrop(){const ratio=$("cropRatio").value;if(ratio==="free"){$("cropModal").classList.add("hidden");return}const parts=ratio.split(":").map(Number),r=parts[0]/parts[1];let nw=state.width,nh=state.height;if(nw/nh>r)nw=Math.round(nh*r);else nh=Math.round(nw/r);const ox=Math.round((state.width-nw)/2),oy=Math.round((state.height-nh)/2);pushHistory();state.width=nw;state.height=nh;state.layers.forEach(l=>{l.x-=ox;l.y-=oy});$("cropModal").classList.add("hidden");render().then(scheduleSave)}
+function resizeCanvas(){if(!state)return;const w=Math.max(100,Math.min(6000,Number($("canvasWidth").value)||state.width)),h=Math.max(100,Math.min(6000,Number($("canvasHeight").value)||state.height));const sx=w/state.width,sy=h/state.height;pushHistory();state.width=w;state.height=h;state.layers.forEach(l=>{l.x*=sx;l.y*=sy;l.w*=sx;l.h*=sy;if(l.fontSize)l.fontSize*=Math.min(sx,sy)});render().then(scheduleSave);toast("Canvas size updated")}
+function rotateLayer(){changeLayer(l=>{l.rotation=(l.rotation||0)+90})}
+function flipLayer(){const l=selected();if(!l)return;pushHistory();l.flipX=!l.flipX;render().then(scheduleSave)}
+function exportImage(){if(!state)return;const out=document.createElement("canvas");out.width=canvas.width;out.height=canvas.height;const oc=out.getContext("2d");oc.drawImage(canvas,0,0);out.toBlob(blob=>{if(!blob){toast("Export failed. Please try again.");return}const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=(state.name||"trivexaai-photo").replace(/[^\w-]+/g,"-")+".png";a.click();URL.revokeObjectURL(url);toast("Image exported as PNG")}, "image/png")}
+function updateAdjustment(key,value){if(!state)return;pushHistory();state.adjust[key]=Number(value);$(key+"Value").textContent=value+"%";render().then(scheduleSave)}
+function activateRail(which){document.querySelectorAll(".rail-btn").forEach(b=>b.classList.toggle("active",b.dataset.rail===which));["basicTools","aiTools","thumbnailTools","layersTools","historyTools","settingsTools"].forEach(id=>$ (id).classList.add("hidden"));const map={basic:"basicTools",ai:"aiTools",thumbnail:"thumbnailTools",layers:"layersTools",history:"historyTools",settings:"settingsTools"};$(map[which]).classList.remove("hidden")}
+function selectTab(tab){document.querySelectorAll(".right-tabs button").forEach(b=>b.classList.toggle("active",b.dataset.tab===tab));$("layersTab").classList.toggle("hidden",tab!=="layers");$("propertiesTab").classList.toggle("hidden",tab!=="properties")}
+function pointerPos(e){const r=canvas.getBoundingClientRect();return{x:(e.clientX-r.left)*canvas.width/r.width,y:(e.clientY-r.top)*canvas.height/r.height}}
+canvas.addEventListener("pointerdown",e=>{if(!state)return;const p=pointerPos(e);for(let i=state.layers.length-1;i>=0;i--){const l=state.layers[i];if(l.visible&&p.x>=l.x&&p.x<=l.x+l.w&&p.y>=l.y&&p.y<=l.y+l.h){selectedId=l.id;state.selectedLayerId=selectedId;dragging={id:l.id,offsetX:p.x-l.x,offsetY:p.y-l.y};canvas.setPointerCapture(e.pointerId);render();return}}selectedId=null;state.selectedLayerId=null;render()});
+canvas.addEventListener("pointermove",e=>{if(!dragging||!state)return;const l=state.layers.find(x=>x.id===dragging.id);if(!l)return;const p=pointerPos(e);l.x=p.x-dragging.offsetX;l.y=p.y-dragging.offsetY;render()});
+canvas.addEventListener("pointerup",()=>{if(dragging){dragging=null;scheduleSave()}});
+canvas.addEventListener("pointercancel",()=>{if(dragging){dragging=null;scheduleSave()}});
+$("newProjectBtn").addEventListener("click",createCanvas);$("blankCard").addEventListener("click",createCanvas);$("templateCard").addEventListener("click",()=>{$("startScreen").scrollIntoView({behavior:"smooth"});toast("Choose a canvas preset after opening a blank project.")});
+function triggerUpload(){$("photoInput").click()}$("uploadPhotoBtn").addEventListener("click",triggerUpload);$("uploadCard").addEventListener("click",triggerUpload);$("photoInput").addEventListener("change",e=>{if(e.target.files?.[0])makeProjectFromImage(e.target.files[0]);e.target.value=""});
+$("addImageBtn").addEventListener("click",()=>{$("photoInput").click()});$("addImageInputBtn").addEventListener("click",()=>{$("photoInput").click()});$("stageUploadBtn").addEventListener("click",()=>{$("photoInput").click()});
+$("cancelName").addEventListener("click",()=>{$("nameModal").classList.add("hidden");pendingProject=null});$("confirmName").addEventListener("click",async()=>{if(!pendingProject)return;pendingProject.name=$("projectNameInput").value.trim()||"Untitled Photo Project";pendingProject.createdAt=Date.now();pendingProject.updatedAt=Date.now();await putProject(pendingProject);const next=clone(pendingProject);pendingProject=null;$("nameModal").classList.add("hidden");await openNew(next)});
+document.querySelectorAll("[data-template]").forEach(b=>b.addEventListener("click",()=>{const s=makeTemplate(b.dataset.template);pendingProject=s;$("projectNameInput").value=s.name;openNameModal()}));
+$("cropBtn").addEventListener("click",crop);$("cancelCrop").addEventListener("click",()=>$("cropModal").classList.add("hidden"));$("applyCrop").addEventListener("click",applyCrop);$("resizeBtn").addEventListener("click",()=>{activateRail("settings")});$("applySize").addEventListener("click",resizeCanvas);$("rotateBtn").addEventListener("click",rotateLayer);$("flipBtn").addEventListener("click",flipLayer);
+$("brightness").addEventListener("input",e=>{if(!state)return;state.adjust.brightness=Number(e.target.value);$("brightnessValue").textContent=e.target.value+"%";render();scheduleSave()});$("contrast").addEventListener("input",e=>{if(!state)return;state.adjust.contrast=Number(e.target.value);$("contrastValue").textContent=e.target.value+"%";render();scheduleSave()});$("saturation").addEventListener("input",e=>{if(!state)return;state.adjust.saturation=Number(e.target.value);$("saturationValue").textContent=e.target.value+"%";render();scheduleSave()});
+document.querySelectorAll(".filter-btn").forEach(b=>b.addEventListener("click",()=>{if(!state)return;pushHistory();state.adjust.filter=b.dataset.filter;render().then(scheduleSave)}));
+$("addTextBtn").addEventListener("click",addText);$("layerAddText").addEventListener("click",addText);$("addShapeBtn").addEventListener("click",addShape);$("layerDuplicate").addEventListener("click",()=>{const l=selected();if(!l)return;pushHistory();const copy=clone(l);copy.id=id();copy.name=(l.name||"Layer")+" copy";copy.x+=24;copy.y+=24;state.layers.push(copy);selectedId=copy.id;state.selectedLayerId=selectedId;render().then(scheduleSave)});$("layerDelete").addEventListener("click",()=>{if(!selected())return;pushHistory();state.layers=state.layers.filter(x=>x.id!==selectedId);selectedId=state.layers.at(-1)?.id||null;state.selectedLayerId=selectedId;render().then(scheduleSave)});
+$("layerName").addEventListener("change",e=>changeLayer(l=>l.name=e.target.value));$("layerOpacity").addEventListener("input",e=>{const l=selected();if(!l)return;l.opacity=Number(e.target.value);$("opacityValue").textContent=e.target.value+"%";render();scheduleSave()});$("layerRotation").addEventListener("input",e=>{const l=selected();if(!l)return;l.rotation=Number(e.target.value);$("rotationValue").textContent=e.target.value+"°";render();scheduleSave()});$("layerText").addEventListener("input",e=>{const l=selected();if(!l||l.type!=="text")return;l.text=e.target.value;render();scheduleSave()});$("fontSize").addEventListener("change",e=>changeLayer(l=>l.fontSize=Number(e.target.value)));$("textColor").addEventListener("input",e=>{const l=selected();if(!l||l.type!=="text")return;l.color=e.target.value;render();scheduleSave()});
+$("undoBtn").addEventListener("click",undo);$("redoBtn").addEventListener("click",redo);$("undoSide").addEventListener("click",undo);$("redoSide").addEventListener("click",redo);$("beforeAfterBtn").addEventListener("click",()=>{compareMode=!compareMode;$("beforeAfterBtn").classList.toggle("primary",compareMode);render()});$("resetBtn").addEventListener("click",()=>{if(!state||!confirm("Reset adjustments and layer positions for this project?"))return;pushHistory();state.adjust={brightness:100,contrast:100,saturation:100,filter:"none"};state.layers.forEach(l=>{l.rotation=0;l.opacity=100});["brightness","contrast","saturation"].forEach(k=>{$(k).value=100;$(k+"Value").textContent="100%"});render().then(scheduleSave)});
+$("exportBtn").addEventListener("click",exportImage);$("backToProjects").addEventListener("click",async()=>{if(state)await putProject(clone(state));state=null;showScreen("start");await refreshRecent()});
+$("mobilePreviewBtn").addEventListener("click",()=>toast("The mobile preview is shown in the lower-right panel."));
+document.querySelectorAll(".rail-btn").forEach(b=>b.addEventListener("click",()=>activateRail(b.dataset.rail)));document.querySelectorAll(".right-tabs button").forEach(b=>b.addEventListener("click",()=>selectTab(b.dataset.tab)));
+window.addEventListener("keydown",e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="z"){e.preventDefault();e.shiftKey?redo():undo()}if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="y"){e.preventDefault();redo()}});
+async function boot(){try{db=await openDB();const projectId=new URLSearchParams(location.search).get("id");if(projectId){await openExisting(projectId)}else{showScreen("start");await refreshRecent()}}catch(e){showScreen("start");$("recentGrid").innerHTML='<div class="empty-state">This browser could not open local project storage. Try a modern desktop browser.</div>';toast(e.message)}}
+boot();
+</script>
+</body>
+</html>
