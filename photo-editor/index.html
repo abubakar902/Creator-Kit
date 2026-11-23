@@ -40,7 +40,7 @@
  </section>
  <div class="section-head"><h2>Recent Projects</h2><span class="muted" id="recentCount">Saved on this device</span></div>
  <div class="recent-grid" id="recentGrid"><div class="empty-state">Loading your recent projects…</div></div>
- <div class="notice">🔒 Your photo files stay in this browser's local storage in this first version. They are not uploaded to a cloud server.</div>
+ <div class="notice">🔒 Projects are saved only in this browser on this device. They do not sync to another device. Clearing this site's browser data may permanently remove local projects, so export important designs regularly.</div>
 </main>
 
 <section id="workspace" class="workspace hidden" aria-label="Photo editor workspace">
@@ -173,10 +173,10 @@ const canvas=$("editorCanvas"),ctx=canvas.getContext("2d"),mobile=$("mobileCanva
 function id(){return "pe_"+Date.now().toString(36)+"_"+Math.random().toString(36).slice(2,8)}
 function toast(message){$("toastMessage").textContent=message;$("toast").classList.remove("hidden");clearTimeout(toast.timer);toast.timer=setTimeout(()=>$("toast").classList.add("hidden"),2600)}
 function openDB(){return new Promise((resolve,reject)=>{const r=indexedDB.open(DB_NAME,1);r.onupgradeneeded=()=>{if(!r.result.objectStoreNames.contains(STORE))r.result.createObjectStore(STORE,{keyPath:"id"})};r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error||new Error("Project storage could not open"))})}
-async function putProject(project){const d=db||await openDB();return new Promise((resolve,reject)=>{const tx=d.transaction(STORE,"readwrite");tx.objectStore(STORE).put(project);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error)})}
-async function getProject(projectId){const d=db||await openDB();return new Promise((resolve,reject)=>{const r=d.transaction(STORE).objectStore(STORE).get(projectId);r.onsuccess=()=>resolve(r.result||null);r.onerror=()=>reject(r.error)})}
-async function allProjects(){const d=db||await openDB();return new Promise((resolve,reject)=>{const r=d.transaction(STORE).objectStore(STORE).getAll();r.onsuccess=()=>resolve((r.result||[]).sort((a,b)=>b.updatedAt-a.updatedAt));r.onerror=()=>reject(r.error)})}
-async function deleteProject(projectId){const d=db||await openDB();return new Promise((resolve,reject)=>{const tx=d.transaction(STORE,"readwrite");tx.objectStore(STORE).delete(projectId);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)})}
+async function putProject(project){const userId=auth?.currentUser?.uid;if(!userId)throw new Error("Please sign in again before saving.");project.ownerUid=userId;const d=db||await openDB();return new Promise((resolve,reject)=>{const tx=d.transaction(STORE,"readwrite");tx.objectStore(STORE).put(project);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error)})}
+async function getProject(projectId){const d=db||await openDB();return new Promise((resolve,reject)=>{const r=d.transaction(STORE).objectStore(STORE).get(projectId);r.onsuccess=()=>{const item=r.result;resolve(item&&item.ownerUid===auth?.currentUser?.uid?item:null)};r.onerror=()=>reject(r.error)})}
+async function allProjects(){const d=db||await openDB();const userId=auth?.currentUser?.uid;return new Promise((resolve,reject)=>{const r=d.transaction(STORE).objectStore(STORE).getAll();r.onsuccess=()=>resolve((r.result||[]).filter(item=>item.ownerUid===userId).sort((a,b)=>b.updatedAt-a.updatedAt));r.onerror=()=>reject(r.error)})}
+async function deleteProject(projectId){const item=await getProject(projectId);if(!item)return;const d=db||await openDB();return new Promise((resolve,reject)=>{const tx=d.transaction(STORE,"readwrite");tx.objectStore(STORE).delete(projectId);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)})}
 function clone(value){return structuredClone(value)}
 function pushHistory(){if(!state)return;undoStack.push(clone(state));if(undoStack.length>40)undoStack.shift();redoStack=[];updateHistoryButtons()}
 function updateHistoryButtons(){$("undoBtn").disabled=!undoStack.length;$("redoBtn").disabled=!redoStack.length;$("undoSide").disabled=!undoStack.length;$("redoSide").disabled=!redoStack.length}
