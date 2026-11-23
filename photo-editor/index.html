@@ -183,14 +183,41 @@
   </div>
   <div id="aiTools" class="hidden">
    <h3 class="panel-title">AI Photo Tools</h3>
-   <p class="muted" style="font-size:12px;line-height:1.6">These tools are part of the approved scope. They will be enabled only after a suitable image model is connected and tested. No paid API is enabled.</p>
-   <div class="group"><strong>AI Background Remover</strong><p class="muted">Separate the subject from its background.</p><button class="btn small" disabled>Model required</button></div>
-   <div class="group"><strong>AI Object Remover</strong><p class="muted">Remove unwanted objects from a photo.</p><button class="btn small" disabled>Model required</button></div>
-   <div class="group"><strong>Generative Fill & Object Replace</strong><p class="muted">Select an area and describe what should appear there.</p><button class="btn small" disabled>Model required</button></div>
-   <div class="group"><strong>AI Background Generator</strong><p class="muted">Create a new background from a text description.</p><button class="btn small" disabled>Model required</button></div>
-   <div class="group"><strong>AI Image Expand</strong><p class="muted">Extend the image beyond its current edges.</p><button class="btn small" disabled>Model required</button></div>
-   <div class="group"><strong>AI Image Enhancer</strong><p class="muted">Upscale, denoise and improve image details.</p><button class="btn small" disabled>Model required</button></div>
-   <div class="group"><strong>AI Prompt Editor</strong><p class="muted">Describe an edit in simple words and apply it to the image.</p><button class="btn small" disabled>Model required</button></div>
+   <p class="muted" style="font-size:12px;line-height:1.6">Connected to TrivexaAI Cloudflare Workers AI. Results are added as separate layers so you can compare, hide or undo them. AI may reinterpret small details; inspect each result before keeping it.</p>
+   <div class="group">
+    <div class="group-head">AI Image Editor</div>
+    <div class="field"><label>What should AI do?</label><select id="photoAiMode">
+     <option value="edit">Prompt-Based Photo Edit</option>
+     <option value="remove_object">Remove an Object (select its area first)</option>
+     <option value="replace_background">Replace Background</option>
+     <option value="generative_fill">Generative Fill / Object Replace (requires a selection)</option>
+     <option value="generate_background">Generate a New Background</option>
+     <option value="enhance">AI Image Enhance (experimental re-render)</option>
+     <option value="expand">AI Image Expand (experimental re-render)</option>
+    </select></div>
+    <div class="field"><label>Describe the change</label><textarea id="photoAiPrompt" rows="4" maxlength="1400" placeholder="Example: Replace the background with a realistic cricket stadium at sunset. Keep the person in the foreground as close to the original as possible."></textarea></div>
+    <div class="quick-actions">
+     <button class="btn small" id="improvePhotoAiPrompt">Improve Prompt</button>
+     <button class="btn small primary" id="runPhotoAiEdit">Generate AI Result</button>
+    </div>
+    <p class="muted" style="font-size:10px;line-height:1.45">For object removal and Generative Fill, first select the area on the canvas. A selected-area edit becomes a masked new layer. Background generation adds a layer behind existing layers; hide an opaque photo layer to reveal it.</p>
+    <div id="photoAiStatus" class="muted" style="font-size:11px;line-height:1.5;margin-top:8px" aria-live="polite"></div>
+   </div>
+   <div class="group">
+    <div class="group-head">AI Thumbnail Critic</div>
+    <p class="muted" style="font-size:11px;line-height:1.5">Checks mobile readability, subject clarity, contrast, headline visibility and composition. Each suggested adjustment can be accepted or rejected separately.</p>
+    <button class="btn small primary" id="runAiThumbnailCritic">Analyze Current Design</button>
+    <div id="aiThumbnailCriticResults" style="display:grid;gap:8px;margin-top:10px" aria-live="polite"></div>
+   </div>
+   <div class="group">
+    <strong>AI Background Remover</strong>
+    <p class="muted" style="font-size:11px;line-height:1.5">A transparent cutout needs a separate specialist model that is not enabled because it charges per image.</p>
+    <button class="btn small" disabled title="A paid transparent-cutout model is not enabled">Not enabled</button>
+    <div style="height:8px"></div>
+    <strong>AI Select Subject</strong>
+    <p class="muted" style="font-size:11px;line-height:1.5">Precise subject masks need a segmentation model; the current vision model only gives image understanding and object locations.</p>
+    <button class="btn small" disabled title="A segmentation model is not connected">Model required</button>
+   </div>
   </div>
   <div id="thumbnailTools" class="hidden">
    <h3 class="panel-title">Thumbnail Studio</h3>
@@ -290,7 +317,7 @@
 <div id="toast" class="modal-backdrop hidden" style="background:transparent;inset:auto 16px 16px auto;z-index:60;display:block;padding:0;pointer-events:none"><div class="modal" style="width:auto;max-width:360px;padding:12px 16px;font-size:13px" id="toastMessage"></div></div>
 
 <script type="module">
-import {authReady,auth} from "../auth/auth-client.js";
+import {authReady,auth,workerRequest} from "../auth/auth-client.js";
 const $=id=>document.getElementById(id);
 const DB_NAME="trivexaai-photo-editor",STORE="projects";
 let db=null,state=null,selectedId=null,nameModalMode="create",nameModalProjectId=null,undoStack=[],redoStack=[],beforeState=null,compareMode=false,dragging=null,saveTimer=null;
@@ -460,6 +487,136 @@ async function cropCurrentSelection(){if(!state){return}if(!selectionMask&&selec
 async function createPatchFromSelection(){if(!state||(!selectionMask&&!selectionRect)){toast("First make a selection.");return}if(!selectionMask)selectionMask=makeSelectionMaskFromShape("rect");const bounds=maskBounds();if(!bounds){toast("The selection is empty.");return}const blob=await selectionBlob();if(!blob){toast("Could not create patch.");return}pushHistory();const layer=imageLayer(blob,"Patch Copy",bounds.w,bounds.h);layer.x=bounds.x;layer.y=bounds.y;state.layers.push(layer);selectedId=layer.id;state.selectedLayerId=selectedId;clearSelection(false);render().then(scheduleSave);toast("Masked Patch Copy added as a new movable layer.")}
 async function setManualPatchSource(){if(!state||(!selectionMask&&!selectionRect)){toast("Select a clean source area first.");return}if(!selectionMask)selectionMask=makeSelectionMaskFromShape("rect");const bounds=maskBounds();if(!bounds){toast("The source selection is empty.");return}if(bounds.w*bounds.h>4500000){toast("Keep the source selection below 4.5 megapixels.");return}const blob=await selectionBlob();if(!blob){toast("Could not save this source area.");return}manualPatchSource={blob,width:bounds.w,height:bounds.h};clearSelection(false);toast("Patch source saved. Now select the area you want to repair.")}
 async function applyManualSmartPatch(){if(!state||!manualPatchSource){toast("First select a clean area and click Set Patch Source.");return}if(!selectionMask&&!selectionRect){toast("Now select the area you want to repair.");return}if(!selectionMask)selectionMask=makeSelectionMaskFromShape("rect");const bounds=maskBounds();if(!bounds){toast("The target selection is empty.");return}if(bounds.w*bounds.h>4500000){toast("Keep the Smart Patch selection below 4.5 megapixels.");return}const source=await openBlob(manualPatchSource.blob),out=document.createElement("canvas");out.width=bounds.w;out.height=bounds.h;const oc=out.getContext("2d");oc.drawImage(source,0,0,source.width,source.height,0,0,bounds.w,bounds.h);const mask=document.createElement("canvas");mask.width=bounds.w;mask.height=bounds.h;const mc=mask.getContext("2d"),mi=mc.createImageData(bounds.w,bounds.h);for(let y=0;y<bounds.h;y++)for(let x=0;x<bounds.w;x++){const idx=(y*bounds.w+x)*4,selected=selectionMask[(bounds.y+y)*state.width+bounds.x+x];mi.data[idx]=255;mi.data[idx+1]=255;mi.data[idx+2]=255;mi.data[idx+3]=selected?255:0}mc.putImageData(mi,0,0);const soft=document.createElement("canvas");soft.width=bounds.w;soft.height=bounds.h;const sc=soft.getContext("2d");sc.filter="blur(7px)";sc.drawImage(mask,0,0);const feathered=document.createElement("canvas");feathered.width=bounds.w;feathered.height=bounds.h;const fc=feathered.getContext("2d");fc.drawImage(out,0,0);fc.globalCompositeOperation="destination-in";fc.drawImage(soft,0,0);const blob=await new Promise(resolve=>feathered.toBlob(resolve,"image/png"));if(!blob){toast("Could not create the blended patch.");return}pushHistory();const layer=imageLayer(blob,"Smart Patch Blend",bounds.w,bounds.h);layer.x=bounds.x;layer.y=bounds.y;state.layers.push(layer);selectedId=layer.id;state.selectedLayerId=selectedId;clearSelection(false);render().then(scheduleSave);toast("A feathered manual patch layer was added. You can move it or undo it.")}
+const PHOTO_AI_MAX_INPUT_SIDE=510;
+function photoAiStatus(message,isError=false){const el=$("photoAiStatus");el.textContent=message;el.style.color=isError?"#ff9c9c":"var(--muted,#b8accd)"}
+function blobToDataUrl(blob){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result||""));reader.onerror=()=>reject(reader.error||new Error("Could not read the image"));reader.readAsDataURL(blob)})}
+function canvasToBlobSafe(source,type="image/png",quality){return new Promise((resolve,reject)=>source.toBlob(blob=>blob?resolve(blob):reject(new Error("Could not prepare the image for AI.")),type,quality))}
+async function resizeBlobForPhotoAI(blob,maxSide=PHOTO_AI_MAX_INPUT_SIDE){
+ const img=await openBlob(blob),scale=Math.min(1,maxSide/Math.max(img.naturalWidth||img.width,img.naturalHeight||img.height));
+ const width=Math.max(1,Math.round((img.naturalWidth||img.width)*scale)),height=Math.max(1,Math.round((img.naturalHeight||img.height)*scale));
+ const out=document.createElement("canvas");out.width=width;out.height=height;const oc=out.getContext("2d",{alpha:false});
+ oc.fillStyle="#ffffff";oc.fillRect(0,0,width,height);oc.drawImage(img,0,0,width,height);
+ return canvasToBlobSafe(out,"image/jpeg",0.88);
+}
+function photoAiOutputSize(width,height){
+ const scale=Math.min(1,1920/width,1920/height,Math.sqrt(4000000/(width*height)));
+ return {width:Math.max(256,Math.round(width*scale)),height:Math.max(256,Math.round(height*scale))};
+}
+function imageBlobFromBase64(value,mime="image/png"){
+ const raw=String(value||"").replace(/^data:image\/[a-zA-Z0-9.+-]+;base64,/,"");
+ const binary=atob(raw),bytes=new Uint8Array(binary.length);
+ for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);
+ return new Blob([bytes],{type:mime});
+}
+async function preparePhotoAiSource(useSelection){
+ if(!state)throw new Error("Pehle Photo Editor mein project open karo.");
+ let bounds={x:0,y:0,w:state.width,h:state.height},maskValues=null,sourceCanvas=canvas;
+ if(useSelection){
+  if(!selectionMask&&selectionRect)selectionMask=makeSelectionMaskFromShape("rect");
+  if(!selectionMask){throw new Error("Pehle canvas par jis area ko edit karna hai usay select karo.")}
+  bounds=maskBounds();
+  if(!bounds)throw new Error("Selection khaali hai.");
+  if(bounds.w*bounds.h>4500000)throw new Error("Selected area 4.5 megapixels se chhota rakho.");
+  const cropped=document.createElement("canvas");cropped.width=bounds.w;cropped.height=bounds.h;
+  cropped.getContext("2d").drawImage(canvas,bounds.x,bounds.y,bounds.w,bounds.h,0,0,bounds.w,bounds.h);
+  sourceCanvas=cropped;maskValues=new Uint8Array(bounds.w*bounds.h);
+  for(let y=0;y<bounds.h;y++)for(let x=0;x<bounds.w;x++)maskValues[y*bounds.w+x]=selectionMask[(bounds.y+y)*state.width+bounds.x+x]?1:0;
+ }
+ const rawBlob=await canvasToBlobSafe(sourceCanvas,"image/png");
+ const aiBlob=await resizeBlobForPhotoAI(rawBlob);
+ const imageBase64=await blobToDataUrl(aiBlob);
+ return {imageBase64,mimeType:"image/jpeg",bounds,maskValues,isSelection:!!useSelection};
+}
+async function applyPhotoAiSelectionMask(blob,bounds,maskValues){
+ const img=await openBlob(blob),out=document.createElement("canvas");out.width=bounds.w;out.height=bounds.h;
+ const oc=out.getContext("2d");oc.drawImage(img,0,0,bounds.w,bounds.h);
+ if(maskValues){
+  const mask=document.createElement("canvas");mask.width=bounds.w;mask.height=bounds.h;
+  const mc=mask.getContext("2d"),image=mc.createImageData(bounds.w,bounds.h);
+  for(let i=0;i<maskValues.length;i++){const k=i*4;image.data[k]=255;image.data[k+1]=255;image.data[k+2]=255;image.data[k+3]=maskValues[i]?255:0}
+  mc.putImageData(image,0,0);oc.globalCompositeOperation="destination-in";oc.drawImage(mask,0,0);oc.globalCompositeOperation="source-over";
+ }
+ return canvasToBlobSafe(out,"image/png");
+}
+async function improvePhotoAiPrompt(){
+ const prompt=$("photoAiPrompt").value.trim();if(!prompt){photoAiStatus("Pehle apni editing instruction likho.",true);return}
+ const button=$("improvePhotoAiPrompt");button.disabled=true;button.textContent="Improving...";
+ try{await authReady;const result=await workerRequest({action:"photo_editor_prompt_writer",toolId:"photo-editor-ai",prompt});if(!result.prompt)throw new Error("AI prompt writer ne khaali jawab diya.");$("photoAiPrompt").value=result.prompt;photoAiStatus("Prompt behtar ho gaya. Ab tum isay edit kar sakte ho ya AI edit chala sakte ho.")}
+ catch(error){photoAiStatus(error.message||"Prompt improve nahi ho saka.",true)}
+ finally{button.disabled=false;button.textContent="Improve Prompt"}
+}
+async function runPhotoAiEdit(){
+ if(!state){photoAiStatus("Pehle project create ya open karo.",true);return}
+ const mode=$("photoAiMode").value,prompt=$("photoAiPrompt").value.trim();
+ if(!prompt){photoAiStatus("Pehle batao tasveer mein kya change karna hai.",true);return}
+ const useSelection=mode==="generative_fill"||(mode==="remove_object"&&(!!selectionMask||!!selectionRect));
+ if(mode==="generative_fill"&&!selectionMask&&!selectionRect){photoAiStatus("Generative Fill ke liye pehle canvas par area select karo.",true);return}
+ const button=$("runPhotoAiEdit");button.disabled=true;button.textContent="AI is working...";
+ try{
+  let source=null;
+  if(mode!=="generate_background")source=await preparePhotoAiSource(useSelection);
+  const dimensions=photoAiOutputSize(source?.bounds.w||state.width,source?.bounds.h||state.height);
+  photoAiStatus(mode==="generate_background"?"AI background bana raha hai...":"Tasveer securely AI model ko bheji ja rahi hai...");
+  await authReady;
+  const payload={action:"photo_editor_ai_edit",toolId:"photo-editor-ai",mode,prompt,width:dimensions.width,height:dimensions.height};
+  if(source){payload.imageBase64=source.imageBase64;payload.mimeType=source.mimeType}
+  const result=await workerRequest(payload);
+  if(!result.imageBase64)throw new Error("AI model ne image return nahi ki.");
+  let imageBlob=imageBlobFromBase64(result.imageBase64,result.mimeType||"image/png");
+  if(source?.isSelection)imageBlob=await applyPhotoAiSelectionMask(imageBlob,source.bounds,source.maskValues);
+  const layerName=mode==="generate_background"?"AI Generated Background":mode==="remove_object"?"AI Object Removal":mode==="replace_background"?"AI Background Edit":mode==="generative_fill"?"AI Generative Fill":mode==="enhance"?"AI Enhanced Image":mode==="expand"?"AI Expanded Image":"AI Photo Edit";
+  const layer=imageLayer(imageBlob,layerName,source?.bounds.w||state.width,source?.bounds.h||state.height);
+  if(source?.isSelection){layer.x=source.bounds.x;layer.y=source.bounds.y}
+  else{layer.x=0;layer.y=0}
+  pushHistory();
+  if(mode==="generate_background")state.layers.unshift(layer);else state.layers.push(layer);
+  selectedId=layer.id;state.selectedLayerId=selectedId;
+  render().then(scheduleSave);
+  const note=mode==="generate_background"?" Background layer neeche add hua hai; opaque photo layer ko hide karo.":" Result alag layer mein add hua hai; original image safe hai.";
+  photoAiStatus("AI result tayyar hai."+note);
+  toast("AI image result new layer mein add ho gaya.");
+ }catch(error){
+  photoAiStatus(error.message||"AI image edit complete nahi ho saka.",true);
+ }finally{
+  button.disabled=false;button.textContent="Generate AI Result";
+ }
+}
+function renderAiThumbnailCritic(result){
+ const host=$("aiThumbnailCriticResults");host.replaceChildren();
+ const summary=document.createElement("p");summary.className="muted";summary.style.cssText="font-size:11px;line-height:1.55;margin:0";
+ summary.textContent=(result.score!==null&&result.score!==undefined?"Score: "+result.score+"/100. ":"")+(result.summary||"Analysis complete.");host.append(summary);
+ const suggestions=Array.isArray(result.suggestions)?result.suggestions:[];
+ if(!suggestions.length){const note=document.createElement("p");note.className="muted";note.style.fontSize="10px";note.textContent="Koi safe, automatic adjustment suggestion return nahi hui. Summary ko manual guidance ke taur par use karo.";host.append(note);return}
+ suggestions.forEach(suggestion=>{
+  const card=document.createElement("div");card.style.cssText="border:1px solid var(--border,#392951);border-radius:10px;padding:9px;display:grid;gap:6px";
+  const title=document.createElement("strong");title.style.fontSize="12px";title.textContent=suggestion.title||"Suggested improvement";
+  const reason=document.createElement("p");reason.className="muted";reason.style.cssText="font-size:10px;line-height:1.45;margin:0";reason.textContent=suggestion.reason||"";
+  const actions=document.createElement("div");actions.className="quick-actions";
+  const accept=document.createElement("button");accept.className="btn small primary";accept.textContent="Accept";
+  const reject=document.createElement("button");reject.className="btn small";reject.textContent="Reject";
+  accept.addEventListener("click",()=>{
+   const changes=suggestion.adjustment||{},allowed=["brightness","contrast","saturation","exposure","temperature","sharpness","vignette","hue"];
+   const safe=Object.fromEntries(Object.entries(changes).filter(([key,value])=>allowed.includes(key)&&typeof value==="number"&&Number.isFinite(value)));
+   if(!Object.keys(safe).length){accept.disabled=true;reject.disabled=true;reason.textContent="Is suggestion mein apply karne layak supported slider nahi tha.";return}
+   pushHistory();Object.assign(state.adjust,safe);syncAdjustmentControls();render().then(scheduleSave);
+   accept.disabled=true;reject.disabled=true;accept.textContent="Accepted";reason.textContent="Suggestion apply ho gayi. Undo se wapas kar sakte ho.";
+  });
+  reject.addEventListener("click",()=>{accept.disabled=true;reject.disabled=true;reject.textContent="Rejected";reason.textContent="Suggestion reject kar di gayi."});
+  actions.append(accept,reject);card.append(title,reason,actions);host.append(card);
+ });
+}
+async function runAiThumbnailCritic(){
+ if(!state){$("aiThumbnailCriticResults").textContent="Pehle project open karo.";return}
+ const button=$("runAiThumbnailCritic"),host=$("aiThumbnailCriticResults");button.disabled=true;button.textContent="Analyzing...";
+ host.textContent="Thumbnail analyze ho raha hai...";
+ try{
+  const raw=await canvasToBlobSafe(canvas,"image/png"),small=await resizeBlobForPhotoAI(raw,768),imageBase64=await blobToDataUrl(small);
+  await authReady;
+  const result=await workerRequest({action:"photo_editor_thumbnail_critic",toolId:"photo-editor-ai",imageBase64,mimeType:"image/jpeg"});
+  renderAiThumbnailCritic(result);
+ }catch(error){host.textContent=error.message||"AI Thumbnail Critic analysis nahi kar saka."}
+ finally{button.disabled=false;button.textContent="Analyze Current Design"}
+}
 function applyTransform(){const layer=selected();if(!layer)return;const x=Number($("layerX").value),y=Number($("layerY").value),w=Number($("layerWidth").value),h=Number($("layerHeight").value);if(![x,y,w,h].every(Number.isFinite)||w<1||h<1){toast("Enter valid layer position and size values.");return}changeLayer(l=>{l.x=x;l.y=y;l.w=Math.min(6000,w);l.h=Math.min(6000,h)})}
 function centerSelectedLayer(){const layer=selected();if(!layer)return;changeLayer(l=>{l.x=(state.width-l.w)/2;l.y=(state.height-l.h)/2})}
 function restoreOriginal(){if(!state||!state.originalSnapshot){toast("This project has no original snapshot to restore.");return}if(!confirm("Restore this project to its original photo and starting layers? Your current edits will be replaced."))return;pushHistory();const original=clone(state.originalSnapshot);state={...state,...original,updatedAt:Date.now(),originalSnapshot:clone(state.originalSnapshot)};state.selectedLayerId=state.layers.find(layer=>layer.type==="image")?.id||state.layers[0]?.id||null;selectedId=state.selectedLayerId;paintLayerId=state.layers.find(layer=>layer.type==="paint")?.id||null;cloneSource=null;selectionRect=null;activeTool="move";activeStroke=null;activePointerMode=null;dragging=null;compareMode=false;$("backgroundColor").value=/^#[0-9a-f]{6}$/i.test(state.background||"")?state.background:"#ffffff";$("safeAreaGuidesBtn").textContent=state.showGuides?"Hide Guides":"Show Guides";document.querySelectorAll("#toolMove,#toolSelect,#toolBrush,#toolEraser,#toolClone,#toolEyedropper").forEach(button=>button.classList.toggle("active",button.id==="toolMove"));canvas.style.cursor="default";applyZoom();render().then(scheduleSave);toast("Original project restored. Use Undo to bring back your edits.")}
@@ -627,7 +784,7 @@ bindAdjustmentSlider("brightness");bindAdjustmentSlider("contrast");bindAdjustme
 $("brushSize").addEventListener("input",e=>$("brushSizeValue").textContent=e.target.value+" px");$("brushOpacity").addEventListener("input",e=>$("brushOpacityValue").textContent=e.target.value+"%");
 $("brushSize").addEventListener("input",e=>$("brushSizeValue").textContent=e.target.value+" px");$("brushOpacity").addEventListener("input",e=>$("brushOpacityValue").textContent=e.target.value+"%");
 $("toolMove").addEventListener("click",()=>setActiveTool("move"));$("toolSelect").addEventListener("click",()=>setActiveTool("select"));$("toolLasso").addEventListener("click",()=>setActiveTool("lasso"));$("toolMagicWand").addEventListener("click",()=>setActiveTool("magicWand"));$("toolQuickSelect").addEventListener("click",()=>setActiveTool("quickSelect"));$("toolEllipseSelect").addEventListener("click",()=>setActiveTool("ellipseSelect"));$("toolInvert").addEventListener("click",()=>{invertSelection();setActiveTool("move")});$("toolHealing").addEventListener("click",()=>setActiveTool("healing"));$("toolHealingAdvanced").addEventListener("click",()=>setActiveTool("healing"));$("toolBlemishFix").addEventListener("click",()=>{setActiveTool("healing");toast("Manual Blemish Fix: Alt-click a clean image area, then paint over the spot.")});$("toolPatchCopy").addEventListener("click",createPatchFromSelection);$("toolSetPatchSource").addEventListener("click",setManualPatchSource);$("toolSmartPatchBlend").addEventListener("click",applyManualSmartPatch);$("toolBrush").addEventListener("click",()=>setActiveTool("brush"));$("toolEraser").addEventListener("click",()=>setActiveTool("eraser"));$("toolClone").addEventListener("click",()=>setActiveTool("clone"));$("toolEyedropper").addEventListener("click",()=>setActiveTool("eyedropper"));$("toolFill").addEventListener("click",()=>setActiveTool("fill"));$("fillTolerance").addEventListener("input",e=>$("fillToleranceValue").textContent=e.target.value);
-$("cropToSelection").addEventListener("click",cropCurrentSelection);$("patchFromSelection").addEventListener("click",createPatchFromSelection);$("clearSelection").addEventListener("click",()=>clearSelection());$("replaceBackgroundBtn").addEventListener("click",()=>$("backgroundImageInput").click());$("backgroundImageInput").addEventListener("change",e=>{const file=e.target.files?.[0];if(file)addBackgroundImageLayer(file);e.target.value=""});document.querySelectorAll("[data-photo-preset]").forEach(button=>button.addEventListener("click",()=>applyPhotoPreset(button.dataset.photoPreset)));$("safeAreaGuidesBtn").addEventListener("click",()=>{if(!state)return;state.showGuides=!state.showGuides;$("safeAreaGuidesBtn").textContent=state.showGuides?"Hide Guides":"Show Guides";render();scheduleSave()});$("runThumbnailCheck").addEventListener("click",runThumbnailQualityCheck);
+$("cropToSelection").addEventListener("click",cropCurrentSelection);$("patchFromSelection").addEventListener("click",createPatchFromSelection);$("clearSelection").addEventListener("click",()=>clearSelection());$("replaceBackgroundBtn").addEventListener("click",()=>$("backgroundImageInput").click());$("backgroundImageInput").addEventListener("change",e=>{const file=e.target.files?.[0];if(file)addBackgroundImageLayer(file);e.target.value=""});document.querySelectorAll("[data-photo-preset]").forEach(button=>button.addEventListener("click",()=>applyPhotoPreset(button.dataset.photoPreset)));$("safeAreaGuidesBtn").addEventListener("click",()=>{if(!state)return;state.showGuides=!state.showGuides;$("safeAreaGuidesBtn").textContent=state.showGuides?"Hide Guides":"Show Guides";render();scheduleSave()});$("runThumbnailCheck").addEventListener("click",runThumbnailQualityCheck);$("improvePhotoAiPrompt").addEventListener("click",improvePhotoAiPrompt);$("runPhotoAiEdit").addEventListener("click",runPhotoAiEdit);$("runAiThumbnailCritic").addEventListener("click",runAiThumbnailCritic);
 ["layerX","layerY","layerWidth","layerHeight"].forEach(key=>$(key).addEventListener("change",applyTransform));$("centerLayer").addEventListener("click",centerSelectedLayer);
 document.querySelectorAll(".filter-btn").forEach(b=>b.addEventListener("click",()=>{if(!state)return;pushHistory();state.adjust.filter=b.dataset.filter;render().then(scheduleSave)}));
 let backgroundHistoryReady=false;$("backgroundColor").addEventListener("pointerdown",()=>{if(state&&!backgroundHistoryReady){pushHistory();backgroundHistoryReady=true}});$("backgroundColor").addEventListener("keydown",()=>{if(state&&!backgroundHistoryReady){pushHistory();backgroundHistoryReady=true}});$("backgroundColor").addEventListener("change",()=>{backgroundHistoryReady=false});$("backgroundColor").addEventListener("input",e=>{if(!state)return;state.background=e.target.value;render();scheduleSave()});$("transparentBackground").addEventListener("click",()=>{if(!state)return;pushHistory();state.background="transparent";render().then(scheduleSave);toast("Transparent canvas enabled. PNG keeps transparency; JPG and WebP use white.")});
