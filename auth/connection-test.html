@@ -1,97 +1,99 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="robots" content="noindex,nofollow">
-<title>Connection Test · TrivexaAI</title>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><title>Connection Test · TrivexaAI</title>
 <style>
-:root{color-scheme:dark;--bg:#100b20;--panel:#1a1230;--panel2:#21183a;--text:#f8f6fc;--muted:#b8accd;--border:#392951;--purple:#9b6cff;--pink:#e879f9}
+:root{color-scheme:dark;--bg:#100b20;--panel:#1a1230;--panel2:#21183a;--text:#f8f6fc;--muted:#b8accd;--border:#392951;--pink:#e879f9}
 *{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 50% -15%,rgba(155,108,255,.2),transparent 42rem),var(--bg);color:var(--text);font-family:Inter,system-ui,Arial}
-.wrap{max-width:760px;width:92%;margin:36px auto}.brand{color:white;text-decoration:none;font-size:22px;font-weight:900}.brand span{color:var(--pink)}
+.wrap{max-width:780px;width:92%;margin:36px auto}.brand{color:white;text-decoration:none;font-size:22px;font-weight:900}.brand span{color:var(--pink)}
 .panel{margin-top:20px;padding:22px;border:1px solid var(--border);border-radius:16px;background:linear-gradient(145deg,var(--panel2),var(--panel))}
 h1{font-size:26px;margin:22px 0 8px}.muted{color:var(--muted);line-height:1.6;font-size:13px}
-.step{display:flex;gap:12px;align-items:flex-start;padding:13px 0;border-bottom:1px solid rgba(196,181,253,.12)}
-.step:last-child{border:0}.mark{width:26px;height:26px;flex:none;display:grid;place-items:center;border-radius:50%;background:#302346;color:#d8c9f0;font-weight:800;font-size:13px}
+.step{display:flex;gap:12px;align-items:flex-start;padding:13px 0;border-bottom:1px solid rgba(196,181,253,.12)}.step:last-child{border:0}
+.mark{width:26px;height:26px;flex:none;display:grid;place-items:center;border-radius:50%;background:#302346;color:#d8c9f0;font-weight:800;font-size:13px}
 .step h2{font-size:14px;margin:2px 0 4px}.detail{font-size:12px;color:var(--muted);line-height:1.5;overflow-wrap:anywhere}
 button,a.btn{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:10px 15px;margin:8px 8px 0 0;border:1px solid #493466;border-radius:10px;background:#2a2042;color:white;text-decoration:none;font:inherit;font-size:13px;font-weight:750;cursor:pointer}
-button.primary{background:linear-gradient(100deg,#a78bfa,#e879f9);color:#1b102d;border:0}
+button.primary{background:linear-gradient(100deg,#a78bfa,#e879f9);color:#1b102d;border:0}button:disabled{opacity:.6;cursor:wait}
 #overall{font-size:13px;margin-top:16px;white-space:pre-wrap;overflow-wrap:anywhere}
 </style>
 </head>
-<body>
-<main class="wrap">
+<body><main class="wrap">
 <a class="brand" href="../">Trivexa<span>AI</span></a>
 <h1>Account Connection Test</h1>
-<p class="muted">Yeh test sirf login session aur account-read connection check karta hai. Yeh invite redeem, access change, ya koi admin action nahi karta. Aapka Firebase token screen par kabhi show nahi hota.</p>
+<p class="muted">Yeh test login, Worker ka basic response, CORS preflight aur account read ko alag alag check karta hai. Yeh koi account change nahi karta. Firebase token screen par kabhi show nahi hota.</p>
 <section class="panel">
-<div class="step"><div class="mark" id="m1">1</div><div><h2>Firebase setup</h2><div class="detail" id="s1">Waiting…</div></div></div>
-<div class="step"><div class="mark" id="m2">2</div><div><h2>Google login session</h2><div class="detail" id="s2">Waiting…</div></div></div>
-<div class="step"><div class="mark" id="m3">3</div><div><h2>Firebase token refresh</h2><div class="detail" id="s3">Waiting…</div></div></div>
-<div class="step"><div class="mark" id="m4">4</div><div><h2>Cloudflare Worker account request</h2><div class="detail" id="s4">Waiting…</div></div></div>
+<div class="step"><div class="mark" id="m1">1</div><div><h2>Firebase setup</h2><div class="detail" id="s1">Waiting…</div></div></div><div class="step"><div class="mark" id="m2">2</div><div><h2>Google login session</h2><div class="detail" id="s2">Waiting…</div></div></div><div class="step"><div class="mark" id="m3">3</div><div><h2>Firebase token refresh</h2><div class="detail" id="s3">Waiting…</div></div></div><div class="step"><div class="mark" id="m4">4</div><div><h2>Cloudflare Worker reachability (simple GET)</h2><div class="detail" id="s4">Waiting…</div></div></div><div class="step"><div class="mark" id="m5">5</div><div><h2>Worker CORS + Authorization preflight</h2><div class="detail" id="s5">Waiting…</div></div></div><div class="step"><div class="mark" id="m6">6</div><div><h2>Secure account request (auth_me)</h2><div class="detail" id="s6">Waiting…</div></div></div>
 <div id="overall" class="muted" role="status" aria-live="polite">Test starting…</div>
 <button class="primary" id="run" type="button">Run test again</button>
 <a class="btn" href="./account.html">Back to My Account</a>
 <a class="btn" href="./admin.html">Open Admin Dashboard</a>
-</section>
-</main>
+</section></main>
 <script type="module">
 import {auth,authReady,authConfigured,WORKER_URL,getInitializationError} from "./auth-client.js";
 const $=id=>document.getElementById(id);
 function setStep(n,state,detail){
-  $("m"+n).textContent=state==="pass"?"✓":state==="fail"?"!":state==="running"?"…":String(n);
-  $("m"+n).style.background=state==="pass"?"#174b3a":state==="fail"?"#54283e":state==="running"?"#39245e":"#302346";
-  $("s"+n).textContent=detail;
+ $("m"+n).textContent=state==="pass"?"✓":state==="fail"?"!":state==="running"?"…":String(n);
+ $("m"+n).style.background=state==="pass"?"#174b3a":state==="fail"?"#54283e":state==="running"?"#39245e":"#302346";
+ $("s"+n).textContent=detail;
 }
-const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+function safeJson(value){return value&&typeof value==="object"?value:{};}
+async function readBody(response){try{return safeJson(await response.json());}catch{return {};}}
 async function run(){
-  $("run").disabled=true;
-  $("overall").textContent="Testing…";
-  for(let n=1;n<=4;n++)setStep(n,"wait","Waiting…");
+ $("run").disabled=true;$("overall").textContent="Testing…";
+ for(let n=1;n<=6;n++)setStep(n,"wait","Waiting…");
+ let token="";
+ try{
+  setStep(1,"running","Checking Firebase configuration…");
+  if(!authConfigured||!auth){const init=getInitializationError?.();throw Object.assign(new Error(init?.message||"Firebase is not configured or failed to initialize."),{stage:1});}
+  setStep(1,"pass","Firebase configuration loaded.");
+
+  setStep(2,"running","Waiting for Google sign-in session…");
+  await Promise.race([authReady,new Promise((_,reject)=>setTimeout(()=>reject(new Error("Firebase auth state did not become ready in 15 seconds.")),15000))]);
+  const user=auth.currentUser;if(!user)throw Object.assign(new Error("No active Google session. Please sign in again."),{stage:2});
+  setStep(2,"pass","Signed in as "+(user.email||"Google account")+".");
+
+  setStep(3,"running","Requesting Firebase ID token (token will not be shown)…");
+  try{token=await user.getIdToken();}catch(error){throw Object.assign(new Error(error?.message||"Firebase could not create/refresh the login token."),{stage:3});}
+  if(!token)throw Object.assign(new Error("Firebase returned an empty token."),{stage:3});
+  setStep(3,"pass","Firebase token received. Token hidden.");
+
+  setStep(4,"running","Trying a simple GET without Authorization. Worker normally answers GET with HTTP 405; that is expected.");
+  let getResponse;
+  try{getResponse=await fetch(WORKER_URL,{method:"GET",cache:"no-store"});}
+  catch(error){throw Object.assign(new Error((error?.name||"NetworkError")+": "+(error?.message||"Browser could not reach Worker. This is a DNS, network, TLS, or basic CORS issue.")),{stage:4});}
+  const getData=await readBody(getResponse);
+  if(getResponse.status===0)throw Object.assign(new Error("Worker GET response was opaque/unreadable."),{stage:4});
+  setStep(4,"pass","Worker responded with HTTP "+getResponse.status+(getData.error?": "+getData.error:"")+". Basic connection and simple-request CORS work.");
+
+  setStep(5,"running","Sending a safe POST with a deliberately invalid test token. This checks the same Authorization + JSON preflight as account loading; it cannot access or change an account.");
+  let preflightResponse;
   try{
-    setStep(1,"running","Checking Firebase configuration…");
-    if(!authConfigured||!auth){
-      const init=getInitializationError?.();
-      throw Object.assign(new Error(init?.message||"Firebase is not configured or failed to initialize."),{stage:1});
-    }
-    setStep(1,"pass","Firebase configuration loaded.");
-
-    setStep(2,"running","Waiting for Google sign-in session…");
-    await Promise.race([authReady,delay(15000).then(()=>{throw new Error("Firebase auth state did not become ready in 15 seconds.");})]);
-    const user=auth.currentUser;
-    if(!user)throw Object.assign(new Error("No active Google session. Please sign in again."),{stage:2});
-    setStep(2,"pass","Signed in as "+(user.email||"Google account")+".");
-
-    setStep(3,"running","Requesting a Firebase ID token (token will not be shown)…");
-    let token;
-    try{token=await user.getIdToken();}
-    catch(error){throw Object.assign(new Error(error?.message||"Firebase could not create/refresh the login token."),{stage:3});}
-    if(!token)throw Object.assign(new Error("Firebase returned an empty login token."),{stage:3});
-    setStep(3,"pass","Firebase token received successfully. Token hidden.");
-
-    setStep(4,"running","Sending the same read-only auth_me request used by My Account…");
-    let response;
-    try{
-      response=await fetch(WORKER_URL,{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+token},body:JSON.stringify({action:"auth_me"}),cache:"no-store"});
-    }catch(error){
-      throw Object.assign(new Error((error?.name||"NetworkError")+": "+(error?.message||"Browser could not read the Worker response.")+". This points to a browser network, CORS/preflight, or Worker connection problem."),{stage:4});
-    }
-    let data={};try{data=await response.json();}catch{}
-    if(!response.ok){
-      const message="Worker returned HTTP "+response.status+(data.code?" ("+data.code+")":"")+": "+(data.error||"No error details returned.");
-      throw Object.assign(new Error(message),{stage:4});
-    }
-    if(!data.user||!data.access)throw Object.assign(new Error("Worker replied, but auth_me response is missing user/access fields."),{stage:4});
-    setStep(4,"pass","Worker replied successfully. Account role: "+(data.user.role||"user")+".");
-    $("overall").textContent="SUCCESS: Firebase login and Worker account connection are both working.";
+   preflightResponse=await fetch(WORKER_URL,{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer diagnostic-invalid-token"},body:JSON.stringify({action:"auth_me"}),cache:"no-store"});
   }catch(error){
-    const stage=Number(error?.stage)||4;
-    for(let n=stage;n<=4;n++)setStep(n,"fail",n===stage?(error?.message||"Test failed."):"Not tested because the previous step failed.");
-    $("overall").textContent="FAILED AT STEP "+stage+": "+(error?.message||"Unknown error.")+"\n\nKoi token ya password display nahi hua.";
-  }finally{$("run").disabled=false;}
+   throw Object.assign(new Error((error?.name||"NetworkError")+": "+(error?.message||"Browser blocked the Worker request. Likely OPTIONS preflight/CORS or network/TLS issue.")),{stage:5});
+  }
+  const preflightData=await readBody(preflightResponse);
+  if(preflightResponse.status===0)throw Object.assign(new Error("Preflight test returned an opaque/unreadable response."),{stage:5});
+  if(preflightResponse.status===401){
+   setStep(5,"pass","Worker returned HTTP 401"+(preflightData.code?" ("+preflightData.code+")":"")+". This is expected for the deliberately invalid test token; Authorization preflight passed.");
+  }else{
+   setStep(5,"pass","Worker returned HTTP "+preflightResponse.status+(preflightData.code?" ("+preflightData.code+")":"")+(preflightData.error?": "+preflightData.error:"")+". CORS preflight passed and Worker response is readable.");
+  }
+
+  setStep(6,"running","Sending the real read-only auth_me request using the current Firebase token…");
+  let response;
+  try{response=await fetch(WORKER_URL,{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+token},body:JSON.stringify({action:"auth_me"}),cache:"no-store"});}
+  catch(error){throw Object.assign(new Error((error?.name||"NetworkError")+": "+(error?.message||"Authenticated Worker request failed at browser/network layer.")),{stage:6});}
+  const data=await readBody(response);
+  if(!response.ok)throw Object.assign(new Error("Worker returned HTTP "+response.status+(data.code?" ("+data.code+")":"")+": "+(data.error||"No error detail.")),{stage:6});
+  if(!data.user||!data.access)throw Object.assign(new Error("Worker response missing user/access fields."),{stage:6});
+  setStep(6,"pass","Account request succeeded. Signed-in role: "+(data.user.role||"user")+".");
+  $("overall").textContent="SUCCESS: Firebase, Worker connection, CORS preflight, and account request are working.";
+ }catch(error){
+  const stage=Number(error?.stage)||6;
+  for(let n=stage;n<=6;n++)if($("s"+n).textContent==="Waiting…"||n===stage)setStep(n,"fail",n===stage?(error?.message||"Test failed."):"Not tested because an earlier step failed.");
+  $("overall").textContent="FAILED AT STEP "+stage+": "+(error?.message||"Unknown error.")+"\n\nKoi token ya password display nahi hua.";
+ }finally{$("run").disabled=false;token="";}
 }
-$("run").addEventListener("click",run);
-run();
-</script>
-</body>
-</html>
+$("run").addEventListener("click",run);run();
+</script></body></html>
