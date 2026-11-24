@@ -416,7 +416,31 @@ async function getProject(projectId){const d=db||await openDB();return new Promi
 async function allProjects(){const d=db||await openDB();const userId=auth?.currentUser?.uid;return new Promise((resolve,reject)=>{const r=d.transaction(STORE).objectStore(STORE).getAll();r.onsuccess=()=>resolve((r.result||[]).filter(item=>item.ownerUid===userId).sort((a,b)=>b.updatedAt-a.updatedAt));r.onerror=()=>reject(r.error)})}
 async function deleteProject(projectId){const item=await getProject(projectId);if(!item)return;const d=db||await openDB();return new Promise((resolve,reject)=>{const tx=d.transaction(STORE,"readwrite");tx.objectStore(STORE).delete(projectId);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)})}
 function clone(value){return structuredClone(value)}
-function pushHistory(){if(!state)return;undoStack.push(clone(state));if(undoStack.length>40)undoStack.shift();redoStack=[];updateHistoryButtons()}
+function pushHistoryEntry(entry){undoStack.push(entry);if(undoStack.length>40)undoStack.shift();redoStack=[];updateHistoryButtons()}
+function pushHistory(){if(!state)return;pushHistoryEntry(clone(state))}
+function historyValue(entry){
+ if(entry.scope==="adjust")return state?.adjust?.[entry.key];
+ const layer=state?.layers.find(item=>item.id===entry.layerId);if(!layer)return undefined;
+ return entry.key==="perspective"?(layer.perspective?clone(layer.perspective):null):layer[entry.key];
+}
+function setHistoryValue(entry,value){
+ if(entry.scope==="adjust"){if(state?.adjust)state.adjust[entry.key]=value;return}
+ const layer=state?.layers.find(item=>item.id===entry.layerId);if(!layer)return;
+ layer[entry.key]=value===undefined?undefined:clone(value);
+}
+function pushPropertyHistory(scope,key,layerId=null){
+ if(!state)return;
+ const entry={__historyType:"property",scope,key,layerId,value:null};
+ if(scope==="adjust")entry.value=state.adjust?.[key];
+ else{
+  const layer=state.layers.find(item=>item.id===layerId);if(!layer)return;
+  entry.value=key==="perspective"?(layer.perspective?clone(layer.perspective):null):layer[key];
+ }
+ pushHistoryEntry(entry);
+}
+function pushPaintStrokeHistory(layer,createdLayer,previousLayerIndex,previousSelectedId){
+ pushHistoryEntry({__historyType:"paintStroke",layerId:layer.id,createdLayer,previousCount:layer.strokes.length,previousLayerIndex,previousSelectedId});
+}
 function updateHistoryButtons(){$("undoBtn").disabled=!undoStack.length;$("redoBtn").disabled=!redoStack.length;$("undoSide").disabled=!undoStack.length;$("redoSide").disabled=!redoStack.length}
 function selected(){return state?.layers.find(x=>x.id===selectedId)||null}
 function showScreen(name){$("startScreen").classList.toggle("hidden",name!=="start");$("workspace").classList.toggle("hidden",name!=="workspace")}
@@ -487,7 +511,7 @@ function drawMeshTriangle(c,image,s1,s2,s3,d1,d2,d3){
 }
 function drawPerspectiveMesh(c,image,width,height,warp){
  const corners=["tl","tr","br","bl"].map(key=>({x:(key==="tr"||key==="br"?width/2:-width/2)+(Number(warp?.[key]?.x)||0)*width/100,y:(key==="br"||key==="bl"?height/2:-height/2)+(Number(warp?.[key]?.y)||0)*height/100}));
- const steps=layerTransformPreviewActive?6:14,grid=[],lerp=(a,b,t)=>a+(b-a)*t;
+ const steps=interactiveRenderActive?5:14,grid=[],lerp=(a,b,t)=>a+(b-a)*t;
  for(let y=0;y<=steps;y++){const row=[],v=y/steps;for(let x=0;x<=steps;x++){const u=x/steps,top={x:lerp(corners[0].x,corners[1].x,u),y:lerp(corners[0].y,corners[1].y,u)},bottom={x:lerp(corners[3].x,corners[2].x,u),y:lerp(corners[3].y,corners[2].y,u)};row.push({x:lerp(top.x,bottom.x,v),y:lerp(top.y,bottom.y,v)})}grid.push(row)}
  for(let y=0;y<steps;y++)for(let x=0;x<steps;x++){
   const sx0=x/steps*image.width,sx1=(x+1)/steps*image.width,sy0=y/steps*image.height,sy1=(y+1)/steps*image.height;
@@ -497,7 +521,7 @@ function drawPerspectiveMesh(c,image,width,height,warp){
  }
 }
 async function drawWarpedLayer(c,layer){
- const width=Math.max(1,Math.abs(layer.w)),height=Math.max(1,Math.abs(layer.h)),maxPixels=layerTransformPreviewActive?900000:8000000,scale=Math.min(1,Math.sqrt(maxPixels/(width*height))),sw=Math.max(1,Math.round(width*scale)),sh=Math.max(1,Math.round(height*scale));
+ const width=Math.max(1,Math.abs(layer.w)),height=Math.max(1,Math.abs(layer.h)),maxPixels=interactiveRenderActive?260000:8000000,scale=Math.min(1,Math.sqrt(maxPixels/(width*height))),sw=Math.max(1,Math.round(width*scale)),sh=Math.max(1,Math.round(height*scale));
  const scratch=document.createElement("canvas");scratch.width=sw;scratch.height=sh;const sc=scratch.getContext("2d");
  const plain=clone(layer);delete plain.perspective;plain.x=0;plain.y=0;plain.w=sw;plain.h=sh;plain.opacity=100;plain.rotation=0;plain.skewX=0;plain.skewY=0;plain.flipX=false;plain.flipY=false;
  if(plain.fontSize)plain.fontSize*=scale;if(plain.outlineWidth)plain.outlineWidth*=scale;if(plain.lineWidth)plain.lineWidth*=scale;
@@ -608,8 +632,8 @@ let renderRunning=false,renderPending=false,renderNeedsFull=true,renderTask=Prom
 let adjustmentPreviewActive=false,adjustmentPreviewFrame=0;
 let interactionPreviewCanvas=null,interactionPreviewContext=null;
 let currentRenderScaleX=1,currentRenderScaleY=1;
-const INTERACTION_PREVIEW_MAX_PIXELS=550000;
-let layerTransformPreviewActive=false,layerPreviewFrame=0;
+const INTERACTION_PREVIEW_MAX_PIXELS=220000;
+let layerTransformPreviewActive=false,layerPreviewFrame=0,interactiveRenderActive=false;
 let livePaintRasterState=null;
 function requestLayerPreview(){
  if(!layerPreviewFrame)layerPreviewFrame=requestAnimationFrame(()=>{layerPreviewFrame=0;render(true)});
@@ -633,6 +657,7 @@ function render(interactive=false){
 }
 async function renderPass(interactive=false){
  if(!state)return;
+ interactiveRenderActive=interactive;
  if(!interactive)syncAdjustmentControls();
  if(canvas.width!==state.width)canvas.width=state.width;
  if(canvas.height!==state.height)canvas.height=state.height;
@@ -696,6 +721,7 @@ async function renderPass(interactive=false){
   $("canvasWidth").value=state.width;$("canvasHeight").value=state.height;
  }
  currentRenderScaleX=1;currentRenderScaleY=1;
+ interactiveRenderActive=false;
 }
 function scheduleSave(){if(!state)return;state.updatedAt=Date.now();$("saveState").textContent="Saving…";clearTimeout(saveTimer);saveTimer=setTimeout(async()=>{try{const thumb=await new Promise(resolve=>canvas.toBlob(resolve,"image/jpeg",.72));state.thumbnail=thumb;await putProject(clone(state));$("saveState").textContent="✓ Auto-saved";}catch(e){$("saveState").textContent="Save failed";toast("Could not save this project: "+e.message)}},650)}
 function setState(next){manualPatchSource=null;state=next;state.showGuides=!!state.showGuides;if(!state.adjust)state.adjust={brightness:100,contrast:100,saturation:100,hue:0,temperature:0,exposure:0,blur:0,vignette:0,highlights:0,shadows:0,sharpness:0,straighten:0,blackPoint:0,whitePoint:255,curveGamma:100,hslHue:0,hslSaturation:0,hslLightness:0,colorRange:"all",colorMixHue:0,colorMixSaturation:0,colorMixLightness:0,redBalance:0,greenBalance:0,blueBalance:0,filter:"none"};else Object.assign(state.adjust,{highlights:state.adjust.highlights??0,shadows:state.adjust.shadows??0,sharpness:state.adjust.sharpness??0,straighten:state.adjust.straighten??0,blackPoint:state.adjust.blackPoint??0,whitePoint:state.adjust.whitePoint??255,curveGamma:state.adjust.curveGamma??100,hslHue:state.adjust.hslHue??0,hslSaturation:state.adjust.hslSaturation??0,hslLightness:state.adjust.hslLightness??0,colorRange:state.adjust.colorRange||"all",colorMixHue:state.adjust.colorMixHue??0,colorMixSaturation:state.adjust.colorMixSaturation??0,colorMixLightness:state.adjust.colorMixLightness??0,redBalance:state.adjust.redBalance??0,greenBalance:state.adjust.greenBalance??0,blueBalance:state.adjust.blueBalance??0});if(!state.originalSnapshot)state.originalSnapshot=makeOriginalSnapshot(state);selectedId=state.selectedLayerId||null;paintLayerId=state.layers.find(layer=>layer.type==="paint")?.id||null;cloneSource=null;cloneGesture=null;cropRect=null;cropStart=null;$("cropModal").classList.add("hidden");activeStroke=null;activePointerMode=null;dragging=null;selectionRect=null;setActiveTool("move");zoomLevel=100;autoFitZoom=true;$("backgroundColor").value=/^#[0-9a-f]{6}$/i.test(state.background||"")?state.background:"#ffffff";$("safeAreaGuidesBtn").textContent=state.showGuides?"Hide Guides":"Show Guides";activateRail("basic");showScreen("workspace");fitZoom();render().then(scheduleSave);updateHistoryButtons()}
@@ -751,7 +777,9 @@ function updateSelectionOverlay(){const overlay=$("selectionOverlayCanvas");if(!
 function ensurePaintLayer(){let layer=state.layers.find(item=>item.id===paintLayerId&&item.type==="paint");if(!layer){layer={id:id(),type:"paint",name:"Brush & Eraser",strokes:[],opacity:100,visible:true,x:0,y:0,w:state.width,h:state.height};state.layers.push(layer);paintLayerId=layer.id}return layer}
 function readBrushColor(){const value=String($("brushColor").value||"").trim();return /^#[0-9a-f]{6}$/i.test(value)?value.toLowerCase():"#ff3b9d"}
 function beginPaint(point,tool){
+ const previousSelectedId=selectedId,existing=state.layers.find(item=>item.id===paintLayerId&&item.type==="paint");
  const layer=ensurePaintLayer(),oldIndex=state.layers.indexOf(layer);
+ pushPaintStrokeHistory(layer,!existing,oldIndex,previousSelectedId);
  if(oldIndex>=0&&oldIndex!==state.layers.length-1)state.layers.push(state.layers.splice(oldIndex,1)[0]);
  selectedId=layer.id;state.selectedLayerId=layer.id;
  activeStroke={tool,points:[point],size:Number($("brushSize").value)||24,color:readBrushColor(),opacity:Number($("brushOpacity").value)||100};
@@ -987,29 +1015,75 @@ function applyTransform(){const layer=selected();if(!layer)return;const x=Number
 function centerSelectedLayer(){const layer=selected();if(!layer)return;changeLayer(l=>{l.x=(state.width-l.w)/2;l.y=(state.height-l.h)/2})}
 function restoreOriginal(){if(!state||!state.originalSnapshot){toast("This project has no original snapshot to restore.");return}if(!confirm("Restore this project to its original photo and starting layers? Your current edits will be replaced."))return;pushHistory();const original=clone(state.originalSnapshot);state={...state,...original,updatedAt:Date.now(),originalSnapshot:clone(state.originalSnapshot)};state.selectedLayerId=state.layers.find(layer=>layer.type==="image")?.id||state.layers[0]?.id||null;selectedId=state.selectedLayerId;paintLayerId=state.layers.find(layer=>layer.type==="paint")?.id||null;cloneSource=null;cloneGesture=null;cropRect=null;cropStart=null;$("cropModal").classList.add("hidden");selectionRect=null;setActiveTool("move");activeStroke=null;activePointerMode=null;dragging=null;compareMode=false;$("backgroundColor").value=/^#[0-9a-f]{6}$/i.test(state.background||"")?state.background:"#ffffff";$("safeAreaGuidesBtn").textContent=state.showGuides?"Hide Guides":"Show Guides";if(autoFitZoom)fitZoom();render().then(scheduleSave);toast("Original project restored. Use Undo to bring back your edits.")}
 function moveLayerOrder(direction){if(!state||!selectedId)return;const index=state.layers.findIndex(layer=>layer.id===selectedId),target=index+direction;if(index<0||target<0||target>=state.layers.length)return;pushHistory();const item=state.layers.splice(index,1)[0];state.layers.splice(target,0,item);render().then(scheduleSave);toast(direction>0?"Layer brought forward.":"Layer sent backward.")}
-function undo(){if(!undoStack.length)return;redoStack.push(clone(state));state=undoStack.pop();selectedId=state.selectedLayerId;compareMode=false;render().then(scheduleSave);updateHistoryButtons()}
-function redo(){if(!redoStack.length)return;undoStack.push(clone(state));state=redoStack.pop();selectedId=state.selectedLayerId;compareMode=false;render().then(scheduleSave);updateHistoryButtons()}
+function undo(){
+ if(!undoStack.length||!state)return;
+ const entry=undoStack.pop();
+ if(entry?.__historyType==="property"){
+  const current=historyValue(entry);redoStack.push({...entry,value:current===undefined?undefined:clone(current)});
+  setHistoryValue(entry,entry.value);
+ }else if(entry?.__historyType==="paintStroke"){
+  const layer=state.layers.find(item=>item.id===entry.layerId);
+  if(layer){
+   if(entry.createdLayer){
+    const index=state.layers.indexOf(layer);state.layers.splice(index,1);
+    redoStack.push({...entry,layer,index});
+   }else{
+    const removed=layer.strokes.splice(entry.previousCount);
+    const currentIndex=state.layers.indexOf(layer);
+    if(entry.previousLayerIndex>=0&&currentIndex!==entry.previousLayerIndex){
+     state.layers.splice(currentIndex,1);state.layers.splice(Math.min(entry.previousLayerIndex,state.layers.length),0,layer);
+    }
+    redoStack.push({...entry,strokes:removed});
+   }
+  }
+  selectedId=entry.previousSelectedId||null;state.selectedLayerId=selectedId;
+ }else{
+  redoStack.push(state);state=entry;selectedId=state.selectedLayerId;
+ }
+ compareMode=false;syncAdjustmentControls();render().then(scheduleSave);updateHistoryButtons();
+}
+function redo(){
+ if(!redoStack.length||!state)return;
+ const entry=redoStack.pop();
+ if(entry?.__historyType==="property"){
+  const current=historyValue(entry);undoStack.push({...entry,value:current===undefined?undefined:clone(current)});
+  if(undoStack.length>40)undoStack.shift();setHistoryValue(entry,entry.value);
+ }else if(entry?.__historyType==="paintStroke"){
+  let layer=state.layers.find(item=>item.id===entry.layerId);
+  if(entry.createdLayer&&entry.layer){
+   layer=entry.layer;state.layers.push(layer);paintLayerId=layer.id;
+  }else if(layer&&entry.strokes){
+   const index=state.layers.indexOf(layer);if(index>=0){state.layers.splice(index,1);state.layers.push(layer)}
+   layer.strokes.push(...entry.strokes);
+  }
+  selectedId=entry.layerId;state.selectedLayerId=selectedId;undoStack.push(entry);
+  if(undoStack.length>40)undoStack.shift();
+ }else{
+  undoStack.push(state);if(undoStack.length>40)undoStack.shift();state=entry;selectedId=state.selectedLayerId;
+ }
+ compareMode=false;syncAdjustmentControls();render().then(scheduleSave);updateHistoryButtons();
+}
 function changeLayer(fn){const layer=selected();if(!layer)return;pushHistory();fn(layer);render().then(scheduleSave)}
 function bindLayerSkew(key,axis,valueId){
  let started=false;const el=$(key);
- el.addEventListener("pointerdown",()=>{if(state&&!started){pushHistory();started=true;layerTransformPreviewActive=true}});
- el.addEventListener("keydown",()=>{if(state&&!started){pushHistory();started=true;layerTransformPreviewActive=true}});
+ el.addEventListener("pointerdown",()=>{const layer=selected();if(state&&layer&&!started){pushPropertyHistory("layer",axis,layer.id);started=true;layerTransformPreviewActive=true}});
+ el.addEventListener("keydown",()=>{const layer=selected();if(state&&layer&&!started){pushPropertyHistory("layer",axis,layer.id);started=true;layerTransformPreviewActive=true}});
  el.addEventListener("change",()=>{started=false;layerTransformPreviewActive=false;if(state)render().then(scheduleSave)});
  el.addEventListener("input",e=>{
   const layer=selected();if(!layer)return;
-  if(!started){pushHistory();started=true}
+  if(!started){pushPropertyHistory("layer",axis,layer.id);started=true}
   layerTransformPreviewActive=true;layer[axis]=Number(e.target.value)||0;
   $(valueId).textContent=e.target.value+"°";requestLayerPreview();
  });
 }
 function bindPerspectiveControl(key,corner,axis,valueId){
  let started=false;const el=$(key);
- el.addEventListener("pointerdown",()=>{if(state&&!started){pushHistory();started=true;layerTransformPreviewActive=true}});
- el.addEventListener("keydown",()=>{if(state&&!started){pushHistory();started=true;layerTransformPreviewActive=true}});
+ el.addEventListener("pointerdown",()=>{const layer=selected();if(state&&layer&&!started){pushPropertyHistory("layer","perspective",layer.id);started=true;layerTransformPreviewActive=true}});
+ el.addEventListener("keydown",()=>{const layer=selected();if(state&&layer&&!started){pushPropertyHistory("layer","perspective",layer.id);started=true;layerTransformPreviewActive=true}});
  el.addEventListener("change",()=>{started=false;layerTransformPreviewActive=false;if(state)render().then(scheduleSave)});
  el.addEventListener("input",e=>{
   const layer=selected();if(!layer)return;
-  if(!started){pushHistory();started=true}
+  if(!started){pushPropertyHistory("layer","perspective",layer.id);started=true}
   layerTransformPreviewActive=true;
   if(!layer.perspective)layer.perspective={tl:{x:0,y:0},tr:{x:0,y:0},br:{x:0,y:0},bl:{x:0,y:0}};
   layer.perspective[corner][axis]=Number(e.target.value)||0;
@@ -1070,10 +1144,10 @@ function applyAdvancedColorAdjustments(targetCtx=ctx){
 }
 function bindAdjustmentSlider(key){
  let started=false;const input=$(key);
- input.addEventListener("pointerdown",()=>{if(state&&!started){pushHistory();started=true;adjustmentPreviewActive=true}});
- input.addEventListener("keydown",()=>{if(state&&!started){pushHistory();started=true;adjustmentPreviewActive=true}});
+ input.addEventListener("pointerdown",()=>{if(state&&!started){pushPropertyHistory("adjust",key);started=true;adjustmentPreviewActive=true}});
+ input.addEventListener("keydown",()=>{if(state&&!started){pushPropertyHistory("adjust",key);started=true;adjustmentPreviewActive=true}});
  input.addEventListener("change",()=>{started=false;adjustmentPreviewActive=false;if(state)render().then(scheduleSave)});
- input.addEventListener("input",()=>updateAdjustment(key,input.value));
+ input.addEventListener("input",()=>{if(!started&&state){pushPropertyHistory("adjust",key);started=true;adjustmentPreviewActive=true}updateAdjustment(key,input.value)});
 }
 function addBackgroundImageLayer(file){
  if(!state||!file)return;
@@ -1189,7 +1263,7 @@ canvas.addEventListener("pointerdown",e=>{
  if(activeTool==="fill"){bucketFill(p);return}
  if(activeTool==="quickSelect"){activePointerMode="quickSelect";canvas.setPointerCapture(e.pointerId);addQuickSelectCircle(p);return}
  if(activeTool==="eyedropper"){const px=ctx.getImageData(Math.max(0,Math.min(canvas.width-1,Math.floor(p.x))),Math.max(0,Math.min(canvas.height-1,Math.floor(p.y))),1,1).data;const hex="#"+[px[0],px[1],px[2]].map(v=>v.toString(16).padStart(2,"0")).join("");$("brushColor").value=hex;toast("Sampled "+hex.toUpperCase());setActiveTool("move");return}
- if(activeTool==="brush"||activeTool==="eraser"){pushHistory();beginPaint(p,activeTool);canvas.setPointerCapture(e.pointerId);return}
+ if(activeTool==="brush"||activeTool==="eraser"){beginPaint(p,activeTool);canvas.setPointerCapture(e.pointerId);return}
  if(activeTool==="clone"||activeTool==="healing"){
   const image=selected();
   if(e.altKey){
@@ -1213,8 +1287,8 @@ canvas.addEventListener("pointermove",e=>{
  if(activePointerMode==="crop"&&cropStart){cropRect=makeCropRect(cropStart,p,getCropRatio());updateSelectionOverlay();return}
  if(activePointerMode==="clonePending"&&cloneGesture){
   const start=cloneGesture.start;if(Math.hypot(p.x-start.x,p.y-start.y)<2.5)return;
-  const source=cloneGesture.source,tool=cloneGesture.tool;pushHistory();
-  const layer=ensurePaintLayer();selectedId=layer.id;state.selectedLayerId=layer.id;
+  const source=cloneGesture.source,tool=cloneGesture.tool,previousSelectedId=selectedId,existing=state.layers.find(item=>item.id===paintLayerId&&item.type==="paint");
+  const layer=ensurePaintLayer(),previousLayerIndex=state.layers.indexOf(layer);pushPaintStrokeHistory(layer,!existing,previousLayerIndex,previousSelectedId);selectedId=layer.id;state.selectedLayerId=layer.id;
   activeStroke={tool,points:[start,p],size:Number($("brushSize").value)||24,opacity:Number($("brushOpacity").value)||100,sourceBlob:source.layer.blob,sourceRect:{x:source.layer.x,y:source.layer.y,w:source.layer.w,h:source.layer.h},offsetX:source.x-start.x,offsetY:source.y-start.y};
   layer.strokes.push(activeStroke);cloneGesture=null;activePointerMode="paint";render(true);return;
  }
@@ -1248,9 +1322,11 @@ $("addTextBtn").addEventListener("click",addText);$("layerAddText").addEventList
 $("layerName").addEventListener("change",e=>changeLayer(l=>l.name=e.target.value));bindLayerSkew("layerSkewX","skewX","skewXValue");bindLayerSkew("layerSkewY","skewY","skewYValue");$("resetLayerSkew").addEventListener("click",()=>{changeLayer(l=>{l.skewX=0;l.skewY=0});$("layerSkewX").value=0;$("layerSkewY").value=0;$("skewXValue").textContent="0°";$("skewYValue").textContent="0°"});
 for(const [corner,short] of [["tl","TL"],["tr","TR"],["br","BR"],["bl","BL"]])for(const axis of ["x","y"]){const key="warp"+short+axis.toUpperCase();bindPerspectiveControl(key,corner,axis,key+"Value")}
 $("resetPerspective").addEventListener("click",()=>{changeLayer(l=>{l.perspective={tl:{x:0,y:0},tr:{x:0,y:0},br:{x:0,y:0},bl:{x:0,y:0}}});for(const key of ["warpTLX","warpTLY","warpTRX","warpTRY","warpBRX","warpBRY","warpBLX","warpBLY"]){$(key).value=0;$(key+"Value").textContent="0%"}});let opacityHistoryReady=false,rotationHistoryReady=false,textHistoryReady=false;
-$("layerOpacity").addEventListener("pointerdown",()=>{if(state&&!opacityHistoryReady){pushHistory();opacityHistoryReady=true}});
+$("layerOpacity").addEventListener("pointerdown",()=>{if(state&&selected()&&!opacityHistoryReady){pushPropertyHistory("layer","opacity",selected().id);opacityHistoryReady=true}});
 $("layerOpacity").addEventListener("change",()=>{opacityHistoryReady=false;if(state)render().then(scheduleSave)});
-$("layerRotation").addEventListener("pointerdown",()=>{if(state&&!rotationHistoryReady){pushHistory();rotationHistoryReady=true}});
+$("layerRotation").addEventListener("pointerdown",()=>{if(state&&selected()&&!rotationHistoryReady){pushPropertyHistory("layer","rotation",selected().id);rotationHistoryReady=true}});
+$("layerOpacity").addEventListener("keydown",()=>{if(state&&selected()&&!opacityHistoryReady){pushPropertyHistory("layer","opacity",selected().id);opacityHistoryReady=true}});
+$("layerRotation").addEventListener("keydown",()=>{if(state&&selected()&&!rotationHistoryReady){pushPropertyHistory("layer","rotation",selected().id);rotationHistoryReady=true}});
 $("layerRotation").addEventListener("change",()=>{rotationHistoryReady=false;if(state)render().then(scheduleSave)});
 $("layerOpacity").addEventListener("input",e=>{const l=selected();if(!l)return;l.opacity=Number(e.target.value);$("opacityValue").textContent=e.target.value+"%";requestLayerPreview()});
 $("layerRotation").addEventListener("input",e=>{const l=selected();if(!l)return;l.rotation=Number(e.target.value);$("rotationValue").textContent=e.target.value+"°";requestLayerPreview()});$("layerText").addEventListener("focus",()=>{if(state&&!textHistoryReady){pushHistory();textHistoryReady=true}});$("layerText").addEventListener("blur",()=>{textHistoryReady=false});$("layerText").addEventListener("input",e=>{const l=selected();if(!l||l.type!=="text")return;l.text=e.target.value;render();scheduleSave()});$("fontSize").addEventListener("change",e=>changeLayer(l=>l.fontSize=Math.max(8,Math.min(220,Number(e.target.value)||64))));$("fontFamily").addEventListener("change",e=>changeLayer(l=>l.fontFamily=e.target.value));$("textAlign").addEventListener("change",e=>changeLayer(l=>l.align=e.target.value));$("textBold").addEventListener("change",e=>changeLayer(l=>l.bold=e.target.checked));$("textItalic").addEventListener("change",e=>changeLayer(l=>l.italic=e.target.checked));$("textShadow").addEventListener("change",e=>changeLayer(l=>l.shadow=e.target.checked));$("textOutlineColor").addEventListener("input",e=>{const l=selected();if(!l||l.type!=="text")return;l.outlineColor=e.target.value;render(true)});$("textOutlineColor").addEventListener("change",()=>{if(state)render().then(scheduleSave)});$("textOutlineWidth").addEventListener("change",e=>changeLayer(l=>l.outlineWidth=Math.max(0,Math.min(20,Number(e.target.value)||0))));$("textColor").addEventListener("input",e=>{const l=selected();if(!l||l.type!=="text")return;l.color=e.target.value;render(true)});$("textColor").addEventListener("change",()=>{if(state)render().then(scheduleSave)});
