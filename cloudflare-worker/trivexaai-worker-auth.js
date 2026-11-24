@@ -181,6 +181,49 @@ const legacyWorker = {
         throw new Error("Gemini temporary service failure. Please try again.");
       };
 
+      // OpenRouter is a free-only text fallback. The dynamic openrouter/free route
+      // selects an available free model; this helper deliberately accepts text only.
+      const fetchOpenRouterText = async (systemPrompt, userPrompt, maxTokens = 1200, temperature = 0.2) => {
+        if (!env.OPENROUTER_API_KEY) throw new Error("OpenRouter is not configured.");
+        const messages = [];
+        if (typeof systemPrompt === "string" && systemPrompt.trim()) {
+          messages.push({ role: "system", content: systemPrompt.slice(0, 14000) });
+        }
+        messages.push({ role: "user", content: String(userPrompt || "").slice(0, 22000) });
+        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Authorization": "Bearer " + env.OPENROUTER_API_KEY,
+            "Content-Type": "application/json",
+            "HTTP-Referer": "https://abubakar902.github.io/Creator-Kit/",
+            "X-Title": "TrivexaAI"
+          },
+          body: JSON.stringify({
+            model: "openrouter/free",
+            messages,
+            temperature,
+            max_tokens: maxTokens,
+            provider: { allow_fallbacks: true, data_collection: "deny" }
+          })
+        });
+        let data = {};
+        try { data = await response.json(); } catch (error) {}
+        if (!response.ok) {
+          throw Object.assign(
+            new Error(String(data.error?.message || "OpenRouter free model request failed.").slice(0, 450)),
+            { status: response.status }
+          );
+        }
+        const content = data.choices?.[0]?.message?.content;
+        const generated = typeof content === "string"
+          ? content
+          : Array.isArray(content)
+            ? content.map(part => typeof part?.text === "string" ? part.text : "").join("")
+            : "";
+        if (!generated.trim()) throw new Error("OpenRouter returned an empty response.");
+        return generated.trim();
+      };
+
       // PER-TOOL RATE LIMITING
       // The frontend can send toolId, tool, toolName, or tool_name.
       // If none is supplied, requests are separated by their Worker action.
@@ -858,7 +901,7 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
         if (body.toolId !== expectedToolId) {
           return reply({ error: "This request is not from the Video Studio Prompt Writer.", code: "AI_PROMPT_WRITER_TOOL_MISMATCH" }, 400);
         }
-        if (!env.GEMINI_API_KEY) {
+        if (!env.GEMINI_API_KEY && !env.OPENROUTER_API_KEY) {
           return reply({ error: "The Video Studio Prompt Writer connection is not configured." }, 500);
         }
         const sourceRequest = typeof body.request === "string" ? body.request.trim() : "";
@@ -866,7 +909,7 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
           return reply({ error: "Enter a request between 1 and 2,000 characters." }, 400);
         }
 
-        // Only names and media types are shared with Gemini for prompt writing.
+        // Only names and media types are shared with the selected text AI provider.
         // No IDs, local URLs, blobs, original media bytes, or clip settings are sent.
         const rawContext = body.editorContext && typeof body.editorContext === "object" && !Array.isArray(body.editorContext)
           ? body.editorContext
@@ -940,50 +983,62 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
           sourceRequest
         ].join("\n");
 
-        let geminiResponse;
-        try {
-          geminiResponse = await fetchGeminiWithRetry(
-            "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent",
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "x-goog-api-key": env.GEMINI_API_KEY
-              },
-              body: JSON.stringify({
-                systemInstruction: { parts: [{ text: systemInstructions }] },
-                contents: [{ role: "user", parts: [{ text: userMessage }] }],
-                generationConfig: {
-                  temperature: 0.15,
-                  maxOutputTokens: 1200,
-                  responseMimeType: "application/json"
-                }
-              })
+        let generatedText = "";
+        let geminiFailure = null;
+        if (env.GEMINI_API_KEY) {
+          try {
+            const geminiResponse = await fetchGeminiWithRetry(
+              "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent",
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  "x-goog-api-key": env.GEMINI_API_KEY
+                },
+                body: JSON.stringify({
+                  systemInstruction: { parts: [{ text: systemInstructions }] },
+                  contents: [{ role: "user", parts: [{ text: userMessage }] }],
+                  generationConfig: {
+                    temperature: 0.15,
+                    maxOutputTokens: 1200,
+                    responseMimeType: "application/json"
+                  }
+                })
+              }
+            );
+            let geminiData = {};
+            try { geminiData = await geminiResponse.json(); } catch (parseError) {}
+            if (!geminiResponse.ok) {
+              throw Object.assign(new Error(String(geminiData.error?.message || "Gemini request failed.").slice(0, 400)), { status: geminiResponse.status });
             }
-          );
-        } catch (geminiNetworkError) {
-          console.error("Video Studio Prompt Writer Gemini connection error:", geminiNetworkError);
-          return reply({ error: "The prompt could not be generated because the AI service connection failed. Please try again shortly.", code: "AI_PROMPT_WRITER_CONNECTION_FAILED" }, 502);
+            generatedText = geminiData.candidates?.[0]?.content?.parts
+              ?.map(part => typeof part.text === "string" ? part.text : "")
+              .join("")
+              .trim() || "";
+            if (!generatedText) throw new Error("Gemini returned an empty prompt response.");
+          } catch (error) {
+            geminiFailure = error;
+            console.warn("Video Studio Prompt Writer Gemini failed; trying OpenRouter fallback:", error?.message);
+          }
         }
-        let geminiData = {};
-        try { geminiData = await geminiResponse.json(); } catch (parseError) {}
-        if (!geminiResponse.ok) {
-          console.error("Video Studio Prompt Writer Gemini error:", {
-            status: geminiResponse.status,
-            message: geminiData.error?.message || ""
-          });
-          return reply({
-            error: "Gemini could not convert this request into a Video Studio prompt.",
-            details: String(geminiData.error?.message || "Please try again shortly.").slice(0, 400),
-            code: "AI_PROMPT_WRITER_GEMINI_FAILED"
-          }, geminiResponse.status === 429 ? 429 : 502);
+        if (!generatedText && env.OPENROUTER_API_KEY) {
+          try {
+            generatedText = await fetchOpenRouterText(systemInstructions, userMessage, 1200, 0.15);
+          } catch (openRouterError) {
+            console.error("Video Studio Prompt Writer OpenRouter error:", openRouterError);
+            return reply({
+              error: "Gemini and OpenRouter could not generate this Video Studio prompt.",
+              details: String(openRouterError?.message || geminiFailure?.message || "Please try again shortly.").slice(0, 400),
+              code: "AI_PROMPT_WRITER_PROVIDERS_FAILED"
+            }, openRouterError?.status === 429 ? 429 : 502);
+          }
         }
-        const generatedText = geminiData.candidates?.[0]?.content?.parts
-          ?.map(part => typeof part.text === "string" ? part.text : "")
-          .join("")
-          .trim() || "";
         if (!generatedText || generatedText.length > 6000) {
-          return reply({ error: "Gemini returned an empty or oversized prompt response. Please simplify your request.", code: "AI_PROMPT_WRITER_EMPTY" }, 502);
+          return reply({
+            error: "The AI returned an empty or oversized prompt response. Please simplify your request.",
+            details: String(geminiFailure?.message || "").slice(0, 300),
+            code: "AI_PROMPT_WRITER_EMPTY"
+          }, 502);
         }
         let result;
         try {
@@ -1139,7 +1194,7 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
           new Set(provided).size === expected.length &&
           expected.every(value => provided.includes(value));
 
-        if (!env.GEMINI_API_KEY) {
+        if (!env.GEMINI_API_KEY && !env.OPENROUTER_API_KEY) {
           return reply({ error: "The AI Editor connection is not configured." }, 500);
         }
         if (body.toolId !== "video-studio-ai-editor") {
@@ -1654,50 +1709,62 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
           "USER_REQUEST:",
           userRequest
         ].join("\n");
-        let geminiResponse;
-        try {
-          geminiResponse = await fetchGeminiWithRetry(
-            "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent",
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "x-goog-api-key": env.GEMINI_API_KEY
-              },
-              body: JSON.stringify({
-                systemInstruction: { parts: [{ text: systemInstructions }] },
-                contents: [{ role: "user", parts: [{ text: userMessage }] }],
-                generationConfig: {
-                  temperature: 0.1,
-                  maxOutputTokens: 4500,
-                  responseMimeType: "application/json"
-                }
-              })
+        let generatedText = "";
+        let geminiFailure = null;
+        if (env.GEMINI_API_KEY) {
+          try {
+            const geminiResponse = await fetchGeminiWithRetry(
+              "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent",
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  "x-goog-api-key": env.GEMINI_API_KEY
+                },
+                body: JSON.stringify({
+                  systemInstruction: { parts: [{ text: systemInstructions }] },
+                  contents: [{ role: "user", parts: [{ text: userMessage }] }],
+                  generationConfig: {
+                    temperature: 0.1,
+                    maxOutputTokens: 4500,
+                    responseMimeType: "application/json"
+                  }
+                })
+              }
+            );
+            let geminiData = {};
+            try { geminiData = await geminiResponse.json(); } catch (parseError) {}
+            if (!geminiResponse.ok) {
+              throw Object.assign(new Error(String(geminiData.error?.message || "Gemini request failed.").slice(0, 500)), { status: geminiResponse.status });
             }
-          );
-        } catch (geminiNetworkError) {
-          console.error("Video Studio AI Editor Gemini connection error:", geminiNetworkError);
-          return reply({ error: "The AI Editor could not connect to Gemini. Please try again shortly.", code: "AI_EDITOR_CONNECTION_FAILED" }, 502);
+            generatedText = geminiData.candidates?.[0]?.content?.parts
+              ?.map(part => typeof part.text === "string" ? part.text : "")
+              .join("")
+              .trim() || "";
+            if (!generatedText) throw new Error("Gemini returned an empty edit plan.");
+          } catch (error) {
+            geminiFailure = error;
+            console.warn("Video Studio AI Editor Gemini failed; trying OpenRouter fallback:", error?.message);
+          }
         }
-        let geminiData = {};
-        try { geminiData = await geminiResponse.json(); } catch (parseError) {}
-        if (!geminiResponse.ok) {
-          console.error("Video Studio AI Editor Gemini error:", {
-            status: geminiResponse.status,
-            message: geminiData.error?.message || ""
-          });
-          return reply({
-            error: "Gemini could not prepare the Video Studio edit plan.",
-            details: String(geminiData.error?.message || "Please try again shortly.").slice(0, 500),
-            code: "AI_EDITOR_GEMINI_FAILED"
-          }, geminiResponse.status === 429 ? 429 : 502);
+        if (!generatedText && env.OPENROUTER_API_KEY) {
+          try {
+            generatedText = await fetchOpenRouterText(systemInstructions, userMessage, 4500, 0.1);
+          } catch (openRouterError) {
+            console.error("Video Studio AI Editor OpenRouter error:", openRouterError);
+            return reply({
+              error: "Gemini and OpenRouter could not prepare the Video Studio edit plan.",
+              details: String(openRouterError?.message || geminiFailure?.message || "Please try again shortly.").slice(0, 500),
+              code: "AI_EDITOR_PROVIDERS_FAILED"
+            }, openRouterError?.status === 429 ? 429 : 502);
+          }
         }
-        const generatedText = geminiData.candidates?.[0]?.content?.parts
-          ?.map(part => typeof part.text === "string" ? part.text : "")
-          .join("")
-          .trim() || "";
         if (!generatedText || generatedText.length > 30000) {
-          return reply({ error: "Gemini returned an empty or oversized edit plan. Please simplify your request.", code: "AI_EDITOR_EMPTY_PLAN" }, 502);
+          return reply({
+            error: "The AI returned an empty or oversized edit plan. Please simplify your request.",
+            details: String(geminiFailure?.message || "").slice(0, 300),
+            code: "AI_EDITOR_EMPTY_PLAN"
+          }, 502);
         }
 
         let plan;
@@ -1770,14 +1837,28 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
       const photoAction=String(body.action||"");
       if(photoAction.startsWith("photo_editor_")){
         if(body.toolId!=="photo-editor-ai")return reply({error:"Photo Editor request rejected."},400);
-        if(!env.GEMINI_API_KEY)return reply({error:"Photo Editor AI is not configured."},503);
+        if(!env.GEMINI_API_KEY&&!env.OPENROUTER_API_KEY)return reply({error:"Photo Editor AI is not configured."},503);
         const textAI=async(parts,system,max=1000)=>{
-          const r=await fetchGeminiWithRetry("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent",{
-            method:"POST",headers:{"Content-Type":"application/json","x-goog-api-key":env.GEMINI_API_KEY},
-            body:JSON.stringify({...(system?{systemInstruction:{parts:[{text:system}]}}:{}),contents:[{role:"user",parts}],generationConfig:{temperature:.2,maxOutputTokens:max,responseMimeType:"application/json"}})
-          });
-          let d={};try{d=await r.json()}catch(e){}if(!r.ok)throw Object.assign(new Error(String(d.error?.message||"Gemini request failed.").slice(0,350)),{status:r.status});
-          const raw=d.candidates?.[0]?.content?.parts?.map(x=>typeof x.text==="string"?x.text:"").join("").trim()||"",a=raw.indexOf("{"),b=raw.lastIndexOf("}");
+          const containsImage=parts.some(part=>part&&typeof part==="object"&&(part.inlineData||part.fileData));
+          let geminiFailure=null;
+          if(env.GEMINI_API_KEY){
+            try{
+              const r=await fetchGeminiWithRetry("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent",{
+                method:"POST",headers:{"Content-Type":"application/json","x-goog-api-key":env.GEMINI_API_KEY},
+                body:JSON.stringify({...(system?{systemInstruction:{parts:[{text:system}]}}:{}),contents:[{role:"user",parts}],generationConfig:{temperature:.2,maxOutputTokens:max,responseMimeType:"application/json"}})
+              });
+              let d={};try{d=await r.json()}catch(e){}
+              if(!r.ok)throw Object.assign(new Error(String(d.error?.message||"Gemini request failed.").slice(0,350)),{status:r.status});
+              const raw=d.candidates?.[0]?.content?.parts?.map(x=>typeof x.text==="string"?x.text:"").join("").trim()||"",a=raw.indexOf("{"),b=raw.lastIndexOf("}");
+              return JSON.parse(a>=0&&b>a?raw.slice(a,b+1):raw);
+            }catch(error){geminiFailure=error;}
+          }
+          // Never send thumbnail previews or other image bytes to OpenRouter.
+          if(containsImage)throw geminiFailure||new Error("Image analysis requires the Gemini image route; image data is not sent to OpenRouter.");
+          if(!env.OPENROUTER_API_KEY)throw geminiFailure||new Error("No text AI provider is configured.");
+          const textParts=parts.map(part=>typeof part?.text==="string"?part.text:"").filter(Boolean).join("\n");
+          const raw=await fetchOpenRouterText(system,textParts,max,.2);
+          const a=raw.indexOf("{"),b=raw.lastIndexOf("}");
           return JSON.parse(a>=0&&b>a?raw.slice(a,b+1):raw);
         };
         const failed=(e,message)=>reply({error:message,details:String(e?.message||"Try again shortly.").slice(0,350)},e?.status===429?429:502);
@@ -1788,7 +1869,7 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
             const r=await textAI([{text:prompt}],"You are TrivexaAI Photo Editor's prompt improver. Understand Urdu, Hindi, Roman Urdu and mixed language. Preserve exactly what the user wants and all keep-unchanged instructions; do not add edits. Return only JSON {\"prompt\":\"...\"}, a clear ready-to-use English image prompt under 1,200 characters.",700);
             const improved=typeof r.prompt==="string"?r.prompt.trim().slice(0,1200):"";if(!improved)throw new Error("Gemini returned an empty prompt.");
             return reply({prompt:improved,needsClarification:false,question:""});
-          }catch(e){console.error("Photo prompt writer:",e);return failed(e,"Gemini could not improve this prompt.");}
+          }catch(e){console.error("Photo prompt writer:",e);return failed(e,"The AI providers could not improve this prompt.");}
         }
         if(photoAction==="photo_editor_thumbnail_critic"){
           const raw=typeof body.imageBase64==="string"?body.imageBase64.trim():"",mime=String(body.mimeType||"image/jpeg"),data=raw.replace(/^data:image\/[a-zA-Z0-9.+-]+;base64,/i,"").replace(/\s/g,"");
@@ -1805,6 +1886,7 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
         }
         if(photoAction==="photo_editor_ai_edit"){
           if(env.PHOTO_EDITOR_IMAGE_BILLING_ENABLED!=="true")return reply({error:"AI image generation is disabled to prevent unexpected charges. The owner must enable PHOTO_EDITOR_IMAGE_BILLING_ENABLED after reviewing the Gemini image-model price.",code:"PHOTO_EDITOR_IMAGE_BILLING_DISABLED"},403);
+          if(!env.GEMINI_API_KEY)return reply({error:"Gemini image editing requires the GEMINI_API_KEY secret. OpenRouter text fallback does not process image edits."},503);
           const modes=new Set(["edit","remove_object","replace_background","generative_fill","generate_background","enhance","expand"]),mode=String(body.mode||"edit"),prompt=typeof body.prompt==="string"?body.prompt.trim():"";
           if(!modes.has(mode)||!prompt||prompt.length>1400)return reply({error:"Choose a supported edit and enter an instruction under 1,400 characters."},400);
           const clean=(raw,mime)=>{
@@ -1841,9 +1923,9 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
         }
       }
 
-      // EXISTING GEMINI AI TOOLS
-      if (!env.GEMINI_API_KEY) {
-        return reply({ error: "API key is not configured." }, 500);
+      // EXISTING TEXT AI TOOLS — Gemini primary, OpenRouter free-only fallback.
+      if (!env.GEMINI_API_KEY && !env.OPENROUTER_API_KEY) {
+        return reply({ error: "No text AI provider is configured." }, 500);
       }
 
       const prompt = body.prompt;
@@ -1857,35 +1939,59 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
         }, 400);
       }
 
-      const response = await fetch(
-        "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-goog-api-key": env.GEMINI_API_KEY
-          },
-          body: JSON.stringify({
-            contents: [{
-              parts: [{ text: prompt.trim() }]
-            }]
-          })
+      let generatedText = "";
+      let geminiFailure = null;
+      if (env.GEMINI_API_KEY) {
+        try {
+          const response = await fetchGeminiWithRetry(
+            "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "x-goog-api-key": env.GEMINI_API_KEY
+              },
+              body: JSON.stringify({
+                contents: [{
+                  parts: [{ text: prompt.trim() }]
+                }]
+              })
+            }
+          );
+          let data = {};
+          try { data = await response.json(); } catch (parseError) {}
+          if (!response.ok) {
+            throw Object.assign(new Error(String(data.error?.message || "Gemini request failed.").slice(0, 450)), { status: response.status });
+          }
+          generatedText = data.candidates?.[0]?.content?.parts
+            ?.map(part => typeof part.text === "string" ? part.text : "")
+            .join("") || "";
+          if (!generatedText.trim()) throw new Error("Gemini returned an empty response.");
+        } catch (error) {
+          geminiFailure = error;
+          console.warn("General text AI Gemini failed; trying OpenRouter fallback:", error?.message);
         }
-      );
-
-      const data = await response.json();
-      if (!response.ok) {
+      }
+      if (!generatedText && env.OPENROUTER_API_KEY) {
+        try {
+          generatedText = await fetchOpenRouterText("", prompt.trim(), 1400, 0.35);
+        } catch (openRouterError) {
+          console.error("General text AI OpenRouter error:", openRouterError);
+          return reply({
+            error: "Gemini and OpenRouter could not complete this text request.",
+            details: String(openRouterError?.message || geminiFailure?.message || "Please try again shortly.").slice(0, 450),
+            code: "TEXT_AI_PROVIDERS_FAILED"
+          }, openRouterError?.status === 429 ? 429 : 502);
+        }
+      }
+      if (!generatedText.trim()) {
         return reply({
-          error: "Gemini request failed.",
-          details: data.error?.message || "Please check API access."
+          error: "The AI could not complete this request.",
+          details: String(geminiFailure?.message || "Please try again shortly.").slice(0, 400),
+          code: "TEXT_AI_EMPTY_RESPONSE"
         }, 502);
       }
-
-      const text = data.candidates?.[0]?.content?.parts
-        ?.map(part => part.text || "")
-        .join("") || "";
-
-      return reply({ text });
+      return reply({ text: generatedText });
     } catch (error) {
       console.error("Worker error:", error);
       return reply({
