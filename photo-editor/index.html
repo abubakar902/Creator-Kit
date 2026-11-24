@@ -1300,7 +1300,7 @@ canvas.addEventListener("pointerdown",e=>{
   cloneGesture={tool:activeTool,start:{x:p.x,y:p.y},source:cloneSource};activePointerMode="clonePending";canvas.setPointerCapture(e.pointerId);return;
  }
  const hit=[...state.layers].reverse().find(l=>l.visible&&pointHitsLayer(l,p));
- if(hit){pushPropertyHistory("layer","position",hit.id);selectedId=hit.id;state.selectedLayerId=hit.id;dragging={id:hit.id,offsetX:p.x-hit.x,offsetY:p.y-hit.y};activePointerMode="move";canvas.setPointerCapture(e.pointerId);render()}else{selectedId=null;state.selectedLayerId=null;render()}
+ if(hit){pushPropertyHistory("layer","position",hit.id);selectedId=hit.id;state.selectedLayerId=hit.id;dragging={id:hit.id,offsetX:p.x-hit.x,offsetY:p.y-hit.y};activePointerMode="move";canvas.setPointerCapture(e.pointerId);updateLayerList();updateProperties();render(true)}else{selectedId=null;state.selectedLayerId=null;updateLayerList();updateProperties();render(true)}
 });
 canvas.addEventListener("pointermove",e=>{
  if(!state)return;const p=pointerPos(e);
