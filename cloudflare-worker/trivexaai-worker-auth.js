@@ -1804,6 +1804,7 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
           }catch(e){console.error("Photo thumbnail critic:",e);return failed(e,"Gemini could not analyze this thumbnail.");}
         }
         if(photoAction==="photo_editor_ai_edit"){
+          if(env.PHOTO_EDITOR_IMAGE_BILLING_ENABLED!=="true")return reply({error:"AI image generation is disabled to prevent unexpected charges. The owner must enable PHOTO_EDITOR_IMAGE_BILLING_ENABLED after reviewing the Gemini image-model price.",code:"PHOTO_EDITOR_IMAGE_BILLING_DISABLED"},403);
           const modes=new Set(["edit","remove_object","replace_background","generative_fill","generate_background","enhance","expand"]),mode=String(body.mode||"edit"),prompt=typeof body.prompt==="string"?body.prompt.trim():"";
           if(!modes.has(mode)||!prompt||prompt.length>1400)return reply({error:"Choose a supported edit and enter an instruction under 1,400 characters."},400);
           const clean=(raw,mime)=>{
