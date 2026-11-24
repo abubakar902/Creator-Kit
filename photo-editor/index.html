@@ -521,7 +521,7 @@ function drawPerspectiveMesh(c,image,width,height,warp){
  }
 }
 async function drawWarpedLayer(c,layer){
- const width=Math.max(1,Math.abs(layer.w)),height=Math.max(1,Math.abs(layer.h)),maxPixels=interactiveRenderActive?260000:8000000,scale=Math.min(1,Math.sqrt(maxPixels/(width*height))),sw=Math.max(1,Math.round(width*scale)),sh=Math.max(1,Math.round(height*scale));
+ const width=Math.max(1,Math.abs(layer.w)),height=Math.max(1,Math.abs(layer.h)),maxPixels=interactiveRenderActive?150000:8000000,scale=Math.min(1,Math.sqrt(maxPixels/(width*height))),sw=Math.max(1,Math.round(width*scale)),sh=Math.max(1,Math.round(height*scale));
  const scratch=document.createElement("canvas");scratch.width=sw;scratch.height=sh;const sc=scratch.getContext("2d");
  const plain=clone(layer);delete plain.perspective;plain.x=0;plain.y=0;plain.w=sw;plain.h=sh;plain.opacity=100;plain.rotation=0;plain.skewX=0;plain.skewY=0;plain.flipX=false;plain.flipY=false;
  if(plain.fontSize)plain.fontSize*=scale;if(plain.outlineWidth)plain.outlineWidth*=scale;if(plain.lineWidth)plain.lineWidth*=scale;
@@ -632,7 +632,7 @@ let renderRunning=false,renderPending=false,renderNeedsFull=true,renderTask=Prom
 let adjustmentPreviewActive=false,adjustmentPreviewFrame=0;
 let interactionPreviewCanvas=null,interactionPreviewContext=null;
 let currentRenderScaleX=1,currentRenderScaleY=1;
-const INTERACTION_PREVIEW_MAX_PIXELS=220000;
+const INTERACTION_PREVIEW_MAX_PIXELS=120000;
 let layerTransformPreviewActive=false,layerPreviewFrame=0,interactiveRenderActive=false;
 let livePaintRasterState=null;
 function requestLayerPreview(){
@@ -703,7 +703,7 @@ async function renderPass(interactive=false){
   c.fillStyle=vg;c.fillRect(0,0,width,height);
  }
  const livePainting=activePointerMode==="paint"&&!!activeStroke;
- if(!compareMode&&!livePainting)applyAdvancedColorAdjustments(c);
+ if(!compareMode&&!livePainting)await applyAdvancedColorAdjustments(c);
  // Paint and bucket layers keep their selected colors instead of inheriting photo color grading.
  c.save();c.filter="none";
  if(!compareMode&&(a.straighten||0)!==0){c.translate(width/2,height/2);c.rotate((a.straighten||0)*Math.PI/180);c.translate(-width/2,-height/2)}
@@ -1112,34 +1112,55 @@ function updateAdjustment(key,value){
  adjustmentPreviewActive=true;
  if(!adjustmentPreviewFrame)adjustmentPreviewFrame=requestAnimationFrame(()=>{adjustmentPreviewFrame=0;render(true)});
 }
-function applyAdvancedColorAdjustments(targetCtx=ctx){
- if(!state)return;const a=state.adjust,black=a.blackPoint??0,white=Math.max(black+1,a.whitePoint??255),gamma=Math.max(.5,Math.min(2,(a.curveGamma??100)/100));
+async function applyAdvancedColorAdjustments(targetCtx=ctx){
+ if(!state)return;
+ const a=state.adjust,black=a.blackPoint??0,white=Math.max(black+1,a.whitePoint??255),gamma=Math.max(.5,Math.min(2,(a.curveGamma??100)/100));
  const curveShadows=a.curveShadows??0,curveMidtones=a.curveMidtones??0,curveHighlights=a.curveHighlights??0;
  const light=a.hslLightness??0,hslHue=a.hslHue??0,hslSat=a.hslSaturation??0,rb=a.redBalance??0,gb=a.greenBalance??0,bb=a.blueBalance??0;
  const highlights=a.highlights??0,shadows=a.shadows??0,sharpness=a.sharpness??0,mixHue=a.colorMixHue??0,mixSat=a.colorMixSaturation??0,mixLight=a.colorMixLightness??0;
  const centers={reds:0,oranges:30,yellows:60,greens:120,cyans:180,blues:220,purples:270,magentas:320},range=a.colorRange||"all",center=centers[range];
- const hasColor=black!==0||white!==255||gamma!==1||curveShadows!==0||curveMidtones!==0||curveHighlights!==0||light!==0||hslHue!==0||hslSat!==0||rb!==0||gb!==0||bb!==0||highlights!==0||shadows!==0||(range!=="all"&&(mixHue!==0||mixSat!==0||mixLight!==0));
+ const hslActive=hslHue!==0||hslSat!==0||light!==0||(range!=="all"&&(mixHue!==0||mixSat!==0||mixLight!==0));
+ const hasColor=black!==0||white!==255||gamma!==1||curveShadows!==0||curveMidtones!==0||curveHighlights!==0||hslActive||rb!==0||gb!==0||bb!==0||highlights!==0||shadows!==0;
  if(!hasColor&&!sharpness)return;
  const targetWidth=targetCtx.canvas.width,targetHeight=targetCtx.canvas.height;
  const image=targetCtx.getImageData(0,0,targetWidth,targetHeight),d=image.data,w=targetWidth,h=targetHeight,span=white-black,clamp=v=>Math.max(0,Math.min(255,v));
- for(let i=0;i<d.length;i+=4){
+ const chunkPixels=interactiveRenderActive?30000:70000;
+ for(let i=0,pixel=0;i<d.length;i+=4,pixel++){
   let r=d[i],g=d[i+1],b=d[i+2],lum=(r*.2126+g*.7152+b*.0722)/255,sw=(1-lum)*(1-lum),hw=lum*lum;
-  if(black!==0||white!==255||gamma!==1){for(let ch=0;ch<3;ch++){let v=clamp((d[i+ch]-black)*255/span);v=255*Math.pow(v/255,1/gamma);d[i+ch]=clamp(v)}r=d[i];g=d[i+1];b=d[i+2]}
+  if(black!==0||white!==255||gamma!==1){
+   for(let ch=0;ch<3;ch++){let v=clamp((d[i+ch]-black)*255/span);v=255*Math.pow(v/255,1/gamma);d[i+ch]=clamp(v)}
+   r=d[i];g=d[i+1];b=d[i+2];
+  }
   if(curveShadows||curveMidtones||curveHighlights){
    for(let ch=0;ch<3;ch++){let v=d[i+ch]/255;const shadowWeight=(1-v)*(1-v),midWeight=4*v*(1-v),highlightWeight=v*v;v+=curveShadows/100*.28*shadowWeight+curveMidtones/100*.20*midWeight+curveHighlights/100*.28*highlightWeight;d[i+ch]=clamp(v*255)}
    r=d[i];g=d[i+1];b=d[i+2];
   }
   if(highlights||shadows){r=clamp(r+highlights*hw*.72+shadows*sw*.72);g=clamp(g+highlights*hw*.72+shadows*sw*.72);b=clamp(b+highlights*hw*.72+shadows*sw*.72)}
-  const max=Math.max(r,g,b),min=Math.min(r,g,b),delta=max-min;let hh=0,ss=0,ll=(max+min)/510;
-  if(delta){ss=delta/(1-Math.abs(2*ll-1));if(max===r)hh=60*(((g-b)/delta)%6);else if(max===g)hh=60*((b-r)/delta+2);else hh=60*((r-g)/delta+4);if(hh<0)hh+=360}
-  let weight=1;if(range!=="all"&&Number.isFinite(center)){let diff=Math.abs(hh-center);diff=Math.min(diff,360-diff);weight=Math.max(0,1-diff/58)}
-  hh=(hh+hslHue+mixHue*weight*.9+360)%360;ss=Math.max(0,Math.min(1,ss*(1+hslSat/100)*(1+mixSat/100*weight)));ll=Math.max(0,Math.min(1,ll+light/200+mixLight/200*weight));
-  const c=(1-Math.abs(2*ll-1))*ss,x=c*(1-Math.abs((hh/60)%2-1)),m=ll-c/2;let rr=0,gg=0,bl=0;
-  if(hh<60){rr=c;gg=x}else if(hh<120){rr=x;gg=c}else if(hh<180){gg=c;bl=x}else if(hh<240){gg=x;bl=c}else if(hh<300){rr=x;bl=c}else{rr=c;bl=x}
-  r=clamp((rr+m)*255);g=clamp((gg+m)*255);b=clamp((bl+m)*255);const lum2=(r*.2126+g*.7152+b*.0722)/255,shadow=1-lum2;
+  if(hslActive){
+   const max=Math.max(r,g,b),min=Math.min(r,g,b),delta=max-min;let hh=0,ss=0,ll=(max+min)/510;
+   if(delta){ss=delta/(1-Math.abs(2*ll-1));if(max===r)hh=60*(((g-b)/delta)%6);else if(max===g)hh=60*((b-r)/delta+2);else hh=60*((r-g)/delta+4);if(hh<0)hh+=360}
+   let weight=1;if(range!=="all"&&Number.isFinite(center)){let diff=Math.abs(hh-center);diff=Math.min(diff,360-diff);weight=Math.max(0,1-diff/58)}
+   hh=(hh+hslHue+mixHue*weight*.9+360)%360;
+   ss=Math.max(0,Math.min(1,ss*(1+hslSat/100)*(1+mixSat/100*weight)));
+   ll=Math.max(0,Math.min(1,ll+light/200+mixLight/200*weight));
+   const c=(1-Math.abs(2*ll-1))*ss,x=c*(1-Math.abs((hh/60)%2-1)),m=ll-c/2;let rr=0,gg=0,bl=0;
+   if(hh<60){rr=c;gg=x}else if(hh<120){rr=x;gg=c}else if(hh<180){gg=c;bl=x}else if(hh<240){gg=x;bl=c}else if(hh<300){rr=x;bl=c}else{rr=c;bl=x}
+   r=clamp((rr+m)*255);g=clamp((gg+m)*255);b=clamp((bl+m)*255);
+  }
+  const lum2=(r*.2126+g*.7152+b*.0722)/255,shadow=1-lum2;
   d[i]=clamp(r+rb*(.65+.7*shadow));d[i+1]=clamp(g+gb*(.65+.7*shadow));d[i+2]=clamp(b+bb*(.65+.7*shadow));
+  if(pixel>0&&pixel%chunkPixels===0)await new Promise(resolve=>requestAnimationFrame(resolve));
  }
- const sharpBase=sharpness?new Uint8ClampedArray(d):null;if(sharpness&&sharpBase){const amount=sharpness/100*.75;for(let y=1;y<h-1;y++)for(let x=1;x<w-1;x++){const i=(y*w+x)*4;for(let ch=0;ch<3;ch++){const avg=(sharpBase[i-4+ch]+sharpBase[i+4+ch]+sharpBase[i-w*4+ch]+sharpBase[i+w*4+ch])/4;d[i+ch]=clamp(sharpBase[i+ch]+(sharpBase[i+ch]-avg)*amount)}}}
+ if(sharpness){
+  const sharpBase=new Uint8ClampedArray(d),amount=sharpness/100*.75;
+  for(let y=1;y<h-1;y++){
+   for(let x=1;x<w-1;x++){
+    const i=(y*w+x)*4;
+    for(let ch=0;ch<3;ch++){const avg=(sharpBase[i-4+ch]+sharpBase[i+4+ch]+sharpBase[i-w*4+ch]+sharpBase[i+w*4+ch])/4;d[i+ch]=clamp(sharpBase[i+ch]+(sharpBase[i+ch]-avg)*amount)}
+   }
+   if(y%28===0)await new Promise(resolve=>requestAnimationFrame(resolve));
+  }
+ }
  targetCtx.putImageData(image,0,0);
 }
 function bindAdjustmentSlider(key){
@@ -1288,7 +1309,9 @@ canvas.addEventListener("pointermove",e=>{
  if(activePointerMode==="clonePending"&&cloneGesture){
   const start=cloneGesture.start;if(Math.hypot(p.x-start.x,p.y-start.y)<2.5)return;
   const source=cloneGesture.source,tool=cloneGesture.tool,previousSelectedId=selectedId,existing=state.layers.find(item=>item.id===paintLayerId&&item.type==="paint");
-  const layer=ensurePaintLayer(),previousLayerIndex=state.layers.indexOf(layer);pushPaintStrokeHistory(layer,!existing,previousLayerIndex,previousSelectedId);selectedId=layer.id;state.selectedLayerId=layer.id;
+  const layer=ensurePaintLayer(),previousLayerIndex=state.layers.indexOf(layer);pushPaintStrokeHistory(layer,!existing,previousLayerIndex,previousSelectedId);
+  if(previousLayerIndex>=0&&previousLayerIndex!==state.layers.length-1)state.layers.push(state.layers.splice(previousLayerIndex,1)[0]);
+  selectedId=layer.id;state.selectedLayerId=layer.id;
   activeStroke={tool,points:[start,p],size:Number($("brushSize").value)||24,opacity:Number($("brushOpacity").value)||100,sourceBlob:source.layer.blob,sourceRect:{x:source.layer.x,y:source.layer.y,w:source.layer.w,h:source.layer.h},offsetX:source.x-start.x,offsetY:source.y-start.y};
   layer.strokes.push(activeStroke);cloneGesture=null;activePointerMode="paint";render(true);return;
  }
