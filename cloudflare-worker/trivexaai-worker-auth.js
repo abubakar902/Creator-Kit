@@ -170,7 +170,7 @@ const legacyWorker = {
         for (let attempt = 0; attempt < 3; attempt++) {
           try {
             const response = await fetch(url, options);
-            if (![500, 502, 503, 504].includes(response.status) || attempt === 2) return response;
+            if (![408, 425, 500, 502, 503, 504].includes(response.status) || attempt === 2) return response;
           } catch (error) {
             lastError = error;
             if (attempt === 2) throw error;
@@ -183,6 +183,8 @@ const legacyWorker = {
 
       // OpenRouter is a free-only text fallback. The dynamic openrouter/free route
       // selects an available free model; this helper deliberately accepts text only.
+      // OpenRouter is a free-only text fallback. Retry once only for transient
+      // network/upstream failures; do not loop on daily quota, invalid keys, or credits.
       const fetchOpenRouterText = async (systemPrompt, userPrompt, maxTokens = 1200, temperature = 0.2) => {
         if (!env.OPENROUTER_API_KEY) throw new Error("OpenRouter is not configured.");
         const messages = [];
@@ -190,38 +192,72 @@ const legacyWorker = {
           messages.push({ role: "system", content: systemPrompt.slice(0, 14000) });
         }
         messages.push({ role: "user", content: String(userPrompt || "").slice(0, 22000) });
-        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Authorization": "Bearer " + env.OPENROUTER_API_KEY,
-            "Content-Type": "application/json",
-            "HTTP-Referer": "https://abubakar902.github.io/Creator-Kit/",
-            "X-Title": "TrivexaAI"
-          },
-          body: JSON.stringify({
-            model: "openrouter/free",
-            messages,
-            temperature,
-            max_tokens: maxTokens,
-            provider: { allow_fallbacks: true, data_collection: "deny" }
-          })
+        const requestBody = JSON.stringify({
+          model: "openrouter/free",
+          messages,
+          temperature,
+          max_tokens: maxTokens,
+          provider: { allow_fallbacks: true, data_collection: "deny" }
         });
-        let data = {};
-        try { data = await response.json(); } catch (error) {}
-        if (!response.ok) {
-          throw Object.assign(
-            new Error(String(data.error?.message || "OpenRouter free model request failed.").slice(0, 450)),
-            { status: response.status }
-          );
+        let lastError = null;
+        for (let attempt = 0; attempt < 2; attempt++) {
+          let response;
+          try {
+            response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+              method: "POST",
+              headers: {
+                "Authorization": "Bearer " + env.OPENROUTER_API_KEY,
+                "Content-Type": "application/json",
+                "HTTP-Referer": "https://abubakar902.github.io/Creator-Kit/",
+                "X-Title": "TrivexaAI"
+              },
+              body: requestBody
+            });
+          } catch (networkError) {
+            lastError = networkError;
+            if (attempt === 0) {
+              await new Promise(resolve => setTimeout(resolve, 500));
+              continue;
+            }
+            throw Object.assign(new Error("OpenRouter could not be reached after one retry: " + String(networkError?.message || "network error").slice(0, 250)), { code: "OPENROUTER_NETWORK_ERROR" });
+          }
+
+          let data = {};
+          try { data = await response.json(); } catch (parseError) {}
+          if (!response.ok) {
+            const message = String(data.error?.message || "OpenRouter free model request failed.").slice(0, 450);
+            const limitSource = String(data.error?.metadata?.limit_source || "");
+            const retryableStatus = [408, 425, 500, 502, 503, 504].includes(response.status);
+            const retryableProviderLimit = response.status === 429 && limitSource === "upstream_provider_shared_pool";
+            lastError = Object.assign(new Error(message), {
+              status: response.status,
+              code: data.error?.code || "OPENROUTER_REQUEST_FAILED",
+              limitSource
+            });
+            if (attempt === 0 && (retryableStatus || retryableProviderLimit)) {
+              await new Promise(resolve => setTimeout(resolve, 500));
+              continue;
+            }
+            throw lastError;
+          }
+
+          const content = data.choices?.[0]?.message?.content;
+          const generated = typeof content === "string"
+            ? content
+            : Array.isArray(content)
+              ? content.map(part => typeof part?.text === "string" ? part.text : "").join("")
+              : "";
+          if (!generated.trim()) {
+            lastError = new Error("OpenRouter returned an empty response.");
+            if (attempt === 0) {
+              await new Promise(resolve => setTimeout(resolve, 500));
+              continue;
+            }
+            throw lastError;
+          }
+          return generated.trim();
         }
-        const content = data.choices?.[0]?.message?.content;
-        const generated = typeof content === "string"
-          ? content
-          : Array.isArray(content)
-            ? content.map(part => typeof part?.text === "string" ? part.text : "").join("")
-            : "";
-        if (!generated.trim()) throw new Error("OpenRouter returned an empty response.");
-        return generated.trim();
+        throw lastError || new Error("OpenRouter could not complete the request.");
       };
 
       // PER-TOOL RATE LIMITING
