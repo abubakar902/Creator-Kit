@@ -754,6 +754,7 @@ function setLayerSelection(ids,activeId=ids.at(-1)||null){
 }
 function updateLayerList(){
  const list=$("layerList");list.replaceChildren();if(!state)return;
+ const validIds=new Set(state.layers.map(layer=>layer.id));selectedLayerIds=new Set([...selectedLayerIds].filter(layerId=>validIds.has(layerId)));if(selectedId&&!selectedLayerIds.has(selectedId))selectedLayerIds=new Set([selectedId]);
  const layers=[...state.layers].reverse(),groups=Array.isArray(state.layerGroups)?state.layerGroups:[];
  const groupById=new Map(groups.map(group=>[group.id,group])),emitted=new Set();
  const createLayerRow=(layer,depth=0)=>{
@@ -804,7 +805,7 @@ function groupSelectedLayers(){
  pushHistory();
  const number=(state.layerGroups?.length||0)+1,group={id:id(),name:"Group "+number,collapsed:false};
  state.layerGroups=state.layerGroups||[];state.layerGroups.push(group);
- ids.forEach(layerId=>{const layer=state.layers.find(item=>item.id===layerId);if(layer)layer.groupId=group.id});
+ ids.forEach(layerId=>{const layer=state.layers.find(item=>item.id===layerId);if(layer){delete layer.groupId;layer.groupId=group.id}});state.layerGroups=state.layerGroups.filter(item=>state.layers.some(layer=>layer.groupId===item.id));
  selectedLayerIds=new Set(ids);selectedId=ids.at(-1);state.selectedLayerId=selectedId;
  render().then(scheduleSave);toast(ids.length+" layers ka group ban gaya.");
 }
@@ -1119,7 +1120,7 @@ async function runAiThumbnailCritic(){
 }
 function applyTransform(){const layer=selected();if(!layer)return;const x=Number($("layerX").value),y=Number($("layerY").value),w=Number($("layerWidth").value),h=Number($("layerHeight").value);if(![x,y,w,h].every(Number.isFinite)||w<1||h<1){toast("Enter valid layer position and size values.");return}changeLayer(l=>{l.x=x;l.y=y;l.w=Math.min(6000,w);l.h=Math.min(6000,h)})}
 function centerSelectedLayer(){const layer=selected();if(!layer)return;changeLayer(l=>{l.x=(state.width-l.w)/2;l.y=(state.height-l.h)/2})}
-function restoreOriginal(){if(!state||!state.originalSnapshot){toast("This project has no original snapshot to restore.");return}if(!confirm("Restore this project to its original photo and starting layers? Your current edits will be replaced."))return;pushHistory();const original=clone(state.originalSnapshot);state={...state,...original,updatedAt:Date.now(),originalSnapshot:clone(state.originalSnapshot)};state.layerGroups=[];state.layers.forEach(layer=>delete layer.groupId);state.selectedLayerId=state.layers.find(layer=>layer.type==="image")?.id||state.layers[0]?.id||null;selectedId=state.selectedLayerId;paintLayerId=state.layers.find(layer=>layer.type==="paint")?.id||null;cloneSource=null;cloneGesture=null;cropRect=null;cropStart=null;$("cropModal").classList.add("hidden");selectionRect=null;setActiveTool("move");activeStroke=null;activePointerMode=null;dragging=null;compareMode=false;$("backgroundColor").value=/^#[0-9a-f]{6}$/i.test(state.background||"")?state.background:"#ffffff";$("safeAreaGuidesBtn").textContent=state.showGuides?"Hide Guides":"Show Guides";if(autoFitZoom)fitZoom();render().then(scheduleSave);toast("Original project restored. Use Undo to bring back your edits.")}
+function restoreOriginal(){if(!state||!state.originalSnapshot){toast("This project has no original snapshot to restore.");return}if(!confirm("Restore this project to its original photo and starting layers? Your current edits will be replaced."))return;pushHistory();const original=clone(state.originalSnapshot);state={...state,...original,updatedAt:Date.now(),originalSnapshot:clone(state.originalSnapshot)};state.layerGroups=[];state.layers.forEach(layer=>delete layer.groupId);state.selectedLayerId=state.layers.find(layer=>layer.type==="image")?.id||state.layers[0]?.id||null;selectedId=state.selectedLayerId;selectedLayerIds=new Set(selectedId?[selectedId]:[]);lastLayerClickId=selectedId;paintLayerId=state.layers.find(layer=>layer.type==="paint")?.id||null;cloneSource=null;cloneGesture=null;cropRect=null;cropStart=null;$("cropModal").classList.add("hidden");selectionRect=null;setActiveTool("move");activeStroke=null;activePointerMode=null;dragging=null;compareMode=false;$("backgroundColor").value=/^#[0-9a-f]{6}$/i.test(state.background||"")?state.background:"#ffffff";$("safeAreaGuidesBtn").textContent=state.showGuides?"Hide Guides":"Show Guides";if(autoFitZoom)fitZoom();render().then(scheduleSave);toast("Original project restored. Use Undo to bring back your edits.")}
 function moveLayerOrder(direction){if(!state||!selectedId)return;const index=state.layers.findIndex(layer=>layer.id===selectedId),target=index+direction;if(index<0||target<0||target>=state.layers.length)return;pushHistory();const item=state.layers.splice(index,1)[0];state.layers.splice(target,0,item);render().then(scheduleSave);toast(direction>0?"Layer brought forward.":"Layer sent backward.")}
 function undo(){
  if(!undoStack.length||!state)return;
@@ -1378,7 +1379,7 @@ function beginTransformResize(e){
  const layer=selected();if(!layer)return;
  e.preventDefault();e.stopPropagation();if(activeTool!=="move")setActiveTool("move");
  pushHistory();
- transformGesture={pointerId:e.pointerId,layerId:layer.id,handle:handle.dataset.handle,start:pointerPos(e),x:layer.x,y:layer.y,w:layer.w,h:layer.h,rotation:(Number(layer.rotation)||0)*Math.PI/180};
+ transformGesture={pointerId:e.pointerId,layerId:layer.id,handle:handle.dataset.handle,start:pointerPos(e),x:layer.x,y:layer.y,w:layer.w,h:layer.h,fontSize:layer.fontSize,rotation:(Number(layer.rotation)||0)*Math.PI/180};
  try{$("transformOverlay").setPointerCapture(e.pointerId)}catch(error){}
 }
 function moveTransformResize(e){
@@ -1395,6 +1396,7 @@ function moveTransformResize(e){
  const worldShiftX=shiftX*cos-shiftY*sin,worldShiftY=shiftX*sin+shiftY*cos;
  const centerX=gesture.x+gesture.w/2+worldShiftX,centerY=gesture.y+gesture.h/2+worldShiftY;
  layer.w=Math.min(6000,width);layer.h=Math.min(6000,height);layer.x=centerX-layer.w/2;layer.y=centerY-layer.h/2;
+ if(layer.type==="text"&&Number.isFinite(gesture.fontSize)){const sx=layer.w/Math.max(1,gesture.w),sy=layer.h/Math.max(1,gesture.h),fontScale=(west||east)&&(north||south)?Math.sqrt(sx*sy):(west||east?sx:sy);layer.fontSize=Math.max(8,Math.min(220,gesture.fontSize*fontScale))}
  updateTransformOverlay();render(true);
 }
 function finishTransformResize(e){
