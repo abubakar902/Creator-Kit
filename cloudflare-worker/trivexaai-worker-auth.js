@@ -6,6 +6,7 @@ let firebaseKeysExpiry = 0;
 const ADVANCED_ACTIONS = new Set([
   "generate_image", "generate_voice", "video_studio", "video_studio_create",
   "video_studio_export", "video_studio_ai_assistant", "transcribe_audio", "ai_editing_assistant", "ai_prompt_writer",
+  "photo_editor_prompt_writer", "photo_editor_ai_edit", "photo_editor_thumbnail_critic",
   "advanced_feature"
 ]);
 function b64u(s) {
@@ -1765,6 +1766,80 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
         return reply({ text: JSON.stringify(cleanPlan) });
       }
 
+      // Photo Editor AI endpoints: Firebase auth + advanced access are enforced by the gateway.
+      const photoAction=String(body.action||"");
+      if(photoAction.startsWith("photo_editor_")){
+        if(body.toolId!=="photo-editor-ai")return reply({error:"Photo Editor request rejected."},400);
+        if(!env.GEMINI_API_KEY)return reply({error:"Photo Editor AI is not configured."},503);
+        const textAI=async(parts,system,max=1000)=>{
+          const r=await fetchGeminiWithRetry("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent",{
+            method:"POST",headers:{"Content-Type":"application/json","x-goog-api-key":env.GEMINI_API_KEY},
+            body:JSON.stringify({...(system?{systemInstruction:{parts:[{text:system}]}}:{}),contents:[{role:"user",parts}],generationConfig:{temperature:.2,maxOutputTokens:max,responseMimeType:"application/json"}})
+          });
+          let d={};try{d=await r.json()}catch(e){}if(!r.ok)throw Object.assign(new Error(String(d.error?.message||"Gemini request failed.").slice(0,350)),{status:r.status});
+          const raw=d.candidates?.[0]?.content?.parts?.map(x=>typeof x.text==="string"?x.text:"").join("").trim()||"",a=raw.indexOf("{"),b=raw.lastIndexOf("}");
+          return JSON.parse(a>=0&&b>a?raw.slice(a,b+1):raw);
+        };
+        const failed=(e,message)=>reply({error:message,details:String(e?.message||"Try again shortly.").slice(0,350)},e?.status===429?429:502);
+        if(photoAction==="photo_editor_prompt_writer"){
+          const prompt=typeof body.prompt==="string"?body.prompt.trim():"";
+          if(!prompt||prompt.length>1400)return reply({error:"Enter a photo-edit instruction under 1,400 characters."},400);
+          try{
+            const r=await textAI([{text:prompt}],"You are TrivexaAI Photo Editor's prompt improver. Understand Urdu, Hindi, Roman Urdu and mixed language. Preserve exactly what the user wants and all keep-unchanged instructions; do not add edits. Return only JSON {\"prompt\":\"...\"}, a clear ready-to-use English image prompt under 1,200 characters.",700);
+            const improved=typeof r.prompt==="string"?r.prompt.trim().slice(0,1200):"";if(!improved)throw new Error("Gemini returned an empty prompt.");
+            return reply({prompt:improved,needsClarification:false,question:""});
+          }catch(e){console.error("Photo prompt writer:",e);return failed(e,"Gemini could not improve this prompt.");}
+        }
+        if(photoAction==="photo_editor_thumbnail_critic"){
+          const raw=typeof body.imageBase64==="string"?body.imageBase64.trim():"",mime=String(body.mimeType||"image/jpeg"),data=raw.replace(/^data:image\/[a-zA-Z0-9.+-]+;base64,/i,"").replace(/\s/g,"");
+          if(!data||data.length>3500000||!/^[A-Za-z0-9+/]+={0,2}$/.test(data)||!["image/png","image/jpeg","image/webp"].includes(mime))return reply({error:"Thumbnail preview is invalid or too large."},400);
+          try{
+            const r=await textAI([{inlineData:{mimeType:mime,data}},{text:"Review this YouTube/social thumbnail for phone readability, subject clarity, contrast, headline visibility, colors and composition. Return JSON only: score (0-100), summary, suggestions (1-5). Each suggestion has title, reason, adjustment. adjustment may include only numeric brightness 0-200, contrast 0-200, saturation 0-200, exposure -100..100, temperature -100..100, sharpness 0-100, vignette 0-100, or hue -180..180. Suggest useful changes only; do not claim edits were applied."}],null,1200);
+            const ranges={brightness:[0,200],contrast:[0,200],saturation:[0,200],exposure:[-100,100],temperature:[-100,100],sharpness:[0,100],vignette:[0,100],hue:[-180,180]};
+            const suggestions=(Array.isArray(r.suggestions)?r.suggestions:[]).slice(0,5).filter(x=>x&&typeof x==="object"&&!Array.isArray(x)).map(x=>{
+              const adjustment={};for(const [k,v] of Object.entries(x.adjustment||{})){const a=ranges[k];if(a&&typeof v==="number"&&Number.isFinite(v)&&v>=a[0]&&v<=a[1])adjustment[k]=v}
+              return {title:String(x.title||"Suggested improvement").slice(0,100),reason:String(x.reason||"").slice(0,260),adjustment};
+            });
+            return reply({score:Number.isFinite(r.score)?Math.max(0,Math.min(100,Math.round(r.score))):null,summary:String(r.summary||"Review complete.").slice(0,700),suggestions});
+          }catch(e){console.error("Photo thumbnail critic:",e);return failed(e,"Gemini could not analyze this thumbnail.");}
+        }
+        if(photoAction==="photo_editor_ai_edit"){
+          const modes=new Set(["edit","remove_object","replace_background","generative_fill","generate_background","enhance","expand"]),mode=String(body.mode||"edit"),prompt=typeof body.prompt==="string"?body.prompt.trim():"";
+          if(!modes.has(mode)||!prompt||prompt.length>1400)return reply({error:"Choose a supported edit and enter an instruction under 1,400 characters."},400);
+          const clean=(raw,mime)=>{
+            if(typeof raw!=="string")return null;const data=raw.trim().replace(/^data:image\/[a-zA-Z0-9.+-]+;base64,/i,"").replace(/\s/g,""),type=String(mime||"image/jpeg");
+            return data&&data.length<=3500000&&/^[A-Za-z0-9+/]+={0,2}$/.test(data)&&["image/png","image/jpeg","image/webp"].includes(type)?{data,mime_type:type}:null;
+          };
+          const image=body.imageBase64?clean(body.imageBase64,body.mimeType):null,mask=body.selectionMaskBase64?clean(body.selectionMaskBase64,body.selectionMaskMimeType):null;
+          if(mode!=="generate_background"&&!image)return reply({error:"Source photo is missing or too large. Try a smaller image."},400);
+          if(body.selectionMaskBase64&&!mask)return reply({error:"Selection mask is invalid. Create the selection again."},400);
+          const width=Math.max(256,Math.min(1920,Number(body.width)||1024)),height=Math.max(256,Math.min(1920,Number(body.height)||1024)),ratio=width/height,ratios=["1:1","3:2","2:3","3:4","4:3","4:5","5:4","9:16","16:9","21:9"];
+          const aspect=ratios.reduce((best,item)=>{const [x,y]=item.split(":").map(Number),[bx,by]=best.split(":").map(Number);return Math.abs(Math.log(ratio/(x/y)))<Math.abs(Math.log(ratio/(bx/by)))?item:best},ratios[0]);
+          const instructions={
+            edit:"Edit the photo according to the user's instruction. Preserve all other content and identity.",
+            remove_object:"Remove the unwanted object described by the user and naturally reconstruct the background.",
+            replace_background:"Replace only the background. Preserve the foreground subject, face, identity and pose.",
+            generative_fill:"The second image is a black/white selection mask. Edit WHITE pixels only; BLACK pixels are protected.",
+            generate_background:"Generate a clean high-quality background for the design. No text, logos or watermarks.",
+            enhance:"Naturally improve clarity, lighting and detail while retaining the same subject, identity and composition.",
+            expand:"Extend the scene naturally while retaining the original subject and visual style."
+          };
+          const input=[{type:"text",text:instructions[mode]+"\nUser instruction: "+prompt+(mask?"\nSecond image is an edit mask: white=editable; black=protected.":"")+"\nReturn one edited image only."}];
+          if(image)input.push({type:"image",mime_type:image.mime_type,data:image.data});if(mask)input.push({type:"image",mime_type:mask.mime_type,data:mask.data});
+          try{
+            const r=await fetchGeminiWithRetry("https://generativelanguage.googleapis.com/v1beta/interactions",{
+              method:"POST",headers:{"Content-Type":"application/json","x-goog-api-key":env.GEMINI_API_KEY,"Api-Revision":"2026-05-20"},
+              body:JSON.stringify({model:"gemini-3.1-flash-lite-image",input,response_format:{type:"image",mime_type:"image/png",image_size:"1K",...(mode==="generate_background"?{aspect_ratio:aspect}:{})}})
+            });
+            let d={};try{d=await r.json()}catch(e){}
+            if(!r.ok)throw Object.assign(new Error(String(d.error?.message||"Check billing and Gemini image-model access for this API key.").slice(0,400)),{status:r.status});
+            const out=d.output_image?.data?d.output_image:(Array.isArray(d.steps)?d.steps.flatMap(x=>Array.isArray(x.content)?x.content:[]).filter(x=>x?.type==="image"&&x.data).at(-1):null);
+            if(!out?.data)throw new Error("Gemini did not return an image. Try a simpler instruction.");
+            return reply({imageBase64:out.data,mimeType:out.mime_type||"image/png",model:"gemini-3.1-flash-lite-image"});
+          }catch(e){console.error("Photo image editor:",e);return failed(e,"Gemini could not create this image edit.");}
+        }
+      }
+
       // EXISTING GEMINI AI TOOLS
       if (!env.GEMINI_API_KEY) {
         return reply({ error: "API key is not configured." }, 500);
@@ -1893,3 +1968,4 @@ export default {
   return new Response(response.body,{status:response.status,statusText:response.statusText,headers});
  }
 };
+// AI integration source update marker
