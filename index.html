@@ -4107,18 +4107,34 @@
   <script>
     const WORKER_URL = "https://creatorkit-ai.abubakar647648.workers.dev";
 
-    // Worker requests with timeout
+    // Worker requests use Firebase authentication explicitly. This avoids depending
+    // on a separate module's later global-fetch patch during early page interaction.
+    let workerAuthClientPromise = null;
     async function workerFetch(url, options = {}, timeoutMs = 180000) {
       const controller = new AbortController();
       const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
       try {
-        return await fetch(url, { ...options, signal: controller.signal });
-      } catch (error) {
-        if (error && error.name === "AbortError") {
-          throw new Error("This request took too long. Please try again in a moment.");
+        let authClient;
+        try {
+          workerAuthClientPromise ||= import("./auth/auth-client.js");
+          authClient = await workerAuthClientPromise;
+        } catch (moduleError) {
+          const error = new Error("TrivexaAI's secure sign-in service could not load. Refresh the page and try again.");
+          error.code = "AUTH_CLIENT_UNAVAILABLE";
+          throw error;
         }
+        return await authClient.authenticatedFetch(url, { ...options, signal: controller.signal });
+      } catch (error) {
+        if ((error && error.name === "AbortError") || controller.signal.aborted) {
+          const timeoutError = new Error("TrivexaAI did not respond before the request timed out. Please try again.");
+          timeoutError.code = "WORKER_TIMEOUT";
+          throw timeoutError;
+        }
+        if (error && error.code) throw error;
         if (error instanceof TypeError) {
-          throw new Error("Could not connect to the TrivexaAI service. Check your internet connection and try again.");
+          const connectionError = new Error("The TrivexaAI Worker could not be reached. This can be caused by a temporary connection, DNS, browser, or service issue; your internet may still be working. Please try again.");
+          connectionError.code = "WORKER_NETWORK_ERROR";
+          throw connectionError;
         }
         throw error;
       } finally {
@@ -4452,8 +4468,8 @@
     const toolInfo = {
       titles: {
         title: "🎬 YouTube Title Generator",
-        description: "Generate 10 catchy YouTube video titles using your topic or keywords. Create clear, engaging title ideas for your next video.",
-        prompt: "Create 10 distinct, catchy YouTube video titles. Make them clear, natural, and relevant. Avoid fake claims and misleading clickbait."
+        description: "Generate up to 5 catchy YouTube video titles by default, or request the exact number you need.",
+        prompt: "Create exactly the number of distinct YouTube video titles the user requests in their topic or extra details. If they do not specify a number, create exactly 5. If they ask for ONLY five (or another exact count), return exactly that number and never add extras. Output only a numbered list with that exact count. Make titles clear, natural, relevant, and non-misleading."
       },
       caption: {
         title: "✍️ Social Media Caption Generator",
@@ -5205,11 +5221,25 @@
         "",
         "USER TASK:"
       ].join("\n");
-      const response = await workerFetch(WORKER_URL, {
+      const requestOptions = {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ prompt: `${englishOnlyPrompt}\n${prompt}`, ...(toolId ? { toolId } : {}) })
-      });
+      };
+      let response;
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+          response = await workerFetch(WORKER_URL, requestOptions);
+          break;
+        } catch (error) {
+          if (attempt === 0 && error?.code === "WORKER_NETWORK_ERROR") {
+            await new Promise(resolve => window.setTimeout(resolve, 650));
+            continue;
+          }
+          throw error;
+        }
+      }
+      if (!response) throw new Error("TrivexaAI did not return a response. Please try again.");
 
       let data;
       try {
@@ -5219,10 +5249,15 @@
       }
 
       if (!response.ok) {
-        throw new Error(data.details || data.error || "AI request failed.");
+        const requestError = new Error(data.details || data.error || "AI request failed.");
+        requestError.code = data.code || "AI_REQUEST_FAILED";
+        requestError.status = response.status;
+        throw requestError;
       }
       if (!data.text) {
-        throw new Error("The AI returned an empty response. Please retry.");
+        const emptyError = new Error("The AI returned an empty response. Please retry.");
+        emptyError.code = "AI_EMPTY_RESPONSE";
+        throw emptyError;
       }
       return data.text;
     }
@@ -5294,8 +5329,8 @@
       result.textContent = isQASummary
         ? "TrivexaAI is preparing a clear summary of your text..."
         : (isQuestionTool
-          ? "Gemini AI is preparing a clear answer..."
-          : "Gemini AI is crafting your suggestions...");
+          ? "TrivexaAI is preparing a clear answer..."
+          : "TrivexaAI is crafting your suggestions...");
       result.classList.remove("result-empty");
       message.textContent = isQASummary
         ? "AI is summarizing only the text you provided."
@@ -5335,8 +5370,10 @@
         const savedTitle = isQASummary ? (qaQuestionDraft.trim() || "Pasted text summary") : topic;
         void saveRecentResult({ kind: "text", tool: toolInfo[selectedTool].title.replace(/^[^\w]+/, ""), title: savedTitle, text: answer });
       } catch (error) {
-        result.textContent = "We couldn't generate a result this time.";
-        message.textContent = error.message + " Please wait and try again.";
+        result.textContent = "TrivexaAI could not generate a result this time.";
+        const errorCode = error?.code ? " Code: " + error.code + "." : "";
+        const httpStatus = error?.status ? " HTTP " + error.status + "." : "";
+        message.textContent = (error?.message || "An unknown generation error occurred.") + errorCode + httpStatus;
       } finally {
         generateButton.disabled = false;
         qaModeToggleButton.disabled = false;
