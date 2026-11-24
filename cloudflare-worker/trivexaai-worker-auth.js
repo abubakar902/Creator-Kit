@@ -909,7 +909,7 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
           return reply({ error: "Enter a request between 1 and 2,000 characters." }, 400);
         }
 
-        // Only names and media types are shared with Gemini for prompt writing.
+        // Only names and media types are shared with the selected text AI provider.
         // No IDs, local URLs, blobs, original media bytes, or clip settings are sent.
         const rawContext = body.editorContext && typeof body.editorContext === "object" && !Array.isArray(body.editorContext)
           ? body.editorContext
@@ -1869,7 +1869,7 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
             const r=await textAI([{text:prompt}],"You are TrivexaAI Photo Editor's prompt improver. Understand Urdu, Hindi, Roman Urdu and mixed language. Preserve exactly what the user wants and all keep-unchanged instructions; do not add edits. Return only JSON {\"prompt\":\"...\"}, a clear ready-to-use English image prompt under 1,200 characters.",700);
             const improved=typeof r.prompt==="string"?r.prompt.trim().slice(0,1200):"";if(!improved)throw new Error("Gemini returned an empty prompt.");
             return reply({prompt:improved,needsClarification:false,question:""});
-          }catch(e){console.error("Photo prompt writer:",e);return failed(e,"Gemini could not improve this prompt.");}
+          }catch(e){console.error("Photo prompt writer:",e);return failed(e,"The AI providers could not improve this prompt.");}
         }
         if(photoAction==="photo_editor_thumbnail_critic"){
           const raw=typeof body.imageBase64==="string"?body.imageBase64.trim():"",mime=String(body.mimeType||"image/jpeg"),data=raw.replace(/^data:image\/[a-zA-Z0-9.+-]+;base64,/i,"").replace(/\s/g,"");
