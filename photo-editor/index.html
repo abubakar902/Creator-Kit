@@ -420,12 +420,14 @@ function pushHistoryEntry(entry){undoStack.push(entry);if(undoStack.length>40)un
 function pushHistory(){if(!state)return;pushHistoryEntry(clone(state))}
 function historyValue(entry){
  if(entry.scope==="adjust")return state?.adjust?.[entry.key];
+ if(entry.scope==="project")return state?.[entry.key];
  const layer=state?.layers.find(item=>item.id===entry.layerId);if(!layer)return undefined;
  if(entry.key==="position")return{x:layer.x,y:layer.y};
  return entry.key==="perspective"?(layer.perspective?clone(layer.perspective):null):layer[entry.key];
 }
 function setHistoryValue(entry,value){
  if(entry.scope==="adjust"){if(state?.adjust)state.adjust[entry.key]=value;return}
+ if(entry.scope==="project"){if(state)state[entry.key]=value;return}
  const layer=state?.layers.find(item=>item.id===entry.layerId);if(!layer)return;
  if(entry.key==="position"){layer.x=value.x;layer.y=value.y;return}
  layer[entry.key]=value===undefined?undefined:clone(value);
@@ -434,6 +436,7 @@ function pushPropertyHistory(scope,key,layerId=null){
  if(!state)return;
  const entry={__historyType:"property",scope,key,layerId,value:null};
  if(scope==="adjust")entry.value=state.adjust?.[key];
+ else if(scope==="project")entry.value=state[key];
  else{
   const layer=state.layers.find(item=>item.id===layerId);if(!layer)return;
   entry.value=key==="position"?{x:layer.x,y:layer.y}:key==="perspective"?(layer.perspective?clone(layer.perspective):null):layer[key];
