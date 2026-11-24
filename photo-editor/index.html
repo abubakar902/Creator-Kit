@@ -260,7 +260,7 @@ html,body{background:radial-gradient(ellipse at 10% 0%,rgba(63,99,158,.23),trans
   </div>
   <div id="aiTools" class="hidden">
    <h3 class="panel-title">AI Photo Tools</h3>
-   <p class="muted" style="font-size:12px;line-height:1.6">Connected to TrivexaAI Cloudflare Workers AI. Results are added as separate layers so you can compare, hide or undo them. AI may reinterpret small details; inspect each result before keeping it.</p>
+   <p class="muted" style="font-size:12px;line-height:1.6">Connected through the secure TrivexaAI Cloudflare Worker and Gemini API. Results are added as separate layers so you can compare, hide or undo them. AI may reinterpret small details; inspect each result before keeping it.</p>
    <div class="group">
     <div class="group-head">AI Image Editor</div>
     <div class="field"><label>What should AI do?</label><select id="photoAiMode">
@@ -1065,7 +1065,16 @@ async function preparePhotoAiSource(useSelection){
  const rawBlob=await canvasToBlobSafe(sourceCanvas,"image/png");
  const aiBlob=await resizeBlobForPhotoAI(rawBlob);
  const imageBase64=await blobToDataUrl(aiBlob);
- return {imageBase64,mimeType:"image/jpeg",bounds,maskValues,isSelection:!!useSelection};
+ let selectionMaskBase64=null;
+ if(maskValues){
+  const maskCanvas=document.createElement("canvas");maskCanvas.width=bounds.w;maskCanvas.height=bounds.h;
+  const maskContext=maskCanvas.getContext("2d"),maskImage=maskContext.createImageData(bounds.w,bounds.h);
+  for(let i=0;i<maskValues.length;i++){const k=i*4,v=maskValues[i]?255:0;maskImage.data[k]=v;maskImage.data[k+1]=v;maskImage.data[k+2]=v;maskImage.data[k+3]=255}
+  maskContext.putImageData(maskImage,0,0);
+  const maskBlob=await canvasToBlobSafe(maskCanvas,"image/png"),smallMask=await resizeBlobForPhotoAI(maskBlob);
+  selectionMaskBase64=await blobToDataUrl(smallMask);
+ }
+ return {imageBase64,mimeType:"image/jpeg",selectionMaskBase64,selectionMaskMimeType:"image/jpeg",bounds,maskValues,isSelection:!!useSelection};
 }
 async function applyPhotoAiSelectionMask(blob,bounds,maskValues){
  const img=await openBlob(blob),out=document.createElement("canvas");out.width=bounds.w;out.height=bounds.h;
@@ -1081,7 +1090,7 @@ async function applyPhotoAiSelectionMask(blob,bounds,maskValues){
 async function improvePhotoAiPrompt(){
  const prompt=$("photoAiPrompt").value.trim();if(!prompt){photoAiStatus("Pehle apni editing instruction likho.",true);return}
  const button=$("improvePhotoAiPrompt");button.disabled=true;button.textContent="Improving...";
- try{await authReady;const result=await workerRequest({action:"photo_editor_prompt_writer",toolId:"photo-editor-ai",prompt});if(!result.prompt)throw new Error("AI prompt writer ne khaali jawab diya.");$("photoAiPrompt").value=result.prompt;photoAiStatus("Prompt behtar ho gaya. Ab tum isay edit kar sakte ho ya AI edit chala sakte ho.")}
+ try{await authReady;const result=await workerRequest({action:"photo_editor_prompt_writer",toolId:"photo-editor-ai",prompt});if(result.needsClarification&&result.question){photoAiStatus(result.question,true);return}if(!result.prompt)throw new Error("AI prompt writer ne khaali jawab diya.");$("photoAiPrompt").value=result.prompt;photoAiStatus("Prompt behtar ho gaya. Ab tum isay edit kar sakte ho ya AI edit chala sakte ho.")}
  catch(error){photoAiStatus(error.message||"Prompt improve nahi ho saka.",true)}
  finally{button.disabled=false;button.textContent="Improve Prompt"}
 }
@@ -1099,7 +1108,7 @@ async function runPhotoAiEdit(){
   photoAiStatus(mode==="generate_background"?"AI background bana raha hai...":"Tasveer securely AI model ko bheji ja rahi hai...");
   await authReady;
   const payload={action:"photo_editor_ai_edit",toolId:"photo-editor-ai",mode,prompt,width:dimensions.width,height:dimensions.height};
-  if(source){payload.imageBase64=source.imageBase64;payload.mimeType=source.mimeType}
+  if(source){payload.imageBase64=source.imageBase64;payload.mimeType=source.mimeType;if(source.selectionMaskBase64)payload.selectionMaskBase64=source.selectionMaskBase64;payload.selectionMaskMimeType=source.selectionMaskMimeType||"image/jpeg"}
   const result=await workerRequest(payload);
   if(!result.imageBase64)throw new Error("AI model ne image return nahi ki.");
   let imageBlob=imageBlobFromBase64(result.imageBase64,result.mimeType||"image/png");
