@@ -714,6 +714,7 @@ function beginPaint(point,tool){
 function finishPaint(){
  if(activeStroke){
   const layer=state.layers.find(item=>item.id===paintLayerId&&item.type==="paint");
+  if(livePaintRasterState&&livePaintRasterState.stroke===activeStroke)extendLivePaintRaster();
   const cached=layer&&layerRasterCache.get(layer);
   if(cached&&livePaintRasterState&&cached.canvas===livePaintRasterState.canvas){
    cached.signature=paintLayerSignature(layer);layerRasterCache.set(layer,cached);
