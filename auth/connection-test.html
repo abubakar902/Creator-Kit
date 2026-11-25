@@ -26,7 +26,7 @@ button.primary{background:linear-gradient(100deg,#a78bfa,#e879f9);color:#1b102d;
 <div id="overall" class="muted" role="status" aria-live="polite">Test starting…</div>
 <button class="primary" id="run" type="button">Run test again</button>
 <a class="btn" href="./account.html">Back to My Account</a>
-<a class="btn" href="./admin.html">Open Admin Dashboard</a>
+<a class="btn" id="adminDashboardLink" href="./admin.html" hidden>Open Admin Dashboard</a>
 </section></main>
 <script type="module">
 import {auth,authReady,authConfigured,WORKER_URL,getInitializationError} from "./auth-client.js";
@@ -87,6 +87,8 @@ async function run(){
   const data=await readBody(response);
   if(!response.ok)throw Object.assign(new Error("Worker returned HTTP "+response.status+(data.code?" ("+data.code+")":"")+": "+(data.error||"No error detail.")),{stage:6});
   if(!data.user||!data.access)throw Object.assign(new Error("Worker response missing user/access fields."),{stage:6});
+  // Never expose the Admin Dashboard shortcut unless the authenticated Worker confirms the admin role.
+  $("adminDashboardLink").hidden=data.user.role!=="admin";
   setStep(6,"pass","Account request succeeded. Signed-in role: "+(data.user.role||"user")+".");
   if(data.user.role!=="admin"){
    setStep(7,"wait","Skipped: this extra check is available only for an administrator account.");
