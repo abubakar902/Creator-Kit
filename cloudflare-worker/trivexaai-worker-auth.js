@@ -6,7 +6,7 @@ let firebaseKeysExpiry = 0;
 const ADVANCED_ACTIONS = new Set([
   "generate_image", "generate_voice", "video_studio", "video_studio_create",
   "video_studio_export", "video_studio_ai_assistant", "transcribe_audio", "ai_editing_assistant", "ai_prompt_writer",
-  "photo_editor_prompt_writer", "photo_editor_ai_edit", "photo_editor_thumbnail_critic",
+  "photo_editor_prompt_writer", "photo_editor_thumbnail_critic",
   "advanced_feature"
 ]);
 function b64u(s) {
@@ -1872,6 +1872,7 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
       // Photo Editor AI endpoints: Firebase auth + advanced access are enforced by the gateway.
       const photoAction=String(body.action||"");
       if(photoAction.startsWith("photo_editor_")){
+        if(!["photo_editor_prompt_writer","photo_editor_thumbnail_critic"].includes(photoAction))return reply({error:"This Photo Editor AI action is not available in the free tool set.",code:"PHOTO_EDITOR_ACTION_UNAVAILABLE"},403);
         if(body.toolId!=="photo-editor-ai")return reply({error:"Photo Editor request rejected."},400);
         if(!env.GEMINI_API_KEY&&!env.OPENROUTER_API_KEY)return reply({error:"Photo Editor AI is not configured."},503);
         const textAI=async(parts,system,max=1000)=>{
@@ -1920,43 +1921,7 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
             return reply({score:Number.isFinite(r.score)?Math.max(0,Math.min(100,Math.round(r.score))):null,summary:String(r.summary||"Review complete.").slice(0,700),suggestions});
           }catch(e){console.error("Photo thumbnail critic:",e);return failed(e,"Gemini could not analyze this thumbnail.");}
         }
-        if(photoAction==="photo_editor_ai_edit"){
-          if(env.PHOTO_EDITOR_IMAGE_BILLING_ENABLED!=="true")return reply({error:"AI image generation is disabled to prevent unexpected charges. The owner must enable PHOTO_EDITOR_IMAGE_BILLING_ENABLED after reviewing the Gemini image-model price.",code:"PHOTO_EDITOR_IMAGE_BILLING_DISABLED"},403);
-          if(!env.GEMINI_API_KEY)return reply({error:"Gemini image editing requires the GEMINI_API_KEY secret. OpenRouter text fallback does not process image edits."},503);
-          const modes=new Set(["edit","remove_object","replace_background","generative_fill","generate_background","enhance","expand"]),mode=String(body.mode||"edit"),prompt=typeof body.prompt==="string"?body.prompt.trim():"";
-          if(!modes.has(mode)||!prompt||prompt.length>1400)return reply({error:"Choose a supported edit and enter an instruction under 1,400 characters."},400);
-          const clean=(raw,mime)=>{
-            if(typeof raw!=="string")return null;const data=raw.trim().replace(/^data:image\/[a-zA-Z0-9.+-]+;base64,/i,"").replace(/\s/g,""),type=String(mime||"image/jpeg");
-            return data&&data.length<=3500000&&/^[A-Za-z0-9+/]+={0,2}$/.test(data)&&["image/png","image/jpeg","image/webp"].includes(type)?{data,mime_type:type}:null;
-          };
-          const image=body.imageBase64?clean(body.imageBase64,body.mimeType):null,mask=body.selectionMaskBase64?clean(body.selectionMaskBase64,body.selectionMaskMimeType):null;
-          if(mode!=="generate_background"&&!image)return reply({error:"Source photo is missing or too large. Try a smaller image."},400);
-          if(body.selectionMaskBase64&&!mask)return reply({error:"Selection mask is invalid. Create the selection again."},400);
-          const width=Math.max(256,Math.min(1920,Number(body.width)||1024)),height=Math.max(256,Math.min(1920,Number(body.height)||1024)),ratio=width/height,ratios=["1:1","3:2","2:3","3:4","4:3","4:5","5:4","9:16","16:9","21:9"];
-          const aspect=ratios.reduce((best,item)=>{const [x,y]=item.split(":").map(Number),[bx,by]=best.split(":").map(Number);return Math.abs(Math.log(ratio/(x/y)))<Math.abs(Math.log(ratio/(bx/by)))?item:best},ratios[0]);
-          const instructions={
-            edit:"Edit the photo according to the user's instruction. Preserve all other content and identity.",
-            remove_object:"Remove the unwanted object described by the user and naturally reconstruct the background.",
-            replace_background:"Replace only the background. Preserve the foreground subject, face, identity and pose.",
-            generative_fill:"The second image is a black/white selection mask. Edit WHITE pixels only; BLACK pixels are protected.",
-            generate_background:"Generate a clean high-quality background for the design. No text, logos or watermarks.",
-            enhance:"Naturally improve clarity, lighting and detail while retaining the same subject, identity and composition.",
-            expand:"Extend the scene naturally while retaining the original subject and visual style."
-          };
-          const input=[{type:"text",text:instructions[mode]+"\nUser instruction: "+prompt+(mask?"\nSecond image is an edit mask: white=editable; black=protected.":"")+"\nReturn one edited image only."}];
-          if(image)input.push({type:"image",mime_type:image.mime_type,data:image.data});if(mask)input.push({type:"image",mime_type:mask.mime_type,data:mask.data});
-          try{
-            const r=await fetchGeminiWithRetry("https://generativelanguage.googleapis.com/v1beta/interactions",{
-              method:"POST",headers:{"Content-Type":"application/json","x-goog-api-key":env.GEMINI_API_KEY,"Api-Revision":"2026-05-20"},
-              body:JSON.stringify({model:"gemini-3.1-flash-lite-image",input,response_format:{type:"image",mime_type:"image/png",image_size:"1K",...(mode==="generate_background"?{aspect_ratio:aspect}:{})}})
-            });
-            let d={};try{d=await r.json()}catch(e){}
-            if(!r.ok)throw Object.assign(new Error(String(d.error?.message||"Check billing and Gemini image-model access for this API key.").slice(0,400)),{status:r.status});
-            const out=d.output_image?.data?d.output_image:(Array.isArray(d.steps)?d.steps.flatMap(x=>Array.isArray(x.content)?x.content:[]).filter(x=>x?.type==="image"&&x.data).at(-1):null);
-            if(!out?.data)throw new Error("Gemini did not return an image. Try a simpler instruction.");
-            return reply({imageBase64:out.data,mimeType:out.mime_type||"image/png",model:"gemini-3.1-flash-lite-image"});
-          }catch(e){console.error("Photo image editor:",e);return failed(e,"Gemini could not create this image edit.");}
-        }
+
       }
 
       // EXISTING TEXT AI TOOLS — Gemini primary, OpenRouter free-only fallback.
