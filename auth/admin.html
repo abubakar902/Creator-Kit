@@ -13,6 +13,7 @@
     *{box-sizing:border-box}
     body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 50% -15%,rgba(155,108,255,.2),transparent 42rem),var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
     .wrap{max-width:1160px;width:94%;margin:28px auto 60px}
+    .wrap[hidden]{display:none!important}
     .top,.row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
     .brand{display:inline-flex;align-items:center;gap:10px;color:white;text-decoration:none;font-size:21px;font-weight:900;letter-spacing:-.5px}
     .brand img{width:39px;height:39px;object-fit:cover;border-radius:11px}
@@ -51,7 +52,13 @@
   </style>
 </head>
 <body>
-  <main class="wrap">
+  <main class="wrap" id="adminGate" aria-live="polite">
+    <h1 id="gateTitle">Verifying administrator access…</h1>
+    <p class="lead" id="gateMessage">The Admin Dashboard stays locked until TrivexaAI confirms your administrator account.</p>
+    <button id="gateRetry" type="button">Retry verification</button>
+    <a class="btn" href="./account.html">Back to My Account</a>
+  </main>
+  <main class="wrap" id="adminApp" hidden>
     <header class="top">
       <a class="brand" href="../"><img src="../trivexaai-icon.png" alt="" width="39" height="39"><span>TrivexaAI</span> Admin</a>
       <a class="btn" href="./account.html">My account</a>
@@ -121,15 +128,21 @@
       }
     }
 
+    function showGate(title,message){
+      $("adminApp").hidden=true;
+      $("adminGate").hidden=false;
+      $("gateTitle").textContent=title;
+      $("gateMessage").textContent=message;
+    }
+
     function showAccessDenied(){
-      document.querySelector(".wrap").innerHTML="<h1>Access denied</h1><p>This Google account is not an administrator.</p><a class='btn' href='./account.html'>My account</a>";
+      showGate("Access denied","This Google account is not an administrator. The Admin Dashboard remains locked.");
     }
 
     async function load(){
       if(loading)return;
       loading=true;
-      $("status").textContent="Checking secure login and administrator access…";
-      $("refresh").disabled=true;
+      showGate("Verifying administrator access…","Checking your Google session and confirming your role with the secure Worker.");
       try{
         await waitForAuth();
         if(!auth?.currentUser){
@@ -139,16 +152,18 @@
         const me=await req({action:"auth_me"},{safeRead:true});
         if(me.user?.role!=="admin"){showAccessDenied();return;}
         adminUid=me.user.uid;
+        $("adminGate").hidden=true;
+        $("adminApp").hidden=false;
         $("status").textContent="Admin verified. Loading accounts…";
         await refresh();
       }catch(error){
-        $("status").textContent=(error.message||"Dashboard load nahi ho saka.")+" — Retry button dabayein.";
-        $("users").innerHTML='<tr><td colspan="6">Accounts abhi load nahi huay. Refresh list dabayein.</td></tr>';
+        showGate("Admin verification failed","Dashboard remains locked. "+(error.message||"Could not verify administrator access.")+" Please retry after checking the connection.");
       }finally{
         loading=false;
-        if($("refresh"))$("refresh").disabled=false;
+        if(!$("adminApp").hidden&&$("refresh"))$("refresh").disabled=false;
       }
     }
+    $("gateRetry").addEventListener("click",load);
 
     async function refresh(){
       if(refreshing)return;
