@@ -1100,6 +1100,48 @@ async function improvePhotoAiPrompt(){
  catch(error){photoAiStatus(error.message||"Prompt improve nahi ho saka.",true)}
  finally{button.disabled=false;button.textContent="Improve Prompt"}
 }
+async function saveProjectImmediately(){
+ if(!state)return;
+ clearTimeout(saveTimer);saveTimer=null;
+ state.updatedAt=Date.now();$("saveState").textContent="Saving…";
+ const thumbnail=await new Promise((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(blob):reject(new Error("Could not create a project preview.")),"image/jpeg",.72));
+ state.thumbnail=thumbnail;
+ await putProject(state);
+ $("saveState").textContent="✓ Auto-saved";
+}
+async function applyThumbnailCriticSuggestion(suggestion,accept,reject,reason){
+ if(!state){reason.textContent="Project is no longer open. Open it again and retry.";return}
+ const ranges={brightness:[0,200],contrast:[0,200],saturation:[0,200],exposure:[-100,100],temperature:[-100,100],sharpness:[0,100],vignette:[0,100],hue:[-180,180]};
+ const defaults={brightness:100,contrast:100,saturation:100,exposure:0,temperature:0,sharpness:0,vignette:0,hue:0};
+ const labels={brightness:"Brightness",contrast:"Contrast",saturation:"Saturation",exposure:"Exposure",temperature:"Temperature",sharpness:"Sharpness",vignette:"Vignette",hue:"Hue"};
+ const safe={};
+ for(const [key,value] of Object.entries(suggestion?.adjustment||{})){
+  const range=ranges[key];if(range&&typeof value==="number"&&Number.isFinite(value)&&value>=range[0]&&value<=range[1])safe[key]=value;
+ }
+ if(!Object.keys(safe).length){accept.disabled=true;reason.textContent="Is suggestion mein koi valid adjustment slider value nahi thi; image change nahi hui.";return}
+ const changes=Object.fromEntries(Object.entries(safe).filter(([key,value])=>Math.abs(Number(state.adjust?.[key]??defaults[key])-value)>.01));
+ if(!Object.keys(changes).length){accept.disabled=true;reason.textContent="Ye settings pehle se isi value par hain. Koi naya change zaroori nahi tha.";return}
+ const previous=Object.fromEntries(Object.keys(changes).map(key=>[key,state.adjust?.[key]??defaults[key]]));
+ accept.disabled=true;reject.disabled=true;accept.textContent="Applying…";reason.textContent="Applying changes and saving this project…";
+ pushHistory();
+ try{
+  if(compareMode){compareMode=false;$("beforeAfterBtn").classList.remove("primary")}
+  Object.assign(state.adjust,changes);syncAdjustmentControls();
+  await render();
+  await saveProjectImmediately();
+  accept.textContent="Applied & Saved";
+  const applied=Object.entries(changes).map(([key,value])=>labels[key]+": "+value+(["brightness","contrast","saturation","vignette"].includes(key)?"%":key==="hue"?"°":"")).join(", ");
+  reason.textContent="Applied and saved: "+applied+(state.selectionLock?" (Visible only inside your protected edit area.)":"")+".";
+  toast("Thumbnail Critic changes applied and project saved.");
+ }catch(error){
+  Object.assign(state.adjust,previous);
+  undoStack.pop();updateHistoryButtons();syncAdjustmentControls();
+  try{await render()}catch(renderError){}
+  accept.disabled=false;reject.disabled=false;accept.textContent="Apply & Save";
+  reason.textContent="Save nahi ho saka, is liye changes wapas kar diye. "+String(error?.message||"Try again.");
+  $("saveState").textContent="Save failed";
+ }
+}
 function renderAiThumbnailCritic(result){
  const host=$("aiThumbnailCriticResults");host.replaceChildren();
  const summary=document.createElement("p");summary.className="muted";summary.style.cssText="font-size:11px;line-height:1.55;margin:0";
@@ -1111,16 +1153,10 @@ function renderAiThumbnailCritic(result){
   const title=document.createElement("strong");title.style.fontSize="12px";title.textContent=suggestion.title||"Suggested improvement";
   const reason=document.createElement("p");reason.className="muted";reason.style.cssText="font-size:10px;line-height:1.45;margin:0";reason.textContent=suggestion.reason||"";
   const actions=document.createElement("div");actions.className="quick-actions";
-  const accept=document.createElement("button");accept.className="btn small primary";accept.textContent="Accept";
+  const accept=document.createElement("button");accept.className="btn small primary";accept.textContent="Apply & Save";
   const reject=document.createElement("button");reject.className="btn small";reject.textContent="Reject";
-  accept.addEventListener("click",()=>{
-   const changes=suggestion.adjustment||{},allowed=["brightness","contrast","saturation","exposure","temperature","sharpness","vignette","hue"];
-   const safe=Object.fromEntries(Object.entries(changes).filter(([key,value])=>allowed.includes(key)&&typeof value==="number"&&Number.isFinite(value)));
-   if(!Object.keys(safe).length){accept.disabled=true;reject.disabled=true;reason.textContent="Is suggestion mein apply karne layak supported slider nahi tha.";return}
-   pushHistory();Object.assign(state.adjust,safe);syncAdjustmentControls();render().then(scheduleSave);
-   accept.disabled=true;reject.disabled=true;accept.textContent="Accepted";reason.textContent="Suggestion apply ho gayi. Undo se wapas kar sakte ho.";
-  });
-  reject.addEventListener("click",()=>{accept.disabled=true;reject.disabled=true;reject.textContent="Rejected";reason.textContent="Suggestion reject kar di gayi."});
+  accept.addEventListener("click",()=>applyThumbnailCriticSuggestion(suggestion,accept,reject,reason));
+  reject.addEventListener("click",()=>{accept.disabled=true;reject.disabled=true;reject.textContent="Rejected";reason.textContent="Suggestion reject kar di gayi. Koi adjustment apply nahi hui."});
   actions.append(accept,reject);card.append(title,reason,actions);host.append(card);
  });
 }
