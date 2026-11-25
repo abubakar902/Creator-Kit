@@ -39,6 +39,7 @@ function setStep(n,state,detail){
 function safeJson(value){return value&&typeof value==="object"?value:{};}
 async function readBody(response){try{return safeJson(await response.json());}catch{return {};}}
 async function run(){
+ $("adminDashboardLink").hidden=true;
  $("run").disabled=true;$("overall").textContent="Testing…";
  for(let n=1;n<=7;n++)setStep(n,"wait","Waiting…");
  let token="";
