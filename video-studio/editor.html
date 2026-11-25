@@ -3226,6 +3226,7 @@ async function exportVideo(){
     if(lastRenderedFrameIndex>=0&&frameIndex>lastRenderedFrameIndex+1)missedFrameSlots+=frameIndex-lastRenderedFrameIndex-1;
     const atEnd=elapsed>=total;
     const time=atEnd?Math.max(0,total-.001):Math.min(total,frameIndex/fps);
+    const frameWorkStartedAt=performance.now();
     mediaItems.forEach(item=>{
      const c=item.clip,media=item.media,active=time>=c.start&&time<c.start+c.duration;
      if(active){
@@ -3254,6 +3255,8 @@ async function exportVideo(){
     }
     // requestFrame() records only after the current frame has finished drawing.
     if(manualFrameCapture&&videoCaptureTrack)videoCaptureTrack.requestFrame();
+    const frameWorkMs=performance.now()-frameWorkStartedAt;
+    if(frameWorkMs>frameInterval*1.05)missedFrameSlots++;
     lastRenderedFrameIndex=frameIndex;
     const progress=Math.min(95,22+Math.floor(Math.min(1,elapsed/total)*73));
     if(progress!==lastProgress){
