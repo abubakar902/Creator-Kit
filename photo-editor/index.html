@@ -1478,12 +1478,11 @@ function endPointer(){
  else if(activePointerMode==="select"||activePointerMode==="ellipseSelect"){const mode=activePointerMode;activePointerMode=null;if(selectionRect){const x=Math.min(selectionRect.x,selectionRect.x+selectionRect.w),y=Math.min(selectionRect.y,selectionRect.y+selectionRect.h);selectionRect={x,y,w:Math.abs(selectionRect.w),h:Math.abs(selectionRect.h)};if(selectionRect.w<2||selectionRect.h<2)clearSelection(false);else if(mode==="ellipseSelect"){selectionMask=makeSelectionMaskFromShape("ellipse");maskBounds();updateSelectionOverlay();toast("Ellipse selection created.");void lockSelectionToActiveArea()}else{updateSelectionOverlay();void lockSelectionToActiveArea()}}}
 }
 canvas.addEventListener("pointerup",endPointer);canvas.addEventListener("pointercancel",endPointer);
-$("workspace").addEventListener("pointerdown",e=>{
+$("layersTab").addEventListener("pointerdown",e=>{
  if(!state)return;
  const target=e.target instanceof Element?e.target:null;if(!target)return;
- if(target.closest("#editorCanvas,#selectionOverlayCanvas,#transformOverlay,#selectionOutline,.layer-row,.layer-group-row,button,input,select,textarea,a,[contenteditable='true'],.tool-tile,.rail-btn,.crop-toolbar"))return;
- const blankSurface=target===$("workspace")||target===$("stage")||target.classList.contains("left-panel")||target.classList.contains("right-panel")||target.classList.contains("workspace-top")||target.classList.contains("group")||target.id==="layerList";
- if(blankSurface)clearLayerSelection();
+ if(target.closest(".layer-row,.layer-group-row,button,input,select,textarea,a,[contenteditable='true']"))return;
+ clearLayerSelection();
 });
 $("blankCard").addEventListener("click",createCanvas);$("templateCard").addEventListener("click",openTemplatePicker);$("closeTemplatePicker").addEventListener("click",closeTemplatePicker);
 function triggerUpload(){$("photoInput").click()}$("uploadCard").addEventListener("click",triggerUpload);$("photoInput").addEventListener("change",e=>{if(e.target.files?.[0]){if(state)addImageToCurrentProject(e.target.files[0]);else makeProjectFromImage(e.target.files[0])}e.target.value=""});
