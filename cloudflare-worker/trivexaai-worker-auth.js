@@ -1884,16 +1884,33 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
           };
           const geminiErrors=[];
           if(env.GEMINI_API_KEY){
-            for(const model of ["gemini-3.1-flash-lite","gemini-2.5-flash-lite"]){
+            // Use Google's current Interactions API for Gemini 3.x multimodal input.
+            // The first model is the current free Flash-Lite replacement for the
+            // restricted 2.5 model; 3.1 remains a secondary fallback for availability.
+            const interactionInput=parts.map(part=>{
+              if(part&&typeof part.text==="string")return {type:"text",text:part.text};
+              if(part&&part.inlineData&&typeof part.inlineData.data==="string")return {type:"image",data:part.inlineData.data,mime_type:part.inlineData.mimeType||"image/jpeg"};
+              if(part&&part.fileData&&typeof part.fileData.fileUri==="string")return {type:"image",uri:part.fileData.fileUri,mime_type:part.fileData.mimeType||"image/jpeg"};
+              return null;
+            }).filter(Boolean);
+            for(const model of ["gemini-3.5-flash-lite","gemini-3.1-flash-lite"]){
               try{
-                const r=await fetchGeminiWithRetry("https://generativelanguage.googleapis.com/v1beta/models/"+model+":generateContent",{
-                  method:"POST",headers:{"Content-Type":"application/json","x-goog-api-key":env.GEMINI_API_KEY},
-                  body:JSON.stringify({...(system?{systemInstruction:{parts:[{text:system}]}}:{}),contents:[{role:"user",parts}],generationConfig:{temperature:.2,maxOutputTokens:max,responseMimeType:"application/json"}})
+                const r=await fetchGeminiWithRetry("https://generativelanguage.googleapis.com/v1beta/interactions",{
+                  method:"POST",
+                  headers:{"Content-Type":"application/json","x-goog-api-key":env.GEMINI_API_KEY,"Api-Revision":"2026-05-20"},
+                  body:JSON.stringify({
+                    model,
+                    input:interactionInput,
+                    ...(system?{system_instruction:system}:{}),
+                    response_format:{type:"text",mime_type:"application/json"},
+                    store:false
+                  })
                 });
                 let d={};try{d=await r.json()}catch(e){}
                 if(!r.ok)throw Object.assign(new Error(model+" returned HTTP "+r.status+": "+String(d.error?.message||"Gemini request failed.").slice(0,260)),{status:r.status});
-                const candidate=d.candidates?.[0],raw=candidate?.content?.parts?.map(x=>typeof x.text==="string"?x.text:"").join("").trim()||"";
-                if(!raw){const reason=candidate?.finishReason||d.promptFeedback?.blockReason||"empty model response";throw Object.assign(new Error(model+" returned no analysis text ("+reason+")."),{status:502});}
+                const modelSteps=Array.isArray(d.steps)?d.steps.filter(step=>step&&step.type==="model_output"):[];
+                const raw=(typeof d.output_text==="string"?d.output_text:modelSteps.flatMap(step=>Array.isArray(step.content)?step.content:[]).map(item=>typeof item?.text==="string"?item.text:"").filter(Boolean).join("\n")).trim();
+                if(!raw){const reason=d.status||"empty model response";throw Object.assign(new Error(model+" returned no analysis text ("+reason+")."),{status:502});}
                 return parseObject(raw);
               }catch(error){geminiErrors.push(String(error?.message||"Gemini request failed.").slice(0,260));console.warn("Photo Editor Gemini model "+model+" failed:",error?.message);}
             }
@@ -1905,7 +1922,7 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
           const raw=await fetchOpenRouterText(system,textParts,max,.2);
           return parseObject(raw);
         };
-        const failed=(e,message)=>reply({error:message,details:String(e?.message||"Try again shortly.").slice(0,500),code:"PHOTO_EDITOR_AI_FAILED"},e?.status===429?429:502);
+        const failed=(e,message)=>reply({error:message,details:String(e?.message||"Try again shortly.").slice(0,500),code:"PHOTO_EDITOR_AI_FAILED"},e?.status===429?429:e?.status===503?503:502);
         if(photoAction==="photo_editor_prompt_writer"){
           const prompt=typeof body.prompt==="string"?body.prompt.trim():"";
           if(!prompt||prompt.length>1400)return reply({error:"Enter a photo-edit instruction under 1,400 characters."},400);
