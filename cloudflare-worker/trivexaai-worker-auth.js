@@ -2049,10 +2049,12 @@ export default {
   let requestOrigin="";
   try{requestOrigin=origin?new URL(origin).origin:"";}catch(error){}
   const allowed=!origin||origins.has(requestOrigin);
+  const requestedHeaders=request.headers.get("Access-Control-Request-Headers");
   const cors={
    ...(origin&&allowed?{"Access-Control-Allow-Origin":requestOrigin}:{}),
    "Access-Control-Allow-Methods":"POST, OPTIONS",
-   "Access-Control-Allow-Headers":"Content-Type, Authorization",
+   "Access-Control-Allow-Headers":requestedHeaders||"Content-Type, Authorization",
+   "Access-Control-Max-Age":"86400",
    "Access-Control-Expose-Headers":"Content-Disposition",
    "Vary":"Origin","Cache-Control":"no-store"
   };
