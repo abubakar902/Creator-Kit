@@ -2675,9 +2675,9 @@
         <span class="logo">Trivexa<span>AI</span></span>
       </a>
       <div class="nav-right">
-        <a class="nav-link" href="#workspaceTabs" data-switch-tab="projects">Projects</a>
         <a class="nav-link" href="#workspaceTabs" data-switch-tab="search">Explore tools</a>
         <a class="nav-link" href="#workspaceTabs" data-switch-tab="favourites">Favourites</a>
+        <a class="nav-link" href="#workspaceTabs" data-switch-tab="projects">Projects</a>
         <a class="nav-link nav-auth-link" id="navSignIn" href="auth/login.html">Sign in</a>
         <a class="nav-link nav-auth-link" id="navMyAccount" href="auth/account.html" hidden>My account</a>
         <div class="status">
@@ -2752,9 +2752,6 @@
         <button type="button" class="tab-btn active" id="tabNavHub" role="tab" aria-selected="true" aria-controls="panelHub">
           <span class="tab-icon">✨</span><span>Creator Hub</span><span class="tab-badge">Home</span>
         </button>
-        <button type="button" class="tab-btn" id="tabNavProjects" role="tab" aria-selected="false" aria-controls="panelProjects">
-          <span class="tab-icon">🚀</span><span>Projects</span><span class="tab-badge">3</span>
-        </button>
         <button type="button" class="tab-btn" id="tabNavSearch" role="tab" aria-selected="false" aria-controls="panelSearch">
           <span class="tab-icon">🔍</span>
           <span>Search Tools</span>
@@ -2765,7 +2762,10 @@
           <span>Favourites</span>
           <span class="tab-badge" id="tabBadgeFavourites">0</span>
         </button>
-      </nav>
+        <button type="button" class="tab-btn" id="tabNavProjects" role="tab" aria-selected="false" aria-controls="panelProjects">
+          <span class="tab-icon">🚀</span><span>Projects</span><span class="tab-badge">3</span>
+        </button>
+      
     </div>
 
     <!-- CREATOR HUB: central access to tools, favourites and recent tools -->
@@ -2848,7 +2848,7 @@
             </div>
           </a>
 
-          <a class="project-card" href="photo-editor/" aria-label="Open TrivexaAI Photo Editor">
+          <a class="project-card project-card-live project-card-link" href="photo-editor/" aria-label="Open TrivexaAI Photo Editor">
             <div class="project-card-top">
               <span class="project-card-icon" aria-hidden="true">🖼️</span>
               <span class="project-status project-status-live">● Available now</span>
