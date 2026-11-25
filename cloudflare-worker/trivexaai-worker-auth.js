@@ -1872,6 +1872,7 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
       // Photo Editor AI endpoints: Firebase auth + advanced access are enforced by the gateway.
       const photoAction=String(body.action||"");
       if(photoAction.startsWith("photo_editor_")){
+        if(!["photo_editor_prompt_writer","photo_editor_thumbnail_critic"].includes(photoAction))return reply({error:"This Photo Editor AI action is not available in the free tool set.",code:"PHOTO_EDITOR_ACTION_UNAVAILABLE"},403);
         if(body.toolId!=="photo-editor-ai")return reply({error:"Photo Editor request rejected."},400);
         if(!env.GEMINI_API_KEY&&!env.OPENROUTER_API_KEY)return reply({error:"Photo Editor AI is not configured."},503);
         const textAI=async(parts,system,max=1000)=>{
