@@ -6,7 +6,6 @@ let firebaseKeysExpiry = 0;
 const ADVANCED_ACTIONS = new Set([
   "generate_image", "generate_voice", "video_studio", "video_studio_create",
   "video_studio_export", "video_studio_ai_assistant", "transcribe_audio", "ai_editing_assistant", "ai_prompt_writer",
-  "photo_editor_prompt_writer", "photo_editor_thumbnail_critic",
   "advanced_feature"
 ]);
 function b64u(s) {
@@ -1877,28 +1876,36 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
         if(!env.GEMINI_API_KEY&&!env.OPENROUTER_API_KEY)return reply({error:"Photo Editor AI is not configured."},503);
         const textAI=async(parts,system,max=1000)=>{
           const containsImage=parts.some(part=>part&&typeof part==="object"&&(part.inlineData||part.fileData));
-          let geminiFailure=null;
+          const parseObject=raw=>{
+            const first=raw.indexOf("{"),last=raw.lastIndexOf("}"),candidate=first>=0&&last>first?raw.slice(first,last+1):raw;
+            const parsed=JSON.parse(candidate);
+            if(!parsed||typeof parsed!=="object"||Array.isArray(parsed))throw new Error("Gemini returned a response that was not a JSON object.");
+            return parsed;
+          };
+          const geminiErrors=[];
           if(env.GEMINI_API_KEY){
-            try{
-              const r=await fetchGeminiWithRetry("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent",{
-                method:"POST",headers:{"Content-Type":"application/json","x-goog-api-key":env.GEMINI_API_KEY},
-                body:JSON.stringify({...(system?{systemInstruction:{parts:[{text:system}]}}:{}),contents:[{role:"user",parts}],generationConfig:{temperature:.2,maxOutputTokens:max,responseMimeType:"application/json"}})
-              });
-              let d={};try{d=await r.json()}catch(e){}
-              if(!r.ok)throw Object.assign(new Error(String(d.error?.message||"Gemini request failed.").slice(0,350)),{status:r.status});
-              const raw=d.candidates?.[0]?.content?.parts?.map(x=>typeof x.text==="string"?x.text:"").join("").trim()||"",a=raw.indexOf("{"),b=raw.lastIndexOf("}");
-              return JSON.parse(a>=0&&b>a?raw.slice(a,b+1):raw);
-            }catch(error){geminiFailure=error;}
+            for(const model of ["gemini-3.1-flash-lite","gemini-2.5-flash-lite"]){
+              try{
+                const r=await fetchGeminiWithRetry("https://generativelanguage.googleapis.com/v1beta/models/"+model+":generateContent",{
+                  method:"POST",headers:{"Content-Type":"application/json","x-goog-api-key":env.GEMINI_API_KEY},
+                  body:JSON.stringify({...(system?{systemInstruction:{parts:[{text:system}]}}:{}),contents:[{role:"user",parts}],generationConfig:{temperature:.2,maxOutputTokens:max,responseMimeType:"application/json"}})
+                });
+                let d={};try{d=await r.json()}catch(e){}
+                if(!r.ok)throw Object.assign(new Error(model+" returned HTTP "+r.status+": "+String(d.error?.message||"Gemini request failed.").slice(0,260)),{status:r.status});
+                const candidate=d.candidates?.[0],raw=candidate?.content?.parts?.map(x=>typeof x.text==="string"?x.text:"").join("").trim()||"";
+                if(!raw){const reason=candidate?.finishReason||d.promptFeedback?.blockReason||"empty model response";throw Object.assign(new Error(model+" returned no analysis text ("+reason+")."),{status:502});}
+                return parseObject(raw);
+              }catch(error){geminiErrors.push(String(error?.message||"Gemini request failed.").slice(0,260));console.warn("Photo Editor Gemini model "+model+" failed:",error?.message);}
+            }
           }
           // Never send thumbnail previews or other image bytes to OpenRouter.
-          if(containsImage)throw geminiFailure||new Error("Image analysis requires the Gemini image route; image data is not sent to OpenRouter.");
-          if(!env.OPENROUTER_API_KEY)throw geminiFailure||new Error("No text AI provider is configured.");
+          if(containsImage)throw Object.assign(new Error(geminiErrors.length?"Gemini image analysis failed: "+geminiErrors.join(" | "):"Image analysis needs a Gemini vision key; image data is never sent to OpenRouter."),{status:502});
+          if(!env.OPENROUTER_API_KEY)throw new Error(geminiErrors.join(" | ")||"No text AI provider is configured.");
           const textParts=parts.map(part=>typeof part?.text==="string"?part.text:"").filter(Boolean).join("\n");
           const raw=await fetchOpenRouterText(system,textParts,max,.2);
-          const a=raw.indexOf("{"),b=raw.lastIndexOf("}");
-          return JSON.parse(a>=0&&b>a?raw.slice(a,b+1):raw);
+          return parseObject(raw);
         };
-        const failed=(e,message)=>reply({error:message,details:String(e?.message||"Try again shortly.").slice(0,350)},e?.status===429?429:502);
+        const failed=(e,message)=>reply({error:message,details:String(e?.message||"Try again shortly.").slice(0,500),code:"PHOTO_EDITOR_AI_FAILED"},e?.status===429?429:502);
         if(photoAction==="photo_editor_prompt_writer"){
           const prompt=typeof body.prompt==="string"?body.prompt.trim():"";
           if(!prompt||prompt.length>1400)return reply({error:"Enter a photo-edit instruction under 1,400 characters."},400);
