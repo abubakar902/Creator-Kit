@@ -3092,7 +3092,7 @@ async function exportVideo(){
  $("exportCancelBtn").hidden=false;$("exportCancelBtn").disabled=false;$("exportCancelBtn").textContent="Cancel export";
  $("exportCloseBtn").hidden=false;$("exportCloseBtn").disabled=true;
  setExportModalProgress(5,"Preparing export…","Your selected settings are being applied.");
- let audioContext=null,canvasStream=null,recordingStream=null,recordingFrame=0,recorder=null,watchdog=0,stopTimer=0;
+ let audioContext=null,canvasStream=null,videoCaptureTrack=null,manualFrameCapture=false,recordingStream=null,recordingFrame=0,recorder=null,watchdog=0,stopTimer=0;
  const mediaItems=[],chunks=[];
  const oldStatus=$("saveStatus").textContent;
  let timelineFinished=false,recordingFailure=null;
@@ -3168,7 +3168,18 @@ async function exportVideo(){
     item.gain=gain;
    });
   }
-  canvasStream=canvas.captureStream(fps);
+  // Prefer explicit frame capture so the editor only renders/records at the chosen export FPS.
+  // Modern Chrome/Edge support requestFrame(); older browsers fall back to timed capture.
+  try{
+   canvasStream=canvas.captureStream(0);
+   videoCaptureTrack=canvasStream.getVideoTracks()[0]||null;
+   manualFrameCapture=!!videoCaptureTrack&&typeof videoCaptureTrack.requestFrame==="function";
+  }catch(captureError){canvasStream=null;videoCaptureTrack=null;manualFrameCapture=false;}
+  if(!manualFrameCapture){
+   if(canvasStream)canvasStream.getTracks().forEach(track=>track.stop());
+   canvasStream=canvas.captureStream(fps);
+   videoCaptureTrack=canvasStream.getVideoTracks()[0]||null;
+  }
   const tracks=[...canvasStream.getVideoTracks()];
   if(audioDestination)tracks.push(...audioDestination.stream.getAudioTracks());
   recordingStream=new MediaStream(tracks);
@@ -3190,10 +3201,10 @@ async function exportVideo(){
    };
   });
   const mediaById=new Map(mediaItems.map(item=>[item.clip.id,item]));
-  const fit=$("previewFit").value,startedAt=performance.now();
-  let lastProgress=-1,drawErrors=0;
+  const fit=$("previewFit").value,startedAt=performance.now(),frameInterval=1000/fps;
+  let lastProgress=-1,lastRenderedFrameIndex=-1,missedFrameSlots=0;
   status("Preparing video export…");
-  setExportModalProgress(22,"Rendering your video","The timeline is being recorded in real time. Keep this tab open.");
+  setExportModalProgress(22,"Rendering your video","Recording at "+fps+" FPS. The editor will only draw frames needed for this export.");
   recorder.start(1000);
   const stopRecording=error=>{
    if(error&&!recordingFailure)recordingFailure=error;
@@ -3205,7 +3216,12 @@ async function exportVideo(){
   const renderTick=now=>{
    try{
     if(exportController.cancelled){stopRecording();return;}
-    const elapsed=Math.max(0,(now-startedAt)/1000),time=Math.min(total,elapsed);
+    const elapsed=Math.max(0,(now-startedAt)/1000);
+    const frameIndex=Math.floor(elapsed*fps+1e-6);
+    if(frameIndex<=lastRenderedFrameIndex){recordingFrame=requestAnimationFrame(renderTick);return;}
+    if(lastRenderedFrameIndex>=0&&frameIndex>lastRenderedFrameIndex+1)missedFrameSlots+=frameIndex-lastRenderedFrameIndex-1;
+    const atEnd=elapsed>=total;
+    const time=atEnd?Math.max(0,total-.001):Math.min(total,frameIndex/fps);
     mediaItems.forEach(item=>{
      const c=item.clip,media=item.media,active=time>=c.start&&time<c.start+c.duration;
      if(active){
@@ -3228,20 +3244,20 @@ async function exportVideo(){
      }
     });
     try{
-     drawExportFrame(ctx,exportClips,mediaById,time>=total?Math.max(0,total-.001):time,size.width,size.height,fontScale,fit);
-     drawErrors=0;
+     drawExportFrame(ctx,exportClips,mediaById,time,size.width,size.height,fontScale,fit);
     }catch(frameError){
-     drawErrors++;
-     setExportModalProgress(22+Math.min(73,elapsed/total*73),"Rendering your video","Recovering from a slow frame ("+drawErrors+"). The export is continuing.");
-     if(drawErrors>90)throw new Error("The browser could not render some video frames. Try exporting at 720p.");
+     throw new Error("Could not render the video at "+time.toFixed(2)+" seconds. Export stopped instead of saving a video with frozen frames. "+String(frameError?.message||""));
     }
+    // requestFrame() records only after the current frame has finished drawing.
+    if(manualFrameCapture&&videoCaptureTrack)videoCaptureTrack.requestFrame();
+    lastRenderedFrameIndex=frameIndex;
     const progress=Math.min(95,22+Math.floor(Math.min(1,elapsed/total)*73));
     if(progress!==lastProgress){
      setExportModalProgress(progress,"Rendering your video","Rendered "+Math.min(100,Math.floor(elapsed/total*100))+"% of the timeline");
      status("Exporting video… "+Math.min(100,Math.floor(elapsed/total*100))+"%");
      lastProgress=progress;
     }
-    if(elapsed>=total){
+    if(atEnd){
      timelineFinished=true;
      setExportModalProgress(97,"Finishing your video",needsMp4Fallback?"Finalizing the temporary WebM file before local MP4 conversion.":"Finalizing the "+format.toUpperCase()+" file. Please keep this tab open.");
      stopTimer=setTimeout(()=>{if(recorder&&recorder.state!=="inactive"){try{recorder.stop();}catch(e){recordingFailure=e;}}},250);
@@ -3258,7 +3274,7 @@ async function exportVideo(){
    if(blob.size>100*1024*1024)throw new Error("The temporary file exceeds the 100 MB limit for local MP4 conversion. Choose 720p or use WebM.");
    setExportModalProgress(97,"Converting to MP4","Converting locally on this device. Keep this tab open; no video is uploaded.");
    finalBlob=await localVideoTools.convertWebMToMp4(blob,{
-    duration:total,width:size.width,height:size.height,
+    duration:total,width:size.width,height:size.height,fps,
     isCancelled:()=>!!exportController?.cancelled,
     onReady:terminate=>{
      if(exportController?.cancelled)terminate();
