@@ -3203,12 +3203,16 @@ async function exportVideo(){
   const mediaById=new Map(mediaItems.map(item=>[item.clip.id,item]));
   const fit=$("previewFit").value,startedAt=performance.now(),frameInterval=1000/fps;
   let lastProgress=-1,lastRenderedFrameIndex=-1,missedFrameSlots=0;
+  const scheduleNextFrame=frameStartedAt=>{
+   const remaining=frameInterval-(performance.now()-frameStartedAt);
+   recordingFrame=setTimeout(()=>renderTick(performance.now()),Math.max(1,remaining));
+  };
   status("Preparing video export…");
-  setExportModalProgress(22,"Rendering your video","Recording at "+fps+" FPS. The editor will only draw frames needed for this export.");
+  setExportModalProgress(22,"Rendering your video","Recording at "+fps+" FPS with timed frame pacing. Keep this tab open and in front.");
   recorder.start(1000);
   const stopRecording=error=>{
    if(error&&!recordingFailure)recordingFailure=error;
-   cancelAnimationFrame(recordingFrame);
+   clearTimeout(recordingFrame);
    if(recorder&&recorder.state!=="inactive"){try{recorder.stop();}catch(e){if(!recordingFailure)recordingFailure=e;}}
   };
   exportController.stopRecording=()=>stopRecording();
@@ -3218,7 +3222,7 @@ async function exportVideo(){
     if(exportController.cancelled){stopRecording();return;}
     const elapsed=Math.max(0,(now-startedAt)/1000);
     const frameIndex=Math.floor(elapsed*fps+1e-6);
-    if(frameIndex<=lastRenderedFrameIndex){recordingFrame=requestAnimationFrame(renderTick);return;}
+    if(frameIndex<=lastRenderedFrameIndex){scheduleNextFrame(performance.now());return;}
     if(lastRenderedFrameIndex>=0&&frameIndex>lastRenderedFrameIndex+1)missedFrameSlots+=frameIndex-lastRenderedFrameIndex-1;
     const atEnd=elapsed>=total;
     const time=atEnd?Math.max(0,total-.001):Math.min(total,frameIndex/fps);
@@ -3263,7 +3267,7 @@ async function exportVideo(){
      stopTimer=setTimeout(()=>{if(recorder&&recorder.state!=="inactive"){try{recorder.stop();}catch(e){recordingFailure=e;}}},250);
      return;
     }
-    recordingFrame=requestAnimationFrame(renderTick);
+    scheduleNextFrame(now);
    }catch(error){stopRecording(error);}
   };
   renderTick(startedAt);
@@ -3290,7 +3294,11 @@ async function exportVideo(){
   lastExportBlob=finalBlob;
   const extension=format==="mp4"?"mp4":"webm";
   lastExportFileName=(safeName(project.name).replace(/\s+/g,"-")||"trivexaai-video")+"."+extension;
-  setExportModalProgress(100,"Your video is ready!","The "+format.toUpperCase()+" export is complete. Download it now, or use Download again later in this window.");
+  const expectedFrameSlots=Math.max(1,Math.ceil(total*fps)),missedPercent=Math.round(missedFrameSlots/expectedFrameSlots*100);
+  const frameTimingNote=missedFrameSlots>Math.max(2,Math.ceil(expectedFrameSlots*.02))
+   ?"The export finished, but this device missed "+missedFrameSlots+" scheduled frames ("+missedPercent+"%). The result may look choppy. Try closing other apps and exporting at 24 FPS."
+   :"Frame capture completed within the selected FPS schedule.";
+  setExportModalProgress(100,"Your video is ready!", "The "+format.toUpperCase()+" export is complete. "+frameTimingNote+" Download it now.");
   $("exportDialogTitle").textContent="Export complete";
   $("exportQualityRow").hidden=true;
   $("exportStartBtn").hidden=true;
@@ -3316,7 +3324,7 @@ async function exportVideo(){
   $("exportCloseBtn").hidden=false;$("exportCloseBtn").disabled=false;
   notify(cancelled?"Export cancelled. Your project is safe.":"Export failed: "+(error&&error.message?error.message:"Please try again."));
  }finally{
-  cancelAnimationFrame(recordingFrame);
+  clearTimeout(recordingFrame);
   clearTimeout(watchdog);clearTimeout(stopTimer);
   mediaItems.forEach(item=>{try{item.media.pause();}catch(e){}});
   if(recorder&&recorder.state!=="inactive"){try{recorder.stop();}catch(e){}}
