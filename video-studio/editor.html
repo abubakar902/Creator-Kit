@@ -3203,9 +3203,9 @@ async function exportVideo(){
   const mediaById=new Map(mediaItems.map(item=>[item.clip.id,item]));
   const fit=$("previewFit").value,startedAt=performance.now(),frameInterval=1000/fps;
   let lastProgress=-1,lastRenderedFrameIndex=-1,missedFrameSlots=0;
-  const scheduleNextFrame=frameStartedAt=>{
-   const remaining=frameInterval-(performance.now()-frameStartedAt);
-   recordingFrame=setTimeout(()=>renderTick(performance.now()),Math.max(1,remaining));
+  const scheduleNextFrame=()=>{
+   const nextFrameAt=startedAt+((lastRenderedFrameIndex+1)*frameInterval);
+   recordingFrame=setTimeout(()=>renderTick(performance.now()),Math.max(1,nextFrameAt-performance.now()));
   };
   status("Preparing video export…");
   setExportModalProgress(22,"Rendering your video","Recording at "+fps+" FPS with timed frame pacing. Keep this tab open and in front.");
@@ -3222,7 +3222,7 @@ async function exportVideo(){
     if(exportController.cancelled){stopRecording();return;}
     const elapsed=Math.max(0,(now-startedAt)/1000);
     const frameIndex=Math.floor(elapsed*fps+1e-6);
-    if(frameIndex<=lastRenderedFrameIndex){scheduleNextFrame(performance.now());return;}
+    if(frameIndex<=lastRenderedFrameIndex){scheduleNextFrame();return;}
     if(lastRenderedFrameIndex>=0&&frameIndex>lastRenderedFrameIndex+1)missedFrameSlots+=frameIndex-lastRenderedFrameIndex-1;
     const atEnd=elapsed>=total;
     const time=atEnd?Math.max(0,total-.001):Math.min(total,frameIndex/fps);
@@ -3267,7 +3267,7 @@ async function exportVideo(){
      stopTimer=setTimeout(()=>{if(recorder&&recorder.state!=="inactive"){try{recorder.stop();}catch(e){recordingFailure=e;}}},250);
      return;
     }
-    scheduleNextFrame(now);
+    scheduleNextFrame();
    }catch(error){stopRecording(error);}
   };
   renderTick(startedAt);
