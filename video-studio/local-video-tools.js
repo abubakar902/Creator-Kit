@@ -394,7 +394,7 @@ async function loadFFmpeg() {
   return ffmpegPromise;
 }
 async function convertWebMToMp4(blob,options={}){
- const duration=Number(options.duration)||0,width=Number(options.width)||0,height=Number(options.height)||0;
+ const duration=Number(options.duration)||0,width=Number(options.width)||0,height=Number(options.height)||0,fps=Math.max(15,Math.min(60,Math.round(Number(options.fps)||30)));
  if(!(blob instanceof Blob)||!blob.size)throw new Error("The temporary WebM recording is missing.");
  if(duration<=0||duration>120)throw new Error("Local MP4 conversion supports projects up to 2 minutes. Choose WebM or shorten the timeline.");
  if(Math.max(width,height)>1280||!width||!height)throw new Error("Local MP4 conversion supports up to 720p. Choose 720p and try again.");
@@ -434,7 +434,8 @@ async function convertWebMToMp4(blob,options={}){
   const result=await ffmpeg.exec([
    "-y","-hide_banner","-i",inputName,"-t",String(duration.toFixed(3)),
    "-map","0:v:0","-map","0:a?",
-   "-vf","scale='min(1280,iw)':-2",
+   // Normalize recorder timestamps to the selected constant frame rate before H.264 encoding.
+   "-vf","fps="+fps+",scale='min(1280,iw)':-2",
    "-c:v","libx264","-preset","ultrafast","-crf","28","-threads","1","-pix_fmt","yuv420p",
    "-c:a","aac","-b:a","128k",
    "-movflags","+faststart",outputName
