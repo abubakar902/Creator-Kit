@@ -6,7 +6,6 @@ let firebaseKeysExpiry = 0;
 const ADVANCED_ACTIONS = new Set([
   "generate_image", "generate_voice", "video_studio", "video_studio_create",
   "video_studio_export", "video_studio_ai_assistant", "transcribe_audio", "ai_editing_assistant", "ai_prompt_writer",
-  "photo_editor_prompt_writer", "photo_editor_thumbnail_critic",
   "advanced_feature"
 ]);
 function b64u(s) {
