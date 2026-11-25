@@ -752,6 +752,7 @@ function setLayerSelection(ids,activeId=ids.at(-1)||null){
  selectedId=activeId&&selectedLayerIds.has(activeId)?activeId:(selectedLayerIds.values().next().value||null);
  state.selectedLayerId=selectedId;lastLayerClickId=selectedId;updateLayerList();updateProperties();updateTransformOverlay();
 }
+function clearLayerSelection(){if(!state)return;setLayerSelection([],null)}
 function updateLayerList(){
  const list=$("layerList");list.replaceChildren();if(!state)return;
  const validIds=new Set(state.layers.map(layer=>layer.id));selectedLayerIds=new Set([...selectedLayerIds].filter(layerId=>validIds.has(layerId)));if(selectedId&&!selectedLayerIds.has(selectedId))selectedLayerIds=new Set([selectedId]);
@@ -1447,7 +1448,7 @@ canvas.addEventListener("pointerdown",e=>{
   cloneGesture={tool:activeTool,start:{x:p.x,y:p.y},source:cloneSource};activePointerMode="clonePending";canvas.setPointerCapture(e.pointerId);return;
  }
  const hit=[...state.layers].reverse().find(l=>l.visible&&pointHitsLayer(l,p));
- if(hit){pushPropertyHistory("layer","position",hit.id);selectedId=hit.id;selectedLayerIds=new Set([hit.id]);lastLayerClickId=hit.id;state.selectedLayerId=hit.id;dragging={id:hit.id,offsetX:p.x-hit.x,offsetY:p.y-hit.y};activePointerMode="move";canvas.setPointerCapture(e.pointerId);updateLayerList();updateProperties();updateTransformOverlay();render(true)}else{selectedId=null;selectedLayerIds.clear();state.selectedLayerId=null;updateLayerList();updateProperties();updateTransformOverlay();render(true)}
+ if(hit){pushPropertyHistory("layer","position",hit.id);selectedId=hit.id;selectedLayerIds=new Set([hit.id]);lastLayerClickId=hit.id;state.selectedLayerId=hit.id;dragging={id:hit.id,offsetX:p.x-hit.x,offsetY:p.y-hit.y};activePointerMode="move";canvas.setPointerCapture(e.pointerId);updateLayerList();updateProperties();updateTransformOverlay();render(true)}else{clearLayerSelection();render(true)}
 });
 canvas.addEventListener("pointermove",e=>{
  if(!state)return;const p=pointerPos(e);
@@ -1477,6 +1478,13 @@ function endPointer(){
  else if(activePointerMode==="select"||activePointerMode==="ellipseSelect"){const mode=activePointerMode;activePointerMode=null;if(selectionRect){const x=Math.min(selectionRect.x,selectionRect.x+selectionRect.w),y=Math.min(selectionRect.y,selectionRect.y+selectionRect.h);selectionRect={x,y,w:Math.abs(selectionRect.w),h:Math.abs(selectionRect.h)};if(selectionRect.w<2||selectionRect.h<2)clearSelection(false);else if(mode==="ellipseSelect"){selectionMask=makeSelectionMaskFromShape("ellipse");maskBounds();updateSelectionOverlay();toast("Ellipse selection created.");void lockSelectionToActiveArea()}else{updateSelectionOverlay();void lockSelectionToActiveArea()}}}
 }
 canvas.addEventListener("pointerup",endPointer);canvas.addEventListener("pointercancel",endPointer);
+$("workspace").addEventListener("pointerdown",e=>{
+ if(!state)return;
+ const target=e.target instanceof Element?e.target:null;if(!target)return;
+ if(target.closest("#editorCanvas,#selectionOverlayCanvas,#transformOverlay,#selectionOutline,.layer-row,.layer-group-row,button,input,select,textarea,a,[contenteditable='true'],.tool-tile,.rail-btn,.crop-toolbar"))return;
+ const blankSurface=target===$("workspace")||target===$("stage")||target.classList.contains("left-panel")||target.classList.contains("right-panel")||target.classList.contains("workspace-top")||target.classList.contains("group")||target.id==="layerList";
+ if(blankSurface)clearLayerSelection();
+});
 $("blankCard").addEventListener("click",createCanvas);$("templateCard").addEventListener("click",openTemplatePicker);$("closeTemplatePicker").addEventListener("click",closeTemplatePicker);
 function triggerUpload(){$("photoInput").click()}$("uploadCard").addEventListener("click",triggerUpload);$("photoInput").addEventListener("change",e=>{if(e.target.files?.[0]){if(state)addImageToCurrentProject(e.target.files[0]);else makeProjectFromImage(e.target.files[0])}e.target.value=""});
 $("addImageBtn").addEventListener("click",()=>{$("photoInput").click()});$("stageUploadBtn").addEventListener("click",()=>{$("photoInput").click()});
