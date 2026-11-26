@@ -195,7 +195,7 @@ async function createShortClip(item,index,card,button){
   cancelButton.remove();status.textContent=e.message||'Could not export this Short.';status.style.color='#ffc2cf';button.textContent='Retry creating Short';
   return false;
  }finally{
-  finished=true;cancelCurrentExport=null;cancelButton.remove();cancelAnimationFrame(raf);
+  finished=true;cancelCurrentExport=null;cancelButton.remove();cancelAnimationFrame(raf);if(videoFrameId&&media&&typeof media.cancelVideoFrameCallback==='function'){try{media.cancelVideoFrameCallback(videoFrameId);}catch(e){}}
   if(recorder&&recorder.state!=='inactive'){try{recorder.stop();}catch(e){}}
   if(canvasStream)canvasStream.getTracks().forEach(t=>t.stop());
   if(sourceStream)sourceStream.getTracks().forEach(t=>t.stop());
