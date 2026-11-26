@@ -110,36 +110,94 @@ async function generateShortCaption(item,index,root,button){
 async function createShortClip(item,index,card,button){
  if(!selected||!currentProject?.video){setAnalysis('Please upload and save the original video again.',0,true);return;}
  if(!window.MediaRecorder||!HTMLCanvasElement.prototype.captureStream){setAnalysis('Video export needs the latest desktop Chrome or Edge browser.',0,true);return;}
- const start=Math.max(0,Number(item.start)||0),end=Math.min(Number(currentProject.duration)||0,Number(item.end)||0);
- if(end-start<3){setAnalysis('This highlight is too short to export. Please run AI analysis again.',0,true);return;}
- button.disabled=true;button.textContent='Preparing vertical video…';
- const status=document.createElement('div');status.className='clip-status';status.textContent='Preparing local 9:16 export…';button.insertAdjacentElement('afterend',status);
- let media=null,canvasStream=null,recorder=null,raf=0,objectUrl=null;
+ const start=Math.max(0,Number(item.start)||0),end=Math.min(Number(currentProject.duration)||0,Number(item.end)||0),clipSeconds=end-start;
+ if(clipSeconds<3){setAnalysis('This highlight is too short to export. Please run AI analysis again.',0,true);return;}
+ if(clipSeconds>65){setAnalysis('This first export version is optimized for clips up to about 60 seconds. Please choose a shorter highlight.',0,true);return;}
+ button.disabled=true;button.textContent='Preparing lightweight export…';
+ const status=document.createElement('div');status.className='clip-status';status.textContent='Preparing local export…';button.insertAdjacentElement('afterend',status);
+ let media=null,canvasStream=null,recorder=null,raf=0,mediaUrl=null,finished=false;
  try{
-  media=document.createElement('video');media.preload='auto';media.playsInline=true;media.muted=false;media.src=URL.createObjectURL(currentProject.video);
+  media=document.createElement('video');media.preload='metadata';media.playsInline=true;media.muted=false;
+  mediaUrl=URL.createObjectURL(currentProject.video);media.src=mediaUrl;
   await waitForMetadata(media);
-  const width=720,height=1280,canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;
-  const ctx=canvas.getContext('2d',{alpha:false});if(!ctx)throw new Error('Could not start the video renderer.');
+  // A smaller 9:16 canvas and 24 fps reduce CPU/GPU pressure on ordinary computers.
+  const width=540,height=960,fps=24,canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;
+  const ctx=canvas.getContext('2d',{alpha:false,desynchronized:true});if(!ctx)throw new Error('Could not start the video renderer.');
   const sourceStream=media.captureStream?media.captureStream():(media.mozCaptureStream?media.mozCaptureStream():null);
-  if(!sourceStream)throw new Error('This browser cannot capture the video audio track. Please use the latest Chrome.');
-  canvasStream=canvas.captureStream(30);sourceStream.getAudioTracks().forEach(track=>canvasStream.addTrack(track));
-  const mime=['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm'].find(t=>MediaRecorder.isTypeSupported(t));
-  if(!mime)throw new Error('This browser does not support WebM video export.');
-  const chunks=[];recorder=new MediaRecorder(canvasStream,{mimeType:mime,videoBitsPerSecond:4500000,audioBitsPerSecond:128000});
-  const recorded=new Promise((resolve,reject)=>{recorder.ondataavailable=e=>{if(e.data?.size)chunks.push(e.data);};recorder.onerror=e=>reject(e.error||new Error('Video recording failed.'));recorder.onstop=()=>resolve(new Blob(chunks,{type:recorder.mimeType||mime}));});
-  const draw=()=>{if(!media||media.readyState<2){raf=requestAnimationFrame(draw);return;}
-   const vw=media.videoWidth,vh=media.videoHeight,scale=Math.max(width/vw,height/vh),sw=width/scale,sh=height/scale,sx=(vw-sw)/2,sy=(vh-sh)/2;
-   ctx.fillStyle='#080610';ctx.fillRect(0,0,width,height);ctx.drawImage(media,sx,sy,sw,sh,0,0,width,height);
-   if(currentProject.subtitles){const seg=(currentProject.transcript||[]).find(x=>media.currentTime>=x.start&&media.currentTime<=x.end&&x.text);if(seg){const words=String(seg.text).trim().slice(0,150),lines=[];ctx.font='700 34px Arial';let line='';for(const word of words.split(/\s+/)){const test=line?line+' '+word:word;if(ctx.measureText(test).width>width-90&&line){lines.push(line);line=word;}else line=test;}if(line)lines.push(line);const visible=lines.slice(-3),font=34,lineH=44,pad=20;ctx.font='700 '+font+'px Arial';const boxW=Math.min(width-48,Math.max(...visible.map(t=>ctx.measureText(t).width))+pad*2),boxH=visible.length*lineH+pad*2,x=(width-boxW)/2,y=height-190-boxH;ctx.fillStyle='rgba(12,8,24,.78)';ctx.beginPath();ctx.roundRect(x,y,boxW,boxH,18);ctx.fill();ctx.fillStyle='#fff';ctx.textAlign='center';ctx.textBaseline='middle';visible.forEach((t,i)=>ctx.fillText(t,width/2,y+pad+lineH*(i+.5),boxW-pad*2));}}
+  if(!sourceStream)throw new Error('This browser cannot capture the video audio track. Please use the latest Chrome or Edge.');
+  canvasStream=canvas.captureStream(fps);sourceStream.getAudioTracks().forEach(track=>canvasStream.addTrack(track));
+  // Prefer MP4 when the browser truly supports it; otherwise use widely supported WebM.
+  const formats=[
+   {mime:'video/mp4;codecs=avc1.42E01E,mp4a.40.2',ext:'mp4'},
+   {mime:'video/mp4',ext:'mp4'},
+   {mime:'video/webm;codecs=vp8,opus',ext:'webm'},
+   {mime:'video/webm;codecs=vp9,opus',ext:'webm'},
+   {mime:'video/webm',ext:'webm'}
+  ];
+  const chosen=formats.find(f=>MediaRecorder.isTypeSupported(f.mime));
+  if(!chosen)throw new Error('This browser does not support MP4 or WebM recording. Please update Chrome or Edge.');
+  const chunks=[];
+  recorder=new MediaRecorder(canvasStream,{mimeType:chosen.mime,videoBitsPerSecond:1700000,audioBitsPerSecond:96000});
+  const recorded=new Promise((resolve,reject)=>{
+   recorder.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data);};
+   recorder.onerror=e=>reject(e.error||new Error('Video recording failed.'));
+   recorder.onstop=()=>resolve(new Blob(chunks,{type:recorder.mimeType||chosen.mime}));
+  });
+  let lastDraw=0;
+  const draw=now=>{
+   if(!media||finished)return;
+   if(media.readyState>=2&&now-lastDraw>=1000/fps){
+    lastDraw=now;
+    const vw=media.videoWidth||width,vh=media.videoHeight||height,scale=Math.max(width/vw,height/vh),sw=width/scale,sh=height/scale,sx=(vw-sw)/2,sy=(vh-sh)/2;
+    ctx.fillStyle='#080610';ctx.fillRect(0,0,width,height);ctx.drawImage(media,sx,sy,sw,sh,0,0,width,height);
+    if(currentProject.subtitles){
+     const seg=(currentProject.transcript||[]).find(x=>media.currentTime>=x.start&&media.currentTime<=x.end&&x.text);
+     if(seg){
+      const words=String(seg.text).trim().slice(0,150),lines=[];ctx.font='700 27px Arial';let line='';
+      for(const word of words.split(/\s+/)){const test=line?line+' '+word:word;if(ctx.measureText(test).width>width-64&&line){lines.push(line);line=word;}else line=test;}
+      if(line)lines.push(line);
+      const visible=lines.slice(-3),lineH=36,pad=16;ctx.font='700 27px Arial';
+      const boxW=Math.min(width-32,Math.max(...visible.map(t=>ctx.measureText(t).width))+pad*2),boxH=visible.length*lineH+pad*2,x=(width-boxW)/2,y=height-130-boxH;
+      ctx.fillStyle='rgba(12,8,24,.82)';ctx.beginPath();ctx.roundRect(x,y,boxW,boxH,14);ctx.fill();
+      ctx.fillStyle='#fff';ctx.textAlign='center';ctx.textBaseline='middle';visible.forEach((t,i)=>ctx.fillText(t,width/2,y+pad+lineH*(i+.5),boxW-pad*2));
+     }
+    }
+   }
    raf=requestAnimationFrame(draw);
   };
   await seekMedia(media,start);
-  draw();recorder.start(500);await media.play();status.textContent='Rendering '+timecode(start)+'–'+timecode(end)+' locally…';
-  await new Promise((resolve,reject)=>{const timer=setTimeout(()=>finish(new Error('Video export timed out. Please try a shorter clip.')),Math.max(90000,(end-start)*5000));let done=false;const finish=err=>{if(done)return;done=true;clearTimeout(timer);media.removeEventListener('timeupdate',check);err?reject(err):resolve();};const check=()=>{if(media.currentTime>=end-.04)finish();};media.addEventListener('timeupdate',check);media.addEventListener('ended',check);});
-  media.pause();cancelAnimationFrame(raf);if(recorder.state!=='inactive')recorder.stop();const blob=await recorded;if(blob.size<12000)throw new Error('The exported video was empty. Please retry this highlight.');
-  objectUrl=URL.createObjectURL(blob);const link=document.createElement('a');link.className='clip-download';link.href=objectUrl;link.download='TrivexaAI-Short-'+(index+1)+'.webm';link.textContent='⬇ Download Short ('+(blob.size/1024/1024).toFixed(1)+' MB)';status.replaceWith(link);const doneNote=document.createElement('div');doneNote.className='clip-status';doneNote.textContent='Ready • 9:16 vertical • original audio'+(currentProject.subtitles?' • subtitles':'');link.insertAdjacentElement('afterend',doneNote);button.textContent='Create again';
- }catch(e){status.textContent=e.message||'Could not export this Short.';status.style.color='#ffc2cf';button.textContent='Retry creating Short';}
- finally{cancelAnimationFrame(raf);if(recorder&&recorder.state!=='inactive'){try{recorder.stop();}catch(e){}}if(canvasStream)canvasStream.getTracks().forEach(t=>t.stop());if(media){media.pause();const src=media.src;media.removeAttribute('src');media.load();try{URL.revokeObjectURL(src);}catch(e){}}button.disabled=false;}
+  draw(performance.now());
+  // Emit data every second rather than holding one large recording chunk.
+  recorder.start(1000);await media.play();
+  status.textContent='Exporting '+chosen.ext.toUpperCase()+' locally… 0%';
+  await new Promise((resolve,reject)=>{
+   let done=false;const maxWait=Math.max(60000,clipSeconds*3500);
+   const timer=setTimeout(()=>finish(new Error('Export took too long. Try again with a shorter clip or close other heavy tabs.')),maxWait);
+   const finish=error=>{if(done)return;done=true;clearTimeout(timer);media.removeEventListener('timeupdate',check);media.removeEventListener('ended',check);error?reject(error):resolve();};
+   const check=()=>{const progress=Math.min(100,Math.max(0,((media.currentTime-start)/clipSeconds)*100));status.textContent='Exporting '+chosen.ext.toUpperCase()+' locally… '+Math.round(progress)+'%';if(media.currentTime>=end-.05||media.ended)finish();};
+   media.addEventListener('timeupdate',check);media.addEventListener('ended',check);check();
+  });
+  media.pause();finished=true;cancelAnimationFrame(raf);
+  if(recorder.state!=='inactive')recorder.stop();
+  const blob=await recorded;
+  if(blob.size<10000)throw new Error('The exported video was empty. Please retry this highlight.');
+  const downloadUrl=URL.createObjectURL(blob),link=document.createElement('a');
+  link.className='clip-download';link.href=downloadUrl;link.download='TrivexaAI-Short-'+(index+1)+'.'+chosen.ext;
+  link.textContent='⬇ Download '+chosen.ext.toUpperCase()+' Short ('+(blob.size/1024/1024).toFixed(1)+' MB)';
+  status.replaceWith(link);
+  const doneNote=document.createElement('div');doneNote.className='clip-status';
+  doneNote.textContent='Ready • 9:16 vertical • '+chosen.ext.toUpperCase()+' • optimized low-load export'+(currentProject.subtitles?' • subtitles':'');
+  link.insertAdjacentElement('afterend',doneNote);button.textContent='Create again';
+ }catch(e){
+  status.textContent=e.message||'Could not export this Short.';status.style.color='#ffc2cf';button.textContent='Retry creating Short';
+ }finally{
+  finished=true;cancelAnimationFrame(raf);
+  if(recorder&&recorder.state!=='inactive'){try{recorder.stop();}catch(e){}}
+  if(canvasStream)canvasStream.getTracks().forEach(t=>t.stop());
+  if(media){media.pause();media.removeAttribute('src');media.load();}
+  if(mediaUrl){try{URL.revokeObjectURL(mediaUrl);}catch(e){}}
+  button.disabled=false;
+ }
 }
 
 $('findHighlights').onclick=findHighlights;
