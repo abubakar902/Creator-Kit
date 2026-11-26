@@ -139,7 +139,7 @@ async function createShortClip(item,index,card,button){
    recorder.onerror=e=>reject(e.error||new Error('Video recording failed.'));
    recorder.onstop=()=>resolve(new Blob(chunks,{type:recorder.mimeType||chosen.mime}));
   });
-  let lastDraw=0;
+  let lastDraw=0,videoFrameId=0;
   const draw=now=>{
    if(!media||finished)return;
    if(media.readyState>=2&&now-lastDraw>=1000/fps){
@@ -159,9 +159,14 @@ async function createShortClip(item,index,card,button){
      }
     }
    }
-   raf=requestAnimationFrame(draw);
+   if(typeof media.requestVideoFrameCallback==='function'){
+    videoFrameId=media.requestVideoFrameCallback(timestamp=>draw(timestamp));
+   }else{
+    raf=requestAnimationFrame(draw);
+   }
   };
   await seekMedia(media,start);
+  // Follow presented video frames where supported to reduce visual/audio timing drift.
   draw(performance.now());
   // Emit data every second rather than holding one large recording chunk.
   recorder.start(1000);await media.play();
