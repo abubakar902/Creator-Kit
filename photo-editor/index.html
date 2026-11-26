@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#0d0d16">
-<title>TrivexaAI AI Photo Editor</title>
+<meta name="theme-color" content="#09091d">
+<title>TrivexaAI Photo Studio | Premium Creator Workspace</title>
 <style>
 :root{color-scheme:dark;--bg:#0d0d16;--panel:#171725;--panel2:#202035;--line:#30304b;--purple:#8057ff;--purple2:#a855f7;--pink:#e879f9;--text:#f7f4ff;--muted:#aaa6bf;--green:#4ade80;--radius:15px}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}button,input,select{font:inherit}button{cursor:pointer;color:inherit}button:disabled{opacity:.45;cursor:not-allowed}
@@ -157,25 +157,157 @@ body.delete-modal-open{overflow:hidden}
 @media(max-width:560px){.delete-project-dialog{padding:22px;border-radius:20px}.delete-project-actions{flex-direction:column-reverse}.delete-project-actions .btn{width:100%}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.delete-project-dialog{animation:none}}
 
+
+/* TrivexaAI Photo Studio — signature premium violet / midnight theme */
+:root{
+ color-scheme:dark;
+ --bg:#09091d;--panel:#12132b;--panel2:#1b1d3b;--line:#35315d;
+ --purple:#8555ff;--purple2:#b14cff;--pink:#f04fdf;
+ --text:#faf8ff;--muted:#aaa6c9;--green:#72edc4;
+}
+html,body{
+ background-color:#09091d;
+ background-image:radial-gradient(ellipse at 12% 0%,rgba(93,54,190,.18),transparent 38%),radial-gradient(ellipse at 90% 18%,rgba(0,180,236,.10),transparent 32%);
+}
+.topbar{
+ height:76px;padding:0 26px;
+ background:linear-gradient(100deg,rgba(9,10,31,.97),rgba(18,15,46,.96));
+ border-bottom:1px solid rgba(136,103,230,.32);
+ box-shadow:0 12px 38px rgba(0,0,0,.28);
+ backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+}
+.brand{gap:0;min-width:0}
+.brand-logo{display:block;width:220px;max-width:48vw;height:auto;max-height:58px;object-fit:contain;filter:drop-shadow(0 5px 18px rgba(104,72,255,.22))}
+.top-actions .btn{border-color:#51417f;background:rgba(30,25,63,.74)}
+.top-actions .btn:hover{border-color:#b47cff;background:#302257}
+.save-state{color:#8af1c9}
+.btn{border-color:#453b70;background:linear-gradient(145deg,#211d43,#171932);transition:transform .18s,border-color .18s,box-shadow .18s}
+.btn:hover{border-color:#a77cff;background:linear-gradient(145deg,#30245b,#1d2046);box-shadow:0 8px 24px rgba(111,71,220,.2);transform:translateY(-1px)}
+.btn.primary{background:linear-gradient(105deg,#6d36ef 0%,#aa42e8 52%,#167fe8 100%);box-shadow:0 9px 28px rgba(126,61,236,.36),inset 0 1px 0 rgba(255,255,255,.22)}
+.btn.primary:hover{box-shadow:0 12px 34px rgba(141,73,255,.48);filter:saturate(1.12)}
+#startScreen{width:min(1340px,94%);margin:28px auto 62px}
+.start-hero.start-hero-premium{
+ background:
+  radial-gradient(ellipse at 82% 14%,rgba(123,73,255,.34),transparent 37%),
+  radial-gradient(ellipse at 96% 96%,rgba(0,209,241,.17),transparent 34%),
+  radial-gradient(ellipse at 8% 100%,rgba(238,60,220,.12),transparent 38%),
+  linear-gradient(118deg,#17113c 0%,#11152f 52%,#21133e 100%);
+ border:1px solid rgba(147,112,255,.58);
+ box-shadow:0 28px 85px rgba(0,0,0,.52),0 0 55px rgba(103,66,222,.12),inset 0 1px 0 rgba(255,255,255,.13);
+}
+.start-hero-premium:before{opacity:.16;background-image:linear-gradient(rgba(185,166,255,.24) 1px,transparent 1px),linear-gradient(90deg,rgba(185,166,255,.24) 1px,transparent 1px)}
+.start-hero-premium:after{border-color:rgba(185,156,255,.22);box-shadow:0 0 0 36px rgba(185,156,255,.045),0 0 0 75px rgba(185,156,255,.025)}
+.hero-copy .eyebrow{color:#d7c9ff}
+.hero-live-dot{background:#62e7f6;box-shadow:0 0 16px #62e7f6}
+.hero-copy h1 span{background:linear-gradient(100deg,#d1a4ff 0%,#f18be9 45%,#57e4f6 100%);color:transparent;background-clip:text}
+.hero-copy p{color:#d0c9e8}
+.hero-proof-row span{border-color:rgba(179,149,255,.34);background:rgba(12,10,38,.48);color:#e5dcff}
+.hero-cta-row .btn:not(.primary){background:rgba(12,13,39,.58);border-color:#68549e}
+.hero-window{background:linear-gradient(145deg,rgba(211,185,255,.27),rgba(55,72,151,.18));border-color:rgba(196,169,255,.68);box-shadow:0 28px 65px rgba(0,0,0,.55),0 0 42px rgba(136,79,255,.16)}
+.hero-canvas-preview{background:radial-gradient(circle at 82% 25%,#d74ce3 0%,transparent 27%),radial-gradient(circle at 16% 85%,#295bdb 0%,transparent 44%),linear-gradient(125deg,#30206e,#111638 58%,#07172d)}
+.hero-canvas-kicker{color:#74eafa}
+.hero-canvas-ring{border-color:rgba(91,227,255,.78);box-shadow:0 0 34px rgba(91,227,255,.34)}
+.hero-canvas-spark{color:#ff8dea;text-shadow:0 0 20px #ee5be9}
+.hero-window-top small{color:#78e9f5}
+.hero-window-footer span i{background:#78e9f5;box-shadow:0 0 9px #78e9f5}
+.hero-float-card{border-color:rgba(175,139,255,.62);background:rgba(14,16,47,.88);box-shadow:0 14px 36px rgba(0,0,0,.5),0 0 28px rgba(119,70,239,.14)}
+.hero-float-card>span,.hero-float-card small{color:#bdb6df}
+.hero-float-card strong b{color:#76e9f5}
+#startScreen .start-card{
+ background:linear-gradient(155deg,rgba(34,27,70,.98),rgba(17,20,48,.98));
+ border-color:#4a4079;box-shadow:0 14px 34px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.035);
+}
+#startScreen .start-card:hover{border-color:#a77aff;box-shadow:0 18px 42px rgba(0,0,0,.42),0 0 28px rgba(131,79,255,.14)}
+#startScreen .start-step{color:#c2a7ff}
+#startScreen .start-card-link{color:#e3d7ff}
+#startScreen .start-card-link b{color:#66e8fa}
+.blank-art{background:radial-gradient(ellipse at 50% 90%,rgba(177,84,255,.35),transparent 62%),linear-gradient(135deg,#32245f,#151632)}
+.template-art{background:radial-gradient(ellipse at 50% 100%,rgba(0,203,238,.18),transparent 60%),linear-gradient(135deg,#282052,#11152e)}
+.upload-art{background:radial-gradient(ellipse at 50% 90%,rgba(69,116,255,.25),transparent 62%),linear-gradient(135deg,#173b5b,#171d42)}
+.quick-preset-section{padding:2px 0}
+.quick-preset-heading h2{color:#f7f2ff}
+.quick-preset-heading p{color:#bbb5d7}
+.quick-preset{border-color:#494071;background:linear-gradient(145deg,#211c49,#151832);box-shadow:0 8px 22px rgba(0,0,0,.19)}
+.quick-preset:hover{border-color:#ad82ff;box-shadow:0 15px 32px rgba(89,55,185,.3),0 0 22px rgba(166,92,255,.12)}
+.quick-preset-copy strong{color:#fff}
+.quick-preset-copy small{color:#c1badb}
+#startScreen .recent-section{
+ border-color:#50447d;
+ background:linear-gradient(145deg,rgba(27,25,65,.97),rgba(14,20,45,.98));
+ box-shadow:0 16px 38px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.045);
+}
+#startScreen .recent-section .section-head h2{color:#fff}
+#startScreen .recent-card{background:linear-gradient(145deg,#211e4a,#151934);border-color:#4b4277}
+#startScreen .recent-card:hover{border-color:#9d7cff;box-shadow:0 12px 28px rgba(0,0,0,.3)}
+#startScreen .recent-thumb{background:linear-gradient(135deg,#38266f,#172c51)}
+#startScreen .notice{background:rgba(20,20,51,.8);border-color:#4b4278;color:#c2bddc}
+.workspace{background:radial-gradient(ellipse at 45% 0%,rgba(88,53,170,.11),transparent 45%)}
+.tool-rail,.left-panel,.right-panel,.bottom-panel{
+ background:linear-gradient(160deg,#171633,#101329);
+ border-color:#39335f;box-shadow:0 10px 30px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.025);
+}
+.rail-btn{color:#d4cde9}
+.rail-btn.active,.rail-btn:hover{background:linear-gradient(135deg,#6336ba,#30245f);border-color:#9d76ff;color:#fff;box-shadow:0 7px 20px rgba(116,69,220,.25)}
+.panel-title{color:#f4edff}
+.group{border-color:#373154;background:rgba(13,14,35,.56)}
+.group-head{color:#e4d9ff}
+.tool-tile{border-color:#3e3866;background:linear-gradient(145deg,#28234e,#1a1b3c);color:#f1ecff}
+.tool-tile:hover,.tool-tile.active{border-color:#a47aff;background:linear-gradient(145deg,#493078,#29224f);box-shadow:0 0 0 1px rgba(167,125,255,.22) inset,0 6px 18px rgba(98,57,181,.15)}
+.field label{color:#d9d2ec}
+.field input[type=range]{accent-color:#b36aff}
+.field input[type=text],.field input[type=number],.field select{background:#0c1028;border-color:#48416f;color:#f8f5ff}
+.field input:focus,.field select:focus{outline:2px solid rgba(155,111,255,.3);border-color:#aa82ff}
+.workspace-top .btn{background:linear-gradient(145deg,#211d49,#171a39);border-color:#494174}
+.workspace-top .btn.primary{background:linear-gradient(105deg,#6d36ef,#b044e8 58%,#1689e9)}
+.stage{background-color:#0b1024;border-color:#48406f;box-shadow:inset 0 0 50px rgba(15,13,50,.35)}
+.stage-empty{color:#c9c2e0}
+.stage-hint{color:#9e96bd}
+.layer-row{background:linear-gradient(145deg,#28234d,#1a1b3b)}
+.layer-row.selected{border-color:#a982ff;background:#3a2b66}
+.layer-row.multi-selected{background:#2b2851}
+.layer-group-row{border-color:#51447a;background:linear-gradient(110deg,#302653,#201e40)}
+.layer-group-toggle{background:#57418b}
+.layer-type{background:#3c3364}
+.right-tabs{border-color:#403866}
+.right-tabs button.active{border-color:#c07aff;color:#fff}
+.bottom-tabs{border-color:#403866}
+.bottom-tabs button.active{border-color:#c07aff}
+.preset{background:#211d49;border-color:#4b4278}
+.modal,.delete-project-dialog{background:radial-gradient(ellipse at 88% 0%,rgba(154,91,255,.25),transparent 44%),linear-gradient(145deg,#211a4a,#121830 72%,#21143e);border-color:#5f4d91}
+.delete-project-name{background:#11162f;border-color:#4c4a7a}
+@media(max-width:900px){
+ .topbar{padding:0 14px}
+ .brand-logo{width:190px;max-width:45vw;max-height:52px}
+ .workspace{background:transparent}
+}
+@media(max-width:560px){
+ .topbar{height:68px;padding:0 10px}
+ .brand-logo{width:158px;max-width:43vw;max-height:45px}
+ .top-actions{gap:5px}
+ .top-actions .btn{font-size:10px;padding:7px 8px}
+ .save-state{font-size:9px}
+}
+@media(prefers-reduced-motion:reduce){.btn,.start-card,.quick-preset{transition:none}}
+
 </style>
 </head>
 <body>
 <header class="topbar">
- <div class="brand"><span class="brand-mark">✦</span><span>TrivexaAI <small>AI Photo Editor</small></span></div>
+ <div class="brand"><img class="brand-logo" src="./trivexa-photo-studio.svg" alt="TrivexaAI Photo Studio"></div>
  <div class="top-actions"><a class="btn ghost" href="../#projects">← Projects</a><span class="save-state" id="saveState">Ready</span></div>
 </header>
 
 <main id="startScreen" class="start-wrap">
 <section class="start-hero start-hero-premium">
  <div class="hero-copy">
-  <div class="eyebrow"><span class="hero-live-dot"></span> TRIVEXAAI CREATOR STUDIO</div>
-  <h1>Your next great design starts <span>here.</span></h1>
-  <p>A focused creative workspace for YouTube thumbnails, social graphics and photo edits. Start with a blank canvas, choose a ready-made design or bring your own image.</p>
+  <div class="eyebrow"><span class="hero-live-dot"></span> TRIVEXAAI PHOTO STUDIO</div>
+  <h1>Create. Edit. Design. <span>Like a Pro.</span></h1>
+  <p>Your all-in-one creative space for standout thumbnails, professional photo edits and creator graphics. Start from a blank canvas, explore 12 ready-made styles or bring your own photo.</p>
   <div class="hero-proof-row"><span>✦ AI thumbnail review</span><span>◈ Professional canvas sizes</span><span>✓ Auto-save</span></div>
   <div class="hero-cta-row"><button class="btn primary" id="heroCreateProject" type="button">＋ Create New Project</button><button class="btn" id="heroOpenPresets" type="button">Explore Presets <b>→</b></button></div>
  </div>
  <div class="hero-visual" aria-hidden="true"><div class="hero-orbit hero-orbit-one"></div><div class="hero-orbit hero-orbit-two"></div>
-  <div class="hero-window"><div class="hero-window-top"><span><i></i><i></i><i></i></span><b>TRIVEXAAI / CANVAS</b><small>LIVE WORKSPACE</small></div>
+  <div class="hero-window"><div class="hero-window-top"><span><i></i><i></i><i></i></span><b>TRIVEXAAI / PHOTO STUDIO</b><small>LIVE WORKSPACE</small></div>
    <div class="hero-canvas-preview"><span class="hero-canvas-kicker">CREATOR STUDIO</span><strong>MAKE IT<br>STAND OUT</strong><span class="hero-canvas-sub">YOUR NEXT BIG IDEA</span><span class="hero-canvas-ring"></span><span class="hero-canvas-spark">✦</span></div>
    <div class="hero-window-footer"><span><i></i> Auto-save ready</span><b>1280 × 720</b></div>
   </div>
