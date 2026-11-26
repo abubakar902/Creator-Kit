@@ -26,10 +26,11 @@ if(authConfigured&&auth){
  const isMainHome=currentPath.endsWith("/")||currentPath.endsWith("/index.html");
  const isAuthPage=currentPath.includes("/auth/");
  const isStandaloneToolPage=!isMainHome&&!isAuthPage;
+ const isShortsMakerPage=currentPath.includes("/shorts-maker/");
  const replayed=new WeakSet();
  document.addEventListener("click",async e=>{
    if(replayed.has(e)){replayed.delete(e);return;}
-   const selector=isStandaloneToolPage?"button, input[type='submit'], [data-requires-auth]":".tool[data-tool], [data-requires-auth]";
+   const selector=isStandaloneToolPage?(isShortsMakerPage?"[data-requires-auth]":"button, input[type='submit'], [data-requires-auth]"):".tool[data-tool], [data-requires-auth]";
    const el=e.target instanceof Element?e.target.closest(selector):null;
    if(!el||auth.currentUser||firstUser)return;
    e.preventDefault();e.stopImmediatePropagation();
@@ -42,7 +43,7 @@ if(authConfigured&&auth){
  let allowReplayedSubmit=false;
  document.addEventListener("submit",async e=>{
    if(allowReplayedSubmit){allowReplayedSubmit=false;return;}
-   if(!isStandaloneToolPage||auth.currentUser||firstUser)return;
+   if(!isStandaloneToolPage||isShortsMakerPage||auth.currentUser||firstUser)return;
    e.preventDefault();e.stopImmediatePropagation();
    await authReady;
    if(auth.currentUser||firstUser){
