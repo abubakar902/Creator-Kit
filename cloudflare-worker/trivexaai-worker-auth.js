@@ -5,7 +5,7 @@ let firebaseKeys = null;
 let firebaseKeysExpiry = 0;
 const ADVANCED_ACTIONS = new Set([
   "generate_image", "generate_voice", "video_studio", "video_studio_create",
-  "video_studio_export", "video_studio_ai_assistant", "transcribe_audio", "ai_editing_assistant", "ai_prompt_writer",
+  "video_studio_export", "video_studio_ai_assistant", "transcribe_audio", "shorts_analyze", "ai_editing_assistant", "ai_prompt_writer",
   "advanced_feature"
 ]);
 function b64u(s) {
@@ -927,6 +927,88 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
             details: transcriptionError?.message || "Workers AI transcription failed."
           }, 502);
         }
+      }
+
+      // AI SHORTS MAKER — rank engaging moments from a timestamped transcript.
+      // Only transcript text and timestamps reach this route; the original video/audio does not.
+      if (body.action === "shorts_analyze") {
+        if (!env.GEMINI_API_KEY && !env.OPENROUTER_API_KEY) return reply({ error: "The AI analysis connection is not configured.", code: "SHORTS_AI_NOT_CONFIGURED" }, 500);
+        const duration = Number(body.duration), count = Number(body.count);
+        const preferredLength = String(body.preferredLength || "auto");
+        if (!Number.isFinite(duration) || duration < 1 || duration > 3600) return reply({ error: "The video duration is invalid. Use a video up to 60 minutes." }, 400);
+        if (!Number.isInteger(count) || count < 1 || count > 10) return reply({ error: "Choose between 1 and 10 Shorts." }, 400);
+        if (!["auto", "15-30", "30-45", "45-60"].includes(preferredLength)) return reply({ error: "Choose a valid preferred Short length." }, 400);
+        if (!Array.isArray(body.transcript) || body.transcript.length < 1 || body.transcript.length > 800) return reply({ error: "Generate a timestamped transcript before finding highlights." }, 400);
+        const safeSegments = body.transcript.slice(0, 800).map(item => {
+          if (!item || typeof item !== "object") return null;
+          const start = Number(item.start), end = Number(item.end);
+          const text = typeof item.text === "string" ? item.text.trim().slice(0, 400) : "";
+          if (!Number.isFinite(start) || !Number.isFinite(end) || start < 0 || end <= start || start >= duration || !text) return null;
+          return { start: Math.round(start * 10) / 10, end: Math.round(Math.min(end, duration) * 10) / 10, text };
+        }).filter(Boolean);
+        if (!safeSegments.length) return reply({ error: "The transcript does not contain valid timestamped speech." }, 400);
+        const transcriptText = safeSegments.map(s => "[" + s.start.toFixed(1) + "-" + s.end.toFixed(1) + "] " + s.text).join("\n").slice(0, 42000);
+        const target = preferredLength === "auto" ? "Choose the strongest natural moment, normally 15–45 seconds, and never exceed 60 seconds." : "Each highlight should be " + preferredLength + " seconds.";
+        const systemPrompt = [
+          "You are TrivexaAI AI Shorts Maker, an expert short-form video editor.",
+          "Find compelling, self-contained moments ONLY from the supplied transcript of the user's uploaded video.",
+          "Do not invent dialogue, events, visual scenes, or outside viral trends. A high-potential moment means a strong hook, useful insight, emotion, surprise, humor, conflict, or satisfying payoff visible in the spoken transcript.",
+          "Return exactly one valid JSON object and no markdown: {\"highlights\":[{\"start\":number,\"end\":number,\"title\":string,\"hook\":string,\"reason\":string}],\"note\":string}.",
+          "Return the requested number of distinct highlights if the transcript contains enough material; otherwise return the maximum genuinely usable number and explain briefly in note.",
+          "Times are absolute seconds in the original video. Select clean boundaries around complete thoughts. Do not overlap highlights. Keep every highlight within the video duration.",
+          "Titles should be concise and attractive, hooks should be short opening text, reasons should explain transcript evidence, not guarantee virality.",
+          target
+        ].join("\n");
+        const userPrompt = "Video title: " + String(body.videoTitle || "Uploaded video").slice(0, 120) + "\nVideo duration: " + duration.toFixed(1) + " seconds\nRequested Shorts: " + count + "\nPreferred length: " + preferredLength + "\n\nTIMESTAMPED TRANSCRIPT:\n" + transcriptText;
+        let raw = "", providerError = null;
+        if (env.GEMINI_API_KEY) {
+          try {
+            const response = await fetchGeminiWithRetry("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent", {
+              method: "POST",
+              headers: { "Content-Type": "application/json", "x-goog-api-key": env.GEMINI_API_KEY },
+              body: JSON.stringify({
+                contents: [{ role: "user", parts: [{ text: systemPrompt + "\n\n" + userPrompt }] }],
+                generationConfig: { temperature: 0.25, maxOutputTokens: 1800, responseMimeType: "application/json" }
+              })
+            });
+            let data = {};
+            try { data = await response.json(); } catch (e) {}
+            if (!response.ok) throw Object.assign(new Error(String(data.error?.message || "Gemini analysis failed.").slice(0, 400)), { status: response.status });
+            raw = data.candidates?.[0]?.content?.parts?.map(p => typeof p.text === "string" ? p.text : "").join("") || "";
+            if (!raw.trim()) throw new Error("Gemini returned an empty highlight list.");
+          } catch (e) {
+            providerError = e;
+            console.warn("Shorts highlight Gemini failed; trying OpenRouter:", e?.message);
+          }
+        }
+        if (!raw && env.OPENROUTER_API_KEY) {
+          try { raw = await fetchOpenRouterText(systemPrompt, userPrompt, 1800, 0.25); }
+          catch (e) {
+            console.error("Shorts highlight OpenRouter failed:", e);
+            return reply({ error: "AI could not analyze the transcript right now.", details: String(e?.message || providerError?.message || "Please try again shortly.").slice(0, 350), code: "SHORTS_AI_PROVIDER_FAILED" }, e?.status === 429 ? 429 : 502);
+          }
+        }
+        let parsed;
+        try {
+          const cleaned = raw.trim().replace(/^\uFEFF/, "").replace(/^\x60{3}(?:json)?\s*/i, "").replace(/\s*\x60{3}$/i, "");
+          parsed = JSON.parse(cleaned);
+        } catch (e) { return reply({ error: "AI returned an unreadable highlight list. Please try again.", code: "SHORTS_AI_INVALID_JSON" }, 502); }
+        const rawHighlights = Array.isArray(parsed?.highlights) ? parsed.highlights : [];
+        const minLen = preferredLength === "auto" ? 8 : Number(preferredLength.split("-")[0]);
+        const maxLen = preferredLength === "auto" ? 60 : Number(preferredLength.split("-")[1]);
+        const highlights = rawHighlights.slice(0, count).map(item => {
+          if (!item || typeof item !== "object") return null;
+          const start = Number(item.start), end = Number(item.end);
+          if (!Number.isFinite(start) || !Number.isFinite(end)) return null;
+          const safeStart = Math.max(0, Math.min(duration, start)), safeEnd = Math.max(0, Math.min(duration, end));
+          const length = safeEnd - safeStart;
+          if (length < minLen || length > maxLen || safeStart >= safeEnd) return null;
+          return { start: Math.round(safeStart * 10) / 10, end: Math.round(safeEnd * 10) / 10, title: String(item.title || "Untitled highlight").trim().slice(0, 90), hook: String(item.hook || "").trim().slice(0, 140), reason: String(item.reason || "").trim().slice(0, 240) };
+        }).filter(Boolean).sort((a, b) => a.start - b.start);
+        const distinct = [];
+        for (const item of highlights) if (distinct.every(existing => item.start >= existing.end || existing.start >= item.end)) distinct.push(item);
+        if (!distinct.length) return reply({ error: "AI could not find highlights that match the selected length. Try Auto length or a different transcript.", code: "SHORTS_NO_VALID_HIGHLIGHTS" }, 422);
+        return reply({ highlights: distinct, requestedCount: count, returnedCount: distinct.length, note: String(parsed.note || (distinct.length < count ? "The transcript did not contain enough distinct moments of the requested length." : "")).slice(0, 240), source: "uploaded_video_transcript" });
       }
 
       // VIDEO STUDIO MULTILINGUAL PROMPT WRITER — converts the user's description
