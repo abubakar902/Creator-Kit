@@ -54,7 +54,7 @@
 import {authReady,auth} from "../auth/auth-client.js";
 (() => {
 const DB='trivexaai-shorts-maker', STORE='projects', WORKER_URL='https://creatorkit-ai.abubakar647648.workers.dev';
-let selected=null, previewUrl=null, currentProject=null, transcriptBusy=false, exportBusy=false;
+let selected=null, previewUrl=null, currentProject=null, transcriptBusy=false, exportBusy=false, cancelCurrentExport=null;
 const $=id=>document.getElementById(id), file=$('file'), drop=$('drop'), player=$('player');
 function dbOpen(){return new Promise((resolve,reject)=>{const req=indexedDB.open(DB,1);req.onupgradeneeded=()=>{if(!req.result.objectStoreNames.contains(STORE))req.result.createObjectStore(STORE,{keyPath:'id'});};req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);});}
 async function dbPut(value){const db=await dbOpen();return new Promise((resolve,reject)=>{const tx=db.transaction(STORE,'readwrite');tx.objectStore(STORE).put(value);tx.oncomplete=()=>{db.close();resolve();};tx.onerror=()=>{db.close();reject(tx.error);};});}
@@ -115,7 +115,7 @@ async function createShortClip(item,index,card,button){
  if(clipSeconds<3){setAnalysis('This highlight is too short to export. Please run AI analysis again.',0,true);return false;}
  if(clipSeconds>65){setAnalysis('This first export version is optimized for clips up to about 60 seconds. Please choose a shorter highlight.',0,true);return false;}
  exportBusy=true;button.disabled=true;button.textContent='Preparing lightweight export…';
- const status=document.createElement('div');status.className='clip-status';status.textContent='Preparing local export…';button.insertAdjacentElement('afterend',status);
+ const status=document.createElement('div');status.className='clip-status';status.textContent='Preparing local export…';button.insertAdjacentElement('afterend',status);const cancelButton=document.createElement('button');cancelButton.type='button';cancelButton.className='clip-create';cancelButton.textContent='Cancel export';cancelButton.style.cssText='margin:6px 0 10px;padding:7px 12px;font-size:11px';status.insertAdjacentElement('afterend',cancelButton);cancelButton.addEventListener('click',()=>{if(cancelCurrentExport)cancelCurrentExport();});
  let media=null,canvasStream=null,recorder=null,raf=0,mediaUrl=null,finished=false;
  try{
   media=document.createElement('video');media.preload='metadata';media.playsInline=true;media.muted=false;
@@ -174,7 +174,8 @@ async function createShortClip(item,index,card,button){
   await new Promise((resolve,reject)=>{
    let done=false;const maxWait=Math.max(60000,clipSeconds*3500);
    const timer=setTimeout(()=>finish(new Error('Export took too long. Try again with a shorter clip or close other heavy tabs.')),maxWait);
-   const finish=error=>{if(done)return;done=true;clearTimeout(timer);media.removeEventListener('timeupdate',check);media.removeEventListener('ended',check);error?reject(error):resolve();};
+   const finish=error=>{if(done)return;done=true;clearTimeout(timer);media.removeEventListener('timeupdate',check);media.removeEventListener('ended',check);cancelCurrentExport=null;error?reject(error):resolve();};
+   cancelCurrentExport=()=>{media.pause();finish(new Error('Export cancelled. You can safely retry this Short.'));};
    const check=()=>{const progress=Math.min(100,Math.max(0,((media.currentTime-start)/clipSeconds)*100));status.textContent='Exporting '+chosen.ext.toUpperCase()+' locally… '+Math.round(progress)+'%';if(media.currentTime>=end-.05||media.ended)finish();};
    media.addEventListener('timeupdate',check);media.addEventListener('ended',check);check();
   });
@@ -188,13 +189,13 @@ async function createShortClip(item,index,card,button){
   status.replaceWith(link);
   const doneNote=document.createElement('div');doneNote.className='clip-status';
   doneNote.textContent='Ready • 9:16 vertical • '+chosen.ext.toUpperCase()+' • optimized low-load export'+(currentProject.subtitles?' • subtitles':'');
-  link.insertAdjacentElement('afterend',doneNote);button.textContent='Create again';
+  link.insertAdjacentElement('afterend',doneNote);cancelButton.remove();button.textContent='Create again';
   return true;
  }catch(e){
-  status.textContent=e.message||'Could not export this Short.';status.style.color='#ffc2cf';button.textContent='Retry creating Short';
+  cancelButton.remove();status.textContent=e.message||'Could not export this Short.';status.style.color='#ffc2cf';button.textContent='Retry creating Short';
   return false;
  }finally{
-  finished=true;cancelAnimationFrame(raf);
+  finished=true;cancelCurrentExport=null;cancelButton.remove();cancelAnimationFrame(raf);
   if(recorder&&recorder.state!=='inactive'){try{recorder.stop();}catch(e){}}
   if(canvasStream)canvasStream.getTracks().forEach(t=>t.stop());
   if(media){media.pause();media.removeAttribute('src');media.load();}
