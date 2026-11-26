@@ -5,7 +5,7 @@ let firebaseKeys = null;
 let firebaseKeysExpiry = 0;
 const ADVANCED_ACTIONS = new Set([
   "generate_image", "generate_voice", "video_studio", "video_studio_create",
-  "video_studio_export", "video_studio_ai_assistant", "transcribe_audio", "shorts_analyze", "ai_editing_assistant", "ai_prompt_writer",
+  "video_studio_export", "video_studio_ai_assistant", "transcribe_audio", "shorts_analyze", "shorts_caption", "ai_editing_assistant", "ai_prompt_writer",
   "advanced_feature"
 ]);
 function b64u(s) {
@@ -1009,6 +1009,51 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
         for (const item of highlights) if (distinct.every(existing => item.start >= existing.end || existing.start >= item.end)) distinct.push(item);
         if (!distinct.length) return reply({ error: "AI could not find highlights that match the selected length. Try Auto length or a different transcript.", code: "SHORTS_NO_VALID_HIGHLIGHTS" }, 422);
         return reply({ highlights: distinct, requestedCount: count, returnedCount: distinct.length, note: String(parsed.note || (distinct.length < count ? "The transcript did not contain enough distinct moments of the requested length." : "")).slice(0, 240), source: "uploaded_video_transcript" });
+      }
+
+
+      // AI SHORTS MAKER — generate a separate social caption and hashtags for one selected highlight.
+      if (body.action === "shorts_caption") {
+        if (!env.GEMINI_API_KEY && !env.OPENROUTER_API_KEY) return reply({ error: "The AI caption connection is not configured." }, 500);
+        const title = typeof body.title === "string" ? body.title.trim().slice(0, 120) : "";
+        const hook = typeof body.hook === "string" ? body.hook.trim().slice(0, 180) : "";
+        const platform = ["YouTube Shorts", "Instagram Reels", "TikTok", "General"].includes(body.platform) ? body.platform : "General";
+        const start = Number(body.start), end = Number(body.end);
+        if (!title || !Number.isFinite(start) || !Number.isFinite(end) || start < 0 || end <= start || end-start > 90) return reply({ error: "The selected Short details are invalid." }, 400);
+        if (!Array.isArray(body.transcript) || body.transcript.length < 1 || body.transcript.length > 120) return reply({ error: "The selected highlight transcript is missing." }, 400);
+        const lines = body.transcript.slice(0,120).map(item => {
+          if (!item || typeof item !== "object") return "";
+          const a=Number(item.start),b=Number(item.end),t=typeof item.text==="string"?item.text.trim().slice(0,300):"";
+          return Number.isFinite(a)&&Number.isFinite(b)&&b>a&&a<end&&b>start&&t ? "["+Math.max(start,a).toFixed(1)+"-"+Math.min(end,b).toFixed(1)+"] "+t : "";
+        }).filter(Boolean).join("\n").slice(0,9000);
+        if (!lines) return reply({ error: "No transcript text was found inside this highlight." }, 400);
+        const system = "You are TrivexaAI's short-form social copywriter. Write an engaging but truthful caption based only on the supplied title, hook and transcript. Do not invent facts, claims, events or guarantees. Return JSON only: {\"caption\":string,\"hashtags\":[string],\"callToAction\":string}. Caption 1-3 short sentences, natural and platform appropriate. Return 5-10 relevant hashtags without spaces, each starting with #. Avoid generic spam hashtags and do not promise virality.";
+        const prompt = "Platform: "+platform+"\nShort title: "+title+"\nOpening hook: "+hook+"\nSelected transcript:\n"+lines;
+        let raw="", providerError=null;
+        if(env.GEMINI_API_KEY){
+          try{
+            const response=await fetchGeminiWithRetry("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent",{
+              method:"POST",headers:{"Content-Type":"application/json","x-goog-api-key":env.GEMINI_API_KEY},
+              body:JSON.stringify({contents:[{role:"user",parts:[{text:system+"\n\n"+prompt}]}],generationConfig:{temperature:0.45,maxOutputTokens:700,responseMimeType:"application/json"}})
+            });
+            let data={};try{data=await response.json()}catch(e){}
+            if(!response.ok)throw Object.assign(new Error(String(data.error?.message||"Gemini caption generation failed.").slice(0,300)),{status:response.status});
+            raw=data.candidates?.[0]?.content?.parts?.map(p=>typeof p.text==="string"?p.text:"").join("")||"";
+            if(!raw.trim())throw new Error("Gemini returned an empty caption.");
+          }catch(e){providerError=e;console.warn("Shorts caption Gemini failed; trying OpenRouter:",e?.message);}
+        }
+        if(!raw&&env.OPENROUTER_API_KEY){
+          try{raw=await fetchOpenRouterText(system,prompt,700,.4);}
+          catch(e){return reply({error:"AI could not generate this caption right now.",details:String(e?.message||providerError?.message||"Please try again shortly.").slice(0,300)},e?.status===429?429:502);}
+        }
+        let parsed;
+        try{const cleaned=raw.trim().replace(/^\uFEFF/,"").replace(/^\x60{3}(?:json)?\s*/i,"").replace(/\s*\x60{3}$/i,"");parsed=JSON.parse(cleaned);}
+        catch(e){return reply({error:"AI returned an unreadable caption. Please try again."},502);}
+        const caption=String(parsed.caption||"").trim().slice(0,700);
+        const hashtags=(Array.isArray(parsed.hashtags)?parsed.hashtags:[]).map(x=>String(x||"").trim().replace(/[^#\p{L}\p{N}_]/gu,"")).filter(x=>/^#[\p{L}\p{N}_]{2,40}$/u.test(x)).slice(0,10);
+        const callToAction=String(parsed.callToAction||"").trim().slice(0,160);
+        if(!caption)return reply({error:"AI did not return a usable caption. Please try again."},502);
+        return reply({caption,hashtags,callToAction,platform});
       }
 
       // VIDEO STUDIO MULTILINGUAL PROMPT WRITER — converts the user's description
