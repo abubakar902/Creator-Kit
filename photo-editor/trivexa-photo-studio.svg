@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 250" role="img" aria-labelledby="title desc">
+<title id="title">TrivexaAI Photo Studio</title><desc id="desc">Layered neon photo-frame emblem and TrivexaAI Photo Studio wordmark</desc>
+<defs>
+ <linearGradient id="frame" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ff50df"/><stop offset=".42" stop-color="#7653ff"/><stop offset="1" stop-color="#08dff5"/></linearGradient>
+ <linearGradient id="face" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#172c70"/><stop offset=".55" stop-color="#101943"/><stop offset="1" stop-color="#07152e"/></linearGradient>
+ <linearGradient id="ai" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#09d9ff"/><stop offset=".52" stop-color="#8b63ff"/><stop offset="1" stop-color="#f34bdc"/></linearGradient>
+ <linearGradient id="mount" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f34bdc"/><stop offset=".5" stop-color="#8b57ff"/><stop offset="1" stop-color="#00dffc"/></linearGradient>
+ <filter id="glow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+</defs>
+<g transform="translate(12 14)" filter="url(#glow)">
+ <rect x="8" y="54" width="142" height="142" rx="31" fill="#11173e" stroke="#ee48e7" stroke-width="9" opacity=".9"/>
+ <rect x="26" y="35" width="148" height="148" rx="31" fill="#101b48" stroke="#3c8dff" stroke-width="9"/>
+ <rect x="45" y="16" width="154" height="154" rx="32" fill="url(#face)" stroke="url(#frame)" stroke-width="10"/>
+ <path d="M65 113 111 66l30 30 17-17 30 31v42H65Z" fill="url(#mount)" opacity=".95"/>
+ <circle cx="157" cy="52" r="13" fill="#fff3c5" stroke="#fff" stroke-width="3"/>
+ <path d="M75 53h103v25h-39v69h-27V78H75Z" fill="url(#ai)" stroke="#11153b" stroke-width="5" stroke-linejoin="round"/>
+ <path d="m202 20 7 14 14 7-14 7-7 14-7-14-14-7 14-7Z" fill="#fff" stroke="#9df7ff" stroke-width="2"/>
+</g>
+<g font-family="Inter,Segoe UI,Arial,sans-serif">
+ <text x="250" y="135" font-size="104" font-weight="850" letter-spacing="-5" fill="#f8f7ff">Trivexa</text>
+ <text x="664" y="135" font-size="104" font-weight="900" letter-spacing="-5" fill="url(#ai)">AI</text>
+ <rect x="253" y="159" width="630" height="56" rx="28" fill="#0c1231" stroke="url(#frame)" stroke-width="3"/>
+ <path d="M278 187h64M844 187h-64" stroke="url(#ai)" stroke-width="5" stroke-linecap="round"/>
+ <text x="567" y="197" text-anchor="middle" font-size="27" font-weight="800" letter-spacing="9" fill="#f3f4ff">PHOTO STUDIO</text>
+</g>
+</svg>
