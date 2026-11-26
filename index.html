@@ -2664,6 +2664,15 @@
     @media(max-width:900px){.projects-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
     @media(max-width:580px){.projects-grid{grid-template-columns:1fr}.project-card{min-height:240px}.project-card-footer{font-size:10px}}
   </style>
+<style id="trivexa-profile-navigation">
+.nav-profile-link{width:42px;height:42px;min-width:42px;padding:3px!important;border-radius:50%!important;display:inline-flex!important;align-items:center;justify-content:center;overflow:hidden;border:2px solid transparent!important;background:linear-gradient(#171326,#171326) padding-box,linear-gradient(135deg,#e879f9,#8b5cf6,#22d3ee) border-box!important;box-shadow:0 0 18px #8b5cf644;transition:transform .18s,box-shadow .18s}
+.nav-profile-link:hover{transform:translateY(-1px) scale(1.05);box-shadow:0 0 24px #a56cff88}
+.nav-profile-link[hidden]{display:none!important}
+.nav-profile-image,.nav-profile-fallback{width:100%;height:100%;border-radius:50%;object-fit:cover;display:block}
+.nav-profile-fallback{display:grid;place-items:center;background:linear-gradient(135deg,#6d3ee9,#bf4ce3 58%,#0caed2);color:white;font-size:15px;font-weight:900}
+.nav-profile-image[hidden],.nav-profile-fallback[hidden]{display:none!important}
+@media(max-width:760px){.nav-profile-link{width:37px;height:37px;min-width:37px}}
+</style>
 </head>
 <body>
 
@@ -2679,7 +2688,10 @@
         <a class="nav-link" href="#workspaceTabs" data-switch-tab="favourites">Favourites</a>
         <a class="nav-link" href="#workspaceTabs" data-switch-tab="projects">Projects</a>
         <a class="nav-link nav-auth-link" id="navSignIn" href="auth/login.html">Sign in</a>
-        <a class="nav-link nav-auth-link" id="navMyAccount" href="auth/account.html" hidden>My account</a>
+        <a class="nav-link nav-auth-link nav-profile-link" id="navMyAccount" href="auth/account.html" hidden aria-label="Open your account" title="My account">
+ <span class="nav-profile-fallback" id="navProfileFallback">T</span>
+ <img class="nav-profile-image" id="navProfileImage" alt="Your profile" referrerpolicy="no-referrer" hidden>
+</a>
         <div class="status">
           <span class="status-dot"></span> Studio Online
         </div>
@@ -9009,10 +9021,39 @@
   import { auth, authReady } from "./auth/auth-client.js";
   const signInLink = document.getElementById("navSignIn");
   const accountLink = document.getElementById("navMyAccount");
+  const profileImage = document.getElementById("navProfileImage");
+  const profileFallback = document.getElementById("navProfileFallback");
   function updateAccountNavigation() {
-    const signedIn = Boolean(auth?.currentUser);
+    const user = auth?.currentUser || null;
+    const signedIn = Boolean(user);
     if (signInLink) signInLink.hidden = signedIn;
     if (accountLink) accountLink.hidden = !signedIn;
+    if (!signedIn) return;
+    const name = user.displayName || user.email || "Creator";
+    if (accountLink) {
+      accountLink.setAttribute("aria-label", "Open account for " + name);
+      accountLink.title = "My account — " + name;
+    }
+    if (profileFallback) {
+      profileFallback.textContent = (name.trim().charAt(0) || "T").toUpperCase();
+      profileFallback.hidden = false;
+    }
+    if (!profileImage) return;
+    profileImage.hidden = true;
+    profileImage.removeAttribute("src");
+    try {
+      const url = new URL(user.photoURL || "");
+      if (url.protocol !== "https:") return;
+      profileImage.onload = () => {
+        profileImage.hidden = false;
+        if (profileFallback) profileFallback.hidden = true;
+      };
+      profileImage.onerror = () => {
+        profileImage.hidden = true;
+        if (profileFallback) profileFallback.hidden = false;
+      };
+      profileImage.src = url.href;
+    } catch {}
   }
   await authReady;
   updateAccountNavigation();
