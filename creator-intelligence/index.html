@@ -178,6 +178,7 @@ function fieldChange(e){
  }else if(["channelDescription","tagline"].includes(key)){
   clearGeneratedBranding();
  }
+ if(["channelName","brandName","channelDescription","tagline"].includes(key))renderImages();
  if(key==="logoPrompt"||key==="bannerPrompt"){
   active.fields.brandPromptsReady=!!(String(active.fields.logoPrompt||"").trim()&&String(active.fields.bannerPrompt||"").trim());
   if(key==="logoPrompt"){
@@ -299,6 +300,7 @@ function renderBrandPromptEditors(root){
   area.addEventListener("change",fieldChange);
   wrap.append(label,small,area);
   root.append(wrap);
+ });
 }
 function drawWorkspace(){screen("work");const meta=modes[active.mode];$("wIcon").textContent=meta.icon;$("wName").textContent=active.fields.brandName||active.fields.channelName||meta.name+" Workspace";$("wSubtitle").textContent=meta.subtitle;const root=$("steps");root.replaceChildren();meta.steps.forEach((name,i)=>{const b=document.createElement("button");b.type="button";b.className="step"+(i===step?" active":"");const num=document.createElement("span");num.className="num";num.textContent=String(i+1);const box=document.createElement("span"),strong=document.createElement("strong"),small=document.createElement("small");strong.textContent=name;small.textContent="Stage "+(i+1)+" of 4";box.append(strong,small);b.append(num,box);b.addEventListener("click",()=>showStep(i));root.append(b)});showStep(step)}
 function showStep(n){
