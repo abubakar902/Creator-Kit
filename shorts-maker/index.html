@@ -86,10 +86,322 @@ body{background:radial-gradient(ellipse at 50% -18%,#4b2678 0,transparent 38%),r
 body:not(.studio-entered) .app-shell{display:none}body.studio-entered #studioWelcome{display:none}.welcome-logo{font-size:0;position:relative}.welcome-logo:before{content:"";width:20px;height:20px;border:2px solid #fff;border-radius:6px;transform:rotate(45deg);position:absolute}.welcome-logo:after{content:"";position:absolute;border-left:9px solid #fff;border-top:6px solid transparent;border-bottom:6px solid transparent;margin-left:4px}
 @media(max-width:900px){.studio-layout{grid-template-columns:1fr}.studio-rail{position:static;flex-direction:row;overflow:auto}.studio-rail-label,.studio-rail-foot{display:none}.studio-rail a{white-space:nowrap}.welcome-hero{grid-template-columns:1fr;padding:32px}.welcome-visual{min-height:260px}.welcome-features{grid-template-columns:1fr}.workspace-grid{grid-template-columns:1fr}}
 @media(max-width:600px){.app-shell{padding:10px 12px 40px}.topbar{padding:10px;margin-bottom:14px}.top-pill{display:none}.hero{padding:24px 20px}.hero-note{margin-top:20px}.workflow{overflow:auto}.workflow-step{min-width:130px}.panel-pad,.analysis-pad,.recent-pad{padding:17px}.studio-welcome{padding:22px 14px}.welcome-top{margin-bottom:24px}.welcome-hero{padding:24px 19px}.welcome-hero h1{font-size:39px}.welcome-visual{min-height:240px}.visual-preview{width:178px;height:235px}.welcome-foot{flex-direction:column;gap:7px}}
+
+/* Final visual finish — TrivexaAI Shorts Studio */
+:root{
+ --glow-violet:#9c70ff;--glow-pink:#e77fe9;--surface-glass:rgba(22,16,37,.82);
+ --edge-light:rgba(207,175,255,.22);--soft-glow:0 0 42px rgba(150,99,255,.16)
+}
+html{scroll-padding-top:112px}
+body{
+ background:
+  radial-gradient(ellipse at 12% 8%,rgba(105,62,170,.17),transparent 34%),
+  radial-gradient(ellipse at 92% 45%,rgba(151,65,172,.12),transparent 30%),
+  radial-gradient(ellipse at 50% 110%,rgba(80,52,137,.13),transparent 42%),
+  #090713
+}
+body:before{
+ content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;opacity:.19;
+ background-image:linear-gradient(rgba(208,184,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(208,184,255,.035) 1px,transparent 1px);
+ background-size:48px 48px;mask-image:linear-gradient(to bottom,black,transparent 88%)
+}
+button,a,input,select{ -webkit-tap-highlight-color:transparent}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid #d3b4ff;outline-offset:3px}
+::selection{background:#8758d9;color:#fff}
+
+/* Opening screen */
+.studio-welcome{
+ position:relative;isolation:isolate;overflow:hidden;
+ background:
+  radial-gradient(ellipse at 50% 0%,rgba(106,62,166,.34),transparent 43%),
+  radial-gradient(ellipse at 100% 84%,rgba(114,48,135,.17),transparent 34%),
+  linear-gradient(145deg,#0b0815 0%,#0a0712 54%,#100a1b 100%)
+}
+.studio-welcome:before{
+ content:"";position:absolute;z-index:-1;pointer-events:none;width:min(900px,90vw);height:min(900px,90vw);
+ left:50%;top:-480px;transform:translateX(-50%);border:1px solid rgba(185,142,255,.1);border-radius:50%;
+ box-shadow:0 0 0 46px rgba(185,142,255,.018),0 0 0 94px rgba(185,142,255,.014),0 0 130px rgba(154,92,255,.12)
+}
+.studio-welcome-inner{position:relative;z-index:1;max-width:1240px}
+.welcome-top{margin-bottom:34px}
+.welcome-brand{font-size:21px;letter-spacing:-.7px}
+.welcome-logo{
+ width:52px;height:52px;border-radius:17px;
+ background:linear-gradient(145deg,#7653ff 0%,#a85bea 56%,#f09ce9 100%);
+ border:1px solid rgba(255,255,255,.27);
+ box-shadow:0 10px 32px rgba(134,81,237,.25),0 0 48px rgba(165,104,255,.38),inset 0 1px 0 rgba(255,255,255,.4)
+}
+.welcome-brand small{font-size:9px;color:#c0afd9;letter-spacing:2.6px}
+.welcome-back{
+ border-color:rgba(205,176,255,.2);background:rgba(255,255,255,.035);
+ color:#d8c9ec;transition:all .2s ease
+}
+.welcome-back:hover{color:#fff;border-color:#a77ce8;background:rgba(151,105,220,.13);box-shadow:0 0 22px rgba(151,105,220,.15)}
+.welcome-hero{
+ position:relative;isolation:isolate;gap:32px;padding:clamp(34px,5.5vw,70px);
+ border:1px solid rgba(197,158,255,.27);border-radius:32px;
+ background:
+  radial-gradient(ellipse at 88% 12%,rgba(135,83,205,.19),transparent 38%),
+  linear-gradient(112deg,rgba(31,22,51,.98) 0%,rgba(17,13,29,.98) 54%,rgba(35,22,51,.97) 100%);
+ box-shadow:0 35px 110px rgba(0,0,0,.52),0 0 70px rgba(133,83,211,.12),inset 0 1px 0 rgba(255,255,255,.055)
+}
+.welcome-hero:before{
+ content:"";position:absolute;z-index:-1;pointer-events:none;right:-145px;top:-190px;width:520px;height:520px;border-radius:50%;
+ background:radial-gradient(circle,rgba(162,105,255,.19),rgba(162,105,255,.045) 43%,transparent 70%);
+ filter:blur(8px)
+}
+.welcome-hero:after{
+ content:"";position:absolute;left:8%;right:8%;top:0;height:1px;pointer-events:none;
+ background:linear-gradient(90deg,transparent,rgba(210,174,255,.66),rgba(242,159,235,.45),transparent)
+}
+.welcome-kicker{
+ padding:8px 12px;border-radius:999px;border:1px solid rgba(190,149,255,.24);
+ background:rgba(139,91,207,.12);color:#e0ceff;letter-spacing:2px;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.04)
+}
+.welcome-kicker i{background:#b89aff;box-shadow:0 0 8px #b89aff,0 0 18px #9e69ff}
+.welcome-hero h1{
+ max-width:650px;font-size:clamp(44px,5.7vw,76px);line-height:.99;
+ letter-spacing:-3.8px;margin:24px 0 19px;text-wrap:balance
+}
+.welcome-hero h1 span{
+ background:linear-gradient(100deg,#c5a7ff 5%,#e4a0f2 55%,#ffb8d8 100%);
+ -webkit-background-clip:text;background-clip:text;color:transparent;
+ filter:drop-shadow(0 7px 23px rgba(187,119,255,.17))
+}
+.welcome-hero p{max-width:560px;color:#c2b6d5;font-size:15px;line-height:1.85}
+.welcome-actions{margin-top:32px}
+.welcome-btn{
+ min-height:52px;padding:0 22px;border-radius:14px;font-size:13px;letter-spacing:.1px;
+ transition:transform .2s ease,box-shadow .2s ease,filter .2s ease,border-color .2s ease
+}
+.welcome-btn.primary{
+ position:relative;overflow:hidden;gap:11px;
+ background:linear-gradient(105deg,#8058f3 0%,#a35be9 52%,#d26bdc 100%);
+ border:1px solid rgba(255,255,255,.3);
+ color:#fff;box-shadow:0 12px 30px rgba(130,76,226,.3),0 0 38px rgba(163,93,235,.27),inset 0 1px 0 rgba(255,255,255,.3);
+ text-shadow:0 1px 8px rgba(40,15,70,.3)
+}
+.welcome-btn.primary:before{
+ content:"";position:absolute;top:-70%;left:-28%;width:25%;height:240%;transform:rotate(25deg);
+ background:linear-gradient(90deg,transparent,rgba(255,255,255,.27),transparent);
+ transition:left .55s ease
+}
+.welcome-btn.primary:hover{transform:translateY(-3px);filter:brightness(1.1);box-shadow:0 16px 38px rgba(130,76,226,.4),0 0 48px rgba(163,93,235,.34),inset 0 1px 0 rgba(255,255,255,.35)}
+.welcome-btn.primary:hover:before{left:115%}
+.welcome-btn.primary:active{transform:translateY(-1px) scale(.99)}
+.welcome-btn-arrow{font-size:17px;margin-left:4px;opacity:.9}
+.welcome-actions:after{
+ content:"Add your video after creating the project";display:block;flex-basis:100%;margin:1px 0 0 2px;
+ color:#8f82a5;font-size:10px;letter-spacing:.35px
+}
+.welcome-visual{min-height:360px}
+.visual-orbit{width:min(340px,78vw);height:min(340px,78vw);border-color:rgba(188,145,255,.27);box-shadow:0 0 75px rgba(159,100,255,.12),inset 0 0 75px rgba(159,100,255,.08);animation:orbitBreathe 8s ease-in-out infinite}
+.visual-orbit:before,.visual-orbit:after{border-color:rgba(188,145,255,.22)}
+.visual-preview{
+ width:232px;height:300px;border-radius:27px;transform:rotate(-4deg);
+ border:1px solid rgba(224,190,255,.65);
+ background:
+  radial-gradient(ellipse at 50% 42%,rgba(174,104,255,.3),transparent 38%),
+  linear-gradient(155deg,#4c3473 0%,#241735 48%,#130e20 100%);
+ box-shadow:0 35px 80px rgba(0,0,0,.58),0 0 42px rgba(171,104,255,.2),inset 0 1px 0 rgba(255,255,255,.24);
+ animation:previewFloat 7s ease-in-out infinite
+}
+.visual-preview:before{inset:9px;border-color:rgba(255,255,255,.23);border-radius:20px}
+.visual-preview:after{
+ content:"";position:absolute;left:18px;right:18px;top:48%;height:36px;opacity:.55;
+ background:repeating-linear-gradient(90deg,rgba(228,195,255,.9) 0 3px,transparent 3px 8px);
+ mask-image:linear-gradient(90deg,transparent,black 12%,black 88%,transparent);
+ filter:drop-shadow(0 0 8px #c08aff);pointer-events:none
+}
+.visual-play{width:68px;height:68px;border:1px solid rgba(255,255,255,.45);background:linear-gradient(145deg,#9a70ff,#d36fe9);box-shadow:0 0 0 8px rgba(183,133,255,.09),0 0 42px rgba(181,117,255,.7);font-size:21px}
+.visual-top{font-size:8px;color:#e6d8fa;letter-spacing:1.8px}
+.visual-bottom{font-size:8px;color:#d7c6ec}
+.visual-bottom strong{font-size:22px;letter-spacing:-.8px}
+.welcome-visual:before,.welcome-visual:after{
+ position:absolute;z-index:2;display:block;padding:9px 12px;border:1px solid rgba(214,185,255,.25);border-radius:11px;
+ background:rgba(24,17,39,.82);backdrop-filter:blur(12px);color:#e7d9ff;
+ font-size:9px;font-weight:850;letter-spacing:1px;box-shadow:0 10px 30px rgba(0,0,0,.3),0 0 24px rgba(158,103,255,.12)
+}
+.welcome-visual:before{content:"✦ AI MOMENT FINDER";top:18%;left:0;transform:rotate(-5deg)}
+.welcome-visual:after{content:"9:16  /  CREATOR READY";bottom:16%;right:0;transform:rotate(4deg)}
+.welcome-features{gap:16px;margin-top:20px}
+.welcome-feature{
+ position:relative;overflow:hidden;padding:22px 21px 20px;border-radius:19px;
+ border:1px solid rgba(190,154,239,.17);
+ background:linear-gradient(145deg,rgba(29,22,45,.94),rgba(17,14,29,.95));
+ box-shadow:0 12px 32px rgba(0,0,0,.17),inset 0 1px 0 rgba(255,255,255,.035);
+ transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease
+}
+.welcome-feature:before{content:"";position:absolute;left:18px;right:18px;top:0;height:1px;background:linear-gradient(90deg,transparent,rgba(200,164,255,.45),transparent)}
+.welcome-feature:hover{transform:translateY(-4px);border-color:rgba(191,145,255,.4);box-shadow:0 18px 40px rgba(0,0,0,.25),0 0 28px rgba(144,91,225,.1)}
+.welcome-feature span{
+ width:34px;height:34px;display:grid;place-items:center;border-radius:11px;
+ border:1px solid rgba(194,153,255,.25);background:linear-gradient(145deg,rgba(133,90,222,.27),rgba(218,111,220,.13));
+ color:#e0caff;font-size:17px;box-shadow:0 5px 18px rgba(136,86,218,.13)
+}
+.welcome-feature b{font-size:13px;letter-spacing:.05px;margin:12px 0 5px}
+.welcome-feature p{color:#a99cb9;font-size:11px;line-height:1.75}
+.welcome-foot{margin-top:25px;color:#8f829e;font-size:9px;letter-spacing:1.35px}
+@keyframes orbitBreathe{0%,100%{transform:scale(1);opacity:.78}50%{transform:scale(1.035);opacity:1}}
+@keyframes previewFloat{0%,100%{translate:0 0;rotate:-4deg}50%{translate:0 -9px;rotate:-2deg}}
+
+/* Main creator workspace */
+.app-shell{position:relative;max-width:1540px;padding:20px 30px 74px}
+.topbar{
+ border-color:rgba(198,165,245,.18);
+ background:rgba(12,9,22,.82);
+ box-shadow:0 16px 54px rgba(0,0,0,.42),inset 0 1px 0 rgba(255,255,255,.045)
+}
+.brand-mark{border:1px solid rgba(255,255,255,.3);box-shadow:0 8px 28px rgba(145,87,238,.35),0 0 34px rgba(145,87,238,.28),inset 0 1px 0 rgba(255,255,255,.35)}
+.brand-text{letter-spacing:-.65px}
+.top-pill{box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 5px 18px rgba(117,79,176,.08)}
+.back{transition:all .2s ease}.back:hover{box-shadow:0 0 22px rgba(154,105,227,.14);transform:translateY(-1px)}
+.hero{
+ isolation:isolate;box-shadow:0 28px 80px rgba(0,0,0,.35),0 0 48px rgba(133,83,211,.09),inset 0 1px 0 rgba(255,255,255,.05)
+}
+.hero:before{
+ content:"";position:absolute;z-index:-1;right:-100px;top:-180px;width:460px;height:460px;border-radius:50%;
+ background:radial-gradient(circle,rgba(159,105,255,.16),transparent 68%);pointer-events:none
+}
+.hero:after{right:6%;top:10%;color:rgba(195,160,255,.075);text-shadow:0 0 42px rgba(177,125,255,.12)}
+.hero h1{font-weight:900;text-wrap:balance}
+.hero-copy p{color:#c6bad6}
+.hero-note{box-shadow:0 12px 32px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.045)}
+.workflow{
+ border-color:rgba(190,154,239,.17);
+ background:linear-gradient(100deg,rgba(25,19,40,.96),rgba(17,13,29,.94));
+ box-shadow:0 14px 42px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.035)
+}
+.workflow-step{
+ border-color:rgba(190,154,239,.1);background:rgba(255,255,255,.018);
+ transition:background .2s ease,border-color .2s ease,transform .2s ease
+}
+.workflow-step:hover{background:rgba(132,91,204,.1);border-color:rgba(184,141,245,.28);transform:translateY(-2px)}
+.workflow-no{box-shadow:0 5px 18px rgba(140,89,224,.2),inset 0 1px 0 rgba(255,255,255,.2)}
+.studio-layout{gap:22px}
+.studio-rail{
+ border-color:rgba(190,154,239,.16);background:linear-gradient(180deg,rgba(24,18,38,.96),rgba(15,12,25,.96));
+ box-shadow:0 16px 40px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.04)
+}
+.studio-rail a{transition:all .18s ease}
+.studio-rail a:hover{transform:translateX(3px);background:linear-gradient(90deg,rgba(134,89,212,.2),rgba(134,89,212,.04));box-shadow:inset 2px 0 #b795ff}
+.studio-rail a span{border:1px solid rgba(194,155,255,.12);box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
+.panel{
+ position:relative;border-color:rgba(190,154,239,.17);
+ background:linear-gradient(155deg,rgba(27,21,43,.98),rgba(15,12,25,.99));
+ box-shadow:0 20px 52px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.04)
+}
+.panel:before{
+ content:"";position:absolute;top:0;left:8%;right:8%;height:1px;pointer-events:none;
+ background:linear-gradient(90deg,transparent,rgba(202,166,255,.38),transparent)
+}
+.panel-pad,.analysis-pad,.recent-pad{position:relative}
+.panel-head{margin-bottom:20px}
+.panel h2,.analysis-head h2,.recent-head h2{font-size:17px;letter-spacing:-.45px;font-weight:850}
+.panel-sub{color:#b5a9c7;font-size:11px}
+.step-bubble{box-shadow:0 5px 16px rgba(145,93,220,.13),inset 0 1px 0 rgba(255,255,255,.08)}
+.small-label{background:rgba(139,93,212,.13);border-color:rgba(184,144,241,.28);color:#dac7ff}
+.drop{
+ border-color:rgba(177,133,239,.62);
+ background:
+  radial-gradient(ellipse at 50% 0,rgba(157,103,231,.19),transparent 70%),
+  linear-gradient(145deg,#211832,#151020);
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.045),0 12px 28px rgba(0,0,0,.16)
+}
+.drop:hover,.drop.drag{border-color:#d6b6ff;box-shadow:inset 0 0 35px rgba(161,106,244,.1),0 0 28px rgba(152,98,230,.15)}
+.drop.has-file{border-color:rgba(171,128,228,.5)}
+.upload-icon{border:1px solid rgba(230,204,255,.38);box-shadow:0 9px 26px rgba(137,83,226,.32),inset 0 1px 0 rgba(255,255,255,.23)}
+.drop-copy strong{font-size:14px;letter-spacing:-.15px}
+.fileinput{border-color:rgba(166,128,217,.42);box-shadow:inset 0 1px 0 rgba(255,255,255,.04);transition:border-color .18s,box-shadow .18s}
+.fileinput:hover{border-color:#a984df}
+.fileinput::file-selector-button{box-shadow:0 5px 16px rgba(154,104,228,.2);transition:filter .18s,transform .18s}
+.fileinput::file-selector-button:hover{filter:brightness(1.08);transform:translateY(-1px)}
+.upload-progress-wrap{border-color:rgba(174,133,224,.27);background:linear-gradient(110deg,rgba(28,21,44,.98),rgba(17,14,29,.98));box-shadow:inset 0 1px 0 rgba(255,255,255,.035)}
+.upload-progress{border-color:rgba(170,129,226,.3)}
+.upload-progress-fill{box-shadow:0 0 16px rgba(198,114,255,.45)}
+.preview{border-color:rgba(184,145,230,.22);box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
+.preview video{border-color:rgba(187,152,231,.22);box-shadow:0 12px 32px rgba(0,0,0,.3)}
+.filemeta{color:#c1b4d2}
+.primary{
+ min-height:43px;border-radius:12px;border:1px solid rgba(237,219,255,.24);
+ box-shadow:0 9px 26px rgba(139,87,229,.24),inset 0 1px 0 rgba(255,255,255,.23);
+ transition:transform .18s ease,filter .18s ease,box-shadow .18s ease
+}
+.primary:hover:not(:disabled){box-shadow:0 12px 30px rgba(139,87,229,.34),0 0 22px rgba(177,119,255,.16),inset 0 1px 0 rgba(255,255,255,.25)}
+.primary:active:not(:disabled){transform:translateY(0) scale(.985)}
+.secondary{transition:all .18s ease}
+.secondary:hover:not(:disabled){box-shadow:0 0 22px rgba(157,111,218,.12);transform:translateY(-1px)}
+.field select,.field input[type=number]{
+ min-height:43px;box-shadow:inset 0 1px 0 rgba(255,255,255,.035);
+ transition:border-color .18s,box-shadow .18s
+}
+.field select:hover,.field input[type=number]:hover{border-color:#72568f}
+.checkrow{transition:border-color .18s,background .18s,box-shadow .18s}
+.checkrow:hover{border-color:rgba(183,143,238,.4);background:#211a38;box-shadow:0 7px 20px rgba(0,0,0,.12)}
+.save-box{border-color:rgba(184,145,230,.19);box-shadow:inset 0 1px 0 rgba(255,255,255,.035)}
+.save-state{color:#a99bb9}
+.analysis-panel,.recent{box-shadow:0 22px 58px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.04)}
+.analysis-head{margin-bottom:4px}
+.analysis-progress{border-color:rgba(170,129,226,.28);box-shadow:inset 0 2px 4px rgba(0,0,0,.26)}
+.analysis-progress>div{box-shadow:0 0 18px rgba(204,114,255,.38)}
+.analysis-status{color:#eddefe}
+.transcript-list{scrollbar-width:thin;scrollbar-color:#594276 #171126}
+.transcript-item{border-color:rgba(184,145,230,.19);background:linear-gradient(100deg,#1c1630,#151122);transition:border-color .18s,background .18s}
+.transcript-item:hover{border-color:rgba(190,148,245,.42);background:#201832}
+.transcript-item time{font-weight:800}
+.clip-create{box-shadow:0 6px 18px rgba(142,91,225,.13);transition:all .18s}
+.clip-create:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 9px 24px rgba(142,91,225,.22)}
+.clip-download{box-shadow:0 7px 22px rgba(65,171,111,.12);transition:filter .18s,transform .18s}
+.clip-download:hover{filter:brightness(1.1);transform:translateY(-1px)}
+.analysis-note{border-top:1px solid rgba(190,154,239,.12);padding-top:13px}
+.recent-list{gap:10px}
+.project{border-color:rgba(184,145,230,.2);background:linear-gradient(110deg,#1d1730,#151122);transition:transform .18s,border-color .18s,box-shadow .18s}
+.project:hover{transform:translateY(-2px);border-color:rgba(190,148,245,.4);box-shadow:0 12px 28px rgba(0,0,0,.2)}
+.project strong{color:#f5efff;font-size:12px}
+.empty{border-color:rgba(177,137,225,.33);background:linear-gradient(120deg,rgba(35,25,54,.55),rgba(20,15,32,.7));padding:22px}
+.status{border-color:rgba(180,141,234,.3)}
+.footer{color:#9a8eaa}
+@media(max-width:900px){
+ .app-shell{padding:16px 18px 58px}
+ .studio-rail a:hover{transform:none}
+ .welcome-hero{gap:10px}
+ .welcome-visual{min-height:300px}
+ .welcome-visual:before{left:8%}
+ .welcome-visual:after{right:7%}
+}
+@media(max-width:600px){
+ .app-shell{padding:10px 12px 42px}
+ .welcome-top{align-items:flex-start;gap:12px}
+ .welcome-brand{font-size:18px}
+ .welcome-logo{width:45px;height:45px}
+ .welcome-back{padding:8px 10px;font-size:10px}
+ .welcome-hero{padding:27px 21px;border-radius:23px}
+ .welcome-hero h1{font-size:clamp(39px,11vw,52px);letter-spacing:-2.6px}
+ .welcome-hero p{font-size:13px;line-height:1.75}
+ .welcome-btn{min-height:49px}
+ .welcome-visual{min-height:270px;margin-top:10px}
+ .visual-preview{width:190px;height:250px}
+ .welcome-visual:before{top:12%;left:0;font-size:8px}
+ .welcome-visual:after{bottom:10%;right:0;font-size:8px}
+ .welcome-features{gap:10px}
+ .welcome-feature{padding:18px}
+ .welcome-foot{font-size:8px;letter-spacing:1px}
+ .hero{padding:25px 21px}
+ .studio-layout{gap:13px}
+ .studio-rail{padding:9px}
+ .studio-rail a{padding:9px 10px;font-size:11px}
+ .panel-pad,.analysis-pad,.recent-pad{padding:17px}
+ .panel-head{gap:10px}
+}
+@media(prefers-reduced-motion:reduce){
+ *,*:before,*:after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
+
 </style>
 </head>
 <body>
-<section id="studioWelcome" class="studio-welcome"><div class="studio-welcome-inner"><div class="welcome-top"><div class="welcome-brand"><span class="welcome-logo">✦</span><span>TrivexaAI<small>AI SHORTS STUDIO</small></span></div><a class="welcome-back" href="../">← Back to TrivexaAI</a></div><div class="welcome-hero"><div><span class="welcome-kicker"><i></i> CREATE MORE FROM EVERY VIDEO</span><h1>Turn moments into <span>momentum.</span></h1><p>Discover your strongest moments, shape them into vertical Shorts, add captions and export polished clips — all inside your TrivexaAI creative workspace.</p><div class="welcome-actions"><button id="launchShortsStudio" class="welcome-btn primary" type="button">✦ Open Shorts Studio</button><button id="newShortsProject" class="welcome-btn" type="button">＋ Start with a video</button></div></div><div class="welcome-visual" aria-hidden="true"><div class="visual-orbit"></div><div class="visual-preview"><span class="visual-top">TRIVEXAAI · CREATOR LAB</span><span class="visual-play">▶</span><span class="visual-bottom">YOUR NEXT BIG MOMENT<strong>MAKE IT A SHORT.</strong></span></div></div></div><div class="welcome-features"><div class="welcome-feature"><span>◈</span><b>AI moment discovery</b><p>Find engaging moments from your own long-form video.</p></div><div class="welcome-feature"><span>▣</span><b>Creator-ready captions</b><p>Review transcripts and burn readable subtitles into exports.</p></div><div class="welcome-feature"><span>↗</span><b>Vertical exports</b><p>Create and download optimized 9:16 Shorts in your browser.</p></div></div><div class="welcome-foot"><span>TRIVEXAAI · AI SHORTS STUDIO</span><span>YOUR VIDEO. YOUR MOMENTS. YOUR STORY.</span></div></div></section>
+<section id="studioWelcome" class="studio-welcome"><div class="studio-welcome-inner"><div class="welcome-top"><div class="welcome-brand"><span class="welcome-logo">✦</span><span>TrivexaAI<small>AI SHORTS STUDIO</small></span></div><a class="welcome-back" href="../">← Back to TrivexaAI</a></div><div class="welcome-hero"><div><span class="welcome-kicker"><i></i> CREATE MORE FROM EVERY VIDEO</span><h1>Turn moments into <span>momentum.</span></h1><p>Discover your strongest moments, shape them into vertical Shorts, add captions and export polished clips — all inside your TrivexaAI creative workspace.</p><div class="welcome-actions"><button id="createShortsProject" class="welcome-btn primary" type="button"><span aria-hidden="true">＋</span> Create Project <span class="welcome-btn-arrow" aria-hidden="true">↗</span></button></div></div><div class="welcome-visual" aria-hidden="true"><div class="visual-orbit"></div><div class="visual-preview"><span class="visual-top">TRIVEXAAI · CREATOR LAB</span><span class="visual-play">▶</span><span class="visual-bottom">YOUR NEXT BIG MOMENT<strong>MAKE IT A SHORT.</strong></span></div></div></div><div class="welcome-features"><div class="welcome-feature"><span>◈</span><b>AI moment discovery</b><p>Find engaging moments from your own long-form video.</p></div><div class="welcome-feature"><span>▣</span><b>Creator-ready captions</b><p>Review transcripts and burn readable subtitles into exports.</p></div><div class="welcome-feature"><span>↗</span><b>Vertical exports</b><p>Create and download optimized 9:16 Shorts in your browser.</p></div></div><div class="welcome-foot"><span>TRIVEXAAI · AI SHORTS STUDIO</span><span>YOUR VIDEO. YOUR MOMENTS. YOUR STORY.</span></div></div></section>
 <div class="app-shell">
 <header class="topbar">
  <a class="brand" href="../"><span class="brand-mark" aria-hidden="true"></span><span class="brand-text">Trivexa<span>AI</span><small class="brand-caption">Creator workspace / Shorts maker</small></span></a>
@@ -480,7 +792,7 @@ window.addEventListener('pagehide',()=>{downloadUrls.forEach(url=>URL.revokeObje
 })();
 </script>
 <script>
-(()=>{const enter=(pick)=>{document.body.classList.add('studio-entered');window.scrollTo({top:0,behavior:'smooth'});if(pick)setTimeout(()=>{const f=document.getElementById('file');if(f)f.click();},220);};const open=document.getElementById('launchShortsStudio'),fresh=document.getElementById('newShortsProject');if(open)open.addEventListener('click',()=>enter(false));if(fresh)fresh.addEventListener('click',()=>enter(true));})();
+(()=>{const create=document.getElementById('createShortsProject');if(create)create.addEventListener('click',()=>{document.body.classList.add('studio-entered');window.scrollTo({top:0,behavior:'smooth'});});})();
 </script>
 </body>
 </html>
