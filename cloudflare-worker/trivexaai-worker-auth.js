@@ -2179,6 +2179,76 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
 
       }
 
+      // CREATOR INTELLIGENCE — longer, structured creator plans need a larger output budget.
+      if (body.action === "creator_intelligence_generate") {
+        if (body.toolId !== "creator-intelligence-studio") {
+          return reply({ error: "This request is not from Creator Intelligence Studio.", code: "CREATOR_INTELLIGENCE_TOOL_MISMATCH" }, 400);
+        }
+        const prompt = typeof body.prompt === "string" ? body.prompt.trim() : "";
+        if (!prompt || prompt.length > 4000) {
+          return reply({ error: "Enter a Creator Intelligence prompt of up to 4,000 characters." }, 400);
+        }
+        if (!env.GEMINI_API_KEY && !env.OPENROUTER_API_KEY) {
+          return reply({ error: "No text AI provider is configured.", code: "CREATOR_INTELLIGENCE_AI_NOT_CONFIGURED" }, 500);
+        }
+        const firstVideoRequest = /first-video launch blueprint/i.test(prompt);
+        const maxOutputTokens = firstVideoRequest ? 5200 : 3200;
+        let generatedText = "";
+        let geminiFailure = null;
+        if (env.GEMINI_API_KEY) {
+          try {
+            const response = await fetchGeminiWithRetry(
+              "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent",
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "x-goog-api-key": env.GEMINI_API_KEY },
+                body: JSON.stringify({
+                  contents: [{ role: "user", parts: [{ text: prompt }] }],
+                  generationConfig: { temperature: 0.25, maxOutputTokens, responseMimeType: "application/json" }
+                })
+              }
+            );
+            let data = {};
+            try { data = await response.json(); } catch (parseError) {}
+            if (!response.ok) {
+              throw Object.assign(new Error(String(data.error?.message || "Gemini request failed.").slice(0, 450)), { status: response.status });
+            }
+            generatedText = data.candidates?.[0]?.content?.parts
+              ?.map(part => typeof part.text === "string" ? part.text : "").join("") || "";
+            if (!generatedText.trim()) {
+              const finishReason = String(data.candidates?.[0]?.finishReason || "");
+              throw new Error(finishReason === "MAX_TOKENS"
+                ? "Gemini reached its output limit before completing the first-video plan."
+                : "Gemini returned an empty Creator Intelligence response.");
+            }
+          } catch (error) {
+            geminiFailure = error;
+            console.warn("Creator Intelligence Gemini failed; trying OpenRouter fallback:", error?.message);
+          }
+        }
+        if (!generatedText && env.OPENROUTER_API_KEY) {
+          const systemPrompt = "You are TrivexaAI Creator Intelligence Studio. Follow the user's requested JSON schema exactly. Return one complete valid JSON object only, with no markdown fences or commentary. Do not stop before all requested fields are complete.";
+          try {
+            generatedText = await fetchOpenRouterText(systemPrompt, prompt, maxOutputTokens, 0.25);
+          } catch (openRouterError) {
+            console.error("Creator Intelligence OpenRouter error:", openRouterError);
+            return reply({
+              error: "Gemini and OpenRouter could not complete this Creator Intelligence request.",
+              details: String(openRouterError?.message || geminiFailure?.message || "Please try again shortly.").slice(0, 450),
+              code: "CREATOR_INTELLIGENCE_PROVIDERS_FAILED"
+            }, openRouterError?.status === 429 ? 429 : 502);
+          }
+        }
+        if (!generatedText.trim()) {
+          return reply({
+            error: "The AI could not complete this Creator Intelligence request.",
+            details: String(geminiFailure?.message || "Please try again shortly.").slice(0, 400),
+            code: "CREATOR_INTELLIGENCE_EMPTY_RESPONSE"
+          }, 502);
+        }
+        return reply({ text: generatedText.trim() });
+      }
+
       // EXISTING TEXT AI TOOLS — Gemini primary, OpenRouter free-only fallback.
       if (!env.GEMINI_API_KEY && !env.OPENROUTER_API_KEY) {
         return reply({ error: "No text AI provider is configured." }, 500);
