@@ -308,6 +308,7 @@ html,body{
 @media(max-width:640px){.help-modal{padding:17px}.help-grid{grid-template-columns:1fr}.help-head h2{font-size:21px}.help-foot{align-items:flex-start;flex-direction:column-reverse}.help-foot .btn{width:100%}.top-actions{gap:6px}.top-actions .btn{padding:7px 9px;font-size:11px}}
 
 /* Premium workspace access gate */
+[hidden]{display:none!important}
 body:not(.photo-access-granted)>header,
 body:not(.photo-access-granted)>#startScreen,
 body:not(.photo-access-granted)>#workspace{display:none!important}
@@ -1945,10 +1946,13 @@ $("mobilePreviewBtn").addEventListener("click",openMobilePreview);$("closeMobile
 $("basicTools").addEventListener("click",e=>{if(activeTool!=="crop")return;const control=e.target.closest("button,input,select");if(control&&control.id!=="cropBtn"&&control.id!=="cropToSelection")cancelCrop()},true);document.querySelectorAll(".rail-btn").forEach(b=>b.addEventListener("click",()=>activateRail(b.dataset.rail)));document.querySelectorAll(".right-tabs button").forEach(b=>b.addEventListener("click",()=>selectTab(b.dataset.tab)));
 window.addEventListener("keydown",e=>{const target=e.target,editing=target instanceof HTMLElement&&(target.isContentEditable||["INPUT","TEXTAREA","SELECT"].includes(target.tagName));if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="a"&&!editing&&state){e.preventDefault();setLayerSelection(state.layers.map(layer=>layer.id),state.layers.at(-1)?.id||null);return}if(e.key==="Escape"){if(!$("helpModal").classList.contains("hidden")){closeHelp();return}if(!$("deleteProjectModal").classList.contains("hidden")){closeDeleteProjectModal();return}if(activeTool==="crop"){e.preventDefault();cancelCrop();return}if(!$("templatePickerModal").classList.contains("hidden"))closeTemplatePicker();if(!$("mobilePreviewModal").classList.contains("hidden"))closeMobilePreview()}if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="z"){e.preventDefault();e.shiftKey?redo():undo()}if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="y"){e.preventDefault();redo()}});
 window.addEventListener("resize",()=>{if(state&&autoFitZoom)fitZoom();updateSelectionOverlay()});
+let photoAccessVerificationInFlight=false;
 async function verifyPhotoEditorAccess(){
  const title=$("photoAccessTitle"),message=$("photoAccessMessage"),status=$("photoAccessStatus"),retry=$("retryPhotoAccess");
+ if(photoAccessVerificationInFlight)return;
+ photoAccessVerificationInFlight=true;
  document.body.classList.remove("photo-access-granted");
- retry.hidden=true;title.textContent="Verifying premium access";message.textContent="Please wait while we securely confirm your account permissions.";status.textContent="Secure access check in progress";
+ retry.hidden=true;retry.disabled=true;title.textContent="Verifying premium access";message.textContent="Please wait while we securely confirm your account permissions.";status.textContent="Secure access check in progress";
  try{
   await authReady;
   if(!auth?.currentUser)throw new Error("Please sign in with your Google account to continue.");
@@ -1967,6 +1971,9 @@ async function verifyPhotoEditorAccess(){
   message.textContent=e?.message||"Your account could not be verified. The Photo Studio and saved projects remain locked.";
   status.textContent="Workspace locked until secure verification succeeds";
   retry.hidden=false;
+ }finally{
+  photoAccessVerificationInFlight=false;
+  retry.disabled=false;
  }
 }
 window.__photoEditorAccessGranted=false;
