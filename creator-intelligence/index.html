@@ -189,7 +189,6 @@ function fieldChange(e){
   active.fields.brandPromptsReady=!!(String(active.fields.logoPrompt||"").trim()&&String(active.fields.bannerPrompt||"").trim());
   if(key==="logoPrompt"){
    delete active.images.logo;
-   delete active.images.banner;
   }else delete active.images.banner;
   renderImages();
  }
@@ -734,9 +733,8 @@ async function makeImage(kind){
   const source=image.indexOf("data:")===0?image:"data:image/png;base64,"+image;
   if(kind==="logo"){
    active.images.logo=await composeLogoImage(source);
-   delete active.images.banner;
    save();renderImages();buildButtons();syncBrandContinue();
-   setStatus("Your clean symbol logo is ready. Now generate the matching YouTube banner; its channel name will be typeset by the app with exact spelling.");
+   setStatus("Your logo with the exact channel name is ready. Your existing YouTube banner has been kept unchanged.");
   }else if(kind==="banner"){
    active.images.banner=await composeYouTubeBanner(source,active.images.logo);
    save();renderImages();buildButtons();syncBrandContinue();
