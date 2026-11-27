@@ -89,6 +89,7 @@ body:not(.studio-entered) .app-shell{display:none}body.studio-entered #studioWel
 </style>
 </head>
 <body>
+<section id="studioWelcome" class="studio-welcome"><div class="studio-welcome-inner"><div class="welcome-top"><div class="welcome-brand"><span class="welcome-logo">✦</span><span>TrivexaAI<small>AI SHORTS STUDIO</small></span></div><a class="welcome-back" href="../">← Back to TrivexaAI</a></div><div class="welcome-hero"><div><span class="welcome-kicker"><i></i> CREATE MORE FROM EVERY VIDEO</span><h1>Turn moments into <span>momentum.</span></h1><p>Discover your strongest moments, shape them into vertical Shorts, add captions and export polished clips — all inside your TrivexaAI creative workspace.</p><div class="welcome-actions"><button id="launchShortsStudio" class="welcome-btn primary" type="button">✦ Open Shorts Studio</button><button id="newShortsProject" class="welcome-btn" type="button">＋ Start with a video</button></div></div><div class="welcome-visual" aria-hidden="true"><div class="visual-orbit"></div><div class="visual-preview"><span class="visual-top">TRIVEXAAI · CREATOR LAB</span><span class="visual-play">▶</span><span class="visual-bottom">YOUR NEXT BIG MOMENT<strong>MAKE IT A SHORT.</strong></span></div></div></div><div class="welcome-features"><div class="welcome-feature"><span>◈</span><b>AI moment discovery</b><p>Find engaging moments from your own long-form video.</p></div><div class="welcome-feature"><span>▣</span><b>Creator-ready captions</b><p>Review transcripts and burn readable subtitles into exports.</p></div><div class="welcome-feature"><span>↗</span><b>Vertical exports</b><p>Create and download optimized 9:16 Shorts in your browser.</p></div></div><div class="welcome-foot"><span>TRIVEXAAI · AI SHORTS STUDIO</span><span>YOUR VIDEO. YOUR MOMENTS. YOUR STORY.</span></div></div></section>
 <div class="app-shell">
 <header class="topbar">
  <a class="brand" href="../"><span class="brand-mark" aria-hidden="true"></span><span class="brand-text">Trivexa<span>AI</span><small class="brand-caption">Creator workspace / Shorts maker</small></span></a>
@@ -104,8 +105,9 @@ body:not(.studio-entered) .app-shell{display:none}body.studio-entered #studioWel
  <div class="workflow-step"><span class="workflow-no">03</span><span class="workflow-label"><strong>Find moments</strong><small>AI highlights</small></span></div>
  <div class="workflow-step"><span class="workflow-no">04</span><span class="workflow-label"><strong>Create Shorts</strong><small>Vertical export</small></span></div>
 </nav>
-<div class="studio-layout"><aside class="studio-rail"><span class="studio-rail-label">WORKSPACE</span><a href="#sourcePanel"><span>01</span> Source video</a><a href="#settingsPanel"><span>02</span> Preferences</a><a href="#analysisPanel"><span>03</span> AI discovery</a><a href="#recentPanel"><span>04</span> Projects</a><div class="studio-rail-foot">LOCAL-FIRST WORKSPACE<br>9:16 SHORT-FORM EXPORTS</div></aside><div class="studio-main">\n<main class="workspace-grid">
- <section class="panel">
+<div class="studio-layout"><aside class="studio-rail"><span class="studio-rail-label">WORKSPACE</span><a href="#sourcePanel"><span>01</span> Source video</a><a href="#settingsPanel"><span>02</span> Preferences</a><a href="#analysisPanel"><span>03</span> AI discovery</a><a href="#recentPanel"><span>04</span> Projects</a><div class="studio-rail-foot">LOCAL-FIRST WORKSPACE<br>9:16 SHORT-FORM EXPORTS</div></aside><div class="studio-main">
+<main class="workspace-grid">
+ <section class="panel" id="sourcePanel">
   <div class="panel-pad">
    <div class="panel-head"><div class="heading-left"><span class="step-bubble">01</span><div><h2>Your source video</h2><p class="panel-sub">Select a video from your computer. You will see its name and preparation status here.</p></div></div><span class="small-label">Input</span></div>
    <div class="drop" id="drop">
@@ -154,7 +156,8 @@ body:not(.studio-entered) .app-shell{display:none}body.studio-entered #studioWel
 <section class="panel recent" id="recentPanel">
  <div class="recent-pad"><div class="recent-head"><div><h2>Recent projects</h2><p class="panel-sub">Saved on this browser and device only.</p></div><span class="small-label">Your workspace</span></div><div class="recent-list" id="recent"><div class="empty">No saved projects yet. Choose a video, then save your first project.</div></div></div>
 </section>
-</div></div>\n<footer class="footer"><span>TrivexaAI · AI Shorts Maker</span><span>Local video processing · 9:16 vertical exports</span></footer>
+</div></div>
+<footer class="footer"><span>TrivexaAI · AI Shorts Maker</span><span>Local video processing · 9:16 vertical exports</span></footer>
 </div>
 <script type="module">
 let auth=null,authLoadError=null;
