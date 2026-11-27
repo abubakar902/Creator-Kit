@@ -65,6 +65,21 @@ button,input{font:inherit}button,a{ -webkit-tap-highlight-color:transparent}
 .info-row{padding:12px 13px;border:1px solid #38355b;border-radius:12px;background:#10142e}
 .info-row small{display:block;color:#9993bb;font-size:9px;font-weight:800;letter-spacing:1px;text-transform:uppercase}
 .info-row strong{display:block;margin-top:5px;font-size:12px;overflow-wrap:anywhere}
+.dashboard-grid{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin:0 0 15px}
+.dashboard-grid .wide{grid-column:1/-1}
+.project-list,.activity-list{display:grid;gap:9px}
+.project-row,.activity-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px;border:1px solid #39365d;border-radius:12px;background:#10142e;min-width:0}
+.project-row strong,.activity-row strong{display:block;font-size:11px;overflow-wrap:anywhere}
+.project-row small,.activity-row small{display:block;color:#9993bb;font-size:9px;margin-top:4px}
+.mini-link{flex:0 0 auto;color:#d8c6ff;text-decoration:none;font-size:10px;font-weight:850;padding:8px 10px;border:1px solid #62518d;border-radius:9px;background:#292148}
+.mini-link:hover{border-color:#ad8aff;background:#34275b}
+.usage-total{font-size:31px;font-weight:900;letter-spacing:-1px;margin:12px 0 3px}
+.usage-note,.empty-note{font-size:10px;color:#aaa5c7;line-height:1.6}
+.usage-bars{display:grid;gap:10px;margin-top:16px}
+.usage-bar-head{display:flex;justify-content:space-between;gap:10px;font-size:10px;color:#d9d2ef}
+.usage-track{height:7px;margin-top:6px;border-radius:99px;background:#292548;overflow:hidden}
+.usage-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,#7d5bfa,#d15de5)}
+.project-scope{margin-top:12px;color:#a8a1c8;font-size:9px;line-height:1.6}
 .invite-panel{margin-top:15px}
 .invite-input-row{display:flex;gap:9px;margin-top:15px}
 .invite-input-row input{min-width:0;flex:1;padding:12px 13px;border:1px solid #514879;border-radius:11px;background:#0b1028;color:white;outline:none;font-size:12px;letter-spacing:1px;text-transform:uppercase}
@@ -317,9 +332,10 @@ async function load(){
   setPill("basic",Boolean(access.basicTools));
   setPill("advanced",premium);
   setPill("studio",Boolean(access.videoStudio));
-  $("profileMessage").textContent="";\n  await Promise.allSettled([loadLocalPhotoProjects(),loadDashboardAnalytics()]);
+  $("profileMessage").textContent="";
+  await Promise.allSettled([loadLocalPhotoProjects(),loadDashboardAnalytics()]);
  }catch(error){
-  $("profileMessage").textContent=(error.message||"Account load nahi ho saka.")+" Please try again.";
+  $("profileMessage").textContent=(error.message||"Your account could not be loaded.")+" Please try again.";
   $("retryProfile").hidden=false;
  }
 }
@@ -331,7 +347,7 @@ $("redeem").addEventListener("click",async()=>{
   await workerRequest({action:"auth_redeem_invite",code:$("code").value.trim()});
   $("message").textContent="Advanced access approved. Refreshing your account…";
   await load();
- }catch(error){$("message").textContent=error.message||"Invite redeem nahi ho saka. Please check the code and try again.";}
+ }catch(error){$("message").textContent=error.message||"The invite code could not be redeemed. Please check the code and try again.";}
  finally{$("redeem").disabled=false;}
 });
 $("out").addEventListener("click",async()=>{await signOutTrivexaAI();location.replace("../");});
