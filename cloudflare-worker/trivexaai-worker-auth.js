@@ -9,6 +9,10 @@ const TRACKED_TOOL_ACTIONS = new Set([
   "transcribe_audio", "shorts_analyze", "shorts_caption",
   "ai_editing_assistant", "ai_prompt_writer"
 ]);
+const TRACKED_TOOL_IDS = new Set([
+  "titles", "caption", "hashtags", "description", "hooks", "script",
+  "ai-question-answer", "trivexaai-website-guide"
+]);
 const ADVANCED_ACTIONS = new Set([
   "generate_image", "generate_voice", "video_studio", "video_studio_create",
   "video_studio_export", "video_studio_ai_assistant", "transcribe_audio", "shorts_analyze", "shorts_caption", "ai_editing_assistant", "ai_prompt_writer",
@@ -2290,10 +2294,13 @@ export default {
   let response;
   try{response=await legacyWorker.fetch(forwarded,env);}catch(e){console.error("Legacy Worker error:",e);return reply({error:"The tool request failed."},500);}
   // Record successful allowlisted actions only; never persist request payloads.
-  if(response.ok && TRACKED_TOOL_ACTIONS.has(action)){
+  // For the shared text-generation endpoint, prefer the frontend's allowlisted tool ID.
+  const requestedToolId=String(body.toolId||"").toLowerCase();
+  const trackedAction=TRACKED_TOOL_IDS.has(requestedToolId)?requestedToolId:action;
+  if(response.ok && (TRACKED_TOOL_ACTIONS.has(action)||TRACKED_TOOL_IDS.has(requestedToolId))){
    try{
     await env.TRIVEXA_DB.prepare("INSERT INTO user_activity(id,uid,action,created_at) VALUES(?,?,?,?)")
-     .bind(crypto.randomUUID(),user.uid,action,Math.floor(Date.now()/1000)).run();
+     .bind(crypto.randomUUID(),user.uid,trackedAction,Math.floor(Date.now()/1000)).run();
    }catch(e){console.warn("Usage analytics write skipped:",e?.message||e);}
   }
   const headers=new Headers(response.headers);
