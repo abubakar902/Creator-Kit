@@ -269,7 +269,7 @@ async function loadDashboardAnalytics(){
   const data=await workerRequest({action:"dashboard_data"});
   const total=Number(data.total||0),items=Array.isArray(data.byAction)?data.byAction:[];
   $("usageTotal").textContent=String(total);
-  $("usageNote").textContent=total?"Successful tracked requests in the last 30 days.":"No tracked tool requests in the last 30 days yet.";
+  $("usageNote").textContent=total?"Successful tracked requests in the last 30 days. Most used: "+actionLabel(items[0]?.action||"")+" ("+Number(items[0]?.total||0)+").":"No tracked tool requests in the last 30 days yet.";
   bars.replaceChildren();
   if(items.length){
    const max=Math.max(1,...items.map(item=>Number(item.total||0)));
