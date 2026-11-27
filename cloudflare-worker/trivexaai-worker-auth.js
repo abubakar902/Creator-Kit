@@ -84,6 +84,11 @@ async function accountAction(body, env, user, reply) {
     if (!allowed) return reply({error:"Premium access is required to open AI Shorts Maker. Please request admin approval.",code:"ADVANCED_ACCESS_REQUIRED",allowed:false},403);
     return reply({allowed:true,workspace:"shorts-maker",access:"approved"});
   }
+  if (a === "photo_editor_workspace_access") {
+    const allowed = user.status === "active" && (user.role === "admin" || user.advanced_access === "approved");
+    if (!allowed) return reply({error:"Premium access is required to open Photo Studio. Please request admin approval.",code:"ADVANCED_ACCESS_REQUIRED",allowed:false},403);
+    return reply({allowed:true,workspace:"photo-editor",access:"approved"});
+  }
   if (a === "auth_me") return reply({user:safeUser(user),access:{
     basicTools:user.status==="active",
     advancedFeatures:user.status==="active"&&(user.role==="admin"||user.advanced_access==="approved"),
