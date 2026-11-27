@@ -554,7 +554,9 @@ function renderChannelNamePicker(root,obj){
    if(changed)clearGeneratedBranding();
    save();
    renderReport(active.reports[step]);
-   setStatus(changed?"Channel name selected. Channel Details updated. Prepare fresh logo and banner prompts for this name.":"This channel name is already selected.",false);
+   if(!$("channelDetailsPanel").hidden)renderChannelDetails();
+   syncIdentityContinue();
+   setStatus(changed?"Channel name selected and saved.":"This channel name is already selected.",false);
   });
   card.append(top,button);panel.append(card);
  });
