@@ -161,6 +161,10 @@ function clearBrandPrompts(){
  active.fields.brandPromptsReady=false;
  active.fields.logoPrompt="";
  active.fields.bannerPrompt="";
+ ["logoPrompt","bannerPrompt"].forEach(key=>{
+  const field=$("field-"+key);
+  if(field){field.value="";field.disabled=true}
+ });
 }
 function clearGeneratedBranding(){
  clearBrandPrompts();
