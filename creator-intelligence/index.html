@@ -183,7 +183,8 @@ function buildButtons(){
   const logo=addButton(root,active.images.logo?"Regenerate Logo":"Generate Logo","outline",()=>makeImage("logo"));
   const banner=addButton(root,active.images.banner?"Regenerate Banner":"Generate Banner","outline",()=>makeImage("banner"));
   logo.disabled=!ready||busy;
-  banner.disabled=!ready||busy;
+  banner.disabled=!ready||!active.images.logo||busy;
+  banner.title=active.images.logo?"Generate a banner using your generated logo":"Generate the logo first to build a matching banner";
  }else{
   addButton(root,step===0?"✦ Analyze my channel":"✦ Generate AI recommendations","primary",generate);
   if(step===2)addButton(root,"Generate thumbnail","outline",()=>makeImage("thumbnail"));
@@ -207,7 +208,7 @@ function renderImages(){
   const a=document.createElement("a");
   a.className="download show";
   a.href=pair[1];
-  a.download=pair[0]==="logo"?"TrivexaAI-YouTube-Logo-1024x1024.png":pair[0]==="banner"?"TrivexaAI-YouTube-Banner-2560x1440.png":"TrivexaAI-"+pair[0]+"-concept.png";
+  a.download=pair[0]==="logo"?"TrivexaAI-YouTube-Logo-1024x1024.png":pair[0]==="banner"?"TrivexaAI-YouTube-Banner-2560x1440.jpg":"TrivexaAI-"+pair[0]+"-concept.png";
   a.textContent="Download "+(pair[0]==="logo"?"Logo":pair[0]==="banner"?"Banner":"Image");
   box.append(h,img,a);
   root.append(box);
@@ -319,14 +320,14 @@ async function prepareBrandPrompts(){
  if(busy)return;
  busy=true;
  buildButtons();
- setStatus("AI is preparing your logo and banner prompts…");
+ setStatus("AI is preparing your logo and banner artwork prompts…");
  try{
   const f=active.fields;
-  const p="Act as a senior YouTube channel identity designer. Return ONLY valid JSON with exactly two string keys: logo_prompt and banner_prompt. Do not return a report, analysis, summary, palette summary, or any extra keys. Create two distinct but visually consistent, detailed English image-generation prompts. The prompts themselves must include the exact color palette with hex codes, color roles, typography direction, iconography, composition, textures, lighting, and style so the user can edit these details directly in the prompt fields. LOGO: original YouTube channel profile-picture identity, square 1:1, simple recognizable symbol, excellent small-size legibility, safe for circular crop. BANNER: full-bleed 16:9 YouTube channel art, strong cohesive visual scene, all essential logo/name/tagline elements inside the centered YouTube safe area equivalent to 1546 x 423 px on a 2560 x 1440 canvas; decorative background may extend beyond it. Never use the YouTube platform play-button logo and never imitate an existing brand. Channel name: "+(f.brandName||f.channelName||"New Channel")+". Selected niche: "+(f.chosenNiche||"not specified")+". Audience: "+(f.audience||"not specified")+". Channel identity strategy: "+String(active.reports[1]||"").slice(0,850);
+  const p="Act as a senior YouTube brand art director. Return ONLY valid JSON with exactly two string keys: logo_prompt and banner_prompt. Do not return a report, summary, explanation or any extra keys. Create two distinct, coherent, highly detailed English image prompts for ARTWORK ONLY. Include the exact color palette with hex codes, color roles, visual style, background treatment, subject, iconography, lighting, depth, texture and composition so the creator can edit those details directly. CRITICAL: the image model must create visuals only. Absolutely no text, words, letters, numbers, typography, captions, labels, watermarks, pseudo-writing, signs, UI, or logos containing text. All channel name and tagline typography will be added separately by the app with exact spelling. LOGO: an original, highly recognizable symbol-only channel emblem, simple silhouette, premium and memorable, designed for a square YouTube profile icon and circular crop. BANNER: professional full-bleed YouTube channel art, wide cinematic 16:9 composition, premium designed backdrop with a clear visual focal point and uncluttered central safe area for an app-added logo and exact channel name; background art extends to every edge. Do not create a YouTube play-button mark or imitate an existing brand. Channel name context only (DO NOT render it): "+(f.brandName||f.channelName||"New Channel")+". Selected niche: "+(f.chosenNiche||"not specified")+". Audience: "+(f.audience||"not specified")+". Channel direction: "+String(active.reports[1]||"").slice(0,750);
   const obj=parseJson(await ai(p.slice(0,3900)));
-  if(!obj||typeof obj.logo_prompt!=="string"||!obj.logo_prompt.trim()||typeof obj.banner_prompt!=="string"||!obj.banner_prompt.trim())throw new Error("The AI did not return both editable prompts. Please prepare them again.");
-  const logoRequirements="\\n\\nOUTPUT REQUIREMENTS: Exact square 1:1 canvas, 1024 x 1024 pixels. This is the YouTube channel profile icon, not the YouTube platform logo. Keep the emblem and any initials centered with generous padding inside the circular-crop safe zone. Use a bold, memorable silhouette that stays clear at small display sizes. No mockup, frame, watermark, or extra interface.";
-  const bannerRequirements="\\n\\nOUTPUT REQUIREMENTS: Full-bleed 16:9 YouTube channel banner. Generate at 1920 x 1080 pixels; the app will export the final image at 2560 x 1440 pixels. Keep all important text, channel name, logo, and focal elements inside the centered safe area equivalent to 1546 x 423 pixels on the final 2560 x 1440 canvas. Extend background artwork to every edge because outer areas are cropped differently across devices. No mockup, border, frame, or watermark.";
+  if(!obj||typeof obj.logo_prompt!=="string"||!obj.logo_prompt.trim()||typeof obj.banner_prompt!=="string"||!obj.banner_prompt.trim())throw new Error("The AI did not return both artwork prompts. Please try again.");
+  const logoRequirements="\\n\\nARTWORK-ONLY OUTPUT: Exact square 1:1, 1024 x 1024 pixels. Symbol/emblem only. Absolutely no words, letters, numbers, initials, text, typography, watermark, signage, fake writing, mockup, or YouTube play-button logo. Keep the emblem centered and readable inside a circular crop.";
+  const bannerRequirements="\\n\\nARTWORK-ONLY OUTPUT: Full-bleed 16:9 landscape YouTube channel-art BACKGROUND. Generate at 1920 x 1080 pixels; the app will export at 2560 x 1440. No text, letters, numbers, words, typography, signage, pseudo-text, watermark, mockup, or borders. Leave a visually clean central safe zone equivalent to 1546 x 423 px on the final canvas. Background visuals must extend to all edges; the app adds the real logo, channel name and tagline separately with exact spelling.";
   const fit=(base,suffix)=>String(base).trim().slice(0,1400-suffix.length).trimEnd()+suffix;
   active.fields.logoPrompt=fit(obj.logo_prompt,logoRequirements);
   active.fields.bannerPrompt=fit(obj.banner_prompt,bannerRequirements);
@@ -336,7 +337,7 @@ async function prepareBrandPrompts(){
   delete active.reports[2];
   save();
   drawWorkspace();
-  setStatus("Both AI prompts are ready. Edit either prompt, then generate your logo and banner separately.");
+  setStatus("Both artwork prompts are ready. Edit them, generate your logo first, then create the matching YouTube banner.");
  }catch(e){
   setStatus(e.message||"Prompt preparation failed.",true);
  }finally{
@@ -351,54 +352,170 @@ function imagePrompt(kind){
  if(kind==="banner")return "Create a full-bleed 16:9 YouTube channel banner for "+n+". Niche: "+topic+". Generate 1920 x 1080 px for final export at 2560 x 1440 px. Keep all important elements in the centered 1546 x 423 px safe area of the final canvas; fill outer area with matching artwork, no mockup or watermark.";
  return "Create a professional 16:9 YouTube thumbnail concept for "+(f.nextTopic||f.firstVideoTopic||f.concept||topic)+". Audience: "+(f.audience||"target viewers")+". One clear focal subject, strong contrast, expressive but credible emotion, negative space for editable headline text, polished creator artwork, no watermark.";
 }
-function resizeImageDataUrl(source,width,height){
+function loadImageSource(source){
  return new Promise((resolve,reject)=>{
   const img=new Image();
-  img.onload=()=>{
-   try{
-    const canvas=document.createElement("canvas");
-    canvas.width=width;
-    canvas.height=height;
-    const ctx=canvas.getContext("2d");
-    if(!ctx)throw new Error("Could not prepare the final image canvas.");
-    ctx.imageSmoothingEnabled=true;
-    ctx.imageSmoothingQuality="high";
-    ctx.drawImage(img,0,0,width,height);
-    resolve(canvas.toDataURL("image/png"));
-   }catch(error){reject(error)}
-  };
-  img.onerror=()=>reject(new Error("The generated image could not be resized."));
+  img.onload=()=>resolve(img);
+  img.onerror=()=>reject(new Error("The generated artwork could not be opened."));
   img.src=source;
  });
+}
+function drawCover(ctx,img,width,height){
+ const scale=Math.max(width/img.width,height/img.height);
+ const sw=width/scale,sh=height/scale;
+ const sx=(img.width-sw)/2,sy=(img.height-sh)/2;
+ ctx.drawImage(img,sx,sy,sw,sh,0,0,width,height);
+}
+async function composeLogoImage(source){
+ const img=await loadImageSource(source);
+ const size=1024,canvas=document.createElement("canvas");
+ canvas.width=size;canvas.height=size;
+ const ctx=canvas.getContext("2d");
+ if(!ctx)throw new Error("Could not prepare the logo canvas.");
+ ctx.clearRect(0,0,size,size);
+ const crop=Math.min(img.width,img.height),sx=(img.width-crop)/2,sy=(img.height-crop)/2;
+ ctx.save();
+ ctx.beginPath();ctx.arc(512,512,452,0,Math.PI*2);ctx.clip();
+ ctx.drawImage(img,sx,sy,crop,crop,60,60,904,904);
+ const shade=ctx.createRadialGradient(512,430,180,512,512,500);
+ shade.addColorStop(0,"rgba(0,0,0,0)");
+ shade.addColorStop(1,"rgba(7,5,18,.42)");
+ ctx.fillStyle=shade;ctx.fillRect(0,0,size,size);
+ ctx.restore();
+ const ring=ctx.createLinearGradient(120,160,900,890);
+ ring.addColorStop(0,"rgba(221,202,255,.95)");
+ ring.addColorStop(.5,"rgba(232,121,249,.85)");
+ ring.addColorStop(1,"rgba(140,240,189,.75)");
+ ctx.beginPath();ctx.arc(512,512,458,0,Math.PI*2);
+ ctx.strokeStyle=ring;ctx.lineWidth=15;ctx.stroke();
+ return canvas.toDataURL("image/png");
+}
+function getBrandTagline(){
+ const obj=parseJson(active.reports[1]||"");
+ const raw=obj&&typeof obj.tagline==="string"?obj.tagline:"";
+ return raw.trim().slice(0,95);
+}
+function fitCanvasText(ctx,text,maxWidth,startSize,minSize){
+ let size=startSize;
+ do{
+  ctx.font="800 "+size+"px Inter, Arial, sans-serif";
+  if(ctx.measureText(text).width<=maxWidth||size<=minSize)break;
+  size-=2;
+ }while(size>minSize);
+ return size;
+}
+async function composeYouTubeBanner(backgroundSource,logoSource){
+ const bg=await loadImageSource(backgroundSource);
+ const logo=logoSource?await loadImageSource(logoSource):null;
+ const width=2560,height=1440,canvas=document.createElement("canvas");
+ canvas.width=width;canvas.height=height;
+ const ctx=canvas.getContext("2d");
+ if(!ctx)throw new Error("Could not prepare the YouTube banner canvas.");
+ drawCover(ctx,bg,width,height);
+ const edge=ctx.createLinearGradient(0,0,width,0);
+ edge.addColorStop(0,"rgba(8,5,20,.35)");
+ edge.addColorStop(.18,"rgba(8,5,20,.12)");
+ edge.addColorStop(.5,"rgba(8,5,20,.30)");
+ edge.addColorStop(.82,"rgba(8,5,20,.12)");
+ edge.addColorStop(1,"rgba(8,5,20,.35)");
+ ctx.fillStyle=edge;ctx.fillRect(0,0,width,height);
+ const safeX=507,safeY=508.5,safeW=1546,safeH=423;
+ const safeGlow=ctx.createRadialGradient(1280,720,100,1280,720,850);
+ safeGlow.addColorStop(0,"rgba(8,5,22,.72)");
+ safeGlow.addColorStop(.72,"rgba(8,5,22,.35)");
+ safeGlow.addColorStop(1,"rgba(8,5,22,0)");
+ ctx.fillStyle=safeGlow;ctx.fillRect(safeX-170,safeY-160,safeW+340,safeH+320);
+ ctx.save();
+ ctx.shadowColor="rgba(0,0,0,.34)";ctx.shadowBlur=52;ctx.shadowOffsetY=14;
+ const panel=ctx.createLinearGradient(safeX,safeY,safeX+safeW,safeY+safeH);
+ panel.addColorStop(0,"rgba(15,9,31,.35)");
+ panel.addColorStop(.5,"rgba(15,9,31,.62)");
+ panel.addColorStop(1,"rgba(15,9,31,.35)");
+ ctx.fillStyle=panel;
+ ctx.beginPath();ctx.roundRect(safeX+24,safeY+30,safeW-48,safeH-60,46);ctx.fill();
+ ctx.restore();
+ const accent=ctx.createLinearGradient(650,0,850,0);
+ accent.addColorStop(0,"#a78bfa");accent.addColorStop(.55,"#e879f9");accent.addColorStop(1,"#8cf0bd");
+ const logoX=690,logoY=600,logoSize=238;
+ ctx.save();
+ ctx.shadowColor="rgba(0,0,0,.55)";ctx.shadowBlur=34;ctx.shadowOffsetY=10;
+ ctx.beginPath();ctx.arc(logoX+logoSize/2,logoY+logoSize/2,logoSize/2+12,0,Math.PI*2);
+ ctx.fillStyle="rgba(12,8,27,.86)";ctx.fill();
+ ctx.restore();
+ if(logo){
+  ctx.save();ctx.beginPath();ctx.arc(logoX+logoSize/2,logoY+logoSize/2,logoSize/2,0,Math.PI*2);ctx.clip();
+  ctx.drawImage(logo,logoX,logoY,logoSize,logoSize);ctx.restore();
+ }else{
+  const initials=String(active.fields.brandName||"T").trim().split(/\\s+/).slice(0,2).map(x=>x[0]||"").join("").toUpperCase();
+  ctx.beginPath();ctx.arc(logoX+logoSize/2,logoY+logoSize/2,logoSize/2,0,Math.PI*2);
+  ctx.fillStyle="#21183a";ctx.fill();
+  ctx.fillStyle="#f8f6fc";ctx.textAlign="center";ctx.textBaseline="middle";
+  ctx.font="900 94px Inter, Arial, sans-serif";ctx.fillText(initials||"T",logoX+logoSize/2,logoY+logoSize/2);
+ }
+ ctx.beginPath();ctx.arc(logoX+logoSize/2,logoY+logoSize/2,logoSize/2+8,0,Math.PI*2);
+ ctx.strokeStyle=accent;ctx.lineWidth=8;ctx.stroke();
+ const textX=1000,textW=930;
+ ctx.textAlign="left";ctx.textBaseline="alphabetic";
+ ctx.font="800 25px Inter, Arial, sans-serif";ctx.fillStyle="#d9c7ff";ctx.letterSpacing="5px";
+ ctx.fillText("OFFICIAL YOUTUBE CHANNEL",textX,646);
+ ctx.letterSpacing="0px";
+ const name=String(active.fields.brandName||active.fields.channelName||"YOUR CHANNEL").trim();
+ const titleSize=fitCanvasText(ctx,name,textW,110,58);
+ ctx.font="900 "+titleSize+"px Inter, Arial, sans-serif";
+ ctx.shadowColor="rgba(0,0,0,.4)";ctx.shadowBlur=18;ctx.shadowOffsetY=5;
+ ctx.fillStyle="#ffffff";ctx.fillText(name,textX,758);
+ ctx.shadowColor="transparent";ctx.shadowBlur=0;ctx.shadowOffsetY=0;
+ const tagline=getBrandTagline()||String(active.fields.chosenNiche||"CREATOR • STORIES • IDEAS");
+ ctx.fillStyle="#e8dff5";ctx.font="500 38px Inter, Arial, sans-serif";
+ let line=tagline;
+ while(ctx.measureText(line).width>textW&&line.length>10)line=line.slice(0,-2).trimEnd()+"…";
+ ctx.fillText(line,textX,828);
+ ctx.fillStyle=accent;ctx.fillRect(textX,860,Math.min(190,Math.max(90,ctx.measureText(line).width*.24)),7);
+ ctx.fillStyle="rgba(238,225,255,.82)";ctx.font="700 22px Inter, Arial, sans-serif";
+ ctx.fillText(String(active.fields.chosenNiche||"").toUpperCase().slice(0,60),textX,900);
+ return canvas.toDataURL("image/jpeg",.92);
 }
 async function makeImage(kind){
  if(busy)return;
  const key=kind==="logo"?"logoPrompt":kind==="banner"?"bannerPrompt":"thumbnailPrompt";
  if(active.mode==="new"&&step===2&&(kind==="logo"||kind==="banner")&&!(active.fields.brandPromptsReady&&String(active.fields[key]||"").trim())){
-  setStatus("Prepare both AI prompts before generating the logo or banner.",true);
+  setStatus("Prepare both AI artwork prompts before generating your logo or banner.",true);
+  return;
+ }
+ if(active.mode==="new"&&step===2&&kind==="banner"&&!active.images.logo){
+  setStatus("Generate your logo first. The banner will use that same logo for consistent branding.",true);
   return;
  }
  busy=true;
  buildButtons();
- setStatus("Generating "+kind+"…");
+ setStatus("Creating "+kind+" artwork with the enhanced image model…");
  try{
-  const prompt=String(active.fields[key]||imagePrompt(kind)).trim();
-  if(!prompt)throw new Error("Enter a prompt before generating this image.");
-  active.fields[key]=prompt;
-  const request={action:"generate_image",toolId:TOOL,prompt:prompt.slice(0,1400)};
+  const userPrompt=String(active.fields[key]||imagePrompt(kind)).trim();
+  if(!userPrompt)throw new Error("Enter a prompt before generating this image.");
+  active.fields[key]=userPrompt;
+  const noTextRule="\\n\\nARTWORK ONLY — DO NOT RENDER ANY TEXT, WORDS, LETTERS, NUMBERS, INITIALS, TYPOGRAPHY, LABELS, SIGNAGE, WATERMARKS, UI OR PSEUDO-WRITING. The app will add the real channel name and typography afterward with exact spelling.";
+  const modelPrompt=(userPrompt.slice(0,1400-noTextRule.length)+noTextRule).slice(0,1400);
+  const request={action:"generate_image",toolId:TOOL,prompt:modelPrompt};
   if(kind==="logo"){request.width=1024;request.height=1024}
   if(kind==="banner"){request.width=1920;request.height=1080}
   const data=await workerRequest(request);
   const image=data.image||(data.result&&data.result.image)||(data.result&&data.result.images&&data.result.images[0])||(data.images&&data.images[0]);
-  if(typeof image!=="string"||!image)throw new Error(data.error||"The image service returned no usable image.");
+  if(typeof image!=="string"||!image)throw new Error(data.error||"The image service returned no usable artwork.");
   const source=image.indexOf("data:")===0?image:"data:image/png;base64,"+image;
-  if(kind==="banner")active.images.banner=await resizeImageDataUrl(source,2560,1440);
-  else if(kind==="logo")active.images.logo=await resizeImageDataUrl(source,1024,1024);
-  else active.images[kind]=source;
-  save();
-  renderImages();
-  if(active.mode==="new"&&step===2)syncBrandContinue();
-  setStatus(kind==="banner"?"Your YouTube banner is ready at 2560 × 1440 px. Download it to keep the full-resolution file.":kind==="logo"?"Your YouTube channel logo is ready at 1024 × 1024 px. Download it to keep a copy.":"Your visual concept is ready. Download it below to keep a copy.");
+  if(kind==="logo"){
+   active.images.logo=await composeLogoImage(source);
+   delete active.images.banner;
+   save();renderImages();buildButtons();syncBrandContinue();
+   setStatus("Your clean symbol logo is ready. Now generate the matching YouTube banner; its channel name will be typeset by the app with exact spelling.");
+  }else if(kind==="banner"){
+   active.images.banner=await composeYouTubeBanner(source,active.images.logo);
+   save();renderImages();buildButtons();syncBrandContinue();
+   setStatus("Your YouTube banner is ready at 2560 × 1440 px. The channel name and tagline were added separately, not drawn by the image AI.");
+  }else{
+   active.images[kind]=source;
+   save();renderImages();
+   setStatus("Your visual concept is ready. Download it below to keep a copy.");
+  }
  }catch(e){
   setStatus(e.message||"Image generation failed.",true);
  }finally{
