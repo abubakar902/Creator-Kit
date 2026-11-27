@@ -36,3 +36,5 @@ CREATE INDEX IF NOT EXISTS idx_user_activity_uid_created
  ON user_activity(uid, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_user_activity_uid_action_created
  ON user_activity(uid, action, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_user_activity_created_at ON user_activity(created_at);
