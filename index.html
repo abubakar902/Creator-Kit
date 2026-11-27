@@ -5470,7 +5470,7 @@
         : (isQuestionTool ? "AI is reviewing your question." : "Please wait a moment.");
 
       try {
-        let answer = await askGemini(prompt, selectedTool === "website-guide" ? "trivexaai-website-guide" : (isQuestionTool ? "ai-question-answer" : ""));
+        let answer = await askGemini(prompt, selectedTool === "website-guide" ? "trivexaai-website-guide" : (isQuestionTool ? "ai-question-answer" : selectedTool));
         const needsCurrentSearch = selectedTool === "qa" && !isQASummary && (
           answer.includes(QA_CURRENT_SEARCH_MARKER) ||
           /(?:knowledge|information) (?:may be|is) out of date|cannot (?:verify|check) (?:the )?(?:latest|current|real[- ]time)|do not have (?:live|real[- ]time) access|don't have (?:live|real[- ]time) access|can't (?:verify|check) (?:the )?(?:latest|current)|cannot browse the live web/i.test(answer)
