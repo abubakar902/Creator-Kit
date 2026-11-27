@@ -19,9 +19,9 @@
 input,textarea,select{width:100%;border:1px solid #4a385f;border-radius:10px;padding:10px 11px;color:#f8f5ff;background:#100b20;outline:none;font-size:11px}textarea{min-height:86px;resize:vertical;line-height:1.6}input:focus,textarea:focus,select:focus{border-color:#b99cff;box-shadow:0 0 0 3px #9b6cff22}input::placeholder,textarea::placeholder{color:#756987}
 .note{padding:11px 13px;border:1px solid #9b6cff35;border-radius:12px;background:#9b6cff10;color:#d5c8e7;font-size:10px;line-height:1.65;margin:14px 0}.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:39px;padding:9px 14px;border-radius:10px;font-size:10px;font-weight:850}.primary{color:#170d2b;border:1px solid #e8d5ff;background:linear-gradient(105deg,#c4b5fd,#e879f9)}.secondary{color:#f0e7ff;border:1px solid #8f6bc4;background:#9b6cff20}.outline{color:#d2c7e3;border:1px solid var(--line);background:#ffffff05}.btn:hover{filter:brightness(1.08);border-color:#c09fff}.btnrow{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:16px}.status{font-size:10px;color:var(--soft);min-height:18px;margin-top:9px}.status.error{color:var(--red)}
 .result{display:none;margin-top:18px;border:1px solid #705298;border-radius:14px;background:#100b20a8;overflow:hidden}.result.show{display:block}.result-head{display:flex;justify-content:space-between;align-items:center;gap:9px;padding:10px 13px;border-bottom:1px solid var(--line);background:#ffffff04}.result-head b{font-size:10px}.result-body{display:grid;gap:9px;padding:13px}.result-section{padding:11px;border:1px solid #392951;border-radius:10px;background:#ffffff04}.result-section h4{font-size:11px;margin:0 0 6px;color:#eadfff}.result-section p,.result-section li{white-space:pre-wrap;color:#c7bdd7;font-size:10px;line-height:1.75;margin:0}.result-section ul{margin:0;padding-left:18px}.mini{padding:9px;border:1px solid #392951;border-radius:9px;margin-top:7px;background:#ffffff04}.mini b{font-size:10px;display:block;margin-bottom:4px;color:#f0e7ff}
-.visual-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:15px}.visual{padding:13px;border:1px solid var(--line);border-radius:13px;background:#ffffff04;min-width:0}.visual h4{font-size:11px;margin:0 0 4px}.preview{display:none;width:100%;max-height:290px;object-fit:contain;margin-top:10px;border:1px solid var(--line);border-radius:10px;background:#1a1230}.preview.show{display:block}.brand-prompt{min-height:185px;line-height:1.7;resize:vertical}.prompt-meta{color:#b8accd;font-size:9px;line-height:1.5}.download{display:none;color:#d8c6ff;font-size:10px;font-weight:800;margin-top:7px}.download.show{display:inline-block}
+.visual-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:15px}.visual{padding:13px;border:1px solid var(--line);border-radius:13px;background:#ffffff04;min-width:0}.visual h4{font-size:11px;margin:0 0 4px}.preview{display:none;width:100%;max-height:290px;object-fit:contain;margin-top:10px;border:1px solid var(--line);border-radius:10px;background:#1a1230}.preview.show{display:block}.brand-prompt{min-height:185px;line-height:1.7;resize:vertical}.channel-details{grid-column:1/-1;padding:16px;border:1px solid #8060aa;border-radius:15px;background:linear-gradient(145deg,#21183a,#171027);margin-bottom:7px}.channel-details-heading{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:13px}.channel-details-heading h4{font-size:14px;margin:0}.channel-details-heading p{font-size:10px;color:var(--muted);margin:4px 0 0}.channel-assets-title{font-size:10px;font-weight:850;color:#e8dff5;margin:15px 0 8px}.channel-assets{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.channel-asset{min-width:0;padding:10px;border:1px solid var(--line);border-radius:11px;background:#100b20a8}.channel-asset-head{display:flex;align-items:center;justify-content:space-between;gap:8px}.channel-asset-head b{font-size:10px}.channel-asset-image{display:block;width:100%;max-height:190px;object-fit:contain;margin-top:9px;border:1px solid var(--line);border-radius:8px;background:#100b20}.channel-asset-image.logo{max-width:170px;aspect-ratio:1;justify-self:center;margin-left:auto;margin-right:auto}.channel-asset-image.banner{aspect-ratio:16/9}.name-picker{margin-top:14px}.name-option{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.name-option-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.name-option-top b{font-size:11px}.prompt-meta{color:#b8accd;font-size:9px;line-height:1.5}.download{display:none;color:#d8c6ff;font-size:10px;font-weight:800;margin-top:7px}.download.show{display:inline-block}
 .stage-foot{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:19px;padding-top:14px;border-top:1px solid var(--line)}.foot-right{display:flex;gap:7px}.loading{max-width:450px;margin:80px auto;padding:24px;border:1px solid var(--line);border-radius:17px;background:var(--panel);text-align:center}.spinner{width:25px;height:25px;margin:0 auto 12px;border:3px solid #4b3964;border-top-color:#c09fff;border-radius:50%;animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}[hidden]{display:none!important}
-@media(max-width:900px){.mode-grid{grid-template-columns:1fr 1fr}.layout{grid-template-columns:205px minmax(0,1fr)}}@media(max-width:650px){.topbar{height:60px;padding:0 4%}.brand small{display:none}.shell{width:94%;padding-top:18px}.hero{padding:24px 19px}.mode-grid{grid-template-columns:1fr}.mode-card{min-height:220px}.layout{grid-template-columns:1fr}.sidebar{position:static}.step-list{grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}.step{display:grid;justify-items:center;text-align:center;padding:7px 3px;gap:4px}.step strong{font-size:8px}.step small{display:none}.fields,.visual-grid{grid-template-columns:1fr}.stage{padding:16px}.workspace-head{align-items:flex-start}.wtitle h2{font-size:16px}.actions{max-width:47%}.actions .btn{font-size:9px;padding:7px}.stage-foot{align-items:flex-end}}
+@media(max-width:900px){.mode-grid{grid-template-columns:1fr 1fr}.layout{grid-template-columns:205px minmax(0,1fr)}}@media(max-width:650px){.channel-assets{grid-template-columns:1fr}.channel-details{padding:13px}.topbar{height:60px;padding:0 4%}.brand small{display:none}.shell{width:94%;padding-top:18px}.hero{padding:24px 19px}.mode-grid{grid-template-columns:1fr}.mode-card{min-height:220px}.layout{grid-template-columns:1fr}.sidebar{position:static}.step-list{grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}.step{display:grid;justify-items:center;text-align:center;padding:7px 3px;gap:4px}.step strong{font-size:8px}.step small{display:none}.fields,.visual-grid{grid-template-columns:1fr}.stage{padding:16px}.workspace-head{align-items:flex-start}.wtitle h2{font-size:16px}.actions{max-width:47%}.actions .btn{font-size:9px;padding:7px}.stage-foot{align-items:flex-end}}
 </style></head>
 <body>
 <header class="topbar"><a class="brand" href="../"><span class="brandmark">✦</span><span>TrivexaAI<small>CREATOR INTELLIGENCE</small></span></a><a class="toplink" href="../#workspaceTabs">← Creator Hub</a></header>
@@ -68,38 +68,208 @@ grow:[
 [["nextTopic","Which opportunity should your next upload target?","textarea","Choose an opportunity from your report or add your own."],["cadence","Sustainable upload cadence","select",["One video each week","Two videos each week","Three Shorts each week","One long video plus Shorts","Flexible monthly plan"]]]
 ]};
 let saved=[],active=null,step=0,busy=false;
-function blank(){return{interests:"",skills:"",audience:"",language:"English",format:"On-camera videos",goal:"Teach and help people",concept:"",channelName:"",challenge:"Finding fresh topics",chosenNiche:"",brandName:"",logoPrompt:"",bannerPrompt:"",brandPromptsReady:false,thumbnailPrompt:"",firstVideoTopic:"",videoLength:"6–8 minutes",videoStyle:"Talking to camera",nextTopic:"",cadence:"One video each week",channelUrl:"",channelDescription:"",niche:"",subscribers:"",views:"",frequency:"About once a week",recentVideos:"",priority:"Improve the whole channel strategy",focus:""}}
+function blank(){return{interests:"",skills:"",audience:"",language:"English",format:"On-camera videos",goal:"Teach and help people",concept:"",channelName:"",challenge:"Finding fresh topics",chosenNiche:"",brandName:"",tagline:"",logoPrompt:"",bannerPrompt:"",brandPromptsReady:false,thumbnailPrompt:"",firstVideoTopic:"",videoLength:"6–8 minutes",videoStyle:"Talking to camera",nextTopic:"",cadence:"One video each week",channelUrl:"",channelDescription:"",niche:"",subscribers:"",views:"",frequency:"About once a week",recentVideos:"",priority:"Improve the whole channel strategy",focus:""}}
 function make(mode){return{id:"ci-"+Date.now()+"-"+Math.random().toString(36).slice(2,6),mode,created:Date.now(),updated:Date.now(),fields:blank(),reports:{},images:{}}}
-function listSaved(){const root=$("savedList");root.replaceChildren();$("savedEmpty").hidden=saved.length>0;saved.slice().sort((a,b)=>b.updated-a.updated).forEach(item=>{const b=document.createElement("button");b.className="saved-item";b.type="button";b.textContent=modes[item.mode].icon+" "+(item.fields.brandName||item.fields.channelName||modes[item.mode].name);b.addEventListener("click",()=>{active=JSON.parse(JSON.stringify(item));drawWorkspace()});root.append(b)})}
-function save(){if(!active)return;active.updated=Date.now();const i=saved.findIndex(x=>x.id===active.id);if(i>=0)saved[i]=active;else saved.unshift(active);saved=saved.slice(0,12);try{localStorage.setItem(KEY,JSON.stringify(saved.map(item=>Object.assign({},item,{images:{}}))));$("saveState").textContent="● Saved on this device";$("saveState").style.color="var(--green)"}catch{$("saveState").textContent="Browser storage is full";$("saveState").style.color="var(--red)"}listSaved()}
+let assetDBPromise=null;
+function openAssetDB(){
+ if(!("indexedDB" in window))return Promise.reject(new Error("Browser image storage is unavailable."));
+ if(assetDBPromise)return assetDBPromise;
+ assetDBPromise=new Promise((resolve,reject)=>{
+  const request=indexedDB.open("trivexaai-creator-intelligence-assets",1);
+  request.onupgradeneeded=()=>{
+   const db=request.result;
+   if(!db.objectStoreNames.contains("assets"))db.createObjectStore("assets");
+  };
+  request.onsuccess=()=>resolve(request.result);
+  request.onerror=()=>reject(request.error||new Error("Could not open image storage."));
+ });
+ return assetDBPromise;
+}
+async function writeWorkspaceAsset(key,value){
+ const db=await openAssetDB();
+ return new Promise((resolve,reject)=>{
+  const tx=db.transaction("assets","readwrite"),store=tx.objectStore("assets");
+  if(value)store.put(value,key);else store.delete(key);
+  tx.oncomplete=()=>resolve();
+  tx.onerror=()=>reject(tx.error||new Error("Could not save generated image."));
+  tx.onabort=()=>reject(tx.error||new Error("Image storage was interrupted."));
+ });
+}
+async function readWorkspaceAsset(key){
+ const db=await openAssetDB();
+ return new Promise((resolve,reject)=>{
+  const tx=db.transaction("assets","readonly"),request=tx.objectStore("assets").get(key);
+  request.onsuccess=()=>resolve(request.result||null);
+  request.onerror=()=>reject(request.error||new Error("Could not restore saved image."));
+ });
+}
+async function persistWorkspaceAssets(item){
+ if(!item||!item.id)return;
+ const images=item.images||{};
+ await Promise.all(["logo","banner"].map(kind=>writeWorkspaceAsset(item.id+":"+kind,images[kind]||null)));
+}
+async function restoreWorkspaceAssets(item){
+ if(!item||!item.id)return;
+ item.images=item.images||{};
+ await Promise.all(["logo","banner"].map(async kind=>{
+  const image=await readWorkspaceAsset(item.id+":"+kind);
+  if(image)item.images[kind]=image;else delete item.images[kind];
+ }));
+}
+function listSaved(){
+ const root=$("savedList");
+ root.replaceChildren();
+ $("savedEmpty").hidden=saved.length>0;
+ saved.slice().sort((a,b)=>b.updated-a.updated).forEach(item=>{
+  const b=document.createElement("button");
+  b.className="saved-item";b.type="button";
+  b.textContent=modes[item.mode].icon+" "+(item.fields.brandName||item.fields.channelName||modes[item.mode].name);
+  b.addEventListener("click",async()=>{
+   active=JSON.parse(JSON.stringify(item));
+   try{await restoreWorkspaceAssets(active)}catch(e){console.warn("Saved brand images could not be restored:",e)}
+   drawWorkspace();
+   if(active.mode==="new"&&step===2)setStatus("Your saved Channel Details and latest generated images have been restored.",false);
+  });
+  root.append(b);
+ });
+}
+function save(){
+ if(!active)return;
+ active.updated=Date.now();
+ const i=saved.findIndex(x=>x.id===active.id);
+ if(i>=0)saved[i]=active;else saved.unshift(active);
+ saved=saved.slice(0,12);
+ try{
+  localStorage.setItem(KEY,JSON.stringify(saved.map(item=>Object.assign({},item,{images:{}}))));
+  $("saveState").textContent="● Saved on this device";
+  $("saveState").style.color="var(--green)";
+ }catch{
+  $("saveState").textContent="Browser storage is full";
+  $("saveState").style.color="var(--red)";
+ }
+ persistWorkspaceAssets(active).catch(()=>{
+  $("saveState").textContent="Text saved · Image storage unavailable";
+  $("saveState").style.color="var(--red)";
+ });
+ listSaved();
+}
 function screen(which){$("home").classList.toggle("active",which==="home");$("work").classList.toggle("active",which==="work")}
 function start(mode){active=make(mode);saved.unshift(active);step=0;drawWorkspace()}
 function field(config){const key=config[0],wrap=document.createElement("div"),label=document.createElement("label");wrap.className="field"+(config[2]==="textarea"?" full":"");label.textContent=config[1];label.htmlFor="field-"+key;wrap.append(label);let el;if(config[2]==="textarea"){el=document.createElement("textarea");el.placeholder=config[3]}else if(config[2]==="select"){el=document.createElement("select");config[3].forEach(v=>{const o=document.createElement("option");o.value=v;o.textContent=v;el.append(o)})}else{el=document.createElement("input");el.placeholder=config[3]}el.id="field-"+key;el.value=active.fields[key]||"";el.dataset.field=key;el.addEventListener("input",fieldChange);el.addEventListener("change",fieldChange);wrap.append(el);return wrap}
+function clearGeneratedBranding(){
+ active.fields.brandPromptsReady=false;
+ active.fields.logoPrompt="";
+ active.fields.bannerPrompt="";
+ delete active.images.logo;
+ delete active.images.banner;
+}
 function fieldChange(e){
  const key=e.target.dataset.field;
  active.fields[key]=e.target.value;
  if(key==="chosenNiche"){
-  active.fields.brandPromptsReady=false;
-  active.fields.logoPrompt="";
-  active.fields.bannerPrompt="";
-  delete active.images.logo;
-  delete active.images.banner;
+  clearGeneratedBranding();
+ }
+ if(key==="channelName"||key==="brandName"){
+  const next=String(e.target.value||"").trim();
+  active.fields.channelName=next;
+  active.fields.brandName=next;
+  clearGeneratedBranding();
+  if($("wName"))$("wName").textContent=next||modes[active.mode].name+" Workspace";
+ }else if(["channelDescription","tagline"].includes(key)){
+  clearGeneratedBranding();
  }
  if(key==="logoPrompt"||key==="bannerPrompt"){
   active.fields.brandPromptsReady=!!(String(active.fields.logoPrompt||"").trim()&&String(active.fields.bannerPrompt||"").trim());
-  delete active.images[key==="logoPrompt"?"logo":"banner"];
+  if(key==="logoPrompt"){
+   delete active.images.logo;
+   delete active.images.banner;
+  }else delete active.images.banner;
   renderImages();
+ }
+ save();
+ if(active.mode==="new"&&step===2){
   buildButtons();
   syncBrandContinue();
  }
- if(["brandName","channelName"].includes(key))$("wName").textContent=e.target.value||modes[active.mode].name+" Workspace";
- save();
 }
 function syncBrandContinue(){
  if(!active||active.mode!=="new"||step!==2)return;
  const complete=!!(active.images.logo&&active.images.banner);
  $("next").disabled=!complete;
  $("next").textContent=complete?"Save & Continue →":"Generate both visuals to continue";
+}
+function makeChannelDetailField(key,title,placeholder,multiline=false){
+ const wrap=document.createElement("div");
+ wrap.className="field"+(multiline?" full":"");
+ const label=document.createElement("label");
+ label.textContent=title;
+ label.htmlFor="field-"+key;
+ const control=document.createElement(multiline?"textarea":"input");
+ control.id="field-"+key;
+ control.dataset.field=key;
+ control.placeholder=placeholder;
+ control.value=String(active.fields[key]||"");
+ if(multiline){control.rows=4;control.maxLength=1500}
+ control.addEventListener("input",fieldChange);
+ control.addEventListener("change",fieldChange);
+ wrap.append(label,control);
+ return wrap;
+}
+function renderChannelAssets(root){
+ root.replaceChildren();
+ [["logo","Channel Logo","The latest generated logo will be stored here."],["banner","YouTube Banner","The latest generated banner will be stored here."]].forEach(([kind,title,emptyText])=>{
+  const card=document.createElement("div");
+  card.className="channel-asset";
+  const head=document.createElement("div");
+  head.className="channel-asset-head";
+  const name=document.createElement("b");name.textContent=title;
+  const status=document.createElement("span");
+  status.className="chip";
+  status.textContent=active.images&&active.images[kind]?"Saved":"Not generated";
+  head.append(name,status);card.append(head);
+  if(active.images&&active.images[kind]){
+   const img=document.createElement("img");
+   img.className="channel-asset-image "+kind;
+   img.src=active.images[kind];img.alt=title;
+   const link=document.createElement("a");
+   link.className="download show";
+   link.href=active.images[kind];
+   link.download=kind==="logo"?"TrivexaAI-YouTube-Logo-1024x1024.png":"TrivexaAI-YouTube-Banner-2560x1440.jpg";
+   link.textContent="Download latest "+(kind==="logo"?"logo":"banner");
+   card.append(img,link);
+  }else{
+   const empty=document.createElement("p");
+   empty.className="empty";
+   empty.textContent=emptyText;
+   card.append(empty);
+  }
+  root.append(card);
+ });
+}
+function renderChannelDetails(root){
+ const panel=document.createElement("section");
+ panel.className="channel-details";
+ const heading=document.createElement("div");
+ heading.className="channel-details-heading";
+ const text=document.createElement("div");
+ const title=document.createElement("h4");title.textContent="Channel Details";
+ const desc=document.createElement("p");
+ desc.textContent="Your selected identity and the latest generated brand assets are saved with this workspace.";
+ text.append(title,desc);
+ const label=document.createElement("span");label.className="chip";label.textContent="Workspace";
+ heading.append(text,label);
+ panel.append(heading);
+ const fields=document.createElement("div");fields.className="fields";
+ fields.append(makeChannelDetailField("channelName","Channel Name","Choose a suggested name or enter your own."));
+ fields.append(makeChannelDetailField("tagline","Channel Tagline","Optional short tagline."));
+ fields.append(makeChannelDetailField("channelDescription","Channel Description","Your AI-recommended channel description. You can edit it.",true));
+ panel.append(fields);
+ const assetsTitle=document.createElement("div");assetsTitle.className="channel-assets-title";
+ assetsTitle.textContent="Saved Brand Assets";
+ const assets=document.createElement("div");assets.className="channel-assets";assets.id="brandAssets";
+ panel.append(assetsTitle,assets);
+ root.append(panel);
+ renderChannelAssets(assets);
 }
 function renderBrandPromptEditors(root){
  const ready=!!(active.fields.brandPromptsReady&&String(active.fields.logoPrompt||"").trim()&&String(active.fields.bannerPrompt||"").trim());
@@ -129,7 +299,6 @@ function renderBrandPromptEditors(root){
   area.addEventListener("change",fieldChange);
   wrap.append(label,small,area);
   root.append(wrap);
- });
 }
 function drawWorkspace(){screen("work");const meta=modes[active.mode];$("wIcon").textContent=meta.icon;$("wName").textContent=active.fields.brandName||active.fields.channelName||meta.name+" Workspace";$("wSubtitle").textContent=meta.subtitle;const root=$("steps");root.replaceChildren();meta.steps.forEach((name,i)=>{const b=document.createElement("button");b.type="button";b.className="step"+(i===step?" active":"");const num=document.createElement("span");num.className="num";num.textContent=String(i+1);const box=document.createElement("span"),strong=document.createElement("strong"),small=document.createElement("small");strong.textContent=name;small.textContent="Stage "+(i+1)+" of 4";box.append(strong,small);b.append(num,box);b.addEventListener("click",()=>showStep(i));root.append(b)});showStep(step)}
 function showStep(n){
@@ -144,7 +313,7 @@ function showStep(n){
  root.replaceChildren();
  forms[active.mode][step].forEach(cfg=>root.append(field(cfg)));
  const brandStage=active.mode==="new"&&step===2;
- if(brandStage)renderBrandPromptEditors(root);
+ if(brandStage){renderChannelDetails(root);renderBrandPromptEditors(root);}
  $("stageNote").textContent=brandStage
   ?"Edit the two AI-generated prompts below before image generation. The logo is exported at 1024 × 1024 px. The YouTube banner is exported at 2560 × 1440 px. Image files are not stored in local workspace data, so download both to keep copies."
   :active.mode==="grow"&&step===0
@@ -171,6 +340,7 @@ function showStep(n){
  if(blockedBrandStep)setStatus("Generate both your logo and banner before continuing to the First Video step.",true);
  $("steps").querySelectorAll(".step").forEach((b,i)=>b.classList.toggle("active",i===step));
 }
+
 function addButton(root,text,kind,fn){const b=document.createElement("button");b.type="button";b.className="btn "+kind;b.textContent=text;b.addEventListener("click",fn);root.append(b);return b}
 function buildButtons(){
  const root=$("stageButtons");
@@ -195,24 +365,22 @@ function buildButtons(){
 function renderImages(){
  const root=$("visuals");
  root.replaceChildren();
- const titles={logo:"YouTube Channel Logo",banner:"YouTube Channel Banner",thumbnail:"Generated Thumbnail"};
- Object.entries(active.images||{}).forEach(pair=>{
-  const box=document.createElement("div");
-  box.className="visual";
-  const h=document.createElement("h4");
-  h.textContent=titles[pair[0]]||("Generated "+pair[0]);
-  const img=document.createElement("img");
-  img.className="preview show";
-  img.src=pair[1];
-  img.alt=h.textContent;
-  const a=document.createElement("a");
-  a.className="download show";
-  a.href=pair[1];
-  a.download=pair[0]==="logo"?"TrivexaAI-YouTube-Logo-1024x1024.png":pair[0]==="banner"?"TrivexaAI-YouTube-Banner-2560x1440.jpg":"TrivexaAI-"+pair[0]+"-concept.png";
-  a.textContent="Download "+(pair[0]==="logo"?"Logo":pair[0]==="banner"?"Banner":"Image");
-  box.append(h,img,a);
-  root.append(box);
- });
+ const brandStage=active.mode==="new"&&step===2;
+ const target=brandStage?null:root;
+ if(target){
+  const titles={logo:"YouTube Channel Logo",banner:"YouTube Channel Banner",thumbnail:"Generated Thumbnail"};
+  Object.entries(active.images||{}).forEach(pair=>{
+   const box=document.createElement("div");box.className="visual";
+   const h=document.createElement("h4");h.textContent=titles[pair[0]]||("Generated "+pair[0]);
+   const img=document.createElement("img");img.className="preview show";img.src=pair[1];img.alt=h.textContent;
+   const a=document.createElement("a");a.className="download show";a.href=pair[1];
+   a.download=pair[0]==="logo"?"TrivexaAI-YouTube-Logo-1024x1024.png":pair[0]==="banner"?"TrivexaAI-YouTube-Banner-2560x1440.jpg":"TrivexaAI-"+pair[0]+"-concept.png";
+   a.textContent="Download "+(pair[0]==="logo"?"Logo":pair[0]==="banner"?"Banner":"Image");
+   box.append(h,img,a);target.append(box);
+  });
+ }
+ const brandAssets=$("brandAssets");
+ if(brandAssets)renderChannelAssets(brandAssets);
 }
 function parseJson(text){let s=String(text).trim();const ticks=String.fromCharCode(96).repeat(3);s=s.replace(new RegExp("^"+ticks+"(?:json)?","i"),"").replace(new RegExp(ticks+"$"),"");const a=s.indexOf("{"),b=s.lastIndexOf("}");if(a<0||b<=a)return null;try{return JSON.parse(s.slice(a,b+1))}catch{return null}}
 function label(k){return k.replace(/([A-Z])/g," $1").replace(/[_-]/g," ").replace(/\s+/g," ").replace(/\b\w/g,c=>c.toUpperCase())}
@@ -282,22 +450,62 @@ function renderNicheNamePicker(root,obj){
  }
  if(count||obj.recommended_niche)root.append(panel);
 }
+function renderChannelNamePicker(root,obj){
+ const recommended=String(obj.recommended_name||obj.channel_name||"").trim();
+ const rawOptions=Array.isArray(obj.name_options)?obj.name_options:[];
+ const candidates=[];
+ if(recommended)candidates.push({name:recommended,recommended:true});
+ rawOptions.forEach(item=>{
+  const name=String(typeof item==="string"?item:item&&(item.name||item.channel_name||item.title)||"").trim();
+  if(name&&!candidates.some(x=>x.name.toLowerCase()===name.toLowerCase()))candidates.push({name,recommended:false});
+ });
+ const panel=document.createElement("section");panel.className="result-section name-picker";
+ const heading=document.createElement("h4");heading.textContent="Choose Your Channel Name";
+ const intro=document.createElement("p");intro.textContent="Select the recommended name or any alternative. Your choice will be used for your logo and YouTube banner.";
+ panel.append(heading,intro);
+ candidates.forEach(candidate=>{
+  const card=document.createElement("div");card.className="mini name-option";
+  const top=document.createElement("div");top.className="name-option-top";
+  const name=document.createElement("b");name.textContent=candidate.name;top.append(name);
+  if(candidate.recommended){const tag=document.createElement("span");tag.className="chip";tag.textContent="AI Recommended";top.append(tag)}
+  const isSelected=String(active.fields.channelName||"").toLowerCase()===candidate.name.toLowerCase();
+  const button=document.createElement("button");button.type="button";
+  button.className="btn "+(isSelected?"primary":"outline");
+  button.textContent=isSelected?"Selected":"Use this name";
+  button.addEventListener("click",()=>{
+   const changed=String(active.fields.channelName||"").trim()!==candidate.name;
+   active.fields.channelName=candidate.name;
+   active.fields.brandName=candidate.name;
+   if(obj.channel_description)active.fields.channelDescription=String(obj.channel_description);
+   if(obj.tagline)active.fields.tagline=String(obj.tagline);
+   if(changed)clearGeneratedBranding();
+   save();
+   renderReport(active.reports[step]);
+   setStatus(changed?"Channel name selected. Channel Details updated. Prepare fresh logo and banner prompts for this name.":"This channel name is already selected.",false);
+  });
+  card.append(top,button);panel.append(card);
+ });
+ if(candidates.length)root.append(panel);
+}
 function renderReport(text){
  const root=$("resultBody");
  root.replaceChildren();
  const obj=parseJson(text);
- if(obj)renderValue(root,obj);
- else{
-  const section=document.createElement("section");
-  section.className="result-section";
-  const p=document.createElement("p");
-  p.textContent=text;
-  section.append(p);
-  root.append(section);
+ if(obj){
+  if(active&&active.mode==="new"&&step===1){
+   const rest=Object.assign({},obj);
+   delete rest.recommended_name;delete rest.channel_name;delete rest.name_options;
+   renderValue(root,rest);
+   renderChannelNamePicker(root,obj);
+  }else renderValue(root,obj);
+ }else{
+  const section=document.createElement("section");section.className="result-section";
+  const p=document.createElement("p");p.textContent=text;section.append(p);root.append(section);
  }
  if(active&&active.mode==="new"&&step===0&&obj)renderNicheNamePicker(root,obj);
  $("result").classList.add("show");
 }
+
 function promptForStep(){const f=active.fields,context=JSON.stringify(f).slice(0,2050),common="You are TrivexaAI Creator Intelligence Studio, a practical YouTube channel strategist and production guide. Give original, realistic, specific recommendations. Never promise virality, views, subscribers, rankings or revenue. Do not invent channel statistics or claim external research. Respect the creator's skills and time. Return ONLY valid JSON. ";
 const tasks={
 new:["Suggest 3 to 5 suitable YouTube niches for this first-time creator. Focus ONLY on niche discovery and selection. Do NOT suggest channel names, brand names, logos or banners in this stage. Evaluate fit, sustainable content supply, differentiation and practical competition. Give each niche a clear name, audience, fit explanation, differentiation, competition level, content opportunities and sample video ideas. JSON keys: creator_fit_summary, recommended_niche, niches array (name, audience, why_it_fits, differentiation, competition_level, content_opportunities array, sample_video_ideas array), watch_out_for array, first_30_days array.",
@@ -315,7 +523,7 @@ grow:["Audit the channel using ONLY the user-provided URL, description, niche, a
 return (common+"TASK: "+tasks[active.mode][step]+"\\nCREATOR CONTEXT (user supplied, not externally verified): "+context+"\\nPrevious report: "+String(active.reports[step-1]||"").slice(0,650)).slice(0,3900)}
 async function ai(prompt){const data=await workerRequest({action:"creator_intelligence_generate",toolId:TOOL,prompt:prompt});if(!data||typeof data.text!=="string"||!data.text.trim())throw new Error("The AI returned an empty response. Please try again.");return data.text.trim()}
 function setStatus(text,error){$("stageStatus").textContent=text;$("stageStatus").classList.toggle("error",!!error)}
-async function generate(){if(busy)return;const f=active.fields;if(step===0&&active.mode==="new"&&!f.interests.trim()){setStatus("Add a few interests first.",true);return}if(step===0&&active.mode==="build"&&!f.concept.trim()){setStatus("Describe your channel concept first.",true);return}if(step===0&&active.mode==="grow"&&!f.channelDescription.trim()&&!f.channelUrl.trim()){setStatus("Add your channel URL or a short description first.",true);return}busy=true;const b=$("stageButtons").querySelector(".primary");b.disabled=true;b.textContent="Preparing your AI report…";setStatus("Analyzing your information and preparing recommendations…");try{const text=await ai(promptForStep());active.reports[step]=text;const obj=parseJson(text);if(active.mode==="new"&&step===1&&obj&&obj.recommended_name){active.fields.brandName=String(obj.recommended_name);active.fields.channelName=String(obj.recommended_name);active.fields.brandPromptsReady=false;active.fields.logoPrompt="";active.fields.bannerPrompt="";delete active.images.logo;delete active.images.banner}if(active.mode==="new"&&step===2&&obj){if(obj.logo_prompt)active.fields.logoPrompt=String(obj.logo_prompt);if(obj.banner_prompt)active.fields.bannerPrompt=String(obj.banner_prompt)}if(active.mode!=="new"&&step===2&&obj){const list=obj.thumbnail_concepts||obj.title_options||[];if(list[0]&&list[0].image_prompt)active.fields.thumbnailPrompt=String(list[0].image_prompt)}save();drawWorkspace();setStatus("Your AI report is ready. Review the recommendations and continue when ready.")}catch(e){setStatus(e.message||"AI request failed. Please try again.",true)}finally{busy=false}}
+async function generate(){if(busy)return;const f=active.fields;if(step===0&&active.mode==="new"&&!f.interests.trim()){setStatus("Add a few interests first.",true);return}if(step===0&&active.mode==="build"&&!f.concept.trim()){setStatus("Describe your channel concept first.",true);return}if(step===0&&active.mode==="grow"&&!f.channelDescription.trim()&&!f.channelUrl.trim()){setStatus("Add your channel URL or a short description first.",true);return}busy=true;const b=$("stageButtons").querySelector(".primary");b.disabled=true;b.textContent="Preparing your AI report…";setStatus("Analyzing your information and preparing recommendations…");try{const text=await ai(promptForStep());active.reports[step]=text;const obj=parseJson(text);if(active.mode==="new"&&step===1&&obj&&obj.recommended_name){active.fields.brandName=String(obj.recommended_name);active.fields.channelName=String(obj.recommended_name);active.fields.channelDescription=String(obj.channel_description||obj.description||"");active.fields.tagline=String(obj.tagline||"");clearGeneratedBranding()}if(active.mode==="new"&&step===2&&obj){if(obj.logo_prompt)active.fields.logoPrompt=String(obj.logo_prompt);if(obj.banner_prompt)active.fields.bannerPrompt=String(obj.banner_prompt)}if(active.mode!=="new"&&step===2&&obj){const list=obj.thumbnail_concepts||obj.title_options||[];if(list[0]&&list[0].image_prompt)active.fields.thumbnailPrompt=String(list[0].image_prompt)}save();drawWorkspace();setStatus("Your AI report is ready. Review the recommendations and continue when ready.")}catch(e){setStatus(e.message||"AI request failed. Please try again.",true)}finally{busy=false}}
 async function prepareBrandPrompts(){
  if(busy)return;
  busy=true;
@@ -323,7 +531,7 @@ async function prepareBrandPrompts(){
  setStatus("AI is preparing your logo and banner artwork prompts…");
  try{
   const f=active.fields;
-  const p="Act as a senior YouTube brand art director. Return ONLY valid JSON with exactly two string keys: logo_prompt and banner_prompt. Do not return a report, summary, explanation or any extra keys. Create two distinct, coherent, highly detailed English image prompts for ARTWORK ONLY. Include the exact color palette with hex codes, color roles, visual style, background treatment, subject, iconography, lighting, depth, texture and composition so the creator can edit those details directly. CRITICAL: the image model must create visuals only. Absolutely no text, words, letters, numbers, typography, captions, labels, watermarks, pseudo-writing, signs, UI, or logos containing text. All channel name and tagline typography will be added separately by the app with exact spelling. LOGO: an original, highly recognizable symbol-only channel emblem, simple silhouette, premium and memorable, designed for a square YouTube profile icon and circular crop. BANNER: professional full-bleed YouTube channel art, wide cinematic 16:9 composition, premium designed backdrop with a clear visual focal point and uncluttered central safe area for an app-added logo and exact channel name; background art extends to every edge. Do not create a YouTube play-button mark or imitate an existing brand. Channel name context only (DO NOT render it): "+(f.brandName||f.channelName||"New Channel")+". Selected niche: "+(f.chosenNiche||"not specified")+". Audience: "+(f.audience||"not specified")+". Channel direction: "+String(active.reports[1]||"").slice(0,750);
+  const p="Act as a senior YouTube brand art director. Return ONLY valid JSON with exactly two string keys: logo_prompt and banner_prompt. Do not return a report, summary, explanation or any extra keys. Create two distinct, coherent, highly detailed English image prompts for ARTWORK ONLY. Include the exact color palette with hex codes, color roles, visual style, background treatment, subject, iconography, lighting, depth, texture and composition so the creator can edit those details directly. CRITICAL: the image model must create visuals only. Absolutely no text, words, letters, numbers, typography, captions, labels, watermarks, pseudo-writing, signs, UI, or logos containing text. All channel name and tagline typography will be added separately by the app with exact spelling. LOGO: an original, highly recognizable symbol-only channel emblem, simple silhouette, premium and memorable, designed for a square YouTube profile icon and circular crop. BANNER: professional full-bleed YouTube channel art, wide cinematic 16:9 composition, premium designed backdrop with a clear visual focal point and uncluttered central safe area for an app-added logo and exact channel name; background art extends to every edge. Do not create a YouTube play-button mark or imitate an existing brand. Channel name context only (DO NOT render it): "+(f.brandName||f.channelName||"New Channel")+". Selected niche: "+(f.chosenNiche||"not specified")+". Audience: "+(f.audience||"not specified")+". Selected channel name: "+(f.channelName||f.brandName||"not selected")+". Channel tagline: "+(f.tagline||"not specified")+". Full channel description: "+(f.channelDescription||"not specified")+". Build both prompts around this channel identity, niche, intended audience and description. Channel direction: "+String(active.reports[1]||"").slice(0,750);
   const obj=parseJson(await ai(p.slice(0,3900)));
   if(!obj||typeof obj.logo_prompt!=="string"||!obj.logo_prompt.trim()||typeof obj.banner_prompt!=="string"||!obj.banner_prompt.trim())throw new Error("The AI did not return both artwork prompts. Please try again.");
   const logoRequirements="\\n\\nARTWORK-ONLY OUTPUT: Exact square 1:1, 1024 x 1024 pixels. Symbol/emblem only. Absolutely no words, letters, numbers, initials, text, typography, watermark, signage, fake writing, mockup, or YouTube play-button logo. Keep the emblem centered and readable inside a circular crop.";
@@ -376,12 +584,26 @@ async function composeLogoImage(source){
  const crop=Math.min(img.width,img.height),sx=(img.width-crop)/2,sy=(img.height-crop)/2;
  ctx.save();
  ctx.beginPath();ctx.arc(512,512,452,0,Math.PI*2);ctx.clip();
- ctx.drawImage(img,sx,sy,crop,crop,60,60,904,904);
- const shade=ctx.createRadialGradient(512,430,180,512,512,500);
- shade.addColorStop(0,"rgba(0,0,0,0)");
- shade.addColorStop(1,"rgba(7,5,18,.42)");
- ctx.fillStyle=shade;ctx.fillRect(0,0,size,size);
+ ctx.drawImage(img,sx,sy,crop,crop,122,82,780,780);
+ const shade=ctx.createLinearGradient(0,585,0,940);
+ shade.addColorStop(0,"rgba(7,5,18,0)");
+ shade.addColorStop(.34,"rgba(7,5,18,.40)");
+ shade.addColorStop(1,"rgba(7,5,18,.94)");
+ ctx.fillStyle=shade;ctx.fillRect(60,570,904,390);
  ctx.restore();
+ const name=String(active.fields.channelName||active.fields.brandName||"YOUR CHANNEL").trim();
+ const fitSize=fitCanvasText(ctx,name,650,62,30);
+ ctx.save();
+ ctx.textAlign="center";ctx.textBaseline="middle";
+ ctx.font="900 "+fitSize+"px Inter, Arial, sans-serif";
+ ctx.shadowColor="rgba(0,0,0,.75)";ctx.shadowBlur=16;ctx.shadowOffsetY=3;
+ ctx.fillStyle="#ffffff";
+ ctx.fillText(name,512,817,650);
+ ctx.restore();
+ const accent=ctx.createLinearGradient(300,0,724,0);
+ accent.addColorStop(0,"#a78bfa");accent.addColorStop(.5,"#e879f9");accent.addColorStop(1,"#8cf0bd");
+ ctx.beginPath();ctx.moveTo(380,872);ctx.lineTo(644,872);
+ ctx.strokeStyle=accent;ctx.lineWidth=8;ctx.lineCap="round";ctx.stroke();
  const ring=ctx.createLinearGradient(120,160,900,890);
  ring.addColorStop(0,"rgba(221,202,255,.95)");
  ring.addColorStop(.5,"rgba(232,121,249,.85)");
