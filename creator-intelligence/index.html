@@ -398,7 +398,7 @@ function showStep(n){
  const brandStage=active.mode==="new"&&step===2;
  if(brandStage)renderBrandPromptEditors(root);
  $("stageNote").textContent=brandStage
-  ?"Edit the two AI-generated prompts below before image generation. The logo is exported at 1024 × 1024 px. The YouTube banner is exported at 2560 × 1440 px. Image files are not stored in local workspace data, so download both to keep copies."
+  ?"Edit the two AI-generated prompts below before image generation. Generated logos and banners preview below and are also saved in Channel Details. Logo: 1024 × 1024 px. YouTube banner: 2560 × 1440 px."
   :active.mode==="grow"&&step===0
    ?"V1 uses only information you provide. It does not claim to open your channel URL or read private YouTube Analytics."
    :step===2
@@ -451,7 +451,7 @@ function renderImages(){
  const root=$("visuals");
  root.replaceChildren();
  const brandStage=active.mode==="new"&&step===2;
- const target=brandStage?null:root;
+ const target=root;
  if(target){
   const titles={logo:"YouTube Channel Logo",banner:"YouTube Channel Banner",thumbnail:"Generated Thumbnail"};
   Object.entries(active.images||{}).filter(pair=>["logo","banner","thumbnail"].includes(pair[0])).forEach(pair=>{
@@ -639,7 +639,7 @@ function renderReport(text){
 function promptForStep(){const f=active.fields,context=JSON.stringify(f).slice(0,2050),common="You are TrivexaAI Creator Intelligence Studio, a practical YouTube channel strategist and production guide. Give original, realistic, specific recommendations. Never promise virality, views, subscribers, rankings or revenue. Do not invent channel statistics or claim external research. Respect the creator's skills and time. Return ONLY valid JSON. ";
 const tasks={
 new:["Suggest 3 to 5 suitable YouTube niches for this first-time creator. Focus ONLY on niche discovery and selection. Do NOT suggest channel names, brand names, logos or banners in this stage. Evaluate fit, sustainable content supply, differentiation and practical competition. Give each niche a clear name, audience, fit explanation, differentiation, competition level, content opportunities and sample video ideas. JSON keys: creator_fit_summary, recommended_niche, niches array (name, audience, why_it_fits, differentiation, competition_level, content_opportunities array, sample_video_ideas array), watch_out_for array, first_30_days array.",
-"Create the identity for the selected niche. Suggest 8 original channel names, a recommended name, tagline, channel description, positioning, brand personality, 4 to 6 content pillars and repeatable series. JSON keys: recommended_name, name_options array, tagline, channel_description, positioning, brand_personality, content_pillars array, repeatable_series array. Do not imitate existing brands.",
+"Create a complete Brand Identity for the selected niche. Suggest 8 original channel names and one recommended name. You MUST create a non-empty original channel tagline AND a complete, polished YouTube channel/About description; neither field may be omitted, left blank, or replaced by instructions to write it later. Make both specific to the selected niche, audience and channel positioning. JSON keys: recommended_name, name_options array, tagline (required non-empty final text), channel_description (required non-empty final About description), positioning, brand_personality, content_pillars array, repeatable_series array. Do not imitate existing brands.",
 "Create a channel visual identity brief. JSON keys: visual_direction, color_palette array, logo_prompt, banner_prompt, design_rules array, text_safe_area_note. Prompts must be detailed English image prompts for original branding. Avoid copied trademarks and require a clear empty safe area for editable text.",
 "Create the complete first-video launch blueprint. The creator does NOT need to enter a topic. If Selected first-video topic is empty, independently choose the strongest practical first topic for this channel using its niche, audience, creator skills, language, video format and brand identity. If a Selected first-video topic is supplied, use that exact topic as the chosen first video and build the entire plan around it. Also suggest 5 alternative first-video topic options and at least 3 follow-up video ideas for the next uploads. JSON keys: recommended_first_topic, alternative_topic_options array (topic, why_it_fits, angle), title_options array, strongest_title, opening_hook, video_promise, outline array (section, purpose), sample_script, shot_and_visual_list array, recording_guide array, editing_checklist array, thumbnail_direction, description_draft, upload_checklist array, next_three_videos array (topic, suggested_title, series_link). Make it realistic and achievable for a beginner. Selected first-video topic, if any: "+(f.firstVideoTopic||"None — choose automatically")+". Channel name: "+(f.channelName||"")+". Niche: "+(f.chosenNiche||"")+". Channel description: "+(f.channelDescription||"")+". Brand identity context: "+String(active.reports[1]||"").slice(0,750)+". Make the next video ideas logically continue the channel."],
 build:["Analyze the channel concept. JSON keys: concept_summary, refined_positioning, target_audience, audience_problems array, unique_value, content_pillars array, content_gaps array, repeatable_series array, topic_ideas array (topic, why_it_fits, suggested_angle, title_example, priority).",
@@ -653,7 +653,86 @@ grow:["Audit the channel using ONLY the user-provided URL, description, niche, a
 return (common+"TASK: "+tasks[active.mode][step]+"\\nCREATOR CONTEXT (user supplied, not externally verified): "+context+"\\nPrevious report: "+String(active.reports[step-1]||"").slice(0,650)).slice(0,3900)}
 async function ai(prompt){const data=await workerRequest({action:"creator_intelligence_generate",toolId:TOOL,prompt:prompt});if(!data||typeof data.text!=="string"||!data.text.trim())throw new Error("The AI returned an empty response. Please try again.");return data.text.trim()}
 function setStatus(text,error){$("stageStatus").textContent=text;$("stageStatus").classList.toggle("error",!!error)}
-async function generate(){if(busy)return;const f=active.fields;if(step===0&&active.mode==="new"&&!f.interests.trim()){setStatus("Add a few interests first.",true);return}if(step===0&&active.mode==="build"&&!f.concept.trim()){setStatus("Describe your channel concept first.",true);return}if(step===0&&active.mode==="grow"&&!f.channelDescription.trim()&&!f.channelUrl.trim()){setStatus("Add your channel URL or a short description first.",true);return}busy=true;const b=$("stageButtons").querySelector(".primary");b.disabled=true;b.textContent="Preparing your AI report…";setStatus("Analyzing your information and preparing recommendations…");try{const text=await ai(promptForStep());active.reports[step]=text;const obj=parseJson(text);if(active.mode==="new"&&step===1&&obj&&obj.recommended_name){active.fields.brandName=String(obj.recommended_name);active.fields.channelName=String(obj.recommended_name);active.fields.channelDescription=String(obj.channel_description||obj.description||"");active.fields.tagline=String(obj.tagline||"");clearGeneratedBranding()}if(active.mode==="new"&&step===3&&obj&&obj.recommended_first_topic&&!active.fields.firstVideoTopic)active.fields.firstVideoTopic=String(obj.recommended_first_topic);if(active.mode==="new"&&step===2&&obj){if(obj.logo_prompt)active.fields.logoPrompt=String(obj.logo_prompt);if(obj.banner_prompt)active.fields.bannerPrompt=String(obj.banner_prompt)}if(active.mode!=="new"&&step===2&&obj){const list=obj.thumbnail_concepts||obj.title_options||[];if(list[0]&&list[0].image_prompt)active.fields.thumbnailPrompt=String(list[0].image_prompt)}save();drawWorkspace();setStatus("Your AI report is ready. Review the recommendations and continue when ready.")}catch(e){setStatus(e.message||"AI request failed. Please try again.",true)}finally{busy=false}}
+function identityFieldValue(obj,keys){
+ for(const key of keys){
+  const value=obj&&obj[key];
+  if(typeof value==="string"&&value.trim())return value.trim();
+ }
+ return "";
+}
+async function completeBrandIdentityCopy(obj){
+ const identity=obj&&typeof obj==="object"?obj:{};
+ const name=String(identity.recommended_name||identity.channel_name||active.fields.channelName||"the channel");
+ const niche=String(active.fields.chosenNiche||"the selected niche");
+ const audience=String(active.fields.audience||"the intended audience");
+ const context=JSON.stringify(identity).slice(0,1350);
+ let tagline=identityFieldValue(identity,["tagline","channel_tagline","brand_tagline","slogan","brand_slogan"]);
+ let description=identityFieldValue(identity,["channel_description","description","about_description","youtube_description","channel_about"]);
+ if(!tagline){
+  const raw=await ai("You are an expert YouTube brand copywriter. Generate exactly ONE excellent channel tagline for this channel. The tagline must be short, memorable, original, natural English, and clearly match the niche and audience. Do not give options or explanations. Return ONLY valid JSON: {\"tagline\":\"the finished tagline\"}. Channel name: "+name+". Niche: "+niche+". Audience: "+audience+". Channel positioning and identity: "+context);
+  const parsed=parseJson(raw);
+  tagline=identityFieldValue(parsed,["tagline","channel_tagline","brand_tagline","slogan"]);
+  if(!tagline)throw new Error("AI could not create the channel tagline. Please retry Brand Identity.");
+ }
+ if(!description){
+  const raw=await ai("You are an expert YouTube channel brand strategist. Write the finished YouTube About/channel description. Explain what the channel publishes, who it is for, the value viewers receive, and what they can expect. Use natural, polished, specific language, not generic filler. Do not invent credentials or promise results. Return ONLY valid JSON: {\"channel_description\":\"the finished channel description\"}. Channel name: "+name+". Niche: "+niche+". Audience: "+audience+". Tagline: "+tagline+". Channel positioning and brand identity: "+context);
+  const parsed=parseJson(raw);
+  description=identityFieldValue(parsed,["channel_description","description","about_description","youtube_description","channel_about"]);
+  if(!description)throw new Error("AI could not create the channel description. Please retry Brand Identity.");
+ }
+ identity.tagline=tagline;
+ identity.channel_description=description;
+ return identity;
+}
+async function generate(){
+ if(busy)return;
+ const f=active.fields;
+ if(step===0&&active.mode==="new"&&!f.interests.trim()){setStatus("Add a few interests first.",true);return}
+ if(step===0&&active.mode==="build"&&!f.concept.trim()){setStatus("Describe your channel concept first.",true);return}
+ if(step===0&&active.mode==="grow"&&!f.channelDescription.trim()&&!f.channelUrl.trim()){setStatus("Add your channel URL or a short description first.",true);return}
+ busy=true;
+ const b=$("stageButtons").querySelector(".primary");
+ if(b){b.disabled=true;b.textContent="Preparing your AI report…"}
+ setStatus("Analyzing your information and preparing recommendations…");
+ try{
+  const text=await ai(promptForStep());
+  let obj=parseJson(text);
+  if(active.mode==="new"&&step===1){
+   if(!obj)throw new Error("Brand Identity returned an unreadable response. Please retry.");
+   obj=await completeBrandIdentityCopy(obj);
+   active.reports[step]=JSON.stringify(obj);
+   const recommended=String(obj.recommended_name||obj.channel_name||"").trim();
+   if(recommended){
+    active.fields.brandName=active.fields.channelName||recommended;
+    active.fields.channelName=active.fields.channelName||recommended;
+   }
+   active.fields.channelDescription=String(obj.channel_description||obj.description||"").trim();
+   active.fields.tagline=String(obj.tagline||"").trim();
+   clearGeneratedBranding();
+   save();
+  }else{
+   active.reports[step]=text;
+  }
+  if(active.mode==="new"&&step===3&&obj&&obj.recommended_first_topic&&!active.fields.firstVideoTopic)active.fields.firstVideoTopic=String(obj.recommended_first_topic);
+  if(active.mode==="new"&&step===2&&obj){
+   if(obj.logo_prompt)active.fields.logoPrompt=String(obj.logo_prompt);
+   if(obj.banner_prompt)active.fields.bannerPrompt=String(obj.banner_prompt);
+  }
+  if(active.mode!=="new"&&step===2&&obj){
+   const list=obj.thumbnail_concepts||obj.title_options||[];
+   if(list[0]&&list[0].image_prompt)active.fields.thumbnailPrompt=String(list[0].image_prompt);
+  }
+  save();
+  drawWorkspace();
+  setStatus(active.mode==="new"&&step===1?"Brand Identity saved. Your channel name, tagline and description are now available in Channel Details.":"Your AI report is ready. Review the recommendations and continue when ready.");
+  if(active.mode==="new"&&step===1&&$("channelDetailsPanel")&&!$("channelDetailsPanel").hidden)renderChannelDetails();
+ }catch(e){
+  setStatus(e.message||"AI request failed. Please try again.",true);
+ }finally{
+  busy=false;
+  if(active&&active.mode==="new"&&step===1)syncIdentityContinue();
+ }
+}
 async function prepareBrandPrompts(){
  if(busy)return;
  busy=true;
