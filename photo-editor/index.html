@@ -307,9 +307,36 @@ html,body{
 #openHelp:hover{border-color:#b38bff;background:#302247;box-shadow:0 0 20px #9564e52b}
 @media(max-width:640px){.help-modal{padding:17px}.help-grid{grid-template-columns:1fr}.help-head h2{font-size:21px}.help-foot{align-items:flex-start;flex-direction:column-reverse}.help-foot .btn{width:100%}.top-actions{gap:6px}.top-actions .btn{padding:7px 9px;font-size:11px}}
 
+/* Premium workspace access gate */
+body:not(.photo-access-granted)>header,
+body:not(.photo-access-granted)>#startScreen,
+body:not(.photo-access-granted)>#workspace{display:none!important}
+#photoAccessGate{display:none}
+body:not(.photo-access-granted) #photoAccessGate{display:grid}
+body.photo-access-granted #photoAccessGate{display:none!important}
+.photo-access-gate{position:fixed;inset:0;z-index:9999;min-height:100vh;place-items:center;padding:24px;background:radial-gradient(ellipse at 50% 22%,#48316f 0,transparent 46%),radial-gradient(circle at 85% 80%,#35194d66,transparent 35%),#090812}
+.photo-access-card{width:min(100%,490px);padding:40px 34px;border:1px solid #a77aff55;border-radius:27px;background:linear-gradient(145deg,#211832 0%,#12101e 75%);box-shadow:0 30px 100px #000b,0 0 65px #9b6cff25,inset 0 1px 0 #ffffff12;text-align:center;position:relative;overflow:hidden}
+.photo-access-card:before{content:"";position:absolute;top:0;left:12%;right:12%;height:1px;background:linear-gradient(90deg,transparent,#d7b7ff,transparent)}
+.photo-access-mark{display:grid;place-items:center;width:60px;height:60px;margin:0 auto 20px;border:1px solid #d4b5ff66;border-radius:19px;background:linear-gradient(145deg,#7653ff,#bf65e9);box-shadow:0 0 38px #a56cff70;color:white;font-size:27px}
+.photo-access-kicker{color:#c9a8ff;font-size:10px;font-weight:900;letter-spacing:2.2px}
+.photo-access-card h1{margin:12px 0 9px;font-size:30px;letter-spacing:-.9px;color:#faf7ff}
+.photo-access-card p:not(.photo-access-kicker){margin:0;color:#bdb1d0;font-size:13px;line-height:1.75}
+.photo-access-card .photo-access-note{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin:20px 0}
+.photo-access-note span{padding:7px 10px;border:1px solid #ffffff18;border-radius:99px;background:#ffffff08;color:#d8c9ed;font-size:10px;font-weight:750}
+.photo-access-actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:23px}
+.photo-access-actions a,.photo-access-actions button{min-height:43px;padding:0 17px;border-radius:12px;font-size:12px;font-weight:800}
+.photo-access-actions .photo-access-primary{border:1px solid #ffffff35;background:linear-gradient(105deg,#7653ff,#b65de5);color:#fff;box-shadow:0 9px 28px #895cff55}
+.photo-access-actions .photo-access-back{display:inline-flex;align-items:center;text-decoration:none;border:1px solid #ffffff22;background:#ffffff08;color:#e5d9f5}
+.photo-access-status{min-height:18px;margin-top:15px!important;color:#a99bbd!important;font-size:10px!important}
+@media(max-width:560px){.photo-access-card{padding:31px 22px}.photo-access-card h1{font-size:25px}}
+
 </style>
 </head>
 <body>
+<section id="photoAccessGate" class="photo-access-gate" role="status" aria-live="polite">
+ <div class="photo-access-card"><span class="photo-access-mark">✦</span><p class="photo-access-kicker">TRIVEXAAI · SECURE CREATOR WORKSPACE</p><h1 id="photoAccessTitle">Verifying premium access</h1><p id="photoAccessMessage">Please wait while we securely confirm your account permissions.</p><div class="photo-access-note"><span>✦ Premium Photo Studio</span><span>◈ Pro editing tools</span><span>✓ Private projects</span></div><div class="photo-access-actions"><button id="retryPhotoAccess" class="photo-access-primary" type="button" hidden>Retry verification</button><a class="photo-access-back" href="../#projects">← Back to Projects</a></div><p id="photoAccessStatus" class="photo-access-status">Secure access check in progress</p></div>
+</section>
+
 <header class="topbar">
  <div class="brand"><img class="brand-logo" src="./trivexa-photo-studio.svg" alt="TrivexaAI Photo Studio"></div>
  <div class="top-actions"><a class="btn ghost" href="../#projects">← Projects</a><button class="btn ghost" id="openHelp" type="button" aria-haspopup="dialog" aria-controls="helpModal">? Help</button><span class="save-state" id="saveState">Ready</span></div>
@@ -1918,7 +1945,33 @@ $("mobilePreviewBtn").addEventListener("click",openMobilePreview);$("closeMobile
 $("basicTools").addEventListener("click",e=>{if(activeTool!=="crop")return;const control=e.target.closest("button,input,select");if(control&&control.id!=="cropBtn"&&control.id!=="cropToSelection")cancelCrop()},true);document.querySelectorAll(".rail-btn").forEach(b=>b.addEventListener("click",()=>activateRail(b.dataset.rail)));document.querySelectorAll(".right-tabs button").forEach(b=>b.addEventListener("click",()=>selectTab(b.dataset.tab)));
 window.addEventListener("keydown",e=>{const target=e.target,editing=target instanceof HTMLElement&&(target.isContentEditable||["INPUT","TEXTAREA","SELECT"].includes(target.tagName));if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="a"&&!editing&&state){e.preventDefault();setLayerSelection(state.layers.map(layer=>layer.id),state.layers.at(-1)?.id||null);return}if(e.key==="Escape"){if(!$("helpModal").classList.contains("hidden")){closeHelp();return}if(!$("deleteProjectModal").classList.contains("hidden")){closeDeleteProjectModal();return}if(activeTool==="crop"){e.preventDefault();cancelCrop();return}if(!$("templatePickerModal").classList.contains("hidden"))closeTemplatePicker();if(!$("mobilePreviewModal").classList.contains("hidden"))closeMobilePreview()}if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="z"){e.preventDefault();e.shiftKey?redo():undo()}if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="y"){e.preventDefault();redo()}});
 window.addEventListener("resize",()=>{if(state&&autoFitZoom)fitZoom();updateSelectionOverlay()});
-async function boot(){try{setupToolGroups();await authReady;if(!auth?.currentUser){const next=location.href;location.replace("../auth/login.html?next="+encodeURIComponent(next));return}db=await openDB();const projectId=new URLSearchParams(location.search).get("id");if(projectId){await openExisting(projectId)}else{showScreen("start");await refreshRecent()}}catch(e){showScreen("start");$("recentGrid").innerHTML='<div class="empty-state">Could not open Photo Editor: '+String(e.message||"Please refresh and try again.")+'</div>';toast(e.message||"Photo Editor could not start")}}
+async function verifyPhotoEditorAccess(){
+ const title=$("photoAccessTitle"),message=$("photoAccessMessage"),status=$("photoAccessStatus"),retry=$("retryPhotoAccess");
+ document.body.classList.remove("photo-access-granted");
+ retry.hidden=true;title.textContent="Verifying premium access";message.textContent="Please wait while we securely confirm your account permissions.";status.textContent="Secure access check in progress";
+ try{
+  await authReady;
+  if(!auth?.currentUser)throw new Error("Please sign in with your Google account to continue.");
+  if(typeof workerRequest!=="function")throw new Error("Secure account verification is unavailable. Please refresh and try again.");
+  const result=await workerRequest({action:"photo_editor_workspace_access"});
+  if(result?.allowed!==true)throw new Error("Premium access is required to open Photo Studio. Please ask the TrivexaAI administrator for approval.");
+  window.__photoEditorAccessGranted=true;
+  document.body.classList.add("photo-access-granted");
+  status.textContent="Premium access verified";
+  db=await openDB();
+  const projectId=new URLSearchParams(location.search).get("id");
+  if(projectId){await openExisting(projectId)}else{showScreen("start");await refreshRecent()}
+ }catch(e){
+  window.__photoEditorAccessGranted=false;
+  title.textContent=e?.code==="ADVANCED_ACCESS_REQUIRED"?"Premium access required":"Access verification failed";
+  message.textContent=e?.message||"Your account could not be verified. The Photo Studio and saved projects remain locked.";
+  status.textContent="Workspace locked until secure verification succeeds";
+  retry.hidden=false;
+ }
+}
+window.__photoEditorAccessGranted=false;
+$("retryPhotoAccess").addEventListener("click",verifyPhotoEditorAccess);
+async function boot(){try{setupToolGroups();await verifyPhotoEditorAccess()}catch(e){$("photoAccessTitle").textContent="Access verification failed";$("photoAccessMessage").textContent=e?.message||"Please refresh and try again.";$("retryPhotoAccess").hidden=false}}
 boot();
 </script>
 </body>
