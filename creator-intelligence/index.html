@@ -19,7 +19,7 @@
 input,textarea,select{width:100%;border:1px solid #4a385f;border-radius:10px;padding:10px 11px;color:#f8f5ff;background:#100b20;outline:none;font-size:11px}textarea{min-height:86px;resize:vertical;line-height:1.6}input:focus,textarea:focus,select:focus{border-color:#b99cff;box-shadow:0 0 0 3px #9b6cff22}input::placeholder,textarea::placeholder{color:#756987}
 .note{padding:11px 13px;border:1px solid #9b6cff35;border-radius:12px;background:#9b6cff10;color:#d5c8e7;font-size:10px;line-height:1.65;margin:14px 0}.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:39px;padding:9px 14px;border-radius:10px;font-size:10px;font-weight:850}.primary{color:#170d2b;border:1px solid #e8d5ff;background:linear-gradient(105deg,#c4b5fd,#e879f9)}.secondary{color:#f0e7ff;border:1px solid #8f6bc4;background:#9b6cff20}.outline{color:#d2c7e3;border:1px solid var(--line);background:#ffffff05}.btn:hover{filter:brightness(1.08);border-color:#c09fff}.btnrow{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:16px}.status{font-size:10px;color:var(--soft);min-height:18px;margin-top:9px}.status.error{color:var(--red)}
 .result{display:none;margin-top:18px;border:1px solid #705298;border-radius:14px;background:#100b20a8;overflow:hidden}.result.show{display:block}.result-head{display:flex;justify-content:space-between;align-items:center;gap:9px;padding:10px 13px;border-bottom:1px solid var(--line);background:#ffffff04}.result-head b{font-size:10px}.result-body{display:grid;gap:9px;padding:13px}.result-section{padding:11px;border:1px solid #392951;border-radius:10px;background:#ffffff04}.result-section h4{font-size:11px;margin:0 0 6px;color:#eadfff}.result-section p,.result-section li{white-space:pre-wrap;color:#c7bdd7;font-size:10px;line-height:1.75;margin:0}.result-section ul{margin:0;padding-left:18px}.mini{padding:9px;border:1px solid #392951;border-radius:9px;margin-top:7px;background:#ffffff04}.mini b{font-size:10px;display:block;margin-bottom:4px;color:#f0e7ff}
-.visual-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:15px}.visual{padding:13px;border:1px solid var(--line);border-radius:13px;background:#ffffff04;min-width:0}.visual h4{font-size:11px;margin:0 0 4px}.preview{display:none;width:100%;max-height:290px;object-fit:contain;margin-top:10px;border:1px solid var(--line);border-radius:10px;background:#1a1230}.preview.show{display:block}.download{display:none;color:#d8c6ff;font-size:10px;font-weight:800;margin-top:7px}.download.show{display:inline-block}
+.visual-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:15px}.visual{padding:13px;border:1px solid var(--line);border-radius:13px;background:#ffffff04;min-width:0}.visual h4{font-size:11px;margin:0 0 4px}.preview{display:none;width:100%;max-height:290px;object-fit:contain;margin-top:10px;border:1px solid var(--line);border-radius:10px;background:#1a1230}.preview.show{display:block}.brand-prompt{min-height:185px;line-height:1.7;resize:vertical}.prompt-meta{color:#b8accd;font-size:9px;line-height:1.5}.download{display:none;color:#d8c6ff;font-size:10px;font-weight:800;margin-top:7px}.download.show{display:inline-block}
 .stage-foot{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:19px;padding-top:14px;border-top:1px solid var(--line)}.foot-right{display:flex;gap:7px}.loading{max-width:450px;margin:80px auto;padding:24px;border:1px solid var(--line);border-radius:17px;background:var(--panel);text-align:center}.spinner{width:25px;height:25px;margin:0 auto 12px;border:3px solid #4b3964;border-top-color:#c09fff;border-radius:50%;animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}[hidden]{display:none!important}
 @media(max-width:900px){.mode-grid{grid-template-columns:1fr 1fr}.layout{grid-template-columns:205px minmax(0,1fr)}}@media(max-width:650px){.topbar{height:60px;padding:0 4%}.brand small{display:none}.shell{width:94%;padding-top:18px}.hero{padding:24px 19px}.mode-grid{grid-template-columns:1fr}.mode-card{min-height:220px}.layout{grid-template-columns:1fr}.sidebar{position:static}.step-list{grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}.step{display:grid;justify-items:center;text-align:center;padding:7px 3px;gap:4px}.step strong{font-size:8px}.step small{display:none}.fields,.visual-grid{grid-template-columns:1fr}.stage{padding:16px}.workspace-head{align-items:flex-start}.wtitle h2{font-size:16px}.actions{max-width:47%}.actions .btn{font-size:9px;padding:7px}.stage-foot{align-items:flex-end}}
 </style></head>
@@ -75,21 +75,115 @@ function save(){if(!active)return;active.updated=Date.now();const i=saved.findIn
 function screen(which){$("home").classList.toggle("active",which==="home");$("work").classList.toggle("active",which==="work")}
 function start(mode){active=make(mode);saved.unshift(active);step=0;drawWorkspace()}
 function field(config){const key=config[0],wrap=document.createElement("div"),label=document.createElement("label");wrap.className="field"+(config[2]==="textarea"?" full":"");label.textContent=config[1];label.htmlFor="field-"+key;wrap.append(label);let el;if(config[2]==="textarea"){el=document.createElement("textarea");el.placeholder=config[3]}else if(config[2]==="select"){el=document.createElement("select");config[3].forEach(v=>{const o=document.createElement("option");o.value=v;o.textContent=v;el.append(o)})}else{el=document.createElement("input");el.placeholder=config[3]}el.id="field-"+key;el.value=active.fields[key]||"";el.dataset.field=key;el.addEventListener("input",fieldChange);el.addEventListener("change",fieldChange);wrap.append(el);return wrap}
-function fieldChange(e){const key=e.target.dataset.field;active.fields[key]=e.target.value;if(key==="chosenNiche"){active.fields.brandPromptsReady=false;active.fields.logoPrompt="";active.fields.bannerPrompt="";delete active.images.logo;delete active.images.banner}if(["brandName","channelName"].includes(key))$("wName").textContent=e.target.value||modes[active.mode].name+" Workspace";save()}
+function fieldChange(e){
+ const key=e.target.dataset.field;
+ active.fields[key]=e.target.value;
+ if(key==="chosenNiche"){
+  active.fields.brandPromptsReady=false;
+  active.fields.logoPrompt="";
+  active.fields.bannerPrompt="";
+  delete active.images.logo;
+  delete active.images.banner;
+ }
+ if(key==="logoPrompt"||key==="bannerPrompt"){
+  active.fields.brandPromptsReady=!!(String(active.fields.logoPrompt||"").trim()&&String(active.fields.bannerPrompt||"").trim());
+  delete active.images[key==="logoPrompt"?"logo":"banner"];
+  renderImages();
+  buildButtons();
+  syncBrandContinue();
+ }
+ if(["brandName","channelName"].includes(key))$("wName").textContent=e.target.value||modes[active.mode].name+" Workspace";
+ save();
+}
+function syncBrandContinue(){
+ if(!active||active.mode!=="new"||step!==2)return;
+ const complete=!!(active.images.logo&&active.images.banner);
+ $("next").disabled=!complete;
+ $("next").textContent=complete?"Save & Continue →":"Generate both visuals to continue";
+}
+function renderBrandPromptEditors(root){
+ const ready=!!(active.fields.brandPromptsReady&&String(active.fields.logoPrompt||"").trim()&&String(active.fields.bannerPrompt||"").trim());
+ const configs=[
+  ["logoPrompt","Logo Prompt","YouTube channel profile icon · 1024 × 1024 px · Square 1:1"],
+  ["bannerPrompt","Banner Prompt","YouTube channel banner · Final output 2560 × 1440 px · Central safe area protected"]
+ ];
+ configs.forEach(([key,title,meta])=>{
+  const wrap=document.createElement("div");
+  wrap.className="field full";
+  const label=document.createElement("label");
+  label.textContent=title+" — Editable";
+  label.htmlFor="field-"+key;
+  const small=document.createElement("small");
+  small.className="prompt-meta";
+  small.textContent=meta+" · Edit colors, style, symbols, and visual details before generating.";
+  const area=document.createElement("textarea");
+  area.className="brand-prompt";
+  area.id="field-"+key;
+  area.dataset.field=key;
+  area.rows=9;
+  area.maxLength=1400;
+  area.placeholder="Click “Prepare Logo & Banner Prompts” to generate this AI prompt. It will appear here so you can edit it.";
+  area.value=String(active.fields[key]||"");
+  area.disabled=!ready;
+  area.addEventListener("input",fieldChange);
+  area.addEventListener("change",fieldChange);
+  wrap.append(label,small,area);
+  root.append(wrap);
+ });
+}
 function drawWorkspace(){screen("work");const meta=modes[active.mode];$("wIcon").textContent=meta.icon;$("wName").textContent=active.fields.brandName||active.fields.channelName||meta.name+" Workspace";$("wSubtitle").textContent=meta.subtitle;const root=$("steps");root.replaceChildren();meta.steps.forEach((name,i)=>{const b=document.createElement("button");b.type="button";b.className="step"+(i===step?" active":"");const num=document.createElement("span");num.className="num";num.textContent=String(i+1);const box=document.createElement("span"),strong=document.createElement("strong"),small=document.createElement("small");strong.textContent=name;small.textContent="Stage "+(i+1)+" of 4";box.append(strong,small);b.append(num,box);b.addEventListener("click",()=>showStep(i));root.append(b)});showStep(step)}
-function showStep(n){const blockedBrandStep=active.mode==="new"&&n>2&&!(active.images.logo&&active.images.banner);if(blockedBrandStep)n=2;step=Math.max(0,Math.min(3,n));const meta=modes[active.mode],c=copy[active.mode][step];$("stageKicker").textContent="STAGE 0"+(step+1)+" · "+meta.steps[step].toUpperCase();$("stageTitle").textContent=c[0];$("stageIntro").textContent=c[1];const root=$("fields");root.replaceChildren();forms[active.mode][step].forEach(cfg=>root.append(field(cfg)));$("stageNote").textContent=active.mode==="grow"&&step===0?"V1 uses only information you provide. It does not claim to open your channel URL or read private YouTube Analytics.":step===2?"Generated image files are not stored inside local workspace data. Download each image to keep a copy; prompts and written reports are saved locally.":"Your workspace is saved locally on this browser and device. AI recommendations are guidance, not guaranteed growth results.";buildButtons();const hideBrandReport=active.mode==="new"&&step===2;$("resultTitle").textContent=meta.steps[step]+" Report";if(!hideBrandReport&&active.reports[step]){renderReport(active.reports[step]);$("result").classList.add("show")}else{$("result").classList.remove("show");$("resultBody").replaceChildren()}renderImages();$("prev").disabled=step===0;$("next").textContent=step===3?"Back to journeys":(hideBrandReport?(active.images.logo&&active.images.banner?"Save & Continue →":"Generate both visuals to continue"):"Continue →");$("next").disabled=hideBrandReport&&!(active.images.logo&&active.images.banner);$("stageStatus").textContent="";$("stageStatus").classList.remove("error");if(blockedBrandStep)setStatus("Generate both your logo and banner before continuing to the First Video step.",true);$("steps").querySelectorAll(".step").forEach((b,i)=>b.classList.toggle("active",i===step))}
+function showStep(n){
+ const blockedBrandStep=active.mode==="new"&&n>2&&!(active.images.logo&&active.images.banner);
+ if(blockedBrandStep)n=2;
+ step=Math.max(0,Math.min(3,n));
+ const meta=modes[active.mode],c=copy[active.mode][step];
+ $("stageKicker").textContent="STAGE 0"+(step+1)+" · "+meta.steps[step].toUpperCase();
+ $("stageTitle").textContent=c[0];
+ $("stageIntro").textContent=c[1];
+ const root=$("fields");
+ root.replaceChildren();
+ forms[active.mode][step].forEach(cfg=>root.append(field(cfg)));
+ const brandStage=active.mode==="new"&&step===2;
+ if(brandStage)renderBrandPromptEditors(root);
+ $("stageNote").textContent=brandStage
+  ?"Edit the two AI-generated prompts below before image generation. The logo is exported at 1024 × 1024 px. The YouTube banner is exported at 2560 × 1440 px. Image files are not stored in local workspace data, so download both to keep copies."
+  :active.mode==="grow"&&step===0
+   ?"V1 uses only information you provide. It does not claim to open your channel URL or read private YouTube Analytics."
+   :step===2
+    ?"Generated image files are not stored inside local workspace data. Download each image to keep a copy; prompts and written reports are saved locally."
+    :"Your workspace is saved locally on this browser and device. AI recommendations are guidance, not guaranteed growth results.";
+ buildButtons();
+ const hideBrandReport=brandStage;
+ $("resultTitle").textContent=meta.steps[step]+" Report";
+ if(!hideBrandReport&&active.reports[step]){
+  renderReport(active.reports[step]);
+  $("result").classList.add("show");
+ }else{
+  $("result").classList.remove("show");
+  $("resultBody").replaceChildren();
+ }
+ renderImages();
+ $("prev").disabled=step===0;
+ $("next").textContent=step===3?"Back to journeys":(hideBrandReport?(active.images.logo&&active.images.banner?"Save & Continue →":"Generate both visuals to continue"):"Continue →");
+ $("next").disabled=hideBrandReport&&!(active.images.logo&&active.images.banner);
+ $("stageStatus").textContent="";
+ $("stageStatus").classList.remove("error");
+ if(blockedBrandStep)setStatus("Generate both your logo and banner before continuing to the First Video step.",true);
+ $("steps").querySelectorAll(".step").forEach((b,i)=>b.classList.toggle("active",i===step));
+}
 function addButton(root,text,kind,fn){const b=document.createElement("button");b.type="button";b.className="btn "+kind;b.textContent=text;b.addEventListener("click",fn);root.append(b);return b}
 function buildButtons(){
  const root=$("stageButtons");
  root.replaceChildren();
  const brandStage=active.mode==="new"&&step===2;
  if(brandStage){
-  const ready=!!(active.fields.brandPromptsReady&&active.fields.logoPrompt&&active.fields.bannerPrompt);
-  addButton(root,ready?"Refresh logo & banner prompts":"Prepare logo & banner prompts","primary",prepareBrandPrompts);
-  const logo=addButton(root,active.images.logo?"Regenerate logo":"Generate logo","outline",()=>makeImage("logo"));
-  const banner=addButton(root,active.images.banner?"Regenerate banner":"Generate banner","outline",()=>makeImage("banner"));
-  logo.disabled=!ready;
-  banner.disabled=!ready;
+  const ready=!!(active.fields.brandPromptsReady&&String(active.fields.logoPrompt||"").trim()&&String(active.fields.bannerPrompt||"").trim());
+  const prepare=addButton(root,ready?"Re-prepare Logo & Banner Prompts":"Prepare Logo & Banner Prompts","primary",prepareBrandPrompts);
+  prepare.disabled=busy;
+  const logo=addButton(root,active.images.logo?"Regenerate Logo":"Generate Logo","outline",()=>makeImage("logo"));
+  const banner=addButton(root,active.images.banner?"Regenerate Banner":"Generate Banner","outline",()=>makeImage("banner"));
+  logo.disabled=!ready||busy;
+  banner.disabled=!ready||busy;
  }else{
   addButton(root,step===0?"✦ Analyze my channel":"✦ Generate AI recommendations","primary",generate);
   if(step===2)addButton(root,"Generate thumbnail","outline",()=>makeImage("thumbnail"));
@@ -97,7 +191,28 @@ function buildButtons(){
  if(step===3)addButton(root,"Download complete plan","outline",downloadPlan);
  addButton(root,"Save workspace","outline",save);
 }
-function renderImages(){const root=$("visuals");root.replaceChildren();Object.entries(active.images||{}).forEach(pair=>{const box=document.createElement("div");box.className="visual";const h=document.createElement("h4");h.textContent="Generated "+pair[0]+" concept";const img=document.createElement("img");img.className="preview show";img.src=pair[1];img.alt=h.textContent;const a=document.createElement("a");a.className="download show";a.href=pair[1];a.download="TrivexaAI-"+pair[0]+"-concept.png";a.textContent="Download image";box.append(h,img,a);root.append(box)})}
+function renderImages(){
+ const root=$("visuals");
+ root.replaceChildren();
+ const titles={logo:"YouTube Channel Logo",banner:"YouTube Channel Banner",thumbnail:"Generated Thumbnail"};
+ Object.entries(active.images||{}).forEach(pair=>{
+  const box=document.createElement("div");
+  box.className="visual";
+  const h=document.createElement("h4");
+  h.textContent=titles[pair[0]]||("Generated "+pair[0]);
+  const img=document.createElement("img");
+  img.className="preview show";
+  img.src=pair[1];
+  img.alt=h.textContent;
+  const a=document.createElement("a");
+  a.className="download show";
+  a.href=pair[1];
+  a.download=pair[0]==="logo"?"TrivexaAI-YouTube-Logo-1024x1024.png":pair[0]==="banner"?"TrivexaAI-YouTube-Banner-2560x1440.png":"TrivexaAI-"+pair[0]+"-concept.png";
+  a.textContent="Download "+(pair[0]==="logo"?"Logo":pair[0]==="banner"?"Banner":"Image");
+  box.append(h,img,a);
+  root.append(box);
+ });
+}
 function parseJson(text){let s=String(text).trim();const ticks=String.fromCharCode(96).repeat(3);s=s.replace(new RegExp("^"+ticks+"(?:json)?","i"),"").replace(new RegExp(ticks+"$"),"");const a=s.indexOf("{"),b=s.lastIndexOf("}");if(a<0||b<=a)return null;try{return JSON.parse(s.slice(a,b+1))}catch{return null}}
 function label(k){return k.replace(/([A-Z])/g," $1").replace(/[_-]/g," ").replace(/\s+/g," ").replace(/\b\w/g,c=>c.toUpperCase())}
 function renderValue(root,value){if(value===null||value===undefined)return;if(Array.isArray(value)){if(value.every(x=>typeof x!=="object"||x===null)){const ul=document.createElement("ul");value.slice(0,18).forEach(x=>{const li=document.createElement("li");li.textContent=String(x);ul.append(li)});root.append(ul)}else value.slice(0,12).forEach((x,i)=>{const box=document.createElement("div");box.className="mini";if(x&&typeof x==="object"){const b=document.createElement("b");b.textContent=String(x.name||x.topic||x.title||"Idea "+(i+1));box.append(b);renderValue(box,x)}else box.textContent=String(x);root.append(box)});return}if(typeof value==="object"){Object.entries(value).forEach(pair=>{const section=document.createElement("section");section.className="result-section";const h=document.createElement("h4");h.textContent=label(pair[0]);section.append(h);if(typeof pair[1]==="string"||typeof pair[1]==="number"||typeof pair[1]==="boolean"){const p=document.createElement("p");p.textContent=String(pair[1]);section.append(p)}else renderValue(section,pair[1]);root.append(section)});return}const p=document.createElement("p");p.textContent=String(value);root.append(p)}
@@ -200,9 +315,101 @@ return (common+"TASK: "+tasks[active.mode][step]+"\\nCREATOR CONTEXT (user suppl
 async function ai(prompt){const data=await workerRequest({action:"creator_intelligence_generate",toolId:TOOL,prompt:prompt});if(!data||typeof data.text!=="string"||!data.text.trim())throw new Error("The AI returned an empty response. Please try again.");return data.text.trim()}
 function setStatus(text,error){$("stageStatus").textContent=text;$("stageStatus").classList.toggle("error",!!error)}
 async function generate(){if(busy)return;const f=active.fields;if(step===0&&active.mode==="new"&&!f.interests.trim()){setStatus("Add a few interests first.",true);return}if(step===0&&active.mode==="build"&&!f.concept.trim()){setStatus("Describe your channel concept first.",true);return}if(step===0&&active.mode==="grow"&&!f.channelDescription.trim()&&!f.channelUrl.trim()){setStatus("Add your channel URL or a short description first.",true);return}busy=true;const b=$("stageButtons").querySelector(".primary");b.disabled=true;b.textContent="Preparing your AI report…";setStatus("Analyzing your information and preparing recommendations…");try{const text=await ai(promptForStep());active.reports[step]=text;const obj=parseJson(text);if(active.mode==="new"&&step===1&&obj&&obj.recommended_name){active.fields.brandName=String(obj.recommended_name);active.fields.channelName=String(obj.recommended_name);active.fields.brandPromptsReady=false;active.fields.logoPrompt="";active.fields.bannerPrompt="";delete active.images.logo;delete active.images.banner}if(active.mode==="new"&&step===2&&obj){if(obj.logo_prompt)active.fields.logoPrompt=String(obj.logo_prompt);if(obj.banner_prompt)active.fields.bannerPrompt=String(obj.banner_prompt)}if(active.mode!=="new"&&step===2&&obj){const list=obj.thumbnail_concepts||obj.title_options||[];if(list[0]&&list[0].image_prompt)active.fields.thumbnailPrompt=String(list[0].image_prompt)}save();drawWorkspace();setStatus("Your AI report is ready. Review the recommendations and continue when ready.")}catch(e){setStatus(e.message||"AI request failed. Please try again.",true)}finally{busy=false}}
-async function prepareBrandPrompts(){if(busy)return;busy=true;setStatus("AI is preparing your logo and banner prompts…");try{const f=active.fields,p="As a professional YouTube brand designer, return ONLY valid JSON with exactly two keys: logo_prompt and banner_prompt. Both values must be complete, detailed English image-generation prompts. Create an original square 1:1 channel logo and a professional wide YouTube banner with the correct central text-safe area. Match the same visual identity, colors and theme across both. Do not include a report, explanation, summary or any other keys. Do not copy trademarks. Channel name: "+(f.brandName||f.channelName||"New Channel")+". Selected niche: "+(f.chosenNiche||"not specified")+". Audience: "+(f.audience||"not specified")+". Channel strategy: "+String(active.reports[1]||"").slice(0,650);const obj=parseJson(await ai(p.slice(0,3900)));if(!obj||!obj.logo_prompt||!obj.banner_prompt)throw new Error("The AI did not return both prompts. Try again.");active.fields.logoPrompt=String(obj.logo_prompt);active.fields.bannerPrompt=String(obj.banner_prompt);active.fields.brandPromptsReady=true;delete active.images.logo;delete active.images.banner;delete active.reports[2];save();drawWorkspace();setStatus("Both AI prompts are ready. You can now generate your logo and banner separately.")}catch(e){setStatus(e.message||"Prompt preparation failed.",true)}finally{busy=false}}
-function imagePrompt(kind){const f=active.fields,n=f.brandName||f.channelName||"the channel",topic=f.chosenNiche||f.niche||f.concept||f.interests||"the channel topic";if(kind==="logo")return "Create an original distinctive logo for YouTube channel "+n+". Niche: "+topic+". Simple memorable emblem, polished geometry, high contrast, premium creator identity, centered square 1:1 composition, clean background, no mockup, no watermark, no copied trademarks.";if(kind==="banner")return "Create premium wide YouTube channel banner art for "+n+". Niche: "+topic+". Wide landscape, coherent brand colors, clear central safe area for editable channel name and tagline, polished professional identity, no watermark or copied logos.";return "Create a professional 16:9 YouTube thumbnail concept for "+(f.nextTopic||f.firstVideoTopic||f.concept||topic)+". Audience: "+(f.audience||"target viewers")+". One clear focal subject, strong contrast, expressive but credible emotion, negative space for editable headline text, polished creator artwork, no watermark."}
-async function makeImage(kind){if(busy)return;const key=kind==="logo"?"logoPrompt":kind==="banner"?"bannerPrompt":"thumbnailPrompt";if(active.mode==="new"&&step===2&&(kind==="logo"||kind==="banner")&&!(active.fields.brandPromptsReady&&active.fields[key])){setStatus("Prepare both AI prompts before generating the logo or banner.",true);return}busy=true;setStatus("Generating "+kind+" visual concept…");try{const prompt=active.fields[key]||imagePrompt(kind);active.fields[key]=prompt;const data=await workerRequest({action:"generate_image",toolId:TOOL,prompt:prompt.slice(0,1350)});const image=data.image||(data.result&&data.result.image)||(data.result&&data.result.images&&data.result.images[0])||(data.images&&data.images[0]);if(typeof image!=="string"||!image)throw new Error(data.error||"The image service returned no usable image.");active.images[kind]=image.indexOf("data:")===0?image:"data:image/png;base64,"+image;save();renderImages();if(active.mode==="new"&&step===2){buildButtons();$("next").disabled=!(active.images.logo&&active.images.banner);$("next").textContent=active.images.logo&&active.images.banner?"Save & Continue →":"Generate both visuals to continue"}setStatus("Your visual concept is ready. Download it below to keep a copy.")}catch(e){setStatus(e.message||"Image generation failed.",true)}finally{busy=false}}
+async function prepareBrandPrompts(){
+ if(busy)return;
+ busy=true;
+ buildButtons();
+ setStatus("AI is preparing your logo and banner prompts…");
+ try{
+  const f=active.fields;
+  const p="Act as a senior YouTube channel identity designer. Return ONLY valid JSON with exactly two string keys: logo_prompt and banner_prompt. Do not return a report, analysis, summary, palette summary, or any extra keys. Create two distinct but visually consistent, detailed English image-generation prompts. The prompts themselves must include the exact color palette with hex codes, color roles, typography direction, iconography, composition, textures, lighting, and style so the user can edit these details directly in the prompt fields. LOGO: original YouTube channel profile-picture identity, square 1:1, simple recognizable symbol, excellent small-size legibility, safe for circular crop. BANNER: full-bleed 16:9 YouTube channel art, strong cohesive visual scene, all essential logo/name/tagline elements inside the centered YouTube safe area equivalent to 1546 x 423 px on a 2560 x 1440 canvas; decorative background may extend beyond it. Never use the YouTube platform play-button logo and never imitate an existing brand. Channel name: "+(f.brandName||f.channelName||"New Channel")+". Selected niche: "+(f.chosenNiche||"not specified")+". Audience: "+(f.audience||"not specified")+". Channel identity strategy: "+String(active.reports[1]||"").slice(0,850);
+  const obj=parseJson(await ai(p.slice(0,3900)));
+  if(!obj||typeof obj.logo_prompt!=="string"||!obj.logo_prompt.trim()||typeof obj.banner_prompt!=="string"||!obj.banner_prompt.trim())throw new Error("The AI did not return both editable prompts. Please prepare them again.");
+  const logoRequirements="\\n\\nOUTPUT REQUIREMENTS: Exact square 1:1 canvas, 1024 x 1024 pixels. This is the YouTube channel profile icon, not the YouTube platform logo. Keep the emblem and any initials centered with generous padding inside the circular-crop safe zone. Use a bold, memorable silhouette that stays clear at small display sizes. No mockup, frame, watermark, or extra interface.";
+  const bannerRequirements="\\n\\nOUTPUT REQUIREMENTS: Full-bleed 16:9 YouTube channel banner. Generate at 1920 x 1080 pixels; the app will export the final image at 2560 x 1440 pixels. Keep all important text, channel name, logo, and focal elements inside the centered safe area equivalent to 1546 x 423 pixels on the final 2560 x 1440 canvas. Extend background artwork to every edge because outer areas are cropped differently across devices. No mockup, border, frame, or watermark.";
+  const fit=(base,suffix)=>String(base).trim().slice(0,1400-suffix.length).trimEnd()+suffix;
+  active.fields.logoPrompt=fit(obj.logo_prompt,logoRequirements);
+  active.fields.bannerPrompt=fit(obj.banner_prompt,bannerRequirements);
+  active.fields.brandPromptsReady=true;
+  delete active.images.logo;
+  delete active.images.banner;
+  delete active.reports[2];
+  save();
+  drawWorkspace();
+  setStatus("Both AI prompts are ready. Edit either prompt, then generate your logo and banner separately.");
+ }catch(e){
+  setStatus(e.message||"Prompt preparation failed.",true);
+ }finally{
+  busy=false;
+  if(active&&active.mode==="new"&&step===2)buildButtons();
+ }
+}
+
+function imagePrompt(kind){
+ const f=active.fields,n=f.brandName||f.channelName||"the channel",topic=f.chosenNiche||f.niche||f.concept||f.interests||"the channel topic";
+ if(kind==="logo")return "Create an original YouTube channel profile icon for "+n+". Niche: "+topic+". Square 1:1, 1024 x 1024 pixels, centered bold symbol, safe for circular crop, legible at small sizes, no YouTube platform logo, no mockup or watermark.";
+ if(kind==="banner")return "Create a full-bleed 16:9 YouTube channel banner for "+n+". Niche: "+topic+". Generate 1920 x 1080 px for final export at 2560 x 1440 px. Keep all important elements in the centered 1546 x 423 px safe area of the final canvas; fill outer area with matching artwork, no mockup or watermark.";
+ return "Create a professional 16:9 YouTube thumbnail concept for "+(f.nextTopic||f.firstVideoTopic||f.concept||topic)+". Audience: "+(f.audience||"target viewers")+". One clear focal subject, strong contrast, expressive but credible emotion, negative space for editable headline text, polished creator artwork, no watermark.";
+}
+function resizeImageDataUrl(source,width,height){
+ return new Promise((resolve,reject)=>{
+  const img=new Image();
+  img.onload=()=>{
+   try{
+    const canvas=document.createElement("canvas");
+    canvas.width=width;
+    canvas.height=height;
+    const ctx=canvas.getContext("2d");
+    if(!ctx)throw new Error("Could not prepare the final image canvas.");
+    ctx.imageSmoothingEnabled=true;
+    ctx.imageSmoothingQuality="high";
+    ctx.drawImage(img,0,0,width,height);
+    resolve(canvas.toDataURL("image/png"));
+   }catch(error){reject(error)}
+  };
+  img.onerror=()=>reject(new Error("The generated image could not be resized."));
+  img.src=source;
+ });
+}
+async function makeImage(kind){
+ if(busy)return;
+ const key=kind==="logo"?"logoPrompt":kind==="banner"?"bannerPrompt":"thumbnailPrompt";
+ if(active.mode==="new"&&step===2&&(kind==="logo"||kind==="banner")&&!(active.fields.brandPromptsReady&&String(active.fields[key]||"").trim())){
+  setStatus("Prepare both AI prompts before generating the logo or banner.",true);
+  return;
+ }
+ busy=true;
+ buildButtons();
+ setStatus("Generating "+kind+"…");
+ try{
+  const prompt=String(active.fields[key]||imagePrompt(kind)).trim();
+  if(!prompt)throw new Error("Enter a prompt before generating this image.");
+  active.fields[key]=prompt;
+  const request={action:"generate_image",toolId:TOOL,prompt:prompt.slice(0,1400)};
+  if(kind==="logo"){request.width=1024;request.height=1024}
+  if(kind==="banner"){request.width=1920;request.height=1080}
+  const data=await workerRequest(request);
+  const image=data.image||(data.result&&data.result.image)||(data.result&&data.result.images&&data.result.images[0])||(data.images&&data.images[0]);
+  if(typeof image!=="string"||!image)throw new Error(data.error||"The image service returned no usable image.");
+  const source=image.indexOf("data:")===0?image:"data:image/png;base64,"+image;
+  if(kind==="banner")active.images.banner=await resizeImageDataUrl(source,2560,1440);
+  else if(kind==="logo")active.images.logo=await resizeImageDataUrl(source,1024,1024);
+  else active.images[kind]=source;
+  save();
+  renderImages();
+  if(active.mode==="new"&&step===2)syncBrandContinue();
+  setStatus(kind==="banner"?"Your YouTube banner is ready at 2560 × 1440 px. Download it to keep the full-resolution file.":kind==="logo"?"Your YouTube channel logo is ready at 1024 × 1024 px. Download it to keep a copy.":"Your visual concept is ready. Download it below to keep a copy.");
+ }catch(e){
+  setStatus(e.message||"Image generation failed.",true);
+ }finally{
+  busy=false;
+  if(active&&active.mode==="new"&&step===2){
+   buildButtons();
+   syncBrandContinue();
+  }
+ }
+}
+
 function downloadPlan(){const title=active.fields.brandName||active.fields.channelName||modes[active.mode].name,body="TRIVEXAAI CREATOR INTELLIGENCE STUDIO\\n"+title+"\\nMode: "+modes[active.mode].name+"\\n\\n"+Object.entries(active.reports).map(x=>"STAGE "+(Number(x[0])+1)+"\\n"+x[1]).join("\\n\\n--------------------\\n\\n"),url=URL.createObjectURL(new Blob([body],{type:"text/plain;charset=utf-8"})),a=document.createElement("a");a.href=url;a.download="TrivexaAI-Creator-Plan.txt";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
 document.querySelectorAll("[data-mode]").forEach(b=>b.addEventListener("click",()=>start(b.dataset.mode)));
 $("prev").addEventListener("click",()=>showStep(step-1));$("next").addEventListener("click",()=>{if(step===3){save();screen("home")}else{if(active.mode==="new"&&step===2&&!(active.images.logo&&active.images.banner))return;save();showStep(step+1)}});$("allModes").addEventListener("click",()=>{save();screen("home")});$("newWork").addEventListener("click",()=>{save();screen("home")});$("saveClose").addEventListener("click",()=>{save();screen("home")});
