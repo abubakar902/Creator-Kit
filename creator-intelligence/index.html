@@ -421,13 +421,13 @@ function renderNicheNamePicker(root,obj){
   button.style.marginTop="9px";
   button.addEventListener("click",()=>{
    active.fields.chosenNiche=nicheName;
-   active.fields.brandPromptsReady=false;
-   active.fields.logoPrompt="";
-   active.fields.bannerPrompt="";
-   delete active.images.logo;
-   delete active.images.banner;
+   clearGeneratedBranding();
    active.fields.brandName="";
    active.fields.channelName="";
+   active.fields.channelDescription="";
+   active.fields.tagline="";
+   delete active.reports[1];
+   delete active.reports[2];
    save();
    showStep(1);
    setStatus("Niche selected. Generate the AI recommendation in this step to get channel name ideas.",false);
@@ -443,13 +443,13 @@ function renderNicheNamePicker(root,obj){
   button.textContent="Use "+name;
   button.addEventListener("click",()=>{
    active.fields.chosenNiche=name;
-   active.fields.brandPromptsReady=false;
-   active.fields.logoPrompt="";
-   active.fields.bannerPrompt="";
-   delete active.images.logo;
-   delete active.images.banner;
+   clearGeneratedBranding();
    active.fields.brandName="";
    active.fields.channelName="";
+   active.fields.channelDescription="";
+   active.fields.tagline="";
+   delete active.reports[1];
+   delete active.reports[2];
    save();
    showStep(1);
    setStatus("Niche selected. Generate the AI recommendation to get channel name ideas.",false);
