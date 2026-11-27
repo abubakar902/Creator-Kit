@@ -7,16 +7,16 @@ const TRACKED_TOOL_ACTIONS = new Set([
   "generate_text", "generate_image", "generate_voice", "video_studio",
   "video_studio_create", "video_studio_export", "video_studio_ai_assistant",
   "transcribe_audio", "shorts_analyze", "shorts_caption",
-  "ai_editing_assistant", "ai_prompt_writer"
+  "ai_editing_assistant", "ai_prompt_writer", "creator_intelligence_generate"
 ]);
 const TRACKED_TOOL_IDS = new Set([
   "titles", "caption", "hashtags", "description", "hooks", "script",
-  "ai-question-answer", "trivexaai-website-guide"
+  "ai-question-answer", "trivexaai-website-guide", "creator-intelligence-studio"
 ]);
 const ADVANCED_ACTIONS = new Set([
   "generate_image", "generate_voice", "video_studio", "video_studio_create",
   "video_studio_export", "video_studio_ai_assistant", "transcribe_audio", "shorts_analyze", "shorts_caption", "ai_editing_assistant", "ai_prompt_writer",
-  "advanced_feature"
+  "advanced_feature", "creator_intelligence_generate"
 ]);
 function b64u(s) {
   const b = s.replace(/-/g, "+").replace(/_/g, "/");
@@ -89,6 +89,11 @@ function inviteCode() {
 }
 async function accountAction(body, env, user, reply) {
   const now = Math.floor(Date.now()/1000), a = String(body.action||"");
+  if (a === "creator_intelligence_workspace_access") {
+    const allowed = user.status === "active" && (user.role === "admin" || user.advanced_access === "approved");
+    if (!allowed) return reply({error:"Creator Intelligence Studio requires Advanced Access approval. Please request admin approval.",code:"ADVANCED_ACCESS_REQUIRED",allowed:false},403);
+    return reply({allowed:true,workspace:"creator-intelligence",access:"approved"});
+  }
   if (a === "shorts_workspace_access") {
     const allowed = user.status === "active" && (user.role === "admin" || user.advanced_access === "approved");
     if (!allowed) return reply({error:"Premium access is required to open AI Shorts Maker. Please request admin approval.",code:"ADVANCED_ACCESS_REQUIRED",allowed:false},403);
