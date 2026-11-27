@@ -574,6 +574,42 @@ function renderChannelNamePicker(root,obj){
  });
  if(candidates.length)root.append(panel);
 }
+function firstVideoText(value){
+ if(typeof value==="string")return value.trim();
+ if(value&&typeof value==="object")return String(value.title||value.text||value.name||value.value||"").trim();
+ return "";
+}
+function normalizeFirstVideoBlueprint(obj){
+ if(!obj||typeof obj!=="object"||Array.isArray(obj))throw new Error("The First Video AI response was incomplete. Please try again.");
+ const rawTitles=Array.isArray(obj.title_options)?obj.title_options:[];
+ const titles=rawTitles.map(item=>{
+  if(typeof item==="string")return {title:item.trim(),angle:""};
+  if(item&&typeof item==="object"){
+   const title=firstVideoText(item);
+   return title?Object.assign({},item,{title}):null;
+  }
+  return null;
+ }).filter(Boolean).filter((item,index,list)=>list.findIndex(x=>x.title.toLowerCase()===item.title.toLowerCase())===index);
+ let strongest=firstVideoText(obj.strongest_title||obj.recommended_title||obj.best_title||obj.primary_title||obj.video_title);
+ if(!strongest)strongest=titles[0]?.title||"";
+ if(!strongest)throw new Error("The First Video plan did not include a usable title. Please generate it again.");
+ if(!titles.some(item=>item.title.toLowerCase()===strongest.toLowerCase()))titles.unshift({title:strongest,angle:"AI-recommended title"});
+ obj.strongest_title=strongest;
+ obj.title_options=titles.slice(0,8);
+ obj.recommended_first_topic=firstVideoText(obj.recommended_first_topic||obj.first_video_topic||obj.topic)||String(active.fields.firstVideoTopic||"").trim();
+ if(!obj.recommended_first_topic)throw new Error("The AI did not choose a first-video topic. Please try again.");
+ if(!Array.isArray(obj.alternative_topic_options))obj.alternative_topic_options=[];
+ if(!Array.isArray(obj.next_three_videos))obj.next_three_videos=[];
+ return obj;
+}
+function renderStrongestFirstVideoTitle(root,obj){
+ const title=firstVideoText(obj.strongest_title||obj.recommended_title||obj.best_title);
+ if(!title)return;
+ const section=document.createElement("section");section.className="result-section";
+ const heading=document.createElement("h4");heading.textContent="AI-Recommended First Video Title";
+ const value=document.createElement("p");value.textContent=title;value.style.fontWeight="850";value.style.fontSize="14px";value.style.color="var(--text)";
+ section.append(heading,value);root.append(section);
+}
 function renderFirstVideoTopicPicker(root,obj){
  const recommended=String(obj.recommended_first_topic||"").trim();
  const raw=Array.isArray(obj.alternative_topic_options)?obj.alternative_topic_options:[];
@@ -624,7 +660,8 @@ function renderReport(text){
    renderChannelNamePicker(root,obj);
   }else if(active&&active.mode==="new"&&step===3){
    const rest=Object.assign({},obj);
-   delete rest.recommended_first_topic;delete rest.alternative_topic_options;
+   delete rest.recommended_first_topic;delete rest.alternative_topic_options;delete rest.strongest_title;delete rest.recommended_title;delete rest.best_title;
+   renderStrongestFirstVideoTitle(root,obj);
    renderValue(root,rest);
    renderFirstVideoTopicPicker(root,obj);
   }else renderValue(root,obj);
@@ -641,7 +678,7 @@ const tasks={
 new:["Suggest 3 to 5 suitable YouTube niches for this first-time creator. Focus ONLY on niche discovery and selection. Do NOT suggest channel names, brand names, logos or banners in this stage. Evaluate fit, sustainable content supply, differentiation and practical competition. Give each niche a clear name, audience, fit explanation, differentiation, competition level, content opportunities and sample video ideas. JSON keys: creator_fit_summary, recommended_niche, niches array (name, audience, why_it_fits, differentiation, competition_level, content_opportunities array, sample_video_ideas array), watch_out_for array, first_30_days array.",
 "Create a complete Brand Identity for the selected niche. Suggest 8 original channel names and one recommended name. You MUST create a non-empty original channel tagline AND a complete, polished YouTube channel/About description; neither field may be omitted, left blank, or replaced by instructions to write it later. Make both specific to the selected niche, audience and channel positioning. JSON keys: recommended_name, name_options array, tagline (required non-empty final text), channel_description (required non-empty final About description), positioning, brand_personality, content_pillars array, repeatable_series array. Do not imitate existing brands.",
 "Create a channel visual identity brief. JSON keys: visual_direction, color_palette array, logo_prompt, banner_prompt, design_rules array, text_safe_area_note. Prompts must be detailed English image prompts for original branding. Avoid copied trademarks and require a clear empty safe area for editable text.",
-"Create the complete first-video launch blueprint. The creator does NOT need to enter a topic. If Selected first-video topic is empty, independently choose the strongest practical first topic for this channel using its niche, audience, creator skills, language, video format and brand identity. If a Selected first-video topic is supplied, use that exact topic as the chosen first video and build the entire plan around it. Also suggest 5 alternative first-video topic options and at least 3 follow-up video ideas for the next uploads. JSON keys: recommended_first_topic, alternative_topic_options array (topic, why_it_fits, angle), title_options array, strongest_title, opening_hook, video_promise, outline array (section, purpose), sample_script, shot_and_visual_list array, recording_guide array, editing_checklist array, thumbnail_direction, description_draft, upload_checklist array, next_three_videos array (topic, suggested_title, series_link). Make it realistic and achievable for a beginner. Selected first-video topic, if any: "+(f.firstVideoTopic||"None — choose automatically")+". Channel name: "+(f.channelName||"")+". Niche: "+(f.chosenNiche||"")+". Channel description: "+(f.channelDescription||"")+". Brand identity context: "+String(active.reports[1]||"").slice(0,750)+". Make the next video ideas logically continue the channel."],
+"Create the complete first-video launch blueprint. The creator does NOT need to enter a topic. If Selected first-video topic is empty, independently choose the strongest practical first topic for this channel using its niche, audience, creator skills, language, video format and brand identity. If a Selected first-video topic is supplied, use that exact topic as the chosen first video and build the entire plan around it. First create exactly 5 accurate, engaging YouTube title options (each ideally 45–70 characters, no misleading clickbait), with a short angle or reason for each. Set strongest_title to the single best title and ensure it exactly matches one title_options entry. Also suggest 5 alternative first-video topic options and at least 3 follow-up video ideas for the next uploads. Then complete the launch plan with a strong opening_hook, clear video_promise, practical outline, beginner-friendly sample_script, shot_and_visual_list, recording_guide, editing_checklist, thumbnail_direction, description_draft and upload_checklist. Return one complete valid JSON object with keys: recommended_first_topic, alternative_topic_options array (topic, why_it_fits, angle), title_options array (title, angle), strongest_title, opening_hook, video_promise, outline array (section, purpose), sample_script, shot_and_visual_list array, recording_guide array, editing_checklist array, thumbnail_direction, description_draft, upload_checklist array, next_three_videos array (topic, suggested_title, series_link). Make it realistic and achievable for a beginner. Selected first-video topic, if any: "+(f.firstVideoTopic||"None — choose automatically")+". Channel name: "+(f.channelName||"")+". Niche: "+(f.chosenNiche||"")+". Channel description: "+(f.channelDescription||"")+". Brand identity context: "+String(active.reports[1]||"").slice(0,750)+". Make the next video ideas logically continue the channel."],
 build:["Analyze the channel concept. JSON keys: concept_summary, refined_positioning, target_audience, audience_problems array, unique_value, content_pillars array, content_gaps array, repeatable_series array, topic_ideas array (topic, why_it_fits, suggested_angle, title_example, priority).",
 "Build a repeatable content strategy. JSON keys: strategic_direction, topic_clusters array, video_ideas array (topic, audience_need, unique_angle, title_option, hook, priority, series_name), retention_ideas array, realistic_weekly_workflow.",
 "Create a video packaging report. JSON keys: packaging_principle, thumbnail_concepts array (concept, visual_subject, emotion, composition, thumbnail_text, title_pairing, why_it_works, image_prompt), title_options array, mistakes_to_avoid array. Prompts must describe clear 16:9 thumbnails with one focal point.",
@@ -710,6 +747,10 @@ async function generate(){
    active.fields.tagline=String(obj.tagline||"").trim();
    clearGeneratedBranding();
    save();
+  }else if(active.mode==="new"&&step===3){
+   if(!obj)throw new Error("The First Video response was incomplete or invalid. Please try again.");
+   obj=normalizeFirstVideoBlueprint(obj);
+   active.reports[step]=JSON.stringify(obj);
   }else{
    active.reports[step]=text;
   }
