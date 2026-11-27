@@ -470,6 +470,25 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
         const finalPrompt = identityInstruction + body.prompt.trim();
         form.append("prompt", finalPrompt);
 
+        const hasImageDimensions =
+          body.width !== undefined || body.height !== undefined;
+        if (hasImageDimensions) {
+          if (
+            !Number.isInteger(body.width) ||
+            !Number.isInteger(body.height) ||
+            body.width < 256 ||
+            body.width > 1920 ||
+            body.height < 256 ||
+            body.height > 1920
+          ) {
+            return reply({
+              error: "Image dimensions must be whole numbers between 256 and 1920 pixels."
+            }, 400);
+          }
+          form.append("width", String(body.width));
+          form.append("height", String(body.height));
+        }
+
         if (body.imageBase64) {
           if (
             typeof body.imageBase64 !== "string" ||
