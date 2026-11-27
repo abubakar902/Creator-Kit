@@ -289,12 +289,30 @@ html,body{
 }
 @media(prefers-reduced-motion:reduce){.btn,.start-card,.quick-preset{transition:none}}
 
+
+/* Photo Studio Help panel */
+.help-modal{width:min(760px,100%);max-height:min(88vh,820px);overflow:auto;padding:25px;background:linear-gradient(155deg,#1d1931,#131321);border-color:#5a477b;box-shadow:0 28px 100px #000d,0 0 45px #8b5cf633}
+.help-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:18px}
+.help-head h2{margin:6px 0 7px;font-size:24px;letter-spacing:-.5px}
+.help-head p{margin:0;max-width:570px}
+.help-head .start-step{color:#c8aaff;font-size:10px;letter-spacing:1.5px;font-weight:850}
+.help-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.help-card{display:flex;gap:12px;padding:14px;border:1px solid #ffffff17;border-radius:13px;background:linear-gradient(145deg,#252039,#191626);min-width:0}
+.help-number{width:29px;height:29px;flex:0 0 29px;display:grid;place-items:center;border-radius:9px;background:#7651b833;border:1px solid #aa89e955;color:#ddc9ff;font-size:10px;font-weight:900}
+.help-card strong{display:block;color:#f4efff;font-size:12px;margin:1px 0 5px}
+.help-card p{margin:0;color:#b7aec8;font-size:11px;line-height:1.65}
+.help-foot{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:17px;padding-top:15px;border-top:1px solid #ffffff16}
+.help-foot>span{color:#a89bb9;font-size:10px;line-height:1.5}
+#openHelp{border-color:#6c5490;background:#211a34;color:#eadfff}
+#openHelp:hover{border-color:#b38bff;background:#302247;box-shadow:0 0 20px #9564e52b}
+@media(max-width:640px){.help-modal{padding:17px}.help-grid{grid-template-columns:1fr}.help-head h2{font-size:21px}.help-foot{align-items:flex-start;flex-direction:column-reverse}.help-foot .btn{width:100%}.top-actions{gap:6px}.top-actions .btn{padding:7px 9px;font-size:11px}}
+
 </style>
 </head>
 <body>
 <header class="topbar">
  <div class="brand"><img class="brand-logo" src="./trivexa-photo-studio.svg" alt="TrivexaAI Photo Studio"></div>
- <div class="top-actions"><a class="btn ghost" href="../#projects">← Projects</a><span class="save-state" id="saveState">Ready</span></div>
+ <div class="top-actions"><a class="btn ghost" href="../#projects">← Projects</a><button class="btn ghost" id="openHelp" type="button" aria-haspopup="dialog" aria-controls="helpModal">? Help</button><span class="save-state" id="saveState">Ready</span></div>
 </header>
 
 <main id="startScreen" class="start-wrap">
@@ -635,6 +653,23 @@ html,body{
   <div class="mobile-preview-stage"><div class="mobile-preview-device"><div class="mobile-preview-top"><span></span><span></span><span></span></div><div class="mobile-preview-image"><canvas id="mobileCanvas" width="1280" height="720"></canvas></div><div class="mobile-preview-lines"><i></i><i></i><i></i></div></div></div>
   <div class="mobile-preview-footer"><span>Preview updates as you edit your design.</span><button class="btn primary" id="closeMobilePreviewFooter" type="button">Done</button></div>
  </div>
+</div>
+<div id="helpModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="helpTitle" aria-describedby="helpIntro">
+ <section class="modal help-modal" role="document">
+  <div class="help-head">
+   <div><span class="start-step">TRIVEXAAI PHOTO STUDIO</span><h2 id="helpTitle">Photo Editor Help</h2><p id="helpIntro">A quick guide to creating, editing, organizing and exporting your designs.</p></div>
+   <button class="btn small" id="closeHelp" type="button" aria-label="Close help">✕</button>
+  </div>
+  <div class="help-grid">
+   <article class="help-card"><span class="help-number">01</span><div><strong>Start a project</strong><p>Choose Blank Canvas, browse a template, or select Upload a Photo. Your project opens in the editor workspace.</p></div></article>
+   <article class="help-card"><span class="help-number">02</span><div><strong>Add and organize content</strong><p>Add photos, text, shapes, lines and stickers as separate layers. Use the Layers panel to select, reorder, duplicate, group or delete layers.</p></div></article>
+   <article class="help-card"><span class="help-number">03</span><div><strong>Edit with precision</strong><p>Choose tools on the left. Use crop, selection, retouch, filters and adjustments. Lock a selected area when you need edits to stay inside that area.</p></div></article>
+   <article class="help-card"><span class="help-number">04</span><div><strong>Use the AI tools</strong><p>AI Prompt Helper rewrites your idea as a clear English image prompt; it does not edit the photo. AI Thumbnail Critic reviews your design and may suggest adjustments you can apply and save.</p></div></article>
+   <article class="help-card"><span class="help-number">05</span><div><strong>Save and export</strong><p>Your projects auto-save in this browser on this device. Select Export to download your design as PNG, JPG or WebP. Keep an external copy of important work.</p></div></article>
+   <article class="help-card"><span class="help-number">⌘</span><div><strong>Useful shortcuts</strong><p>Use Ctrl/Cmd + Z to undo, Ctrl/Cmd + Shift + Z or Ctrl/Cmd + Y to redo, and Ctrl/Cmd + click to select multiple layers.</p></div></article>
+  </div>
+  <div class="help-foot"><span>AI actions require sign-in and Advanced Access approval.</span><button class="btn primary" id="doneHelp" type="button">Got it</button></div>
+ </section>
 </div>
 <div id="nameModal" class="modal-backdrop hidden"><div class="modal"><h2 id="nameModalTitle">Name your project</h2><p id="nameModalDescription">Choose a name that will help you find this project later.</p><div class="field"><label>Project name</label><input type="text" id="projectNameInput" maxlength="70" value="Untitled Photo Project"></div><div class="modal-actions"><button class="btn" id="cancelName">Cancel</button><button class="btn primary" id="confirmName">Create Project</button></div></div></div>
 <div id="deleteProjectModal" class="modal-backdrop delete-project-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="deleteProjectTitle" aria-hidden="true">
@@ -1147,22 +1182,22 @@ function reorderLayerBetween(sourceId,targetId,placement){
 function groupSelectedLayers(){
  if(!state)return;
  const ids=[...selectedLayerIds].filter(layerId=>state.layers.some(layer=>layer.id===layerId));
- if(ids.length<2){toast("Group banane ke liye kam az kam 2 layers select karo.");return}
+ if(ids.length<2){toast("Select at least 2 layers to create a group.");return}
  pushHistory();
  const number=(state.layerGroups?.length||0)+1,group={id:id(),name:"Group "+number,collapsed:false};
  state.layerGroups=state.layerGroups||[];state.layerGroups.push(group);
  ids.forEach(layerId=>{const layer=state.layers.find(item=>item.id===layerId);if(layer){delete layer.groupId;layer.groupId=group.id}});state.layerGroups=state.layerGroups.filter(item=>state.layers.some(layer=>layer.groupId===item.id));
  selectedLayerIds=new Set(ids);selectedId=[...state.layers].reverse().find(layer=>selectedLayerIds.has(layer.id))?.id||ids[0];state.selectedLayerId=selectedId;
- render().then(scheduleSave);toast(ids.length+" layers ka group ban gaya.");
+ render().then(scheduleSave);toast(ids.length+" layers grouped successfully.");
 }
 function ungroupSelectedLayers(){
  if(!state)return;
  const groupIds=new Set(state.layers.filter(layer=>selectedLayerIds.has(layer.id)&&layer.groupId).map(layer=>layer.groupId));
- if(!groupIds.size){toast("Pehle group ke andar koi layer select karo.");return}
+ if(!groupIds.size){toast("Select a layer inside a group first.");return}
  pushHistory();
  state.layers.forEach(layer=>{if(groupIds.has(layer.groupId))delete layer.groupId});
  state.layerGroups=(state.layerGroups||[]).filter(group=>!groupIds.has(group.id));
- render().then(scheduleSave);toast("Selected group ungroup ho gaya.");
+ render().then(scheduleSave);toast("The selected group has been ungrouped.");
 }
 function updateProperties(){
  const layer=selected(),targets=selectedTargets(),multi=targets.length>1,bounds=multi?selectedBounds(targets):null;$("noSelection").classList.toggle("hidden",!layer);$("selectedProperties").classList.toggle("hidden",!layer);if(!layer)return;
@@ -1389,20 +1424,20 @@ async function resizeBlobForPhotoAI(blob,maxSide=PHOTO_AI_MAX_INPUT_SIDE){
 }
 async function copyPhotoAiPrompt(){
  const value=$("photoAiPrompt").value.trim();
- if(!value){photoAiStatus("Pehle prompt likho ya Improve Prompt dabao.",true);return}
+ if(!value){photoAiStatus("Enter a prompt or click Improve Prompt first.",true);return}
  try{
   await navigator.clipboard.writeText(value);
-  photoAiStatus("Improved prompt clipboard mein copy ho gaya.");
+  photoAiStatus("Improved prompt copied to the clipboard.");
  }catch(error){
   $("photoAiPrompt").focus();$("photoAiPrompt").select();
-  photoAiStatus("Prompt select kar diya hai. Copy karne ke liye Ctrl+C dabao.");
+  photoAiStatus("Prompt selected. Press Ctrl+C to copy.");
  }
 }
 async function improvePhotoAiPrompt(){
- const prompt=$("photoAiPrompt").value.trim();if(!prompt){photoAiStatus("Pehle apni editing instruction likho.",true);return}
+ const prompt=$("photoAiPrompt").value.trim();if(!prompt){photoAiStatus("Enter your editing instructions first.",true);return}
  const button=$("improvePhotoAiPrompt");button.disabled=true;button.textContent="Improving...";
- try{await authReady;const result=await workerRequest({action:"photo_editor_prompt_writer",toolId:"photo-editor-ai",prompt});if(result.needsClarification&&result.question){photoAiStatus(result.question,true);return}if(!result.prompt)throw new Error("AI prompt writer ne khaali jawab diya.");$("photoAiPrompt").value=result.prompt;photoAiStatus("Prompt behtar ho gaya. Copy karke kisi doosre image editor mein use karo, ya yahan manual tools se edit karo.")}
- catch(error){photoAiStatus(error.message||"Prompt improve nahi ho saka.",true)}
+ try{await authReady;const result=await workerRequest({action:"photo_editor_prompt_writer",toolId:"photo-editor-ai",prompt});if(result.needsClarification&&result.question){photoAiStatus(result.question,true);return}if(!result.prompt)throw new Error("The AI prompt writer returned an empty response.");$("photoAiPrompt").value=result.prompt;photoAiStatus("Prompt improved. Copy it into another image editor, or use the manual editing tools here.")}
+ catch(error){photoAiStatus(error.message||"The prompt could not be improved.",true)}
  finally{button.disabled=false;button.textContent="Improve Prompt"}
 }
 async function saveProjectImmediately(){
@@ -1423,9 +1458,9 @@ async function applyThumbnailCriticSuggestion(suggestion,accept,reject,reason){
  for(const [key,value] of Object.entries(suggestion?.adjustment||{})){
   const range=ranges[key];if(range&&typeof value==="number"&&Number.isFinite(value)&&value>=range[0]&&value<=range[1])safe[key]=value;
  }
- if(!Object.keys(safe).length){accept.disabled=true;reason.textContent="Is suggestion mein koi valid adjustment slider value nahi thi; image change nahi hui.";return}
+ if(!Object.keys(safe).length){accept.disabled=true;reason.textContent="This suggestion did not include any valid adjustment slider values. No image changes were made.";return}
  const changes=Object.fromEntries(Object.entries(safe).filter(([key,value])=>Math.abs(Number(state.adjust?.[key]??defaults[key])-value)>.01));
- if(!Object.keys(changes).length){accept.disabled=true;reason.textContent="Ye settings pehle se isi value par hain. Koi naya change zaroori nahi tha.";return}
+ if(!Object.keys(changes).length){accept.disabled=true;reason.textContent="These settings already have the same values. No further changes are needed.";return}
  const previous=Object.fromEntries(Object.keys(changes).map(key=>[key,state.adjust?.[key]??defaults[key]]));
  accept.disabled=true;reject.disabled=true;accept.textContent="Applying…";reason.textContent="Applying changes and saving this project…";
  pushHistory();
@@ -1443,7 +1478,7 @@ async function applyThumbnailCriticSuggestion(suggestion,accept,reject,reason){
   undoStack.pop();updateHistoryButtons();syncAdjustmentControls();
   try{await render()}catch(renderError){}
   accept.disabled=false;reject.disabled=false;accept.textContent="Apply & Save";
-  reason.textContent="Save nahi ho saka, is liye changes wapas kar diye. "+String(error?.message||"Try again.");
+  reason.textContent="The save failed, so the changes have been reverted. "+String(error?.message||"Try again.");
   $("saveState").textContent="Save failed";
  }
 }
@@ -1452,7 +1487,7 @@ function renderAiThumbnailCritic(result){
  const summary=document.createElement("p");summary.className="muted";summary.style.cssText="font-size:11px;line-height:1.55;margin:0";
  summary.textContent=(result.score!==null&&result.score!==undefined?"Score: "+result.score+"/100. ":"")+(result.summary||"Analysis complete.");host.append(summary);
  const suggestions=Array.isArray(result.suggestions)?result.suggestions:[];
- if(!suggestions.length){const note=document.createElement("p");note.className="muted";note.style.fontSize="10px";note.textContent="Koi safe, automatic adjustment suggestion return nahi hui. Summary ko manual guidance ke taur par use karo.";host.append(note);return}
+ if(!suggestions.length){const note=document.createElement("p");note.className="muted";note.style.fontSize="10px";note.textContent="No safe automatic adjustment suggestions were returned. Use the summary as manual guidance.";host.append(note);return}
  suggestions.forEach(suggestion=>{
   const card=document.createElement("div");card.style.cssText="border:1px solid var(--border,#392951);border-radius:10px;padding:9px;display:grid;gap:6px";
   const title=document.createElement("strong");title.style.fontSize="12px";title.textContent=suggestion.title||"Suggested improvement";
@@ -1461,15 +1496,15 @@ function renderAiThumbnailCritic(result){
   const accept=document.createElement("button");accept.className="btn small primary";accept.textContent="Apply & Save";
   const reject=document.createElement("button");reject.className="btn small";reject.textContent="Reject";
   accept.addEventListener("click",()=>applyThumbnailCriticSuggestion(suggestion,accept,reject,reason));
-  reject.addEventListener("click",()=>{accept.disabled=true;reject.disabled=true;reject.textContent="Rejected";reason.textContent="Suggestion reject kar di gayi. Koi adjustment apply nahi hui."});
+  reject.addEventListener("click",()=>{accept.disabled=true;reject.disabled=true;reject.textContent="Rejected";reason.textContent="The suggestion was rejected. No adjustments were applied."});
   actions.append(accept,reject);card.append(title,reason,actions);host.append(card);
  });
 }
 async function runAiThumbnailCritic(){
- if(!state){$("aiThumbnailCriticResults").textContent="Pehle project open karo.";return}
+ if(!state){$("aiThumbnailCriticResults").textContent="Open a project before running the AI Thumbnail Critic.";return}
  const button=$("runAiThumbnailCritic"),host=$("aiThumbnailCriticResults");button.disabled=true;button.textContent="Analyzing...";
  try{
-  await render();host.textContent="Thumbnail analyze ho raha hai...";
+  await render();host.textContent="Analyzing thumbnail...";
   const raw=await canvasToBlobSafe(canvas,"image/png"),small=await resizeBlobForPhotoAI(raw,PHOTO_AI_MAX_INPUT_SIDE),imageBase64=await blobToDataUrl(small);
   await authReady;
   const payload={action:"photo_editor_thumbnail_critic",toolId:"photo-editor-ai",imageBase64,mimeType:small.type||"image/jpeg"};
@@ -1480,7 +1515,7 @@ async function runAiThumbnailCritic(){
    const message=String(firstError?.message||"");
    const networkFailure=firstError instanceof TypeError||/failed to fetch|networkerror|load failed/i.test(message);
    if(!networkFailure)throw firstError;
-   host.textContent="Connection retry ho raha hai...";
+   host.textContent="Retrying connection...";
    await new Promise(resolve=>setTimeout(resolve,850));
    try{result=await workerRequest(payload)}
    catch(retryError){retryError.connectionIssue=true;throw retryError}
@@ -1490,10 +1525,10 @@ async function runAiThumbnailCritic(){
   const message=String(error?.message||"");
   const networkFailure=error?.connectionIssue||error instanceof TypeError||/failed to fetch|networkerror|load failed/i.test(message);
   if(networkFailure){
-   host.textContent="TrivexaAI AI server se connection nahi bana. Automatic retry bhi fail hua. Photo Editor ko Ctrl+F5 se refresh karke dobara try karein. Agar phir bhi yahi aaye, Cloudflare Worker deployment ya CORS connection ko check karna hoga.";
+   host.textContent="Could not connect to the TrivexaAI AI service. The automatic retry also failed. Refresh Photo Editor with Ctrl+F5 and try again. If the problem persists, check the Cloudflare Worker deployment or CORS configuration.";
   }else{
    const detail=[error?.message,error?.details,error?.code?("Code: "+error.code):"",error?.status?("HTTP "+error.status):""].filter(Boolean).join("\n");
-   host.textContent=detail||"AI Thumbnail Critic analysis nahi kar saka.";
+   host.textContent=detail||"The AI Thumbnail Critic could not analyze the image.";
   }
  }
  finally{button.disabled=false;button.textContent="Analyze Current Design"}
@@ -1873,9 +1908,15 @@ $("cancelProjectDelete").addEventListener("click",closeDeleteProjectModal);
 $("confirmProjectDelete").addEventListener("click",confirmDeleteProject);
 $("deleteProjectModal").addEventListener("click",event=>{if(event.target===$("deleteProjectModal"))closeDeleteProjectModal()});
 $("exportBtn").addEventListener("click",exportImage);$("restoreOriginalBtn").addEventListener("click",restoreOriginal);$("cancelExport").addEventListener("click",()=>$("exportModal").classList.add("hidden"));$("downloadExport").addEventListener("click",downloadExport);$("exportQuality").addEventListener("input",e=>$("exportQualityValue").textContent=e.target.value+"%");$("exportFormat").addEventListener("change",e=>$("exportQualityWrap").classList.toggle("hidden",e.target.value==="png"));$("backToProjects").addEventListener("click",async()=>{if(activeTool==="crop")cancelCrop();closeMobilePreview();closeTemplatePicker();if(state)await putProject(clone(state));state=null;showScreen("start");await refreshRecent()});
+const openHelp=()=>{$("helpModal").classList.remove("hidden");$("closeHelp").focus()};
+const closeHelp=()=>{$("helpModal").classList.add("hidden");$("openHelp").focus()};
+$("openHelp").addEventListener("click",openHelp);
+$("closeHelp").addEventListener("click",closeHelp);
+$("doneHelp").addEventListener("click",closeHelp);
+$("helpModal").addEventListener("click",event=>{if(event.target===$("helpModal"))closeHelp()});
 $("mobilePreviewBtn").addEventListener("click",openMobilePreview);$("closeMobilePreview").addEventListener("click",closeMobilePreview);$("closeMobilePreviewFooter").addEventListener("click",closeMobilePreview);$("runAiThumbnailCriticFromStudio").addEventListener("click",()=>{activateRail("ai");runAiThumbnailCritic()});
 $("basicTools").addEventListener("click",e=>{if(activeTool!=="crop")return;const control=e.target.closest("button,input,select");if(control&&control.id!=="cropBtn"&&control.id!=="cropToSelection")cancelCrop()},true);document.querySelectorAll(".rail-btn").forEach(b=>b.addEventListener("click",()=>activateRail(b.dataset.rail)));document.querySelectorAll(".right-tabs button").forEach(b=>b.addEventListener("click",()=>selectTab(b.dataset.tab)));
-window.addEventListener("keydown",e=>{const target=e.target,editing=target instanceof HTMLElement&&(target.isContentEditable||["INPUT","TEXTAREA","SELECT"].includes(target.tagName));if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="a"&&!editing&&state){e.preventDefault();setLayerSelection(state.layers.map(layer=>layer.id),state.layers.at(-1)?.id||null);return}if(e.key==="Escape"){if(!$("deleteProjectModal").classList.contains("hidden")){closeDeleteProjectModal();return}if(activeTool==="crop"){e.preventDefault();cancelCrop();return}if(!$("templatePickerModal").classList.contains("hidden"))closeTemplatePicker();if(!$("mobilePreviewModal").classList.contains("hidden"))closeMobilePreview()}if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="z"){e.preventDefault();e.shiftKey?redo():undo()}if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="y"){e.preventDefault();redo()}});
+window.addEventListener("keydown",e=>{const target=e.target,editing=target instanceof HTMLElement&&(target.isContentEditable||["INPUT","TEXTAREA","SELECT"].includes(target.tagName));if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="a"&&!editing&&state){e.preventDefault();setLayerSelection(state.layers.map(layer=>layer.id),state.layers.at(-1)?.id||null);return}if(e.key==="Escape"){if(!$("helpModal").classList.contains("hidden")){closeHelp();return}if(!$("deleteProjectModal").classList.contains("hidden")){closeDeleteProjectModal();return}if(activeTool==="crop"){e.preventDefault();cancelCrop();return}if(!$("templatePickerModal").classList.contains("hidden"))closeTemplatePicker();if(!$("mobilePreviewModal").classList.contains("hidden"))closeMobilePreview()}if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="z"){e.preventDefault();e.shiftKey?redo():undo()}if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="y"){e.preventDefault();redo()}});
 window.addEventListener("resize",()=>{if(state&&autoFitZoom)fitZoom();updateSelectionOverlay()});
 async function boot(){try{setupToolGroups();await authReady;if(!auth?.currentUser){const next=location.href;location.replace("../auth/login.html?next="+encodeURIComponent(next));return}db=await openDB();const projectId=new URLSearchParams(location.search).get("id");if(projectId){await openExisting(projectId)}else{showScreen("start");await refreshRecent()}}catch(e){showScreen("start");$("recentGrid").innerHTML='<div class="empty-state">Could not open Photo Editor: '+String(e.message||"Please refresh and try again.")+'</div>';toast(e.message||"Photo Editor could not start")}}
 boot();
