@@ -178,7 +178,13 @@ function fieldChange(e){
  }else if(["channelDescription","tagline"].includes(key)){
   clearGeneratedBranding();
  }
- if(["channelName","brandName","channelDescription","tagline"].includes(key))renderImages();
+ if(["channelName","brandName","channelDescription","tagline"].includes(key)){
+  ["logoPrompt","bannerPrompt"].forEach(promptKey=>{
+   const promptField=$("field-"+promptKey);
+   if(promptField){promptField.value="";promptField.disabled=true}
+  });
+  renderImages();
+ }
  if(key==="logoPrompt"||key==="bannerPrompt"){
   active.fields.brandPromptsReady=!!(String(active.fields.logoPrompt||"").trim()&&String(active.fields.bannerPrompt||"").trim());
   if(key==="logoPrompt"){
@@ -616,8 +622,8 @@ async function composeLogoImage(source){
 }
 function getBrandTagline(){
  const obj=parseJson(active.reports[1]||"");
- const raw=obj&&typeof obj.tagline==="string"?obj.tagline:"";
- return raw.trim().slice(0,95);
+ const raw=active.fields.tagline||(obj&&typeof obj.tagline==="string"?obj.tagline:"");
+ return String(raw||"").trim().slice(0,95);
 }
 function fitCanvasText(ctx,text,maxWidth,startSize,minSize){
  let size=startSize;
