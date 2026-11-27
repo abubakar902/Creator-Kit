@@ -23,3 +23,16 @@ CREATE TABLE IF NOT EXISTS admin_audit_log (
  action TEXT NOT NULL, details_json TEXT NOT NULL DEFAULT '{}', created_at INTEGER NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_admin_audit_created ON admin_audit_log(created_at);
+
+-- Minimal per-user analytics: successful tool action names and timestamps only.
+-- Never store prompts, generated content, media, tokens, or uploaded file details.
+CREATE TABLE IF NOT EXISTS user_activity (
+ id TEXT PRIMARY KEY,
+ uid TEXT NOT NULL REFERENCES users(uid) ON DELETE CASCADE,
+ action TEXT NOT NULL,
+ created_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_user_activity_uid_created
+ ON user_activity(uid, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_user_activity_uid_action_created
+ ON user_activity(uid, action, created_at DESC);
