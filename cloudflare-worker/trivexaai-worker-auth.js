@@ -527,10 +527,17 @@ Use the uploaded reference photo as the exact same person, not a lookalike. Pres
           { method: "POST", body: form }
         );
 
+        // Creator Intelligence branding uses the higher-quality 9B model.
+        // All other image tools keep their existing 4B model unchanged.
+        const imageModel =
+          body.toolId === "creator-intelligence-studio"
+            ? "@cf/black-forest-labs/flux-2-klein-9b"
+            : "@cf/black-forest-labs/flux-2-klein-4b";
+
         let result;
         try {
           result = await env.AI.run(
-            "@cf/black-forest-labs/flux-2-klein-4b",
+            imageModel,
             {
               multipart: {
                 body: formRequest.body,
