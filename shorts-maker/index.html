@@ -274,7 +274,7 @@ async function createShortClip(item,index,card,button){
  if(clipSeconds>65){setAnalysis('This first export version is optimized for clips up to about 60 seconds. Please choose a shorter highlight.',0,true);return false;}
  exportBusy=true;button.disabled=true;button.textContent='Preparing lightweight export…';
  const status=document.createElement('div');status.className='clip-status';status.textContent='Preparing local export…';button.insertAdjacentElement('afterend',status);const cancelButton=document.createElement('button');cancelButton.type='button';cancelButton.className='clip-create';cancelButton.textContent='Cancel export';cancelButton.style.cssText='margin:6px 0 10px;padding:7px 12px;font-size:11px';status.insertAdjacentElement('afterend',cancelButton);cancelButton.addEventListener('click',()=>{if(cancelCurrentExport)cancelCurrentExport();});
- let media=null,sourceStream=null,canvasStream=null,recorder=null,raf=0,mediaUrl=null,finished=false;
+ let media=null,audioContext=null,audioDestination=null,mediaSource=null,canvasStream=null,recorder=null,raf=0,mediaUrl=null,finished=false;
  try{
   media=document.createElement('video');media.preload='metadata';media.playsInline=true;media.muted=false;
   mediaUrl=URL.createObjectURL(currentProject.video);media.src=mediaUrl;
@@ -282,9 +282,16 @@ async function createShortClip(item,index,card,button){
   // A smaller 9:16 canvas and 24 fps reduce CPU/GPU pressure on ordinary computers.
   const width=540,height=960,fps=24,canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;
   const ctx=canvas.getContext('2d',{alpha:false,desynchronized:true});if(!ctx)throw new Error('Could not start the video renderer.');
-  sourceStream=media.captureStream?media.captureStream():(media.mozCaptureStream?media.mozCaptureStream():null);
-  if(!sourceStream)throw new Error('This browser cannot capture video for export. Please use the latest Chrome or Edge.');
-  canvasStream=canvas.captureStream(fps);const audioTracks=sourceStream.getAudioTracks().filter(track=>track.readyState==='live'&&track.enabled);audioTracks.forEach(track=>canvasStream.addTrack(track));
+  const AudioContextClass=window.AudioContext||window.webkitAudioContext;
+  if(AudioContextClass){
+   // Route source audio into the export stream only. Do not connect it to speakers,
+   // so preparing/exporting a Short stays silent while the downloaded file keeps audio.
+   audioContext=new AudioContextClass();audioDestination=audioContext.createMediaStreamDestination();
+   mediaSource=audioContext.createMediaElementSource(media);mediaSource.connect(audioDestination);
+  }
+  canvasStream=canvas.captureStream(fps);
+  const audioTracks=audioDestination?audioDestination.stream.getAudioTracks().filter(track=>track.readyState==='live'&&track.enabled):[];
+  audioTracks.forEach(track=>canvasStream.addTrack(track));
   // Prefer MP4 when the browser truly supports it; otherwise use widely supported WebM.
   const chosen=compatibility.supported;
   if(!chosen)throw new Error('This browser does not support MP4 or WebM recording. Please update Chrome or Edge.');
@@ -327,7 +334,7 @@ async function createShortClip(item,index,card,button){
   // Follow presented video frames where supported to reduce visual/audio timing drift.
   draw(performance.now());
   // Emit data every second rather than holding one large recording chunk.
-  recorder.start(1000);await media.play();
+  recorder.start(1000);if(audioContext&&audioContext.state==='suspended')await audioContext.resume();await media.play();
   status.textContent='Exporting '+chosen.ext.toUpperCase()+' locally… 0%'+(audioTracks.length?'':' • source has no audio track');
   await new Promise((resolve,reject)=>{
    let done=false;const maxWait=Math.max(60000,clipSeconds*3500);
@@ -356,8 +363,9 @@ async function createShortClip(item,index,card,button){
   finished=true;cancelCurrentExport=null;cancelButton.remove();cancelAnimationFrame(raf);
   if(recorder&&recorder.state!=='inactive'){try{recorder.stop();}catch(e){}}
   if(canvasStream)canvasStream.getTracks().forEach(t=>t.stop());
-  if(sourceStream)sourceStream.getTracks().forEach(t=>t.stop());
+  if(audioDestination)audioDestination.stream.getTracks().forEach(t=>t.stop());
   if(media){media.pause();media.removeAttribute('src');media.load();}
+  if(audioContext){try{await audioContext.close();}catch(e){}}
   if(mediaUrl){try{URL.revokeObjectURL(mediaUrl);}catch(e){}}
   button.disabled=false;exportBusy=false;
  }
