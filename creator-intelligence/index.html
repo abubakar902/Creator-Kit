@@ -195,6 +195,7 @@ function fieldChange(e){
   renderImages();
  }
  save();
+ if(key==="tagline"&&e.type==="change"&&active.images.bannerSource)refreshSavedBannerTypography();
  if(active.mode==="new"&&step===1)syncIdentityContinue();
  if(active.mode==="new"&&step===2){buildButtons();syncBrandContinue()}
 }
@@ -818,6 +819,17 @@ async function composeYouTubeBanner(backgroundSource,logoSource){
  ctx.fillStyle="rgba(238,225,255,.82)";ctx.font="700 22px Inter, Arial, sans-serif";
  ctx.fillText(String(active.fields.chosenNiche||"").toUpperCase().slice(0,60),textX,900);
  return canvas.toDataURL("image/jpeg",.92);
+}
+async function refreshSavedBannerTypography(){
+ if(!active||!active.images.bannerSource)return;
+ try{
+  active.images.banner=await composeYouTubeBanner(active.images.bannerSource,active.images.logo||null);
+  save();
+  renderImages();
+  setChannelDetailsStatus("Your updated tagline has been applied to the existing banner without changing its artwork.");
+ }catch(error){
+  setChannelDetailsStatus(error.message||"Could not refresh the banner text.",true);
+ }
 }
 async function makeImage(kind){
  if(busy)return;
