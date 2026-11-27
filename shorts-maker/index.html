@@ -295,7 +295,7 @@ async function createShortClip(item,index,card,button){
    recorder.onerror=e=>reject(e.error||new Error('Video recording failed.'));
    recorder.onstop=()=>resolve(new Blob(chunks,{type:recorder.mimeType||chosen.mime}));
   });
-  let lastDraw=0,videoFrameId=0;
+  let lastDraw=0;
   const draw=now=>{
    if(!media||finished)return;
    if(media.readyState>=2&&now-lastDraw>=1000/fps){
@@ -318,11 +318,10 @@ async function createShortClip(item,index,card,button){
      }
     }
    }
-   if(typeof media.requestVideoFrameCallback==='function'){
-    videoFrameId=media.requestVideoFrameCallback(timestamp=>draw(timestamp));
-   }else{
-    raf=requestAnimationFrame(draw);
-   }
+   // Keep canvas rendering on its own animation loop. Some Chrome decoders stop
+   // delivering requestVideoFrameCallback events during local MediaRecorder exports;
+   // that can leave the audio running while the recorded picture freezes.
+   raf=requestAnimationFrame(draw);
   };
   await seekMedia(media,start);
   // Follow presented video frames where supported to reduce visual/audio timing drift.
@@ -354,7 +353,7 @@ async function createShortClip(item,index,card,button){
   cancelButton.remove();status.textContent=e.message||'Could not export this Short.';status.style.color='#ffc2cf';button.textContent='Retry creating Short';
   return false;
  }finally{
-  finished=true;cancelCurrentExport=null;cancelButton.remove();cancelAnimationFrame(raf);if(videoFrameId&&media&&typeof media.cancelVideoFrameCallback==='function'){try{media.cancelVideoFrameCallback(videoFrameId);}catch(e){}}
+  finished=true;cancelCurrentExport=null;cancelButton.remove();cancelAnimationFrame(raf);
   if(recorder&&recorder.state!=='inactive'){try{recorder.stop();}catch(e){}}
   if(canvasStream)canvasStream.getTracks().forEach(t=>t.stop());
   if(sourceStream)sourceStream.getTracks().forEach(t=>t.stop());
