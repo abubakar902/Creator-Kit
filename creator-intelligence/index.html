@@ -47,12 +47,12 @@ input,textarea,select{width:100%;border:1px solid #4a385f;border-radius:10px;pad
 import {auth,authReady,workerRequest} from "../auth/auth-client.js";
 const $=id=>document.getElementById(id),KEY="trivexaai-creator-intelligence-v1",TOOL="creator-intelligence-studio";
 const modes={new:{name:"Start a New Channel",icon:"🌱",subtitle:"Build a channel identity from the ground up.",steps:["Creator Profile","Niche & Identity","Logo & Banner","First Video"]},build:{name:"Build My Channel",icon:"🧭",subtitle:"Turn your idea into a focused content system.",steps:["Channel Concept","Content Strategy","Thumbnail Lab","Action Plan"]},grow:{name:"Grow My Channel",icon:"📈",subtitle:"Find opportunities and improve your publishing strategy.",steps:["Channel Audit","Growth Ideas","Packaging Lab","30-Day Roadmap"]}};
-const copy={new:[["Tell us about your interests","Share your skills, audience and preferred video style so AI can suggest suitable niches."],["Choose a niche and channel identity","Explore channel names, positioning, description and repeatable content pillars."],["Create your channel brand","Prepare logo and banner prompts, then generate visual concepts."],["Plan your first video","Turn one topic into a hook, video outline, recording guide and upload checklist."]],build:[["Describe your channel concept","Explain what your channel is about and who it serves."],["Build a repeatable content strategy","Find content pillars, original topics, series and title directions."],["Design stronger video packaging","Create a thumbnail concept that communicates one clear idea."],["Build your creator action plan","Turn your strategy into a realistic publishing and production plan."]],grow:[["Share your channel context","Add a channel URL or describe your content and recent uploads."],["Find growth opportunities","Identify potential gaps, topic directions and experiments worth testing."],["Improve titles and thumbnails","Build accurate, compelling packaging for upcoming uploads."],["Create a 30-day roadmap","Choose focused actions for your next month of publishing and learning."]]};
+const copy={new:[["Tell us about your interests","Share your skills, audience and preferred video style so AI can suggest suitable niches."],["Choose your niche and channel identity","AI will recommend channel names, positioning, description and repeatable content pillars for your selected niche."],["Create your channel brand","Let AI prepare both prompts, then generate your logo and banner separately."],["Plan your first video","Turn one topic into a hook, video outline, recording guide and upload checklist."]],build:[["Describe your channel concept","Explain what your channel is about and who it serves."],["Build a repeatable content strategy","Find content pillars, original topics, series and title directions."],["Design stronger video packaging","Create a thumbnail concept that communicates one clear idea."],["Build your creator action plan","Turn your strategy into a realistic publishing and production plan."]],grow:[["Share your channel context","Add a channel URL or describe your content and recent uploads."],["Find growth opportunities","Identify potential gaps, topic directions and experiments worth testing."],["Improve titles and thumbnails","Build accurate, compelling packaging for upcoming uploads."],["Create a 30-day roadmap","Choose focused actions for your next month of publishing and learning."]]};
 const forms={
 new:[
 [["interests","Your interests and topics","textarea","Example: technology, football, education, gaming, storytelling…"],["skills","Your skills or experience","textarea","What do you know or enjoy doing?"],["audience","Who would you like to help or entertain?","text","Example: students, beginners, sports fans…"],["language","Main content language","select",["English","Urdu","Roman Urdu","Hindi","English and Urdu","Other / undecided"]],["format","Preferred video style","select",["On-camera videos","Faceless videos with voiceover","Screen recordings and tutorials","Animation or visual storytelling","Shorts and long-form mix","Not sure yet"]],["goal","Your main goal","select",["Teach and help people","Entertainment and storytelling","Build a personal brand","Build a business or community","Explore a creative passion"]]],
-[["chosenNiche","Your selected niche","text","Choose one from your report or write your own"],["brandName","Your chosen channel name","text","Your channel name"]],
-[["logoPrompt","Logo image prompt","textarea","Prepare a logo prompt or generate one below"],["bannerPrompt","YouTube banner image prompt","textarea","Prepare a banner prompt or generate one below"]],
+[["chosenNiche","Your selected niche","text","The niche you selected in the previous step"]],
+[] ,
 [["firstVideoTopic","First video topic","textarea","Choose a topic from your report or enter your own"],["videoLength","Preferred video length","select",["3–5 minutes","6–8 minutes","8–12 minutes","12–18 minutes","Shorts under 60 seconds"]],["videoStyle","Production style","select",["Talking to camera","Voiceover with visuals","Screen recording tutorial","Animation or story format","Short-form vertical video"]]]
 ],
 build:[
@@ -77,9 +77,26 @@ function start(mode){active=make(mode);saved.unshift(active);step=0;drawWorkspac
 function field(config){const key=config[0],wrap=document.createElement("div"),label=document.createElement("label");wrap.className="field"+(config[2]==="textarea"?" full":"");label.textContent=config[1];label.htmlFor="field-"+key;wrap.append(label);let el;if(config[2]==="textarea"){el=document.createElement("textarea");el.placeholder=config[3]}else if(config[2]==="select"){el=document.createElement("select");config[3].forEach(v=>{const o=document.createElement("option");o.value=v;o.textContent=v;el.append(o)})}else{el=document.createElement("input");el.placeholder=config[3]}el.id="field-"+key;el.value=active.fields[key]||"";el.dataset.field=key;el.addEventListener("input",fieldChange);el.addEventListener("change",fieldChange);wrap.append(el);return wrap}
 function fieldChange(e){active.fields[e.target.dataset.field]=e.target.value;if(["brandName","channelName"].includes(e.target.dataset.field))$("wName").textContent=e.target.value||modes[active.mode].name+" Workspace";save()}
 function drawWorkspace(){screen("work");const meta=modes[active.mode];$("wIcon").textContent=meta.icon;$("wName").textContent=active.fields.brandName||active.fields.channelName||meta.name+" Workspace";$("wSubtitle").textContent=meta.subtitle;const root=$("steps");root.replaceChildren();meta.steps.forEach((name,i)=>{const b=document.createElement("button");b.type="button";b.className="step"+(i===step?" active":"");const num=document.createElement("span");num.className="num";num.textContent=String(i+1);const box=document.createElement("span"),strong=document.createElement("strong"),small=document.createElement("small");strong.textContent=name;small.textContent="Stage "+(i+1)+" of 4";box.append(strong,small);b.append(num,box);b.addEventListener("click",()=>showStep(i));root.append(b)});showStep(step)}
-function showStep(n){step=Math.max(0,Math.min(3,n));const meta=modes[active.mode],c=copy[active.mode][step];$("stageKicker").textContent="STAGE 0"+(step+1)+" · "+meta.steps[step].toUpperCase();$("stageTitle").textContent=c[0];$("stageIntro").textContent=c[1];const root=$("fields");root.replaceChildren();forms[active.mode][step].forEach(cfg=>root.append(field(cfg)));$("stageNote").textContent=active.mode==="grow"&&step===0?"V1 uses only information you provide. It does not claim to open your channel URL or read private YouTube Analytics.":step===2?"Generated image files are not stored inside local workspace data. Download each image to keep a copy; prompts and written reports are saved locally.":"Your workspace is saved locally on this browser and device. AI recommendations are guidance, not guaranteed growth results.";buildButtons();$("resultTitle").textContent=meta.steps[step]+" Report";if(active.reports[step]){renderReport(active.reports[step]);$("result").classList.add("show")}else{$("result").classList.remove("show")}renderImages();$("prev").disabled=step===0;$("next").textContent=step===3?"Back to journeys":"Continue →";$("stageStatus").textContent="";$("stageStatus").classList.remove("error");$("steps").querySelectorAll(".step").forEach((b,i)=>b.classList.toggle("active",i===step))}
+function showStep(n){step=Math.max(0,Math.min(3,n));const meta=modes[active.mode],c=copy[active.mode][step];$("stageKicker").textContent="STAGE 0"+(step+1)+" · "+meta.steps[step].toUpperCase();$("stageTitle").textContent=c[0];$("stageIntro").textContent=c[1];const root=$("fields");root.replaceChildren();forms[active.mode][step].forEach(cfg=>root.append(field(cfg)));$("stageNote").textContent=active.mode==="grow"&&step===0?"V1 uses only information you provide. It does not claim to open your channel URL or read private YouTube Analytics.":step===2?"Generated image files are not stored inside local workspace data. Download each image to keep a copy; prompts and written reports are saved locally.":"Your workspace is saved locally on this browser and device. AI recommendations are guidance, not guaranteed growth results.";buildButtons();const hideBrandReport=active.mode==="new"&&step===2;$("resultTitle").textContent=meta.steps[step]+" Report";if(!hideBrandReport&&active.reports[step]){renderReport(active.reports[step]);$("result").classList.add("show")}else{$("result").classList.remove("show");$("resultBody").replaceChildren()}renderImages();$("prev").disabled=step===0;$("next").textContent=step===3?"Back to journeys":(hideBrandReport?(active.images.logo&&active.images.banner?"Save & Continue →":"Generate both visuals to continue"):"Continue →");$("next").disabled=hideBrandReport&&!(active.images.logo&&active.images.banner);$("stageStatus").textContent="";$("stageStatus").classList.remove("error");$("steps").querySelectorAll(".step").forEach((b,i)=>b.classList.toggle("active",i===step))}
 function addButton(root,text,kind,fn){const b=document.createElement("button");b.type="button";b.className="btn "+kind;b.textContent=text;b.addEventListener("click",fn);root.append(b);return b}
-function buildButtons(){const root=$("stageButtons");root.replaceChildren();addButton(root,step===0?"✦ Analyze my channel":"✦ Generate AI recommendations","primary",generate);if(step===2){if(active.mode==="new"){addButton(root,"Prepare logo & banner prompts","secondary",prepareBrandPrompts);addButton(root,"Generate logo","outline",()=>makeImage("logo"));addButton(root,"Generate banner","outline",()=>makeImage("banner"))}else addButton(root,"Generate thumbnail","secondary",()=>makeImage("thumbnail"))}if(step===3)addButton(root,"Download complete plan","outline",downloadPlan);addButton(root,"Save workspace","outline",save)}
+function buildButtons(){
+ const root=$("stageButtons");
+ root.replaceChildren();
+ const brandStage=active.mode==="new"&&step===2;
+ if(brandStage){
+  const ready=!!(active.fields.logoPrompt&&active.fields.bannerPrompt);
+  addButton(root,ready?"Refresh logo & banner prompts":"Prepare logo & banner prompts","primary",prepareBrandPrompts);
+  const logo=addButton(root,active.images.logo?"Regenerate logo":"Generate logo","outline",()=>makeImage("logo"));
+  const banner=addButton(root,active.images.banner?"Regenerate banner":"Generate banner","outline",()=>makeImage("banner"));
+  logo.disabled=!ready;
+  banner.disabled=!ready;
+ }else{
+  addButton(root,step===0?"✦ Analyze my channel":"✦ Generate AI recommendations","primary",generate);
+  if(step===2)addButton(root,"Generate thumbnail","outline",()=>makeImage("thumbnail"));
+ }
+ if(step===3)addButton(root,"Download complete plan","outline",downloadPlan);
+ addButton(root,"Save workspace","outline",save);
+}
 function renderImages(){const root=$("visuals");root.replaceChildren();Object.entries(active.images||{}).forEach(pair=>{const box=document.createElement("div");box.className="visual";const h=document.createElement("h4");h.textContent="Generated "+pair[0]+" concept";const img=document.createElement("img");img.className="preview show";img.src=pair[1];img.alt=h.textContent;const a=document.createElement("a");a.className="download show";a.href=pair[1];a.download="TrivexaAI-"+pair[0]+"-concept.png";a.textContent="Download image";box.append(h,img,a);root.append(box)})}
 function parseJson(text){let s=String(text).trim();const ticks=String.fromCharCode(96).repeat(3);s=s.replace(new RegExp("^"+ticks+"(?:json)?","i"),"").replace(new RegExp(ticks+"$"),"");const a=s.indexOf("{"),b=s.lastIndexOf("}");if(a<0||b<=a)return null;try{return JSON.parse(s.slice(a,b+1))}catch{return null}}
 function label(k){return k.replace(/([A-Z])/g," $1").replace(/[_-]/g," ").replace(/\s+/g," ").replace(/\b\w/g,c=>c.toUpperCase())}
@@ -89,68 +106,55 @@ function renderNicheNamePicker(root,obj){
  const panel=document.createElement("section");
  panel.className="result-section";
  const heading=document.createElement("h4");
- heading.textContent="Choose a real channel name";
+ heading.textContent="Select your niche";
  const intro=document.createElement("p");
- intro.textContent="These are channel brand names, not niche/category labels. Choose one to fill the next step automatically.";
+ intro.textContent="Choose one niche to continue. Your channel name will be recommended by AI in the next step.";
  panel.append(heading,intro);
  let count=0;
  niches.forEach((niche,index)=>{
   if(!niche||typeof niche!=="object")return;
-  const names=Array.isArray(niche.channel_name_ideas)?niche.channel_name_ideas:(Array.isArray(niche.channel_names)?niche.channel_names:(Array.isArray(niche.name_suggestions)?niche.name_suggestions:[]));
-  if(!names.length)return;
+  const nicheName=String(niche.name||"").trim();
+  if(!nicheName)return;
+  count++;
   const card=document.createElement("div");
   card.className="mini";
   const title=document.createElement("b");
-  title.textContent=String(niche.name||("Niche option "+(index+1)))+" — channel name ideas";
+  title.textContent=nicheName;
   card.append(title);
-  names.slice(0,6).forEach((item)=>{
-   const name=typeof item==="string"?item:(item&&typeof item.name==="string"?item.name:(item&&typeof item.channel_name==="string"?item.channel_name:""));
-   if(!name.trim())return;
-   count++;
-   const row=document.createElement("div");
-   row.style.cssText="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--line)";
-   const label=document.createElement("span");
-   label.textContent=name;
-   label.style.cssText="font-size:11px;color:var(--text);font-weight:750";
-   const button=document.createElement("button");
-   button.type="button";
-   button.className="btn outline";
-   button.textContent="Use this name";
-   button.addEventListener("click",()=>{
-    active.fields.chosenNiche=String(niche.name||"");
-    active.fields.brandName=name.trim();
-    active.fields.channelName=name.trim();
-    save();
-    showStep(1);
-    setStatus("Selected "+name.trim()+". Your niche and channel name are now filled in the next step.",false);
-   });
-   row.append(label,button);
-   card.append(row);
+  if(niche.audience){const audience=document.createElement("p");audience.textContent="Audience: "+String(niche.audience);card.append(audience)}
+  const button=document.createElement("button");
+  button.type="button";
+  button.className="btn outline";
+  button.textContent="Use this niche";
+  button.style.marginTop="9px";
+  button.addEventListener("click",()=>{
+   active.fields.chosenNiche=nicheName;
+   active.fields.brandName="";
+   active.fields.channelName="";
+   save();
+   showStep(1);
+   setStatus("Niche selected. Generate the AI recommendation in this step to get channel name ideas.",false);
   });
+  card.append(button);
   panel.append(card);
  });
- if(!count){
-  const fallback=Array.isArray(obj.channel_name_ideas)?obj.channel_name_ideas:[];
-  fallback.slice(0,8).forEach(item=>{
-   const name=typeof item==="string"?item:(item&&item.name?String(item.name):"");
-   if(!name.trim())return;
-   count++;
-   const button=document.createElement("button");
-   button.type="button";
-   button.className="btn outline";
-   button.textContent="Use "+name.trim();
-   button.addEventListener("click",()=>{
-    active.fields.chosenNiche=String(obj.recommended_niche||"");
-    active.fields.brandName=name.trim();
-    active.fields.channelName=name.trim();
-    save();
-    showStep(1);
-    setStatus("Selected "+name.trim()+". Your channel name is filled in the next step.",false);
-   });
-   panel.append(button);
+ if(!count&&obj.recommended_niche){
+  const name=String(obj.recommended_niche).trim();
+  const button=document.createElement("button");
+  button.type="button";
+  button.className="btn outline";
+  button.textContent="Use "+name;
+  button.addEventListener("click",()=>{
+   active.fields.chosenNiche=name;
+   active.fields.brandName="";
+   active.fields.channelName="";
+   save();
+   showStep(1);
+   setStatus("Niche selected. Generate the AI recommendation to get channel name ideas.",false);
   });
+  panel.append(button);
  }
- if(count)root.append(panel);
+ if(count||obj.recommended_niche)root.append(panel);
 }
 function renderReport(text){
  const root=$("resultBody");
@@ -170,7 +174,7 @@ function renderReport(text){
 }
 function promptForStep(){const f=active.fields,context=JSON.stringify(f).slice(0,2050),common="You are TrivexaAI Creator Intelligence Studio, a practical YouTube channel strategist and production guide. Give original, realistic, specific recommendations. Never promise virality, views, subscribers, rankings or revenue. Do not invent channel statistics or claim external research. Respect the creator's skills and time. Return ONLY valid JSON. ";
 const tasks={
-new:["Suggest 3 to 5 suitable YouTube niches for this first-time creator. Evaluate fit, sustainable content supply, differentiation and practical competition. IMPORTANT: a niche name is NOT a YouTube channel name. For EVERY niche, generate exactly 5 distinct, memorable, usable YouTube CHANNEL BRAND NAME ideas. These must sound like real channel names, not category labels such as Tech, Gaming or Education. Make names specific to the niche, easy to say and remember, varied in style, and avoid imitating known brands. Mark the strongest suggestion for each niche. JSON keys: creator_fit_summary, recommended_niche, recommended_channel_name, niches array (name, audience, why_it_fits, differentiation, competition_level, best_channel_name, channel_name_ideas array of 5 actual brand/channel names, content_opportunities array, sample_video_ideas array), watch_out_for array, first_30_days array. Do not put niche/category words alone in channel_name_ideas.",
+new:["Suggest 3 to 5 suitable YouTube niches for this first-time creator. Focus ONLY on niche discovery and selection. Do NOT suggest channel names, brand names, logos or banners in this stage. Evaluate fit, sustainable content supply, differentiation and practical competition. Give each niche a clear name, audience, fit explanation, differentiation, competition level, content opportunities and sample video ideas. JSON keys: creator_fit_summary, recommended_niche, niches array (name, audience, why_it_fits, differentiation, competition_level, content_opportunities array, sample_video_ideas array), watch_out_for array, first_30_days array.",
 "Create the identity for the selected niche. Suggest 8 original channel names, a recommended name, tagline, channel description, positioning, brand personality, 4 to 6 content pillars and repeatable series. JSON keys: recommended_name, name_options array, tagline, channel_description, positioning, brand_personality, content_pillars array, repeatable_series array. Do not imitate existing brands.",
 "Create a channel visual identity brief. JSON keys: visual_direction, color_palette array, logo_prompt, banner_prompt, design_rules array, text_safe_area_note. Prompts must be detailed English image prompts for original branding. Avoid copied trademarks and require a clear empty safe area for editable text.",
 "Create the first-video launch blueprint. JSON keys: recommended_first_topic, title_options array, strongest_title, opening_hook, video_promise, outline array (section, purpose), sample_script, shot_and_visual_list array, recording_guide array, editing_checklist array, thumbnail_direction, description_draft, upload_checklist array, next_three_videos array. Make it achievable for a beginner."],
@@ -186,12 +190,12 @@ return (common+"TASK: "+tasks[active.mode][step]+"\\nCREATOR CONTEXT (user suppl
 async function ai(prompt){const data=await workerRequest({action:"creator_intelligence_generate",toolId:TOOL,prompt:prompt});if(!data||typeof data.text!=="string"||!data.text.trim())throw new Error("The AI returned an empty response. Please try again.");return data.text.trim()}
 function setStatus(text,error){$("stageStatus").textContent=text;$("stageStatus").classList.toggle("error",!!error)}
 async function generate(){if(busy)return;const f=active.fields;if(step===0&&active.mode==="new"&&!f.interests.trim()){setStatus("Add a few interests first.",true);return}if(step===0&&active.mode==="build"&&!f.concept.trim()){setStatus("Describe your channel concept first.",true);return}if(step===0&&active.mode==="grow"&&!f.channelDescription.trim()&&!f.channelUrl.trim()){setStatus("Add your channel URL or a short description first.",true);return}busy=true;const b=$("stageButtons").querySelector(".primary");b.disabled=true;b.textContent="Preparing your AI report…";setStatus("Analyzing your information and preparing recommendations…");try{const text=await ai(promptForStep());active.reports[step]=text;const obj=parseJson(text);if(active.mode==="new"&&step===1&&obj&&obj.recommended_name){active.fields.brandName=String(obj.recommended_name);active.fields.channelName=String(obj.recommended_name)}if(active.mode==="new"&&step===2&&obj){if(obj.logo_prompt)active.fields.logoPrompt=String(obj.logo_prompt);if(obj.banner_prompt)active.fields.bannerPrompt=String(obj.banner_prompt)}if(active.mode!=="new"&&step===2&&obj){const list=obj.thumbnail_concepts||obj.title_options||[];if(list[0]&&list[0].image_prompt)active.fields.thumbnailPrompt=String(list[0].image_prompt)}save();drawWorkspace();setStatus("Your AI report is ready. Review the recommendations and continue when ready.")}catch(e){setStatus(e.message||"AI request failed. Please try again.",true)}finally{busy=false}}
-async function prepareBrandPrompts(){if(busy)return;busy=true;setStatus("Preparing matching logo and banner prompts…");try{const f=active.fields,p="As a YouTube brand designer, return ONLY valid JSON with logo_prompt and banner_prompt. Create an original square logo prompt and professional wide banner prompt with a clear central safe area. Use English. No copied trademarks. Channel: "+(f.brandName||f.channelName||"New Channel")+". Niche: "+(f.chosenNiche||f.interests||"not specified")+". Audience: "+(f.audience||"not specified")+". Strategy: "+String(active.reports[1]||"").slice(0,650);const obj=parseJson(await ai(p.slice(0,3900)));if(!obj||!obj.logo_prompt||!obj.banner_prompt)throw new Error("The AI did not return both prompts. Try again.");active.fields.logoPrompt=String(obj.logo_prompt);active.fields.bannerPrompt=String(obj.banner_prompt);save();drawWorkspace();setStatus("Both prompts are ready. Review them before generating images.")}catch(e){setStatus(e.message||"Prompt preparation failed.",true)}finally{busy=false}}
+async function prepareBrandPrompts(){if(busy)return;busy=true;setStatus("AI is preparing your logo and banner prompts…");try{const f=active.fields,p="As a professional YouTube brand designer, return ONLY valid JSON with exactly two keys: logo_prompt and banner_prompt. Both values must be complete, detailed English image-generation prompts. Create an original square 1:1 channel logo and a professional wide YouTube banner with the correct central text-safe area. Match the same visual identity, colors and theme across both. Do not include a report, explanation, summary or any other keys. Do not copy trademarks. Channel name: "+(f.brandName||f.channelName||"New Channel")+". Selected niche: "+(f.chosenNiche||"not specified")+". Audience: "+(f.audience||"not specified")+". Channel strategy: "+String(active.reports[1]||"").slice(0,650);const obj=parseJson(await ai(p.slice(0,3900)));if(!obj||!obj.logo_prompt||!obj.banner_prompt)throw new Error("The AI did not return both prompts. Try again.");active.fields.logoPrompt=String(obj.logo_prompt);active.fields.bannerPrompt=String(obj.banner_prompt);delete active.reports[2];save();drawWorkspace();setStatus("Both AI prompts are ready. You can now generate your logo and banner separately.")}catch(e){setStatus(e.message||"Prompt preparation failed.",true)}finally{busy=false}}
 function imagePrompt(kind){const f=active.fields,n=f.brandName||f.channelName||"the channel",topic=f.chosenNiche||f.niche||f.concept||f.interests||"the channel topic";if(kind==="logo")return "Create an original distinctive logo for YouTube channel "+n+". Niche: "+topic+". Simple memorable emblem, polished geometry, high contrast, premium creator identity, centered square 1:1 composition, clean background, no mockup, no watermark, no copied trademarks.";if(kind==="banner")return "Create premium wide YouTube channel banner art for "+n+". Niche: "+topic+". Wide landscape, coherent brand colors, clear central safe area for editable channel name and tagline, polished professional identity, no watermark or copied logos.";return "Create a professional 16:9 YouTube thumbnail concept for "+(f.nextTopic||f.firstVideoTopic||f.concept||topic)+". Audience: "+(f.audience||"target viewers")+". One clear focal subject, strong contrast, expressive but credible emotion, negative space for editable headline text, polished creator artwork, no watermark."}
-async function makeImage(kind){if(busy)return;busy=true;setStatus("Generating "+kind+" visual concept…");try{const key=kind==="logo"?"logoPrompt":kind==="banner"?"bannerPrompt":"thumbnailPrompt",prompt=active.fields[key]||imagePrompt(kind);active.fields[key]=prompt;const data=await workerRequest({action:"generate_image",toolId:TOOL,prompt:prompt.slice(0,1350)});const image=data.image||(data.result&&data.result.image)||(data.result&&data.result.images&&data.result.images[0])||(data.images&&data.images[0]);if(typeof image!=="string"||!image)throw new Error(data.error||"The image service returned no usable image.");active.images[kind]=image.indexOf("data:")===0?image:"data:image/png;base64,"+image;save();renderImages();setStatus("Your visual concept is ready. Download it below to keep a copy.")}catch(e){setStatus(e.message||"Image generation failed.",true)}finally{busy=false}}
+async function makeImage(kind){if(busy)return;const key=kind==="logo"?"logoPrompt":kind==="banner"?"bannerPrompt":"thumbnailPrompt";if(active.mode==="new"&&step===2&&(kind==="logo"||kind==="banner")&&!active.fields[key]){setStatus("Prepare both AI prompts before generating the logo or banner.",true);return}busy=true;setStatus("Generating "+kind+" visual concept…");try{const prompt=active.fields[key]||imagePrompt(kind);active.fields[key]=prompt;const data=await workerRequest({action:"generate_image",toolId:TOOL,prompt:prompt.slice(0,1350)});const image=data.image||(data.result&&data.result.image)||(data.result&&data.result.images&&data.result.images[0])||(data.images&&data.images[0]);if(typeof image!=="string"||!image)throw new Error(data.error||"The image service returned no usable image.");active.images[kind]=image.indexOf("data:")===0?image:"data:image/png;base64,"+image;save();renderImages();if(active.mode==="new"&&step===2){buildButtons();$("next").disabled=!(active.images.logo&&active.images.banner);$("next").textContent=active.images.logo&&active.images.banner?"Save & Continue →":"Generate both visuals to continue"}setStatus("Your visual concept is ready. Download it below to keep a copy.")}catch(e){setStatus(e.message||"Image generation failed.",true)}finally{busy=false}}
 function downloadPlan(){const title=active.fields.brandName||active.fields.channelName||modes[active.mode].name,body="TRIVEXAAI CREATOR INTELLIGENCE STUDIO\\n"+title+"\\nMode: "+modes[active.mode].name+"\\n\\n"+Object.entries(active.reports).map(x=>"STAGE "+(Number(x[0])+1)+"\\n"+x[1]).join("\\n\\n--------------------\\n\\n"),url=URL.createObjectURL(new Blob([body],{type:"text/plain;charset=utf-8"})),a=document.createElement("a");a.href=url;a.download="TrivexaAI-Creator-Plan.txt";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
 document.querySelectorAll("[data-mode]").forEach(b=>b.addEventListener("click",()=>start(b.dataset.mode)));
-$("prev").addEventListener("click",()=>showStep(step-1));$("next").addEventListener("click",()=>{if(step===3){save();screen("home")}else showStep(step+1)});$("allModes").addEventListener("click",()=>{save();screen("home")});$("newWork").addEventListener("click",()=>{save();screen("home")});$("saveClose").addEventListener("click",()=>{save();screen("home")});
+$("prev").addEventListener("click",()=>showStep(step-1));$("next").addEventListener("click",()=>{if(step===3){save();screen("home")}else{if(active.mode==="new"&&step===2&&!(active.images.logo&&active.images.banner))return;save();showStep(step+1)}});$("allModes").addEventListener("click",()=>{save();screen("home")});$("newWork").addEventListener("click",()=>{save();screen("home")});$("saveClose").addEventListener("click",()=>{save();screen("home")});
 $("copyResult").addEventListener("click",()=>{const text=active.reports[step]||"";if(navigator.clipboard)navigator.clipboard.writeText(text).then(()=>setStatus("Report copied to clipboard.",false)).catch(()=>setStatus("Clipboard access is unavailable.",true));else setStatus("Clipboard access is unavailable.",true)});
 $("clearSaved").addEventListener("click",()=>{if(!saved.length)return;if(!confirm("Clear all Creator Intelligence workspaces saved in this browser?"))return;saved=[];localStorage.removeItem(KEY);listSaved()});
 async function init(){try{await authReady;await workerRequest({action:"creator_intelligence_workspace_access"});$("loading").hidden=true;$("app").hidden=false;try{const data=JSON.parse(localStorage.getItem(KEY)||"[]");saved=Array.isArray(data)?data.filter(x=>x&&modes[x.mode]):[]}catch{saved=[]}listSaved()}catch(e){$("loading").hidden=true;$("blocked").hidden=false;$("blockedTitle").textContent=e.code==="ADVANCED_ACCESS_REQUIRED"?"Advanced Access Required":"Could Not Open Creator Intelligence";$("blockedText").textContent=e.code==="ADVANCED_ACCESS_REQUIRED"?"Your account is signed in, but Creator Intelligence Studio requires Advanced Access approval. Open My Account to review your access status.":e.message||"Please sign in again or contact the TrivexaAI admin."}}
