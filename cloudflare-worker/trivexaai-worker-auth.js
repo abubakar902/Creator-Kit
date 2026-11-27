@@ -3,6 +3,12 @@
 const FIREBASE_CERTS_URL = "https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com";
 let firebaseKeys = null;
 let firebaseKeysExpiry = 0;
+const TRACKED_TOOL_ACTIONS = new Set([
+  "generate_text", "generate_image", "generate_voice", "video_studio",
+  "video_studio_create", "video_studio_export", "video_studio_ai_assistant",
+  "transcribe_audio", "shorts_analyze", "shorts_caption",
+  "ai_editing_assistant", "ai_prompt_writer"
+]);
 const ADVANCED_ACTIONS = new Set([
   "generate_image", "generate_voice", "video_studio", "video_studio_create",
   "video_studio_export", "video_studio_ai_assistant", "transcribe_audio", "shorts_analyze", "shorts_caption", "ai_editing_assistant", "ai_prompt_writer",
@@ -88,6 +94,24 @@ async function accountAction(body, env, user, reply) {
     const allowed = user.status === "active" && (user.role === "admin" || user.advanced_access === "approved");
     if (!allowed) return reply({error:"Premium access is required to open Photo Studio. Please request admin approval.",code:"ADVANCED_ACCESS_REQUIRED",allowed:false},403);
     return reply({allowed:true,workspace:"photo-editor",access:"approved"});
+  }
+  if (a === "dashboard_data") {
+    const since = now - 30 * 86400;
+    await env.TRIVEXA_DB.prepare("DELETE FROM user_activity WHERE created_at < ?").bind(now - 90 * 86400).run();
+    const [totalRow, byAction, recent] = await Promise.all([
+      env.TRIVEXA_DB.prepare("SELECT COUNT(*) AS total FROM user_activity WHERE uid=? AND created_at>=?")
+        .bind(user.uid, since).first(),
+      env.TRIVEXA_DB.prepare("SELECT action,COUNT(*) AS total FROM user_activity WHERE uid=? AND created_at>=? GROUP BY action ORDER BY total DESC LIMIT 8")
+        .bind(user.uid, since).all(),
+      env.TRIVEXA_DB.prepare("SELECT action,created_at FROM user_activity WHERE uid=? ORDER BY created_at DESC LIMIT 10")
+        .bind(user.uid).all()
+    ]);
+    return reply({
+      periodDays: 30,
+      total: Number(totalRow?.total || 0),
+      byAction: byAction.results || [],
+      recent: recent.results || []
+    });
   }
   if (a === "auth_me") return reply({user:safeUser(user),access:{
     basicTools:user.status==="active",
@@ -2248,7 +2272,7 @@ export default {
   // Protect invite-code guessing and sensitive admin mutations. These routes
   // are handled before legacyWorker, so they need their own limiter check.
   const accountActionName=String(body.action||"").toLowerCase();
-  if(env.CREATOR_LIMITER&&(accountActionName==="auth_redeem_invite"||accountActionName.startsWith("admin_"))){
+  if(env.CREATOR_LIMITER&&(accountActionName==="auth_redeem_invite"||accountActionName==="dashboard_data"||accountActionName.startsWith("admin_"))){
    const clientIP=request.headers.get("CF-Connecting-IP")||"unknown";
    try{
     const {success}=await env.CREATOR_LIMITER.limit({key:`auth:${clientIP}:${user.uid}:${accountActionName}`});
@@ -2265,6 +2289,13 @@ export default {
   const forwarded=new Request(request.url,{method:"POST",headers:forwardHeaders,body:JSON.stringify(body)});
   let response;
   try{response=await legacyWorker.fetch(forwarded,env);}catch(e){console.error("Legacy Worker error:",e);return reply({error:"The tool request failed."},500);}
+  // Record successful allowlisted actions only; never persist request payloads.
+  if(response.ok && TRACKED_TOOL_ACTIONS.has(action)){
+   try{
+    await env.TRIVEXA_DB.prepare("INSERT INTO user_activity(id,uid,action,created_at) VALUES(?,?,?,?)")
+     .bind(crypto.randomUUID(),user.uid,action,Math.floor(Date.now()/1000)).run();
+   }catch(e){console.warn("Usage analytics write skipped:",e?.message||e);}
+  }
   const headers=new Headers(response.headers);
   headers.set("Cache-Control","no-store");
   if(origin)headers.set("Access-Control-Allow-Origin",origin);
