@@ -107,12 +107,12 @@ async function readWorkspaceAsset(key){
 async function persistWorkspaceAssets(item){
  if(!item||!item.id)return;
  const images=item.images||{};
- await Promise.all(["logo","banner"].map(kind=>writeWorkspaceAsset(item.id+":"+kind,images[kind]||null)));
+ await Promise.all(["logo","banner","bannerSource"].map(kind=>writeWorkspaceAsset(item.id+":"+kind,images[kind]||null)));
 }
 async function restoreWorkspaceAssets(item){
  if(!item||!item.id)return;
  item.images=item.images||{};
- await Promise.all(["logo","banner"].map(async kind=>{
+ await Promise.all(["logo","banner","bannerSource"].map(async kind=>{
   const image=await readWorkspaceAsset(item.id+":"+kind);
   if(image)item.images[kind]=image;else delete item.images[kind];
  }));
@@ -166,6 +166,7 @@ function clearGeneratedBranding(){
  clearBrandPrompts();
  delete active.images.logo;
  delete active.images.banner;
+ delete active.images.bannerSource;
 }
 function fieldChange(e){
  const key=e.target.dataset.field;
@@ -190,7 +191,7 @@ function fieldChange(e){
  }
  if(key==="logoPrompt"||key==="bannerPrompt"){
   active.fields.brandPromptsReady=!!(String(active.fields.logoPrompt||"").trim()&&String(active.fields.bannerPrompt||"").trim());
-  if(key==="logoPrompt")delete active.images.logo;else delete active.images.banner;
+  if(key==="logoPrompt")delete active.images.logo;else{delete active.images.banner;delete active.images.bannerSource;}
   renderImages();
  }
  save();
@@ -324,6 +325,9 @@ async function regenerateChannelDetail(kind){
   if(!value)value=String(raw).replace(/^\s*["']|["']\s*$/g,"").trim();
   if(!value||value.length<3)throw new Error("AI did not return a usable "+(kind==="tagline"?"tagline":"description")+".");
   active.fields[key]=value.slice(0,1500);
+  if(kind==="tagline"&&active.images.bannerSource){
+   active.images.banner=await composeYouTubeBanner(active.images.bannerSource,active.images.logo||null);
+  }
   const report=parseJson(active.reports[1])||{};
   report[outputKey]=active.fields[key];
   if(kind==="tagline")report.tagline=active.fields.tagline;
@@ -442,7 +446,7 @@ function renderImages(){
  const target=brandStage?null:root;
  if(target){
   const titles={logo:"YouTube Channel Logo",banner:"YouTube Channel Banner",thumbnail:"Generated Thumbnail"};
-  Object.entries(active.images||{}).forEach(pair=>{
+  Object.entries(active.images||{}).filter(pair=>["logo","banner","thumbnail"].includes(pair[0])).forEach(pair=>{
    const box=document.createElement("div");box.className="visual";
    const h=document.createElement("h4");h.textContent=titles[pair[0]]||("Generated "+pair[0]);
    const img=document.createElement("img");img.className="preview show";img.src=pair[1];img.alt=h.textContent;
@@ -844,9 +848,11 @@ async function makeImage(kind){
   const source=image.indexOf("data:")===0?image:"data:image/png;base64,"+image;
   if(kind==="logo"){
    active.images.logo=await composeLogoImage(source);
+   if(active.images.bannerSource)active.images.banner=await composeYouTubeBanner(active.images.bannerSource,active.images.logo);
    save();renderImages();buildButtons();syncBrandContinue();
    setStatus("Your logo with the exact channel name is ready. Your existing YouTube banner has been kept unchanged.");
   }else if(kind==="banner"){
+   active.images.bannerSource=source;
    active.images.banner=await composeYouTubeBanner(source,active.images.logo);
    save();renderImages();buildButtons();syncBrandContinue();
    setStatus("Your YouTube banner is ready at 2560 × 1440 px. The channel name and tagline were added separately, not drawn by the image AI.");
